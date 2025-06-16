@@ -29,7 +29,8 @@ import { HelpTooltip } from '@components/HelpTooltip';
 import { demoFeaturesEnabled } from '@hooks/demoFeaturesEnabled';
 import { useAccount } from '@network/useAccount';
 import { useContracts } from '@network/useContracts';
-import { ColumnLabel, ColumnValue, SummarySection } from '@pages/DashboardPage/Summary';
+import { ColumnLabel, ColumnValue } from '@pages/DashboardPage/Summary';
+import { Card } from '@components/Card/Card';
 
 import { ClaimButton } from './ClaimButton';
 
@@ -260,45 +261,49 @@ export function MyAssets() {
 
   return (
     <Box minHeight={448} mb={2} display="flex">
-      <SummarySection
-        loading={isLoading}
+      <Card
         sx={{ width: 1 }}
         title={<SquaredChip label="My Assets" color="primary" />}
         action={
-          <ClaimButton sources={claimableSources} disabled={isLoading || !hasAvailableClaims} />
+          <Stack direction="row" spacing={1}>
+            <ClaimButton disabled={isLoading || !hasAvailableClaims} />
+          </Stack>
         }
+        loading={isLoading}
       >
-        <Grid container spacing={2} flex={1}>
-          <Grid size={{ xs: 12, sm: 8 }}>
-            <Stack
-              divider={<Divider flexItem />}
-              spacing={1}
-              direction={narrowXs ? 'column' : 'row'}
-              alignItems={narrowXs ? 'stretch' : 'flex-end'}
-              height={1}
-              justifyContent="stretch"
-            >
-              <Stack divider={<Divider flexItem />} spacing={1} flex={1}>
-                <TokenBalance balance={balances[0]} />
-                <TokenBalance balance={balances[1]} />
-                <TokenBalance balance={balances[2]} />
+        <Box height={1} display="flex" flexDirection="column">
+          <Grid container spacing={2} flex={1}>
+            <Grid size={{ xs: 12, sm: 8 }}>
+              <Stack
+                divider={<Divider flexItem />}
+                spacing={1}
+                direction={narrowXs ? 'column' : 'row'}
+                alignItems={narrowXs ? 'stretch' : 'flex-end'}
+                height={1}
+                justifyContent="stretch"
+              >
+                <Stack divider={<Divider flexItem />} spacing={1} flex={1}>
+                  <TokenBalance balance={balances[0]} />
+                  <TokenBalance balance={balances[1]} />
+                  <TokenBalance balance={balances[2]} />
+                </Stack>
+                <Stack divider={<Divider flexItem />} spacing={1} flex={1}>
+                  <TokenBalance balance={balances[3]} />
+                  <TokenBalance balance={balances[4]} />
+                  {demoFeaturesEnabled() && <TokenBalance balance={balances[5]} />}
+                </Stack>
               </Stack>
-              <Stack divider={<Divider flexItem />} spacing={1} flex={1}>
-                <TokenBalance balance={balances[3]} />
-                <TokenBalance balance={balances[4]} />
-                {demoFeaturesEnabled() && <TokenBalance balance={balances[5]} />}
-              </Stack>
-            </Stack>
-          </Grid>
-          {narrowSm ? null : (
-            <Grid size={{ xs: 0, sm: 4 }}>
-              <Box display="flex" alignItems="flex-end" height={1}>
-                <TotalBalance balances={balances} total={fromSqd(totalBalance)} />
-              </Box>
             </Grid>
-          )}
-        </Grid>
-      </SummarySection>
+            {narrowSm ? null : (
+              <Grid size={{ xs: 0, sm: 4 }}>
+                <Box display="flex" alignItems="flex-end" height={1}>
+                  <TotalBalance balances={balances} total={fromSqd(totalBalance)} />
+                </Box>
+              </Grid>
+            )}
+          </Grid>
+        </Box>
+      </Card>
     </Box>
   );
 }

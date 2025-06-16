@@ -1,6 +1,6 @@
 import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, unwrapMulticallResult } from '@lib/network/utils';
-import { Box, capitalize, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import { Box, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import { keepPreviousData } from '@tanstack/react-query';
 import chunk from 'lodash-es/chunk';
 import { erc20Abi } from 'viem';
@@ -18,7 +18,7 @@ import { ReleaseButton } from './ReleaseButton';
 import { useMemo } from 'react';
 import { CopyToClipboard } from '@components/CopyToClipboard';
 import { Link } from 'react-router-dom';
-import { upperFirst } from 'lodash-es';
+import { Card } from '@components/Card';
 
 export function MyVestings() {
   const account = useAccount();
@@ -86,61 +86,60 @@ export function MyVestings() {
   );
 
   return (
-    <DashboardTable
-      loading={isLoading || isVestingsLoading}
-      title={<SquaredChip label="My Vestings" color="primary" />}
-    >
-      <TableHead>
-        <TableRow>
-          <TableCell>Vesting</TableCell>
-          <TableCell>Balance</TableCell>
-          <TableCell>Deposited</TableCell>
-          <TableCell>Releasable</TableCell>
-          <TableCell></TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {data?.length ? (
-          data.map(vesting => (
-            <TableRow key={vesting.id}>
-              <TableCell>
-                <NameWithAvatar
-                  title={`${vesting.type
-                    .split('_')
-                    .map(word => word[0]?.toUpperCase() + word.slice(1).toLowerCase())
-                    .join(' ')} contract`}
-                  subtitle={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <CopyToClipboard
-                        text={vesting.id}
-                        content={
-                          <Link to={`/assets/vestings/${vesting.id}`}>
-                            {addressFormatter(vesting.id, true)}
-                          </Link>
-                        }
-                      />
-                    </Box>
-                  }
-                  avatarValue={vesting.id}
-                  sx={{ width: { xs: 200, sm: 240 } }}
-                />
-              </TableCell>
-              <TableCell>{tokenFormatter(fromSqd(vesting?.balance), SQD_TOKEN)}</TableCell>
-              <TableCell>{tokenFormatter(fromSqd(vesting?.deposited), SQD_TOKEN)}</TableCell>
-              <TableCell>{tokenFormatter(fromSqd(vesting?.releasable), SQD_TOKEN)}</TableCell>
-              <TableCell>
-                <Box display="flex" justifyContent="flex-end">
-                  <ReleaseButton vesting={vesting} disabled={!vesting?.releasable} />
-                </Box>
-              </TableCell>
-            </TableRow>
-          ))
-        ) : (
-          <NoItems>
-            <span>No vesting was found</span>
-          </NoItems>
-        )}
-      </TableBody>
-    </DashboardTable>
+    <Card title={<SquaredChip label="My Vestings" color="primary" />}>
+      <DashboardTable loading={isLoading || isVestingsLoading}>
+        <TableHead>
+          <TableRow>
+            <TableCell>Vesting</TableCell>
+            <TableCell>Balance</TableCell>
+            <TableCell>Deposited</TableCell>
+            <TableCell>Releasable</TableCell>
+            <TableCell></TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {data?.length ? (
+            data.map(vesting => (
+              <TableRow key={vesting.id}>
+                <TableCell>
+                  <NameWithAvatar
+                    title={`${vesting.type
+                      .split('_')
+                      .map(word => word[0]?.toUpperCase() + word.slice(1).toLowerCase())
+                      .join(' ')} contract`}
+                    subtitle={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CopyToClipboard
+                          text={vesting.id}
+                          content={
+                            <Link to={`/assets/vestings/${vesting.id}`}>
+                              {addressFormatter(vesting.id, true)}
+                            </Link>
+                          }
+                        />
+                      </Box>
+                    }
+                    avatarValue={vesting.id}
+                    sx={{ width: { xs: 200, sm: 240 } }}
+                  />
+                </TableCell>
+                <TableCell>{tokenFormatter(fromSqd(vesting?.balance), SQD_TOKEN)}</TableCell>
+                <TableCell>{tokenFormatter(fromSqd(vesting?.deposited), SQD_TOKEN)}</TableCell>
+                <TableCell>{tokenFormatter(fromSqd(vesting?.releasable), SQD_TOKEN)}</TableCell>
+                <TableCell>
+                  <Box display="flex" justifyContent="flex-end">
+                    <ReleaseButton vesting={vesting} disabled={!vesting?.releasable} />
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <NoItems>
+              <span>No vesting was found</span>
+            </NoItems>
+          )}
+        </TableBody>
+      </DashboardTable>
+    </Card>
   );
 }

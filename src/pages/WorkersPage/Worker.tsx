@@ -133,7 +133,7 @@ export const Worker = ({ backPath }: { backPath: string }) => {
         }
       />
 
-      <Card outlined>
+      <Card>
         <Stack spacing={3} divider={<Divider orientation="horizontal" flexItem />}>
           <WorkerCard
             worker={worker}

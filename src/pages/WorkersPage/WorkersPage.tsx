@@ -23,6 +23,7 @@ import { AddWorkerButton } from './AddNewWorker';
 import { WorkerUnregisterButton } from './WorkerUnregister';
 import { WorkerVersion } from './WorkerVersion';
 import { WorkerWithdrawButton } from './WorkerWithdraw';
+import { Card } from '@components/Card';
 
 export function MyWorkers() {
   const [query, setQuery] = useLocationState({
@@ -42,27 +43,24 @@ export function MyWorkers() {
   const isLoading = isSourcesLoading || isWorkersLoading;
 
   return (
-    <Box>
-      <DashboardTable
-        loading={isLoading}
-        title={
-          <>
-            <SquaredChip label="My Workers" color="primary" />
-            <Stack direction="row" spacing={1}>
-              <Button
-                color="secondary"
-                variant="outlined"
-                component={Link}
-                target="_blank"
-                to="https://docs.sqd.dev/subsquid-network/participate/worker/"
-              >
-                LEARN MORE
-              </Button>
-              <AddWorkerButton sources={sources} disabled={isLoading} />
-            </Stack>
-          </>
-        }
-      >
+    <Card
+      title={<SquaredChip label="My Workers" color="primary" />}
+      action={
+        <Stack direction="row" spacing={1}>
+          <Button
+            color="secondary"
+            variant="outlined"
+            component={Link}
+            target="_blank"
+            to="https://docs.sqd.dev/subsquid-network/participate/worker/"
+          >
+            LEARN MORE
+          </Button>
+          <AddWorkerButton sources={sources} disabled={isLoading} />
+        </Stack>
+      }
+    >
+      <DashboardTable loading={isLoading}>
         <>
           <TableHead>
             <TableRow>
@@ -147,7 +145,7 @@ export function MyWorkers() {
           </TableBody>
         </>
       </DashboardTable>
-    </Box>
+    </Card>
   );
 }
 

@@ -137,7 +137,6 @@ export const ConfirmDialog = ({
             minWidth: mobile ? '75%' : minWidth,
             margin: 'auto',
             boxShadow: 'none',
-            background: theme.palette.background.default,
             overflow: 'auto',
             maxHeight: 'calc(100% - 64px)',
           },

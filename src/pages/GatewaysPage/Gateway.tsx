@@ -50,7 +50,7 @@ export const Gateway = ({ backPath }: { backPath: string }) => {
       <Box sx={{ mb: 3 }}>
         <BackButton path={searchParams.get('backPath') || backPath} />
       </Box>
-      <Card outlined>
+      <Card>
         <Stack spacing={3} divider={<Divider orientation="horizontal" flexItem />}>
           <GatewayCard gateway={gateway} canEdit={false} />
           <Stack mt={4} spacing={3} divider={<Divider orientation="horizontal" flexItem />}>

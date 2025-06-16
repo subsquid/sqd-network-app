@@ -177,11 +177,11 @@ export const useCreateTheme = (mode: PaletteType) => {
             styleOverrides: {
               root: {
                 color: colors.text?.primary,
-                backgroundColor: colors.background?.default,
                 boxShadow: 'none',
                 borderStyle: 'solid',
                 borderWidth: '0px 0px 1px 0px',
                 borderColor: colors.divider,
+                background: colors.background.paper,
               },
             },
             defaultProps: {
@@ -266,7 +266,7 @@ export const useCreateTheme = (mode: PaletteType) => {
                 borderRadius: 4,
                 borderStyle: 'solid',
                 borderWidth: '1px',
-                backgroundColor: `${colors.background.paper} !important`,
+                backgroundColor: `${colors.background.default} !important`,
                 height: 'auto',
                 transition: 'all 300ms ease-out',
               },
@@ -298,7 +298,7 @@ export const useCreateTheme = (mode: PaletteType) => {
           MuiFilledInput: {
             styleOverrides: {
               root: {
-                backgroundColor: colors.background.paper,
+                backgroundColor: colors.background.default,
                 borderColor: colors.divider,
 
                 '&.Mui-focused': {
@@ -533,7 +533,7 @@ export const useCreateTheme = (mode: PaletteType) => {
           MuiMenu: {
             styleOverrides: {
               paper: {
-                background: colors.background.default,
+                background: colors.background.paper,
                 border: `1px solid ${colors.divider}`,
                 borderStyle: 'solid',
                 borderWidth: '1px',

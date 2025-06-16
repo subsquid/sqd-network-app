@@ -76,7 +76,7 @@ const ContentWrapper = styled('div', {
   name: 'ContentWrapper',
 })(({ theme }) => ({
   margin: theme.spacing(0, 1),
-  padding: theme.spacing(2, 2, 8, 2),
+  padding: theme.spacing(2, 2, 10, 2),
   flex: '1',
   overflowX: 'hidden',
 

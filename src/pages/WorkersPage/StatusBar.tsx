@@ -13,7 +13,7 @@ export const StyledBar = styled(Box)(({ theme }) => ({
   width: theme.spacing(0.75),
   height: theme.spacing(3),
   borderRadius: 360,
-  background: theme.palette.background.paper,
+  background: theme.palette.background.default,
 
   '&.error': {
     background: theme.palette.error.main,

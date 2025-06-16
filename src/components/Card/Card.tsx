@@ -3,51 +3,24 @@ import React, { PropsWithChildren } from 'react';
 import { Box, Paper, styled, Theme } from '@mui/material';
 import { SxProps } from '@mui/system/styleFunctionSx';
 import classNames from 'classnames';
+import { Loader } from '@components/Loader';
 
 export interface CardProps {
-  /** Optional title for the card */
   title?: React.ReactNode;
-  /** Custom styles for the card */
   sx?: SxProps<Theme>;
-  /** Whether to remove padding from the card */
   noPadding?: boolean;
-  /** Whether to add an outline to the card */
   outlined?: boolean;
-  /** Whether to remove the shadow from the card */
   noShadow?: boolean;
-  /** Whether the card is in a loading state */
   loading?: boolean;
-  /** Optional action elements to display in the card header */
   action?: React.ReactNode;
-  /** Custom styles for the title */
-  titleSx?: SxProps<Theme>;
-  /** Custom styles for the content */
-  contentSx?: SxProps<Theme>;
-  /** Custom styles for the action area */
-  actionSx?: SxProps<Theme>;
-  /** Whether to disable the card */
   disabled?: boolean;
-  /** Optional className for the card */
   className?: string;
 }
 
-export const CardTitle = styled(Box)(({ theme }) => ({
-  fontWeight: 500,
-  fontSize: '1.5rem',
-  lineHeight: 1,
-  marginBottom: theme.spacing(3),
-}));
-
-export const CardWrapper = styled(Paper, { name: 'CardWrapper' })(({ theme }) => ({
-  padding: theme.spacing(1.5, 1.5),
+export const CardWrapper = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(1.5),
   boxShadow: 'none',
-  overflowX: 'auto',
-  scrollbarWidth: 'thin',
   transition: 'all 300ms ease-out',
-
-  [theme.breakpoints.down('sm')]: {
-    padding: theme.spacing(2.5),
-  },
 
   '&.disabled': {
     color: theme.palette.text.secondary,
@@ -80,41 +53,39 @@ export const Card = ({
   outlined,
   sx,
   action,
-  titleSx,
-  contentSx,
-  actionSx,
   disabled,
   className,
+  loading,
 }: PropsWithChildren<CardProps>) => {
   return (
-    <>
-      {(title || action) && (
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 3,
-            ...titleSx,
-          }}
-        >
-          {title && <CardTitle sx={titleSx}>{title}</CardTitle>}
-          {action && (
-            <Box sx={{ display: 'flex', alignItems: 'center', ...actionSx }}>{action}</Box>
-          )}
-        </Box>
-      )}
-      <CardWrapper
-        className={classNames(className, {
-          noShadow,
-          noPadding,
-          outlined,
-          disabled,
-        })}
-        sx={sx}
+    <CardWrapper
+      className={classNames(className, {
+        noShadow,
+        noPadding,
+        outlined,
+        disabled,
+      })}
+      sx={sx}
+    >
+      <Box
+        sx={{
+          flex: 1,
+          flexDirection: 'column',
+          display: 'flex',
+          justifyItems: 'flex-end',
+          height: 1,
+        }}
       >
-        <Box sx={contentSx}>{children}</Box>
-      </CardWrapper>
-    </>
+        {title || action ? (
+          <Box display="flex" justifyContent="space-between" mb={2}>
+            <Box>{title}</Box>
+            <Box>{action}</Box>
+          </Box>
+        ) : null}
+        <Box display="flex" sx={{ flex: 1 }}>
+          <Box sx={{ height: 1, width: 1 }}>{loading ? <Loader /> : children}</Box>
+        </Box>
+      </Box>
+    </CardWrapper>
   );
 };

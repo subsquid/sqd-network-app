@@ -32,8 +32,8 @@ export const NetworkLightTheme = {
     disabled: '#c2cad6',
   },
   background: {
-    default: '#ffffff',
-    paper: '#f0f2f5',
+    paper: '#ffffff',
+    default: '#f0f2f5',
   },
   divider: '#C2CAD6',
   action: {

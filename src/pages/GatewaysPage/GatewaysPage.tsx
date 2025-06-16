@@ -10,7 +10,6 @@ import {
   Avatar,
   Box,
   Button,
-  Card,
   Collapse,
   Divider,
   IconButton,
@@ -27,6 +26,7 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
+  SxProps,
 } from '@mui/material';
 import { Link, Outlet } from 'react-router-dom';
 
@@ -38,7 +38,7 @@ import { useCountdown } from '@hooks/useCountdown';
 import { CenteredPageWrapper } from '@layouts/NetworkLayout';
 import { ConnectedWalletRequired } from '@network/ConnectedWalletRequired';
 import { useContracts } from '@network/useContracts';
-import { ColumnLabel, ColumnValue, SummarySection } from '@pages/DashboardPage/Summary';
+import { ColumnLabel, ColumnValue } from '@pages/DashboardPage/Summary';
 import { SourceProvider, useSourceContext } from '@contexts/SourceContext';
 
 import { AddGatewayButton } from './AddNewGateway';
@@ -48,6 +48,7 @@ import { GatewayStakeButton } from './GatewayStake';
 import { GatewayUnregisterButton } from './GatewayUnregister';
 import { GatewayUnstakeButton } from './GatewayUnstake';
 import { useStakeInfo } from '@api/contracts/useStakeInfo';
+import { Card } from '@components/Card';
 
 function AppliesTooltip({ timestamp }: { timestamp?: string }) {
   const timeLeft = useCountdown({ timestamp });
@@ -76,8 +77,7 @@ export function MyStakes() {
   return (
     <>
       <Box minHeight={256} mb={2} display="flex">
-        <SummarySection
-          loading={isLoading}
+        <Card
           sx={{ width: 1 }}
           title={<SquaredChip label="Lock Info" color="primary" />}
           action={
@@ -88,9 +88,7 @@ export function MyStakes() {
           }
         >
           <Stack direction="column" flex={1}>
-            <Box alignSelf="end">
-              <AutoExtension value={stake?.autoExtension} disabled={isLoading || !stake?.amount} />
-            </Box>
+            <AutoExtension value={stake?.autoExtension} disabled={isLoading || !stake?.amount} />
             <Stack
               divider={<Divider flexItem />}
               spacing={1}
@@ -140,7 +138,7 @@ export function MyStakes() {
               </Stack>
             </Stack>
           </Stack>
-        </SummarySection>
+        </Card>
       </Box>
     </>
   );
@@ -157,56 +155,53 @@ export function MyGateways() {
   const isLoading = isGatewaysQueryLoading;
 
   return (
-    <DashboardTable
-      loading={isLoading}
-      title={
-        <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
-          <SquaredChip label="My Portals" color="primary" />
-          <Stack direction="row" spacing={1}>
-            <Button
-              color="secondary"
-              variant="outlined"
-              component={Link}
-              target="_blank"
-              to="https://docs.sqd.dev/subsquid-network/participate/portal/"
-            >
-              LEARN MORE
-            </Button>
-            <AddGatewayButton disabled={isLoading} />
-          </Stack>
-        </Box>
+    <Card
+      title={<SquaredChip label="My Portals" color="primary" />}
+      action={
+        <Stack direction="row" spacing={1}>
+          <Button
+            color="secondary"
+            variant="outlined"
+            component={Link}
+            to="https://docs.sqd.dev/subsquid-network/participate/portal/"
+          >
+            LEARN MORE
+          </Button>
+          <AddGatewayButton disabled={isLoading} />
+        </Stack>
       }
-      sx={{ mb: 2 }}
     >
-      <TableHead>
-        <TableRow>
-          <TableCell>Portal</TableCell>
-          <TableCell>Registered</TableCell>
-          <TableCell></TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {gatewaysQuery?.gateways.length ? (
-          gatewaysQuery.gateways.map(gateway => (
-            <TableRow key={gateway.id}>
-              <TableCell>
-                <GatewayName gateway={gateway} to={`/portals/${gateway.id}`} />
-              </TableCell>
-              <TableCell>{dateFormat(gateway.createdAt)}</TableCell>
-              <TableCell>
-                <Box display="flex" justifyContent="flex-end">
-                  <GatewayUnregisterButton gateway={gateway} />
-                </Box>
-              </TableCell>
-            </TableRow>
-          ))
-        ) : isLoading ? null : (
-          <NoItems>
-            <Typography>No portal registered yet</Typography>
-          </NoItems>
-        )}
-      </TableBody>
-    </DashboardTable>
+      <DashboardTable loading={isLoading} sx={{ mb: 2 }}>
+        <TableHead>
+          <TableRow>
+            <TableCell>Portal</TableCell>
+            <TableCell>Registered</TableCell>
+            <TableCell></TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {gatewaysQuery?.gateways.length ? (
+            gatewaysQuery.gateways.map(gateway => (
+              <TableRow key={gateway.id}>
+                <TableCell>
+                  <GatewayName gateway={gateway} to={`/portals/${gateway.id}`} />
+                </TableCell>
+                <TableCell>{dateFormat(gateway.createdAt)}</TableCell>
+                <TableCell>
+                  <Box display="flex" justifyContent="flex-end">
+                    <GatewayUnregisterButton gateway={gateway} />
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ))
+          ) : isLoading ? null : (
+            <NoItems>
+              <Typography>No portal registered yet</Typography>
+            </NoItems>
+          )}
+        </TableBody>
+      </DashboardTable>
+    </Card>
   );
 }
 
