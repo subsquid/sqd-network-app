@@ -218,7 +218,10 @@ export const TimeRangePicker = ({
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <Formik<TimeRange> initialValues={{ startDate: null, endDate: null }} onSubmit={handleApply}>
+      <Formik<TimeRange>
+        initialValues={{ startDate: value?.from || null, endDate: value?.to || null }}
+        onSubmit={handleApply}
+      >
         <>
           <MuiTextField
             {...bindTrigger(popupState)}

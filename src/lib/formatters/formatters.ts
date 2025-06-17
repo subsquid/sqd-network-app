@@ -19,10 +19,14 @@ export function numberWithCommasFormatter(val?: number | bigint | string) {
   return formatter8.format(typeof val === 'string' ? Number(val) : val);
 }
 
-export function bytesFormatter(val?: number | string) {
+export function bytesFormatter(val?: number | string, compact?: boolean) {
   // if (!val) return '0 MB';
 
-  return prettyBytes(Number(val || 0), { maximumFractionDigits: 1, locale: 'en-US' });
+  return prettyBytes(Number(val || 0), {
+    maximumFractionDigits: 1,
+    locale: 'en-US',
+    space: !compact,
+  });
 }
 
 export function addressFormatter(val?: string, compact?: boolean) {
