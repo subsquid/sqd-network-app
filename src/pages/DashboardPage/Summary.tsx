@@ -7,7 +7,7 @@ import {
   tokenFormatter,
 } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
-import { Box, Divider, Stack, Typography, useTheme, alpha } from '@mui/material';
+import { Box, Divider, Stack, Typography, useTheme, alpha, Button } from '@mui/material';
 import { Grid } from '@mui/material';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, TooltipProps } from 'recharts';
 
@@ -18,6 +18,8 @@ import { HelpTooltip } from '@components/HelpTooltip';
 import { useCountdown } from '@hooks/useCountdown';
 import { useContracts } from '@network/useContracts';
 import { Card } from '@components/Card/Card';
+import { Link } from 'react-router-dom';
+import { QueryStatsOutlined } from '@mui/icons-material';
 
 export function ColumnLabel({ children, color }: PropsWithChildren<{ color?: string }>) {
   return (
@@ -114,17 +116,28 @@ function Stats() {
       sx={{ height: 1 }}
       loading={isLoading}
       title={<SquaredChip label="Other Data" color="primary" />}
+      action={
+        <Button
+          component={Link}
+          to="/dashboard/analytics"
+          color="info"
+          variant="contained"
+          startIcon={<QueryStatsOutlined />}
+        >
+          MORE
+        </Button>
+      }
     >
       <Box height={1} display="flex" alignItems="flex-end">
         <Stack divider={<Divider />} spacing={1} flex={1}>
           <Box>
-            <ColumnLabel>Total bond</ColumnLabel>
-            <ColumnValue>{tokenFormatter(fromSqd(data?.totalBond), SQD_TOKEN, 3)}</ColumnValue>
-          </Box>
-          <Box>
-            <ColumnLabel>Total delegation</ColumnLabel>
+            <ColumnLabel>Total locked value</ColumnLabel>
             <ColumnValue>
-              {tokenFormatter(fromSqd(data?.totalDelegation), SQD_TOKEN, 3)}
+              {tokenFormatter(
+                fromSqd(data?.totalBond).plus(fromSqd(data?.totalDelegation)),
+                SQD_TOKEN,
+                0,
+              )}
             </ColumnValue>
           </Box>
           <Box>
@@ -307,7 +320,7 @@ export function NetworkSummary() {
   const size = { minHeight: 128, height: { xs: 'auto', md: 0.5 } };
 
   return (
-    <Box minHeight={440} mb={2} display="flex">
+    <Box minHeight={360} mb={2} display="flex">
       <Grid container spacing={2} flex={1}>
         {/* FIXME: some wtf hack with mb */}
         <Grid container size={{ xs: 12, sm: 12, md: 8 }} mb={{ xs: 0, md: 2 }}>

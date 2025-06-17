@@ -18,7 +18,7 @@ interface SelectOption {
   disabled?: boolean;
 }
 
-const FormSelect = styled(Select, {
+export const FormSelect = styled(Select, {
   name: 'FormSelect',
 })<SelectProps>(({ theme }) => ({
   'label + &': {

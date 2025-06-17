@@ -399,3 +399,98 @@ query currentEpoch {
     end
   }
 }
+
+query HoldersCountTimeseries($from: DateTime!, $to: DateTime!) {
+  holdersCountTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+
+query LockedValueTimeseries($from: DateTime!, $to: DateTime!) {
+  lockedValueTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+
+query ActiveWorkersTimeseries($from: DateTime!, $to: DateTime!) {
+  activeWorkersTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+
+query UniqueOperatorsTimeseries($from: DateTime!, $to: DateTime!) {
+  uniqueOperatorsTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+
+query DelegationsTimeseries($from: DateTime!, $to: DateTime!) {
+  delegationsTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+
+query DelegatorsTimeseries($from: DateTime!, $to: DateTime!) {
+  delegatorsTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+
+query TransfersByTypeTimeseries($from: DateTime!, $to: DateTime!) {
+  transfersByTypeTimeseries(from: $from, to: $to) {
+    timestamp
+    type
+    value
+  }
+}
+
+query UniqueAccountsTimeseries($from: DateTime!, $to: DateTime!) {
+  uniqueAccountsTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+
+query QueriesCountTimeseries($from: DateTime!, $to: DateTime!) {
+  queriesCountTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+
+query ServedDataTimeseries($from: DateTime!, $to: DateTime!) {
+  servedDataTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+
+query StoredDataTimeseries($from: DateTime!, $to: DateTime!) {
+  storedDataTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+
+query RewardTimeseries($from: DateTime!, $to: DateTime!) {
+  rewardTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+
+query AprTimeseries($from: DateTime!, $to: DateTime!) {
+  aprTimeseries(from: $from, to: $to) {
+    timestamp
+    value {
+      workerApr
+      stakerApr
+    }
+  }
+}

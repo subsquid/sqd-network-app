@@ -14,7 +14,6 @@ import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
 import {
   AccountType,
-  ClaimType,
   SourceWalletWithBalance,
   Worker,
 } from '@api/subsquid-network-squid';
@@ -34,7 +33,7 @@ export const claimSchema = yup.object({
 
 export type SourceWalletWithClaims = SourceWalletWithBalance & {
   claims: (Pick<Worker, 'id' | 'peerId' | 'name'> & {
-    type: ClaimType;
+    type: 'worker' | 'delegation';
     claimableReward: string;
   })[];
 };
@@ -187,7 +186,7 @@ export function ClaimDialog({
                           <WorkerName worker={w} />
                         </TableCell>
                         <TableCell>
-                          {w.type === ClaimType.Worker ? 'Worker reward' : 'Delegation reward'}
+                          {w.type === 'worker' ? 'Worker reward' : 'Delegation reward'}
                         </TableCell>
                         <TableCell align="right">
                           {tokenFormatter(fromSqd(w.claimableReward), contracts.SQD_TOKEN)}

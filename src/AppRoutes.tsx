@@ -10,6 +10,7 @@ import { Gateway } from '@pages/GatewaysPage/Gateway.tsx';
 import { GatewaysPage } from '@pages/GatewaysPage/GatewaysPage.tsx';
 import { Worker } from '@pages/WorkersPage/Worker.tsx';
 import { WorkersPage } from '@pages/WorkersPage/WorkersPage.tsx';
+import { Analytics } from '@pages/DashboardPage/Analytics.tsx';
 
 import { hideLoader } from './index.tsx';
 
@@ -22,6 +23,7 @@ export const AppRoutes = () => {
         <Route element={<Navigate to="/dashboard" replace={true} />} index />
         <Route path="/dashboard">
           <Route element={<DashboardPage />} index />
+          <Route element={<Analytics />} path="analytics" />
         </Route>
 
         <Route path="/assets">

@@ -19,7 +19,6 @@ import { Cell, Pie, PieChart } from 'recharts';
 
 import {
   AccountType,
-  ClaimType,
   useSourcesWithAssetsQuery,
   useSquid,
   Worker,
@@ -210,7 +209,7 @@ export function MyAssets() {
 
     return sourcesQuery.accounts.map(s => {
       const claims: (Pick<Worker, 'id' | 'peerId' | 'name'> & {
-        type: ClaimType;
+        type: 'worker' | 'delegation';
         claimableReward: string;
       })[] = [];
 
@@ -222,7 +221,7 @@ export function MyAssets() {
           peerId: d.worker.peerId,
           name: d.worker.name,
           claimableReward: d.claimableReward,
-          type: ClaimType.Delegation,
+          type: 'delegation',
         });
       });
 
@@ -234,7 +233,7 @@ export function MyAssets() {
           peerId: w.peerId,
           name: w.name,
           claimableReward: w.claimableReward,
-          type: ClaimType.Worker,
+          type: 'worker',
         });
       });
 

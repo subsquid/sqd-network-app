@@ -36,7 +36,6 @@ export type Account = {
   __typename?: "Account";
   balance: Scalars["BigInt"]["output"];
   claimableDelegationCount: Scalars["Int"]["output"];
-  claims: Array<Claim>;
   delegations: Array<Delegation>;
   delegations2: Array<Delegation>;
   gatewayStakes: Array<GatewayStake>;
@@ -50,13 +49,6 @@ export type Account = {
   type: AccountType;
   workers: Array<Worker>;
   workers2: Array<Worker>;
-};
-
-export type AccountClaimsArgs = {
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  orderBy?: InputMaybe<Array<ClaimOrderByInput>>;
-  where?: InputMaybe<ClaimWhereInput>;
 };
 
 export type AccountDelegationsArgs = {
@@ -189,6 +181,7 @@ export enum AccountOrderByInput {
 export type AccountTransfer = {
   __typename?: "AccountTransfer";
   account: Account;
+  balance: Scalars["BigInt"]["output"];
   direction: TransferDirection;
   id: Scalars["String"]["output"];
   transfer: Transfer;
@@ -225,6 +218,12 @@ export enum AccountTransferOrderByInput {
   AccountTypeDesc = "account_type_DESC",
   AccountTypeDescNullsFirst = "account_type_DESC_NULLS_FIRST",
   AccountTypeDescNullsLast = "account_type_DESC_NULLS_LAST",
+  BalanceAsc = "balance_ASC",
+  BalanceAscNullsFirst = "balance_ASC_NULLS_FIRST",
+  BalanceAscNullsLast = "balance_ASC_NULLS_LAST",
+  BalanceDesc = "balance_DESC",
+  BalanceDescNullsFirst = "balance_DESC_NULLS_FIRST",
+  BalanceDescNullsLast = "balance_DESC_NULLS_LAST",
   DirectionAsc = "direction_ASC",
   DirectionAscNullsFirst = "direction_ASC_NULLS_FIRST",
   DirectionAscNullsLast = "direction_ASC_NULLS_LAST",
@@ -261,6 +260,18 @@ export enum AccountTransferOrderByInput {
   TransferTimestampDesc = "transfer_timestamp_DESC",
   TransferTimestampDescNullsFirst = "transfer_timestamp_DESC_NULLS_FIRST",
   TransferTimestampDescNullsLast = "transfer_timestamp_DESC_NULLS_LAST",
+  TransferTxHashAsc = "transfer_txHash_ASC",
+  TransferTxHashAscNullsFirst = "transfer_txHash_ASC_NULLS_FIRST",
+  TransferTxHashAscNullsLast = "transfer_txHash_ASC_NULLS_LAST",
+  TransferTxHashDesc = "transfer_txHash_DESC",
+  TransferTxHashDescNullsFirst = "transfer_txHash_DESC_NULLS_FIRST",
+  TransferTxHashDescNullsLast = "transfer_txHash_DESC_NULLS_LAST",
+  TransferTypeAsc = "transfer_type_ASC",
+  TransferTypeAscNullsFirst = "transfer_type_ASC_NULLS_FIRST",
+  TransferTypeAscNullsLast = "transfer_type_ASC_NULLS_LAST",
+  TransferTypeDesc = "transfer_type_DESC",
+  TransferTypeDescNullsFirst = "transfer_type_DESC_NULLS_FIRST",
+  TransferTypeDescNullsLast = "transfer_type_DESC_NULLS_LAST",
 }
 
 export type AccountTransferWhereInput = {
@@ -268,6 +279,15 @@ export type AccountTransferWhereInput = {
   OR?: InputMaybe<Array<AccountTransferWhereInput>>;
   account?: InputMaybe<AccountWhereInput>;
   account_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  balance_eq?: InputMaybe<Scalars["BigInt"]["input"]>;
+  balance_gt?: InputMaybe<Scalars["BigInt"]["input"]>;
+  balance_gte?: InputMaybe<Scalars["BigInt"]["input"]>;
+  balance_in?: InputMaybe<Array<Scalars["BigInt"]["input"]>>;
+  balance_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  balance_lt?: InputMaybe<Scalars["BigInt"]["input"]>;
+  balance_lte?: InputMaybe<Scalars["BigInt"]["input"]>;
+  balance_not_eq?: InputMaybe<Scalars["BigInt"]["input"]>;
+  balance_not_in?: InputMaybe<Array<Scalars["BigInt"]["input"]>>;
   direction_eq?: InputMaybe<TransferDirection>;
   direction_in?: InputMaybe<Array<TransferDirection>>;
   direction_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
@@ -328,9 +348,6 @@ export type AccountWhereInput = {
   claimableDelegationCount_lte?: InputMaybe<Scalars["Int"]["input"]>;
   claimableDelegationCount_not_eq?: InputMaybe<Scalars["Int"]["input"]>;
   claimableDelegationCount_not_in?: InputMaybe<Array<Scalars["Int"]["input"]>>;
-  claims_every?: InputMaybe<ClaimWhereInput>;
-  claims_none?: InputMaybe<ClaimWhereInput>;
-  claims_some?: InputMaybe<ClaimWhereInput>;
   delegations2_every?: InputMaybe<DelegationWhereInput>;
   delegations2_none?: InputMaybe<DelegationWhereInput>;
   delegations2_some?: InputMaybe<DelegationWhereInput>;
@@ -394,10 +411,28 @@ export type AccountsConnection = {
   totalCount: Scalars["Int"]["output"];
 };
 
+export type ActiveWorkersEntry = {
+  __typename?: "ActiveWorkersEntry";
+  timestamp: Scalars["DateTime"]["output"];
+  value: Scalars["Float"]["output"];
+};
+
+export type AprEntry = {
+  __typename?: "AprEntry";
+  timestamp: Scalars["DateTime"]["output"];
+  value: AprValue;
+};
+
 export type AprSnapshot = {
   __typename?: "AprSnapshot";
   stakerApr: Scalars["Float"]["output"];
   timestamp: Scalars["DateTime"]["output"];
+  workerApr: Scalars["Float"]["output"];
+};
+
+export type AprValue = {
+  __typename?: "AprValue";
+  stakerApr: Scalars["Float"]["output"];
   workerApr: Scalars["Float"]["output"];
 };
 
@@ -518,418 +553,6 @@ export type BlockWhereInput = {
 export type BlocksConnection = {
   __typename?: "BlocksConnection";
   edges: Array<BlockEdge>;
-  pageInfo: PageInfo;
-  totalCount: Scalars["Int"]["output"];
-};
-
-export type Claim = {
-  __typename?: "Claim";
-  /** worker.realOwner or delegation.realOwner */
-  account: Account;
-  amount: Scalars["BigInt"]["output"];
-  blockNumber: Scalars["Int"]["output"];
-  delegation?: Maybe<Delegation>;
-  id: Scalars["String"]["output"];
-  timestamp: Scalars["DateTime"]["output"];
-  type: ClaimType;
-  worker?: Maybe<Worker>;
-};
-
-export type ClaimEdge = {
-  __typename?: "ClaimEdge";
-  cursor: Scalars["String"]["output"];
-  node: Claim;
-};
-
-export enum ClaimOrderByInput {
-  AccountBalanceAsc = "account_balance_ASC",
-  AccountBalanceAscNullsFirst = "account_balance_ASC_NULLS_FIRST",
-  AccountBalanceAscNullsLast = "account_balance_ASC_NULLS_LAST",
-  AccountBalanceDesc = "account_balance_DESC",
-  AccountBalanceDescNullsFirst = "account_balance_DESC_NULLS_FIRST",
-  AccountBalanceDescNullsLast = "account_balance_DESC_NULLS_LAST",
-  AccountClaimableDelegationCountAsc = "account_claimableDelegationCount_ASC",
-  AccountClaimableDelegationCountAscNullsFirst = "account_claimableDelegationCount_ASC_NULLS_FIRST",
-  AccountClaimableDelegationCountAscNullsLast = "account_claimableDelegationCount_ASC_NULLS_LAST",
-  AccountClaimableDelegationCountDesc = "account_claimableDelegationCount_DESC",
-  AccountClaimableDelegationCountDescNullsFirst = "account_claimableDelegationCount_DESC_NULLS_FIRST",
-  AccountClaimableDelegationCountDescNullsLast = "account_claimableDelegationCount_DESC_NULLS_LAST",
-  AccountIdAsc = "account_id_ASC",
-  AccountIdAscNullsFirst = "account_id_ASC_NULLS_FIRST",
-  AccountIdAscNullsLast = "account_id_ASC_NULLS_LAST",
-  AccountIdDesc = "account_id_DESC",
-  AccountIdDescNullsFirst = "account_id_DESC_NULLS_FIRST",
-  AccountIdDescNullsLast = "account_id_DESC_NULLS_LAST",
-  AccountTypeAsc = "account_type_ASC",
-  AccountTypeAscNullsFirst = "account_type_ASC_NULLS_FIRST",
-  AccountTypeAscNullsLast = "account_type_ASC_NULLS_LAST",
-  AccountTypeDesc = "account_type_DESC",
-  AccountTypeDescNullsFirst = "account_type_DESC_NULLS_FIRST",
-  AccountTypeDescNullsLast = "account_type_DESC_NULLS_LAST",
-  AmountAsc = "amount_ASC",
-  AmountAscNullsFirst = "amount_ASC_NULLS_FIRST",
-  AmountAscNullsLast = "amount_ASC_NULLS_LAST",
-  AmountDesc = "amount_DESC",
-  AmountDescNullsFirst = "amount_DESC_NULLS_FIRST",
-  AmountDescNullsLast = "amount_DESC_NULLS_LAST",
-  BlockNumberAsc = "blockNumber_ASC",
-  BlockNumberAscNullsFirst = "blockNumber_ASC_NULLS_FIRST",
-  BlockNumberAscNullsLast = "blockNumber_ASC_NULLS_LAST",
-  BlockNumberDesc = "blockNumber_DESC",
-  BlockNumberDescNullsFirst = "blockNumber_DESC_NULLS_FIRST",
-  BlockNumberDescNullsLast = "blockNumber_DESC_NULLS_LAST",
-  DelegationClaimableRewardAsc = "delegation_claimableReward_ASC",
-  DelegationClaimableRewardAscNullsFirst = "delegation_claimableReward_ASC_NULLS_FIRST",
-  DelegationClaimableRewardAscNullsLast = "delegation_claimableReward_ASC_NULLS_LAST",
-  DelegationClaimableRewardDesc = "delegation_claimableReward_DESC",
-  DelegationClaimableRewardDescNullsFirst = "delegation_claimableReward_DESC_NULLS_FIRST",
-  DelegationClaimableRewardDescNullsLast = "delegation_claimableReward_DESC_NULLS_LAST",
-  DelegationClaimedRewardAsc = "delegation_claimedReward_ASC",
-  DelegationClaimedRewardAscNullsFirst = "delegation_claimedReward_ASC_NULLS_FIRST",
-  DelegationClaimedRewardAscNullsLast = "delegation_claimedReward_ASC_NULLS_LAST",
-  DelegationClaimedRewardDesc = "delegation_claimedReward_DESC",
-  DelegationClaimedRewardDescNullsFirst = "delegation_claimedReward_DESC_NULLS_FIRST",
-  DelegationClaimedRewardDescNullsLast = "delegation_claimedReward_DESC_NULLS_LAST",
-  DelegationDepositAsc = "delegation_deposit_ASC",
-  DelegationDepositAscNullsFirst = "delegation_deposit_ASC_NULLS_FIRST",
-  DelegationDepositAscNullsLast = "delegation_deposit_ASC_NULLS_LAST",
-  DelegationDepositDesc = "delegation_deposit_DESC",
-  DelegationDepositDescNullsFirst = "delegation_deposit_DESC_NULLS_FIRST",
-  DelegationDepositDescNullsLast = "delegation_deposit_DESC_NULLS_LAST",
-  DelegationIdAsc = "delegation_id_ASC",
-  DelegationIdAscNullsFirst = "delegation_id_ASC_NULLS_FIRST",
-  DelegationIdAscNullsLast = "delegation_id_ASC_NULLS_LAST",
-  DelegationIdDesc = "delegation_id_DESC",
-  DelegationIdDescNullsFirst = "delegation_id_DESC_NULLS_FIRST",
-  DelegationIdDescNullsLast = "delegation_id_DESC_NULLS_LAST",
-  DelegationLockEndAsc = "delegation_lockEnd_ASC",
-  DelegationLockEndAscNullsFirst = "delegation_lockEnd_ASC_NULLS_FIRST",
-  DelegationLockEndAscNullsLast = "delegation_lockEnd_ASC_NULLS_LAST",
-  DelegationLockEndDesc = "delegation_lockEnd_DESC",
-  DelegationLockEndDescNullsFirst = "delegation_lockEnd_DESC_NULLS_FIRST",
-  DelegationLockEndDescNullsLast = "delegation_lockEnd_DESC_NULLS_LAST",
-  DelegationLockStartAsc = "delegation_lockStart_ASC",
-  DelegationLockStartAscNullsFirst = "delegation_lockStart_ASC_NULLS_FIRST",
-  DelegationLockStartAscNullsLast = "delegation_lockStart_ASC_NULLS_LAST",
-  DelegationLockStartDesc = "delegation_lockStart_DESC",
-  DelegationLockStartDescNullsFirst = "delegation_lockStart_DESC_NULLS_FIRST",
-  DelegationLockStartDescNullsLast = "delegation_lockStart_DESC_NULLS_LAST",
-  DelegationLockedAsc = "delegation_locked_ASC",
-  DelegationLockedAscNullsFirst = "delegation_locked_ASC_NULLS_FIRST",
-  DelegationLockedAscNullsLast = "delegation_locked_ASC_NULLS_LAST",
-  DelegationLockedDesc = "delegation_locked_DESC",
-  DelegationLockedDescNullsFirst = "delegation_locked_DESC_NULLS_FIRST",
-  DelegationLockedDescNullsLast = "delegation_locked_DESC_NULLS_LAST",
-  IdAsc = "id_ASC",
-  IdAscNullsFirst = "id_ASC_NULLS_FIRST",
-  IdAscNullsLast = "id_ASC_NULLS_LAST",
-  IdDesc = "id_DESC",
-  IdDescNullsFirst = "id_DESC_NULLS_FIRST",
-  IdDescNullsLast = "id_DESC_NULLS_LAST",
-  TimestampAsc = "timestamp_ASC",
-  TimestampAscNullsFirst = "timestamp_ASC_NULLS_FIRST",
-  TimestampAscNullsLast = "timestamp_ASC_NULLS_LAST",
-  TimestampDesc = "timestamp_DESC",
-  TimestampDescNullsFirst = "timestamp_DESC_NULLS_FIRST",
-  TimestampDescNullsLast = "timestamp_DESC_NULLS_LAST",
-  TypeAsc = "type_ASC",
-  TypeAscNullsFirst = "type_ASC_NULLS_FIRST",
-  TypeAscNullsLast = "type_ASC_NULLS_LAST",
-  TypeDesc = "type_DESC",
-  TypeDescNullsFirst = "type_DESC_NULLS_FIRST",
-  TypeDescNullsLast = "type_DESC_NULLS_LAST",
-  WorkerAprAsc = "worker_apr_ASC",
-  WorkerAprAscNullsFirst = "worker_apr_ASC_NULLS_FIRST",
-  WorkerAprAscNullsLast = "worker_apr_ASC_NULLS_LAST",
-  WorkerAprDesc = "worker_apr_DESC",
-  WorkerAprDescNullsFirst = "worker_apr_DESC_NULLS_FIRST",
-  WorkerAprDescNullsLast = "worker_apr_DESC_NULLS_LAST",
-  WorkerBondAsc = "worker_bond_ASC",
-  WorkerBondAscNullsFirst = "worker_bond_ASC_NULLS_FIRST",
-  WorkerBondAscNullsLast = "worker_bond_ASC_NULLS_LAST",
-  WorkerBondDesc = "worker_bond_DESC",
-  WorkerBondDescNullsFirst = "worker_bond_DESC_NULLS_FIRST",
-  WorkerBondDescNullsLast = "worker_bond_DESC_NULLS_LAST",
-  WorkerCapedDelegationAsc = "worker_capedDelegation_ASC",
-  WorkerCapedDelegationAscNullsFirst = "worker_capedDelegation_ASC_NULLS_FIRST",
-  WorkerCapedDelegationAscNullsLast = "worker_capedDelegation_ASC_NULLS_LAST",
-  WorkerCapedDelegationDesc = "worker_capedDelegation_DESC",
-  WorkerCapedDelegationDescNullsFirst = "worker_capedDelegation_DESC_NULLS_FIRST",
-  WorkerCapedDelegationDescNullsLast = "worker_capedDelegation_DESC_NULLS_LAST",
-  WorkerClaimableRewardAsc = "worker_claimableReward_ASC",
-  WorkerClaimableRewardAscNullsFirst = "worker_claimableReward_ASC_NULLS_FIRST",
-  WorkerClaimableRewardAscNullsLast = "worker_claimableReward_ASC_NULLS_LAST",
-  WorkerClaimableRewardDesc = "worker_claimableReward_DESC",
-  WorkerClaimableRewardDescNullsFirst = "worker_claimableReward_DESC_NULLS_FIRST",
-  WorkerClaimableRewardDescNullsLast = "worker_claimableReward_DESC_NULLS_LAST",
-  WorkerClaimedRewardAsc = "worker_claimedReward_ASC",
-  WorkerClaimedRewardAscNullsFirst = "worker_claimedReward_ASC_NULLS_FIRST",
-  WorkerClaimedRewardAscNullsLast = "worker_claimedReward_ASC_NULLS_LAST",
-  WorkerClaimedRewardDesc = "worker_claimedReward_DESC",
-  WorkerClaimedRewardDescNullsFirst = "worker_claimedReward_DESC_NULLS_FIRST",
-  WorkerClaimedRewardDescNullsLast = "worker_claimedReward_DESC_NULLS_LAST",
-  WorkerCreatedAtAsc = "worker_createdAt_ASC",
-  WorkerCreatedAtAscNullsFirst = "worker_createdAt_ASC_NULLS_FIRST",
-  WorkerCreatedAtAscNullsLast = "worker_createdAt_ASC_NULLS_LAST",
-  WorkerCreatedAtDesc = "worker_createdAt_DESC",
-  WorkerCreatedAtDescNullsFirst = "worker_createdAt_DESC_NULLS_FIRST",
-  WorkerCreatedAtDescNullsLast = "worker_createdAt_DESC_NULLS_LAST",
-  WorkerDTenureAsc = "worker_dTenure_ASC",
-  WorkerDTenureAscNullsFirst = "worker_dTenure_ASC_NULLS_FIRST",
-  WorkerDTenureAscNullsLast = "worker_dTenure_ASC_NULLS_LAST",
-  WorkerDTenureDesc = "worker_dTenure_DESC",
-  WorkerDTenureDescNullsFirst = "worker_dTenure_DESC_NULLS_FIRST",
-  WorkerDTenureDescNullsLast = "worker_dTenure_DESC_NULLS_LAST",
-  WorkerDelegationCountAsc = "worker_delegationCount_ASC",
-  WorkerDelegationCountAscNullsFirst = "worker_delegationCount_ASC_NULLS_FIRST",
-  WorkerDelegationCountAscNullsLast = "worker_delegationCount_ASC_NULLS_LAST",
-  WorkerDelegationCountDesc = "worker_delegationCount_DESC",
-  WorkerDelegationCountDescNullsFirst = "worker_delegationCount_DESC_NULLS_FIRST",
-  WorkerDelegationCountDescNullsLast = "worker_delegationCount_DESC_NULLS_LAST",
-  WorkerDescriptionAsc = "worker_description_ASC",
-  WorkerDescriptionAscNullsFirst = "worker_description_ASC_NULLS_FIRST",
-  WorkerDescriptionAscNullsLast = "worker_description_ASC_NULLS_LAST",
-  WorkerDescriptionDesc = "worker_description_DESC",
-  WorkerDescriptionDescNullsFirst = "worker_description_DESC_NULLS_FIRST",
-  WorkerDescriptionDescNullsLast = "worker_description_DESC_NULLS_LAST",
-  WorkerDialOkAsc = "worker_dialOk_ASC",
-  WorkerDialOkAscNullsFirst = "worker_dialOk_ASC_NULLS_FIRST",
-  WorkerDialOkAscNullsLast = "worker_dialOk_ASC_NULLS_LAST",
-  WorkerDialOkDesc = "worker_dialOk_DESC",
-  WorkerDialOkDescNullsFirst = "worker_dialOk_DESC_NULLS_FIRST",
-  WorkerDialOkDescNullsLast = "worker_dialOk_DESC_NULLS_LAST",
-  WorkerEmailAsc = "worker_email_ASC",
-  WorkerEmailAscNullsFirst = "worker_email_ASC_NULLS_FIRST",
-  WorkerEmailAscNullsLast = "worker_email_ASC_NULLS_LAST",
-  WorkerEmailDesc = "worker_email_DESC",
-  WorkerEmailDescNullsFirst = "worker_email_DESC_NULLS_FIRST",
-  WorkerEmailDescNullsLast = "worker_email_DESC_NULLS_LAST",
-  WorkerIdAsc = "worker_id_ASC",
-  WorkerIdAscNullsFirst = "worker_id_ASC_NULLS_FIRST",
-  WorkerIdAscNullsLast = "worker_id_ASC_NULLS_LAST",
-  WorkerIdDesc = "worker_id_DESC",
-  WorkerIdDescNullsFirst = "worker_id_DESC_NULLS_FIRST",
-  WorkerIdDescNullsLast = "worker_id_DESC_NULLS_LAST",
-  WorkerJailReasonAsc = "worker_jailReason_ASC",
-  WorkerJailReasonAscNullsFirst = "worker_jailReason_ASC_NULLS_FIRST",
-  WorkerJailReasonAscNullsLast = "worker_jailReason_ASC_NULLS_LAST",
-  WorkerJailReasonDesc = "worker_jailReason_DESC",
-  WorkerJailReasonDescNullsFirst = "worker_jailReason_DESC_NULLS_FIRST",
-  WorkerJailReasonDescNullsLast = "worker_jailReason_DESC_NULLS_LAST",
-  WorkerJailedAsc = "worker_jailed_ASC",
-  WorkerJailedAscNullsFirst = "worker_jailed_ASC_NULLS_FIRST",
-  WorkerJailedAscNullsLast = "worker_jailed_ASC_NULLS_LAST",
-  WorkerJailedDesc = "worker_jailed_DESC",
-  WorkerJailedDescNullsFirst = "worker_jailed_DESC_NULLS_FIRST",
-  WorkerJailedDescNullsLast = "worker_jailed_DESC_NULLS_LAST",
-  WorkerLivenessAsc = "worker_liveness_ASC",
-  WorkerLivenessAscNullsFirst = "worker_liveness_ASC_NULLS_FIRST",
-  WorkerLivenessAscNullsLast = "worker_liveness_ASC_NULLS_LAST",
-  WorkerLivenessDesc = "worker_liveness_DESC",
-  WorkerLivenessDescNullsFirst = "worker_liveness_DESC_NULLS_FIRST",
-  WorkerLivenessDescNullsLast = "worker_liveness_DESC_NULLS_LAST",
-  WorkerLockEndAsc = "worker_lockEnd_ASC",
-  WorkerLockEndAscNullsFirst = "worker_lockEnd_ASC_NULLS_FIRST",
-  WorkerLockEndAscNullsLast = "worker_lockEnd_ASC_NULLS_LAST",
-  WorkerLockEndDesc = "worker_lockEnd_DESC",
-  WorkerLockEndDescNullsFirst = "worker_lockEnd_DESC_NULLS_FIRST",
-  WorkerLockEndDescNullsLast = "worker_lockEnd_DESC_NULLS_LAST",
-  WorkerLockStartAsc = "worker_lockStart_ASC",
-  WorkerLockStartAscNullsFirst = "worker_lockStart_ASC_NULLS_FIRST",
-  WorkerLockStartAscNullsLast = "worker_lockStart_ASC_NULLS_LAST",
-  WorkerLockStartDesc = "worker_lockStart_DESC",
-  WorkerLockStartDescNullsFirst = "worker_lockStart_DESC_NULLS_FIRST",
-  WorkerLockStartDescNullsLast = "worker_lockStart_DESC_NULLS_LAST",
-  WorkerLockedAsc = "worker_locked_ASC",
-  WorkerLockedAscNullsFirst = "worker_locked_ASC_NULLS_FIRST",
-  WorkerLockedAscNullsLast = "worker_locked_ASC_NULLS_LAST",
-  WorkerLockedDesc = "worker_locked_DESC",
-  WorkerLockedDescNullsFirst = "worker_locked_DESC_NULLS_FIRST",
-  WorkerLockedDescNullsLast = "worker_locked_DESC_NULLS_LAST",
-  WorkerNameAsc = "worker_name_ASC",
-  WorkerNameAscNullsFirst = "worker_name_ASC_NULLS_FIRST",
-  WorkerNameAscNullsLast = "worker_name_ASC_NULLS_LAST",
-  WorkerNameDesc = "worker_name_DESC",
-  WorkerNameDescNullsFirst = "worker_name_DESC_NULLS_FIRST",
-  WorkerNameDescNullsLast = "worker_name_DESC_NULLS_LAST",
-  WorkerOnlineAsc = "worker_online_ASC",
-  WorkerOnlineAscNullsFirst = "worker_online_ASC_NULLS_FIRST",
-  WorkerOnlineAscNullsLast = "worker_online_ASC_NULLS_LAST",
-  WorkerOnlineDesc = "worker_online_DESC",
-  WorkerOnlineDescNullsFirst = "worker_online_DESC_NULLS_FIRST",
-  WorkerOnlineDescNullsLast = "worker_online_DESC_NULLS_LAST",
-  WorkerPeerIdAsc = "worker_peerId_ASC",
-  WorkerPeerIdAscNullsFirst = "worker_peerId_ASC_NULLS_FIRST",
-  WorkerPeerIdAscNullsLast = "worker_peerId_ASC_NULLS_LAST",
-  WorkerPeerIdDesc = "worker_peerId_DESC",
-  WorkerPeerIdDescNullsFirst = "worker_peerId_DESC_NULLS_FIRST",
-  WorkerPeerIdDescNullsLast = "worker_peerId_DESC_NULLS_LAST",
-  WorkerQueries24HoursAsc = "worker_queries24Hours_ASC",
-  WorkerQueries24HoursAscNullsFirst = "worker_queries24Hours_ASC_NULLS_FIRST",
-  WorkerQueries24HoursAscNullsLast = "worker_queries24Hours_ASC_NULLS_LAST",
-  WorkerQueries24HoursDesc = "worker_queries24Hours_DESC",
-  WorkerQueries24HoursDescNullsFirst = "worker_queries24Hours_DESC_NULLS_FIRST",
-  WorkerQueries24HoursDescNullsLast = "worker_queries24Hours_DESC_NULLS_LAST",
-  WorkerQueries90DaysAsc = "worker_queries90Days_ASC",
-  WorkerQueries90DaysAscNullsFirst = "worker_queries90Days_ASC_NULLS_FIRST",
-  WorkerQueries90DaysAscNullsLast = "worker_queries90Days_ASC_NULLS_LAST",
-  WorkerQueries90DaysDesc = "worker_queries90Days_DESC",
-  WorkerQueries90DaysDescNullsFirst = "worker_queries90Days_DESC_NULLS_FIRST",
-  WorkerQueries90DaysDescNullsLast = "worker_queries90Days_DESC_NULLS_LAST",
-  WorkerScannedData24HoursAsc = "worker_scannedData24Hours_ASC",
-  WorkerScannedData24HoursAscNullsFirst = "worker_scannedData24Hours_ASC_NULLS_FIRST",
-  WorkerScannedData24HoursAscNullsLast = "worker_scannedData24Hours_ASC_NULLS_LAST",
-  WorkerScannedData24HoursDesc = "worker_scannedData24Hours_DESC",
-  WorkerScannedData24HoursDescNullsFirst = "worker_scannedData24Hours_DESC_NULLS_FIRST",
-  WorkerScannedData24HoursDescNullsLast = "worker_scannedData24Hours_DESC_NULLS_LAST",
-  WorkerScannedData90DaysAsc = "worker_scannedData90Days_ASC",
-  WorkerScannedData90DaysAscNullsFirst = "worker_scannedData90Days_ASC_NULLS_FIRST",
-  WorkerScannedData90DaysAscNullsLast = "worker_scannedData90Days_ASC_NULLS_LAST",
-  WorkerScannedData90DaysDesc = "worker_scannedData90Days_DESC",
-  WorkerScannedData90DaysDescNullsFirst = "worker_scannedData90Days_DESC_NULLS_FIRST",
-  WorkerScannedData90DaysDescNullsLast = "worker_scannedData90Days_DESC_NULLS_LAST",
-  WorkerServedData24HoursAsc = "worker_servedData24Hours_ASC",
-  WorkerServedData24HoursAscNullsFirst = "worker_servedData24Hours_ASC_NULLS_FIRST",
-  WorkerServedData24HoursAscNullsLast = "worker_servedData24Hours_ASC_NULLS_LAST",
-  WorkerServedData24HoursDesc = "worker_servedData24Hours_DESC",
-  WorkerServedData24HoursDescNullsFirst = "worker_servedData24Hours_DESC_NULLS_FIRST",
-  WorkerServedData24HoursDescNullsLast = "worker_servedData24Hours_DESC_NULLS_LAST",
-  WorkerServedData90DaysAsc = "worker_servedData90Days_ASC",
-  WorkerServedData90DaysAscNullsFirst = "worker_servedData90Days_ASC_NULLS_FIRST",
-  WorkerServedData90DaysAscNullsLast = "worker_servedData90Days_ASC_NULLS_LAST",
-  WorkerServedData90DaysDesc = "worker_servedData90Days_DESC",
-  WorkerServedData90DaysDescNullsFirst = "worker_servedData90Days_DESC_NULLS_FIRST",
-  WorkerServedData90DaysDescNullsLast = "worker_servedData90Days_DESC_NULLS_LAST",
-  WorkerStakerAprAsc = "worker_stakerApr_ASC",
-  WorkerStakerAprAscNullsFirst = "worker_stakerApr_ASC_NULLS_FIRST",
-  WorkerStakerAprAscNullsLast = "worker_stakerApr_ASC_NULLS_LAST",
-  WorkerStakerAprDesc = "worker_stakerApr_DESC",
-  WorkerStakerAprDescNullsFirst = "worker_stakerApr_DESC_NULLS_FIRST",
-  WorkerStakerAprDescNullsLast = "worker_stakerApr_DESC_NULLS_LAST",
-  WorkerStatusAsc = "worker_status_ASC",
-  WorkerStatusAscNullsFirst = "worker_status_ASC_NULLS_FIRST",
-  WorkerStatusAscNullsLast = "worker_status_ASC_NULLS_LAST",
-  WorkerStatusDesc = "worker_status_DESC",
-  WorkerStatusDescNullsFirst = "worker_status_DESC_NULLS_FIRST",
-  WorkerStatusDescNullsLast = "worker_status_DESC_NULLS_LAST",
-  WorkerStoredDataAsc = "worker_storedData_ASC",
-  WorkerStoredDataAscNullsFirst = "worker_storedData_ASC_NULLS_FIRST",
-  WorkerStoredDataAscNullsLast = "worker_storedData_ASC_NULLS_LAST",
-  WorkerStoredDataDesc = "worker_storedData_DESC",
-  WorkerStoredDataDescNullsFirst = "worker_storedData_DESC_NULLS_FIRST",
-  WorkerStoredDataDescNullsLast = "worker_storedData_DESC_NULLS_LAST",
-  WorkerTotalDelegationRewardsAsc = "worker_totalDelegationRewards_ASC",
-  WorkerTotalDelegationRewardsAscNullsFirst = "worker_totalDelegationRewards_ASC_NULLS_FIRST",
-  WorkerTotalDelegationRewardsAscNullsLast = "worker_totalDelegationRewards_ASC_NULLS_LAST",
-  WorkerTotalDelegationRewardsDesc = "worker_totalDelegationRewards_DESC",
-  WorkerTotalDelegationRewardsDescNullsFirst = "worker_totalDelegationRewards_DESC_NULLS_FIRST",
-  WorkerTotalDelegationRewardsDescNullsLast = "worker_totalDelegationRewards_DESC_NULLS_LAST",
-  WorkerTotalDelegationAsc = "worker_totalDelegation_ASC",
-  WorkerTotalDelegationAscNullsFirst = "worker_totalDelegation_ASC_NULLS_FIRST",
-  WorkerTotalDelegationAscNullsLast = "worker_totalDelegation_ASC_NULLS_LAST",
-  WorkerTotalDelegationDesc = "worker_totalDelegation_DESC",
-  WorkerTotalDelegationDescNullsFirst = "worker_totalDelegation_DESC_NULLS_FIRST",
-  WorkerTotalDelegationDescNullsLast = "worker_totalDelegation_DESC_NULLS_LAST",
-  WorkerTrafficWeightAsc = "worker_trafficWeight_ASC",
-  WorkerTrafficWeightAscNullsFirst = "worker_trafficWeight_ASC_NULLS_FIRST",
-  WorkerTrafficWeightAscNullsLast = "worker_trafficWeight_ASC_NULLS_LAST",
-  WorkerTrafficWeightDesc = "worker_trafficWeight_DESC",
-  WorkerTrafficWeightDescNullsFirst = "worker_trafficWeight_DESC_NULLS_FIRST",
-  WorkerTrafficWeightDescNullsLast = "worker_trafficWeight_DESC_NULLS_LAST",
-  WorkerUptime24HoursAsc = "worker_uptime24Hours_ASC",
-  WorkerUptime24HoursAscNullsFirst = "worker_uptime24Hours_ASC_NULLS_FIRST",
-  WorkerUptime24HoursAscNullsLast = "worker_uptime24Hours_ASC_NULLS_LAST",
-  WorkerUptime24HoursDesc = "worker_uptime24Hours_DESC",
-  WorkerUptime24HoursDescNullsFirst = "worker_uptime24Hours_DESC_NULLS_FIRST",
-  WorkerUptime24HoursDescNullsLast = "worker_uptime24Hours_DESC_NULLS_LAST",
-  WorkerUptime90DaysAsc = "worker_uptime90Days_ASC",
-  WorkerUptime90DaysAscNullsFirst = "worker_uptime90Days_ASC_NULLS_FIRST",
-  WorkerUptime90DaysAscNullsLast = "worker_uptime90Days_ASC_NULLS_LAST",
-  WorkerUptime90DaysDesc = "worker_uptime90Days_DESC",
-  WorkerUptime90DaysDescNullsFirst = "worker_uptime90Days_DESC_NULLS_FIRST",
-  WorkerUptime90DaysDescNullsLast = "worker_uptime90Days_DESC_NULLS_LAST",
-  WorkerVersionAsc = "worker_version_ASC",
-  WorkerVersionAscNullsFirst = "worker_version_ASC_NULLS_FIRST",
-  WorkerVersionAscNullsLast = "worker_version_ASC_NULLS_LAST",
-  WorkerVersionDesc = "worker_version_DESC",
-  WorkerVersionDescNullsFirst = "worker_version_DESC_NULLS_FIRST",
-  WorkerVersionDescNullsLast = "worker_version_DESC_NULLS_LAST",
-  WorkerWebsiteAsc = "worker_website_ASC",
-  WorkerWebsiteAscNullsFirst = "worker_website_ASC_NULLS_FIRST",
-  WorkerWebsiteAscNullsLast = "worker_website_ASC_NULLS_LAST",
-  WorkerWebsiteDesc = "worker_website_DESC",
-  WorkerWebsiteDescNullsFirst = "worker_website_DESC_NULLS_FIRST",
-  WorkerWebsiteDescNullsLast = "worker_website_DESC_NULLS_LAST",
-}
-
-export enum ClaimType {
-  Delegation = "DELEGATION",
-  Worker = "WORKER",
-}
-
-export type ClaimWhereInput = {
-  AND?: InputMaybe<Array<ClaimWhereInput>>;
-  OR?: InputMaybe<Array<ClaimWhereInput>>;
-  account?: InputMaybe<AccountWhereInput>;
-  account_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
-  amount_eq?: InputMaybe<Scalars["BigInt"]["input"]>;
-  amount_gt?: InputMaybe<Scalars["BigInt"]["input"]>;
-  amount_gte?: InputMaybe<Scalars["BigInt"]["input"]>;
-  amount_in?: InputMaybe<Array<Scalars["BigInt"]["input"]>>;
-  amount_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
-  amount_lt?: InputMaybe<Scalars["BigInt"]["input"]>;
-  amount_lte?: InputMaybe<Scalars["BigInt"]["input"]>;
-  amount_not_eq?: InputMaybe<Scalars["BigInt"]["input"]>;
-  amount_not_in?: InputMaybe<Array<Scalars["BigInt"]["input"]>>;
-  blockNumber_eq?: InputMaybe<Scalars["Int"]["input"]>;
-  blockNumber_gt?: InputMaybe<Scalars["Int"]["input"]>;
-  blockNumber_gte?: InputMaybe<Scalars["Int"]["input"]>;
-  blockNumber_in?: InputMaybe<Array<Scalars["Int"]["input"]>>;
-  blockNumber_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
-  blockNumber_lt?: InputMaybe<Scalars["Int"]["input"]>;
-  blockNumber_lte?: InputMaybe<Scalars["Int"]["input"]>;
-  blockNumber_not_eq?: InputMaybe<Scalars["Int"]["input"]>;
-  blockNumber_not_in?: InputMaybe<Array<Scalars["Int"]["input"]>>;
-  delegation?: InputMaybe<DelegationWhereInput>;
-  delegation_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
-  id_contains?: InputMaybe<Scalars["String"]["input"]>;
-  id_containsInsensitive?: InputMaybe<Scalars["String"]["input"]>;
-  id_endsWith?: InputMaybe<Scalars["String"]["input"]>;
-  id_eq?: InputMaybe<Scalars["String"]["input"]>;
-  id_gt?: InputMaybe<Scalars["String"]["input"]>;
-  id_gte?: InputMaybe<Scalars["String"]["input"]>;
-  id_in?: InputMaybe<Array<Scalars["String"]["input"]>>;
-  id_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
-  id_lt?: InputMaybe<Scalars["String"]["input"]>;
-  id_lte?: InputMaybe<Scalars["String"]["input"]>;
-  id_not_contains?: InputMaybe<Scalars["String"]["input"]>;
-  id_not_containsInsensitive?: InputMaybe<Scalars["String"]["input"]>;
-  id_not_endsWith?: InputMaybe<Scalars["String"]["input"]>;
-  id_not_eq?: InputMaybe<Scalars["String"]["input"]>;
-  id_not_in?: InputMaybe<Array<Scalars["String"]["input"]>>;
-  id_not_startsWith?: InputMaybe<Scalars["String"]["input"]>;
-  id_startsWith?: InputMaybe<Scalars["String"]["input"]>;
-  timestamp_eq?: InputMaybe<Scalars["DateTime"]["input"]>;
-  timestamp_gt?: InputMaybe<Scalars["DateTime"]["input"]>;
-  timestamp_gte?: InputMaybe<Scalars["DateTime"]["input"]>;
-  timestamp_in?: InputMaybe<Array<Scalars["DateTime"]["input"]>>;
-  timestamp_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
-  timestamp_lt?: InputMaybe<Scalars["DateTime"]["input"]>;
-  timestamp_lte?: InputMaybe<Scalars["DateTime"]["input"]>;
-  timestamp_not_eq?: InputMaybe<Scalars["DateTime"]["input"]>;
-  timestamp_not_in?: InputMaybe<Array<Scalars["DateTime"]["input"]>>;
-  type_eq?: InputMaybe<ClaimType>;
-  type_in?: InputMaybe<Array<ClaimType>>;
-  type_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
-  type_not_eq?: InputMaybe<ClaimType>;
-  type_not_in?: InputMaybe<Array<ClaimType>>;
-  worker?: InputMaybe<WorkerWhereInput>;
-  worker_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
-};
-
-export type ClaimsConnection = {
-  __typename?: "ClaimsConnection";
-  edges: Array<ClaimEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
 };
@@ -1317,7 +940,6 @@ export type Delegation = {
   __typename?: "Delegation";
   claimableReward: Scalars["BigInt"]["output"];
   claimedReward: Scalars["BigInt"]["output"];
-  claims: Array<Claim>;
   deposit: Scalars["BigInt"]["output"];
   id: Scalars["String"]["output"];
   lockEnd?: Maybe<Scalars["Int"]["output"]>;
@@ -1327,14 +949,9 @@ export type Delegation = {
   /** owner.owner for VESTING account */
   realOwner: Account;
   rewards: Array<DelegationReward>;
+  status: DelegationStatus;
+  statusHistory: Array<DelegationStatusChange>;
   worker: Worker;
-};
-
-export type DelegationClaimsArgs = {
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  orderBy?: InputMaybe<Array<ClaimOrderByInput>>;
-  where?: InputMaybe<ClaimWhereInput>;
 };
 
 export type DelegationRewardsArgs = {
@@ -1342,6 +959,13 @@ export type DelegationRewardsArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   orderBy?: InputMaybe<Array<DelegationRewardOrderByInput>>;
   where?: InputMaybe<DelegationRewardWhereInput>;
+};
+
+export type DelegationStatusHistoryArgs = {
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  orderBy?: InputMaybe<Array<DelegationStatusChangeOrderByInput>>;
+  where?: InputMaybe<DelegationStatusChangeWhereInput>;
 };
 
 export type DelegationEdge = {
@@ -1441,6 +1065,12 @@ export enum DelegationOrderByInput {
   RealOwnerTypeDesc = "realOwner_type_DESC",
   RealOwnerTypeDescNullsFirst = "realOwner_type_DESC_NULLS_FIRST",
   RealOwnerTypeDescNullsLast = "realOwner_type_DESC_NULLS_LAST",
+  StatusAsc = "status_ASC",
+  StatusAscNullsFirst = "status_ASC_NULLS_FIRST",
+  StatusAscNullsLast = "status_ASC_NULLS_LAST",
+  StatusDesc = "status_DESC",
+  StatusDescNullsFirst = "status_DESC_NULLS_FIRST",
+  StatusDescNullsLast = "status_DESC_NULLS_LAST",
   WorkerAprAsc = "worker_apr_ASC",
   WorkerAprAscNullsFirst = "worker_apr_ASC_NULLS_FIRST",
   WorkerAprAscNullsLast = "worker_apr_ASC_NULLS_LAST",
@@ -1668,6 +1298,7 @@ export enum DelegationOrderByInput {
 export type DelegationReward = {
   __typename?: "DelegationReward";
   amount: Scalars["BigInt"]["output"];
+  apr: Scalars["Float"]["output"];
   blockNumber: Scalars["Int"]["output"];
   delegation: Delegation;
   id: Scalars["String"]["output"];
@@ -1687,6 +1318,12 @@ export enum DelegationRewardOrderByInput {
   AmountDesc = "amount_DESC",
   AmountDescNullsFirst = "amount_DESC_NULLS_FIRST",
   AmountDescNullsLast = "amount_DESC_NULLS_LAST",
+  AprAsc = "apr_ASC",
+  AprAscNullsFirst = "apr_ASC_NULLS_FIRST",
+  AprAscNullsLast = "apr_ASC_NULLS_LAST",
+  AprDesc = "apr_DESC",
+  AprDescNullsFirst = "apr_DESC_NULLS_FIRST",
+  AprDescNullsLast = "apr_DESC_NULLS_LAST",
   BlockNumberAsc = "blockNumber_ASC",
   BlockNumberAscNullsFirst = "blockNumber_ASC_NULLS_FIRST",
   BlockNumberAscNullsLast = "blockNumber_ASC_NULLS_LAST",
@@ -1735,6 +1372,12 @@ export enum DelegationRewardOrderByInput {
   DelegationLockedDesc = "delegation_locked_DESC",
   DelegationLockedDescNullsFirst = "delegation_locked_DESC_NULLS_FIRST",
   DelegationLockedDescNullsLast = "delegation_locked_DESC_NULLS_LAST",
+  DelegationStatusAsc = "delegation_status_ASC",
+  DelegationStatusAscNullsFirst = "delegation_status_ASC_NULLS_FIRST",
+  DelegationStatusAscNullsLast = "delegation_status_ASC_NULLS_LAST",
+  DelegationStatusDesc = "delegation_status_DESC",
+  DelegationStatusDescNullsFirst = "delegation_status_DESC_NULLS_FIRST",
+  DelegationStatusDescNullsLast = "delegation_status_DESC_NULLS_LAST",
   IdAsc = "id_ASC",
   IdAscNullsFirst = "id_ASC_NULLS_FIRST",
   IdAscNullsLast = "id_ASC_NULLS_LAST",
@@ -1761,6 +1404,15 @@ export type DelegationRewardWhereInput = {
   amount_lte?: InputMaybe<Scalars["BigInt"]["input"]>;
   amount_not_eq?: InputMaybe<Scalars["BigInt"]["input"]>;
   amount_not_in?: InputMaybe<Array<Scalars["BigInt"]["input"]>>;
+  apr_eq?: InputMaybe<Scalars["Float"]["input"]>;
+  apr_gt?: InputMaybe<Scalars["Float"]["input"]>;
+  apr_gte?: InputMaybe<Scalars["Float"]["input"]>;
+  apr_in?: InputMaybe<Array<Scalars["Float"]["input"]>>;
+  apr_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  apr_lt?: InputMaybe<Scalars["Float"]["input"]>;
+  apr_lte?: InputMaybe<Scalars["Float"]["input"]>;
+  apr_not_eq?: InputMaybe<Scalars["Float"]["input"]>;
+  apr_not_in?: InputMaybe<Array<Scalars["Float"]["input"]>>;
   blockNumber_eq?: InputMaybe<Scalars["Int"]["input"]>;
   blockNumber_gt?: InputMaybe<Scalars["Int"]["input"]>;
   blockNumber_gte?: InputMaybe<Scalars["Int"]["input"]>;
@@ -1807,6 +1459,166 @@ export type DelegationRewardsConnection = {
   totalCount: Scalars["Int"]["output"];
 };
 
+export enum DelegationStatus {
+  Active = "ACTIVE",
+  Unknown = "UNKNOWN",
+  Withdrawn = "WITHDRAWN",
+}
+
+export type DelegationStatusChange = {
+  __typename?: "DelegationStatusChange";
+  blockNumber: Scalars["Int"]["output"];
+  delegation: Delegation;
+  id: Scalars["String"]["output"];
+  pending: Scalars["Boolean"]["output"];
+  status: DelegationStatus;
+  timestamp?: Maybe<Scalars["DateTime"]["output"]>;
+};
+
+export type DelegationStatusChangeEdge = {
+  __typename?: "DelegationStatusChangeEdge";
+  cursor: Scalars["String"]["output"];
+  node: DelegationStatusChange;
+};
+
+export enum DelegationStatusChangeOrderByInput {
+  BlockNumberAsc = "blockNumber_ASC",
+  BlockNumberAscNullsFirst = "blockNumber_ASC_NULLS_FIRST",
+  BlockNumberAscNullsLast = "blockNumber_ASC_NULLS_LAST",
+  BlockNumberDesc = "blockNumber_DESC",
+  BlockNumberDescNullsFirst = "blockNumber_DESC_NULLS_FIRST",
+  BlockNumberDescNullsLast = "blockNumber_DESC_NULLS_LAST",
+  DelegationClaimableRewardAsc = "delegation_claimableReward_ASC",
+  DelegationClaimableRewardAscNullsFirst = "delegation_claimableReward_ASC_NULLS_FIRST",
+  DelegationClaimableRewardAscNullsLast = "delegation_claimableReward_ASC_NULLS_LAST",
+  DelegationClaimableRewardDesc = "delegation_claimableReward_DESC",
+  DelegationClaimableRewardDescNullsFirst = "delegation_claimableReward_DESC_NULLS_FIRST",
+  DelegationClaimableRewardDescNullsLast = "delegation_claimableReward_DESC_NULLS_LAST",
+  DelegationClaimedRewardAsc = "delegation_claimedReward_ASC",
+  DelegationClaimedRewardAscNullsFirst = "delegation_claimedReward_ASC_NULLS_FIRST",
+  DelegationClaimedRewardAscNullsLast = "delegation_claimedReward_ASC_NULLS_LAST",
+  DelegationClaimedRewardDesc = "delegation_claimedReward_DESC",
+  DelegationClaimedRewardDescNullsFirst = "delegation_claimedReward_DESC_NULLS_FIRST",
+  DelegationClaimedRewardDescNullsLast = "delegation_claimedReward_DESC_NULLS_LAST",
+  DelegationDepositAsc = "delegation_deposit_ASC",
+  DelegationDepositAscNullsFirst = "delegation_deposit_ASC_NULLS_FIRST",
+  DelegationDepositAscNullsLast = "delegation_deposit_ASC_NULLS_LAST",
+  DelegationDepositDesc = "delegation_deposit_DESC",
+  DelegationDepositDescNullsFirst = "delegation_deposit_DESC_NULLS_FIRST",
+  DelegationDepositDescNullsLast = "delegation_deposit_DESC_NULLS_LAST",
+  DelegationIdAsc = "delegation_id_ASC",
+  DelegationIdAscNullsFirst = "delegation_id_ASC_NULLS_FIRST",
+  DelegationIdAscNullsLast = "delegation_id_ASC_NULLS_LAST",
+  DelegationIdDesc = "delegation_id_DESC",
+  DelegationIdDescNullsFirst = "delegation_id_DESC_NULLS_FIRST",
+  DelegationIdDescNullsLast = "delegation_id_DESC_NULLS_LAST",
+  DelegationLockEndAsc = "delegation_lockEnd_ASC",
+  DelegationLockEndAscNullsFirst = "delegation_lockEnd_ASC_NULLS_FIRST",
+  DelegationLockEndAscNullsLast = "delegation_lockEnd_ASC_NULLS_LAST",
+  DelegationLockEndDesc = "delegation_lockEnd_DESC",
+  DelegationLockEndDescNullsFirst = "delegation_lockEnd_DESC_NULLS_FIRST",
+  DelegationLockEndDescNullsLast = "delegation_lockEnd_DESC_NULLS_LAST",
+  DelegationLockStartAsc = "delegation_lockStart_ASC",
+  DelegationLockStartAscNullsFirst = "delegation_lockStart_ASC_NULLS_FIRST",
+  DelegationLockStartAscNullsLast = "delegation_lockStart_ASC_NULLS_LAST",
+  DelegationLockStartDesc = "delegation_lockStart_DESC",
+  DelegationLockStartDescNullsFirst = "delegation_lockStart_DESC_NULLS_FIRST",
+  DelegationLockStartDescNullsLast = "delegation_lockStart_DESC_NULLS_LAST",
+  DelegationLockedAsc = "delegation_locked_ASC",
+  DelegationLockedAscNullsFirst = "delegation_locked_ASC_NULLS_FIRST",
+  DelegationLockedAscNullsLast = "delegation_locked_ASC_NULLS_LAST",
+  DelegationLockedDesc = "delegation_locked_DESC",
+  DelegationLockedDescNullsFirst = "delegation_locked_DESC_NULLS_FIRST",
+  DelegationLockedDescNullsLast = "delegation_locked_DESC_NULLS_LAST",
+  DelegationStatusAsc = "delegation_status_ASC",
+  DelegationStatusAscNullsFirst = "delegation_status_ASC_NULLS_FIRST",
+  DelegationStatusAscNullsLast = "delegation_status_ASC_NULLS_LAST",
+  DelegationStatusDesc = "delegation_status_DESC",
+  DelegationStatusDescNullsFirst = "delegation_status_DESC_NULLS_FIRST",
+  DelegationStatusDescNullsLast = "delegation_status_DESC_NULLS_LAST",
+  IdAsc = "id_ASC",
+  IdAscNullsFirst = "id_ASC_NULLS_FIRST",
+  IdAscNullsLast = "id_ASC_NULLS_LAST",
+  IdDesc = "id_DESC",
+  IdDescNullsFirst = "id_DESC_NULLS_FIRST",
+  IdDescNullsLast = "id_DESC_NULLS_LAST",
+  PendingAsc = "pending_ASC",
+  PendingAscNullsFirst = "pending_ASC_NULLS_FIRST",
+  PendingAscNullsLast = "pending_ASC_NULLS_LAST",
+  PendingDesc = "pending_DESC",
+  PendingDescNullsFirst = "pending_DESC_NULLS_FIRST",
+  PendingDescNullsLast = "pending_DESC_NULLS_LAST",
+  StatusAsc = "status_ASC",
+  StatusAscNullsFirst = "status_ASC_NULLS_FIRST",
+  StatusAscNullsLast = "status_ASC_NULLS_LAST",
+  StatusDesc = "status_DESC",
+  StatusDescNullsFirst = "status_DESC_NULLS_FIRST",
+  StatusDescNullsLast = "status_DESC_NULLS_LAST",
+  TimestampAsc = "timestamp_ASC",
+  TimestampAscNullsFirst = "timestamp_ASC_NULLS_FIRST",
+  TimestampAscNullsLast = "timestamp_ASC_NULLS_LAST",
+  TimestampDesc = "timestamp_DESC",
+  TimestampDescNullsFirst = "timestamp_DESC_NULLS_FIRST",
+  TimestampDescNullsLast = "timestamp_DESC_NULLS_LAST",
+}
+
+export type DelegationStatusChangeWhereInput = {
+  AND?: InputMaybe<Array<DelegationStatusChangeWhereInput>>;
+  OR?: InputMaybe<Array<DelegationStatusChangeWhereInput>>;
+  blockNumber_eq?: InputMaybe<Scalars["Int"]["input"]>;
+  blockNumber_gt?: InputMaybe<Scalars["Int"]["input"]>;
+  blockNumber_gte?: InputMaybe<Scalars["Int"]["input"]>;
+  blockNumber_in?: InputMaybe<Array<Scalars["Int"]["input"]>>;
+  blockNumber_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  blockNumber_lt?: InputMaybe<Scalars["Int"]["input"]>;
+  blockNumber_lte?: InputMaybe<Scalars["Int"]["input"]>;
+  blockNumber_not_eq?: InputMaybe<Scalars["Int"]["input"]>;
+  blockNumber_not_in?: InputMaybe<Array<Scalars["Int"]["input"]>>;
+  delegation?: InputMaybe<DelegationWhereInput>;
+  delegation_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  id_contains?: InputMaybe<Scalars["String"]["input"]>;
+  id_containsInsensitive?: InputMaybe<Scalars["String"]["input"]>;
+  id_endsWith?: InputMaybe<Scalars["String"]["input"]>;
+  id_eq?: InputMaybe<Scalars["String"]["input"]>;
+  id_gt?: InputMaybe<Scalars["String"]["input"]>;
+  id_gte?: InputMaybe<Scalars["String"]["input"]>;
+  id_in?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  id_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  id_lt?: InputMaybe<Scalars["String"]["input"]>;
+  id_lte?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_contains?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_containsInsensitive?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_endsWith?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_eq?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_in?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  id_not_startsWith?: InputMaybe<Scalars["String"]["input"]>;
+  id_startsWith?: InputMaybe<Scalars["String"]["input"]>;
+  pending_eq?: InputMaybe<Scalars["Boolean"]["input"]>;
+  pending_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  pending_not_eq?: InputMaybe<Scalars["Boolean"]["input"]>;
+  status_eq?: InputMaybe<DelegationStatus>;
+  status_in?: InputMaybe<Array<DelegationStatus>>;
+  status_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  status_not_eq?: InputMaybe<DelegationStatus>;
+  status_not_in?: InputMaybe<Array<DelegationStatus>>;
+  timestamp_eq?: InputMaybe<Scalars["DateTime"]["input"]>;
+  timestamp_gt?: InputMaybe<Scalars["DateTime"]["input"]>;
+  timestamp_gte?: InputMaybe<Scalars["DateTime"]["input"]>;
+  timestamp_in?: InputMaybe<Array<Scalars["DateTime"]["input"]>>;
+  timestamp_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  timestamp_lt?: InputMaybe<Scalars["DateTime"]["input"]>;
+  timestamp_lte?: InputMaybe<Scalars["DateTime"]["input"]>;
+  timestamp_not_eq?: InputMaybe<Scalars["DateTime"]["input"]>;
+  timestamp_not_in?: InputMaybe<Array<Scalars["DateTime"]["input"]>>;
+};
+
+export type DelegationStatusChangesConnection = {
+  __typename?: "DelegationStatusChangesConnection";
+  edges: Array<DelegationStatusChangeEdge>;
+  pageInfo: PageInfo;
+  totalCount: Scalars["Int"]["output"];
+};
+
 export type DelegationWhereInput = {
   AND?: InputMaybe<Array<DelegationWhereInput>>;
   OR?: InputMaybe<Array<DelegationWhereInput>>;
@@ -1828,9 +1640,6 @@ export type DelegationWhereInput = {
   claimedReward_lte?: InputMaybe<Scalars["BigInt"]["input"]>;
   claimedReward_not_eq?: InputMaybe<Scalars["BigInt"]["input"]>;
   claimedReward_not_in?: InputMaybe<Array<Scalars["BigInt"]["input"]>>;
-  claims_every?: InputMaybe<ClaimWhereInput>;
-  claims_none?: InputMaybe<ClaimWhereInput>;
-  claims_some?: InputMaybe<ClaimWhereInput>;
   deposit_eq?: InputMaybe<Scalars["BigInt"]["input"]>;
   deposit_gt?: InputMaybe<Scalars["BigInt"]["input"]>;
   deposit_gte?: InputMaybe<Scalars["BigInt"]["input"]>;
@@ -1885,6 +1694,14 @@ export type DelegationWhereInput = {
   rewards_every?: InputMaybe<DelegationRewardWhereInput>;
   rewards_none?: InputMaybe<DelegationRewardWhereInput>;
   rewards_some?: InputMaybe<DelegationRewardWhereInput>;
+  statusHistory_every?: InputMaybe<DelegationStatusChangeWhereInput>;
+  statusHistory_none?: InputMaybe<DelegationStatusChangeWhereInput>;
+  statusHistory_some?: InputMaybe<DelegationStatusChangeWhereInput>;
+  status_eq?: InputMaybe<DelegationStatus>;
+  status_in?: InputMaybe<Array<DelegationStatus>>;
+  status_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  status_not_eq?: InputMaybe<DelegationStatus>;
+  status_not_in?: InputMaybe<Array<DelegationStatus>>;
   worker?: InputMaybe<WorkerWhereInput>;
   worker_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
@@ -1894,6 +1711,18 @@ export type DelegationsConnection = {
   edges: Array<DelegationEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
+};
+
+export type DelegationsEntry = {
+  __typename?: "DelegationsEntry";
+  timestamp: Scalars["DateTime"]["output"];
+  value: Scalars["Float"]["output"];
+};
+
+export type DelegatorsEntry = {
+  __typename?: "DelegatorsEntry";
+  timestamp: Scalars["DateTime"]["output"];
+  value: Scalars["Float"]["output"];
 };
 
 export type Epoch = {
@@ -2727,6 +2556,12 @@ export type GatewaysConnection = {
   totalCount: Scalars["Int"]["output"];
 };
 
+export type HoldersCountEntry = {
+  __typename?: "HoldersCountEntry";
+  timestamp: Scalars["DateTime"]["output"];
+  value: Scalars["Float"]["output"];
+};
+
 export type NetworkStats = {
   __typename?: "NetworkStats";
   aprs: Array<AprSnapshot>;
@@ -2749,12 +2584,24 @@ export type NetworkStats = {
   workersCount: Scalars["Float"]["output"];
 };
 
+export type OperatorsEntry = {
+  __typename?: "OperatorsEntry";
+  timestamp: Scalars["DateTime"]["output"];
+  value: Scalars["Float"]["output"];
+};
+
 export type PageInfo = {
   __typename?: "PageInfo";
   endCursor: Scalars["String"]["output"];
   hasNextPage: Scalars["Boolean"]["output"];
   hasPreviousPage: Scalars["Boolean"]["output"];
   startCursor: Scalars["String"]["output"];
+};
+
+export type QueriesCountEntry = {
+  __typename?: "QueriesCountEntry";
+  timestamp: Scalars["DateTime"]["output"];
+  value: Scalars["Float"]["output"];
 };
 
 export type Query = {
@@ -2765,12 +2612,11 @@ export type Query = {
   accountTransfersConnection: AccountTransfersConnection;
   accounts: Array<Account>;
   accountsConnection: AccountsConnection;
+  activeWorkersTimeseries: Array<ActiveWorkersEntry>;
+  aprTimeseries: Array<AprEntry>;
   blockById?: Maybe<Block>;
   blocks: Array<Block>;
   blocksConnection: BlocksConnection;
-  claimById?: Maybe<Claim>;
-  claims: Array<Claim>;
-  claimsConnection: ClaimsConnection;
   commitmentById?: Maybe<Commitment>;
   commitments: Array<Commitment>;
   commitmentsConnection: CommitmentsConnection;
@@ -2778,8 +2624,13 @@ export type Query = {
   delegationRewardById?: Maybe<DelegationReward>;
   delegationRewards: Array<DelegationReward>;
   delegationRewardsConnection: DelegationRewardsConnection;
+  delegationStatusChangeById?: Maybe<DelegationStatusChange>;
+  delegationStatusChanges: Array<DelegationStatusChange>;
+  delegationStatusChangesConnection: DelegationStatusChangesConnection;
   delegations: Array<Delegation>;
   delegationsConnection: DelegationsConnection;
+  delegationsTimeseries: Array<DelegationsEntry>;
+  delegatorsTimeseries: Array<DelegatorsEntry>;
   epochById?: Maybe<Epoch>;
   epoches: Array<Epoch>;
   epochesConnection: EpochesConnection;
@@ -2792,15 +2643,27 @@ export type Query = {
   gatewayStatusChangesConnection: GatewayStatusChangesConnection;
   gateways: Array<Gateway>;
   gatewaysConnection: GatewaysConnection;
+  holdersCountTimeseries: Array<HoldersCountEntry>;
+  lockedValueTimeseries: Array<TvlEntry>;
   networkStats: NetworkStats;
+  queriesCountTimeseries: Array<QueriesCountEntry>;
+  rewardTimeseries: Array<RewardEntry>;
+  servedDataTimeseries: Array<ServedDataEntry>;
   settings: Array<Settings>;
   settingsById?: Maybe<Settings>;
   settingsConnection: SettingsConnection;
   squidStatus: SquidStatus;
+  storedDataTimeseries: Array<StoredDataEntry>;
   transferById?: Maybe<Transfer>;
   transfers: Array<Transfer>;
+  transfersByTypeTimeseries: Array<TransferCountByType>;
   transfersConnection: TransfersConnection;
+  uniqueAccountsTimeseries: Array<UniqueAccountsEntry>;
+  uniqueOperatorsTimeseries: Array<OperatorsEntry>;
   workerById?: Maybe<Worker>;
+  workerMetrics: Array<WorkerMetrics>;
+  workerMetricsById?: Maybe<WorkerMetrics>;
+  workerMetricsConnection: WorkerMetricsConnection;
   workerRewardById?: Maybe<WorkerReward>;
   workerRewards: Array<WorkerReward>;
   workerRewardsConnection: WorkerRewardsConnection;
@@ -2851,6 +2714,16 @@ export type QueryAccountsConnectionArgs = {
   where?: InputMaybe<AccountWhereInput>;
 };
 
+export type QueryActiveWorkersTimeseriesArgs = {
+  from: Scalars["DateTime"]["input"];
+  to?: InputMaybe<Scalars["DateTime"]["input"]>;
+};
+
+export type QueryAprTimeseriesArgs = {
+  from: Scalars["DateTime"]["input"];
+  to?: InputMaybe<Scalars["DateTime"]["input"]>;
+};
+
 export type QueryBlockByIdArgs = {
   id: Scalars["String"]["input"];
 };
@@ -2867,24 +2740,6 @@ export type QueryBlocksConnectionArgs = {
   first?: InputMaybe<Scalars["Int"]["input"]>;
   orderBy: Array<BlockOrderByInput>;
   where?: InputMaybe<BlockWhereInput>;
-};
-
-export type QueryClaimByIdArgs = {
-  id: Scalars["String"]["input"];
-};
-
-export type QueryClaimsArgs = {
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  orderBy?: InputMaybe<Array<ClaimOrderByInput>>;
-  where?: InputMaybe<ClaimWhereInput>;
-};
-
-export type QueryClaimsConnectionArgs = {
-  after?: InputMaybe<Scalars["String"]["input"]>;
-  first?: InputMaybe<Scalars["Int"]["input"]>;
-  orderBy: Array<ClaimOrderByInput>;
-  where?: InputMaybe<ClaimWhereInput>;
 };
 
 export type QueryCommitmentByIdArgs = {
@@ -2927,6 +2782,24 @@ export type QueryDelegationRewardsConnectionArgs = {
   where?: InputMaybe<DelegationRewardWhereInput>;
 };
 
+export type QueryDelegationStatusChangeByIdArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type QueryDelegationStatusChangesArgs = {
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  orderBy?: InputMaybe<Array<DelegationStatusChangeOrderByInput>>;
+  where?: InputMaybe<DelegationStatusChangeWhereInput>;
+};
+
+export type QueryDelegationStatusChangesConnectionArgs = {
+  after?: InputMaybe<Scalars["String"]["input"]>;
+  first?: InputMaybe<Scalars["Int"]["input"]>;
+  orderBy: Array<DelegationStatusChangeOrderByInput>;
+  where?: InputMaybe<DelegationStatusChangeWhereInput>;
+};
+
 export type QueryDelegationsArgs = {
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
@@ -2939,6 +2812,16 @@ export type QueryDelegationsConnectionArgs = {
   first?: InputMaybe<Scalars["Int"]["input"]>;
   orderBy: Array<DelegationOrderByInput>;
   where?: InputMaybe<DelegationWhereInput>;
+};
+
+export type QueryDelegationsTimeseriesArgs = {
+  from: Scalars["DateTime"]["input"];
+  to?: InputMaybe<Scalars["DateTime"]["input"]>;
+};
+
+export type QueryDelegatorsTimeseriesArgs = {
+  from: Scalars["DateTime"]["input"];
+  to?: InputMaybe<Scalars["DateTime"]["input"]>;
 };
 
 export type QueryEpochByIdArgs = {
@@ -3013,6 +2896,31 @@ export type QueryGatewaysConnectionArgs = {
   where?: InputMaybe<GatewayWhereInput>;
 };
 
+export type QueryHoldersCountTimeseriesArgs = {
+  from: Scalars["DateTime"]["input"];
+  to?: InputMaybe<Scalars["DateTime"]["input"]>;
+};
+
+export type QueryLockedValueTimeseriesArgs = {
+  from: Scalars["DateTime"]["input"];
+  to?: InputMaybe<Scalars["DateTime"]["input"]>;
+};
+
+export type QueryQueriesCountTimeseriesArgs = {
+  from: Scalars["DateTime"]["input"];
+  to?: InputMaybe<Scalars["DateTime"]["input"]>;
+};
+
+export type QueryRewardTimeseriesArgs = {
+  from: Scalars["DateTime"]["input"];
+  to?: InputMaybe<Scalars["DateTime"]["input"]>;
+};
+
+export type QueryServedDataTimeseriesArgs = {
+  from: Scalars["DateTime"]["input"];
+  to?: InputMaybe<Scalars["DateTime"]["input"]>;
+};
+
 export type QuerySettingsArgs = {
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
@@ -3031,6 +2939,11 @@ export type QuerySettingsConnectionArgs = {
   where?: InputMaybe<SettingsWhereInput>;
 };
 
+export type QueryStoredDataTimeseriesArgs = {
+  from: Scalars["DateTime"]["input"];
+  to?: InputMaybe<Scalars["DateTime"]["input"]>;
+};
+
 export type QueryTransferByIdArgs = {
   id: Scalars["String"]["input"];
 };
@@ -3042,6 +2955,11 @@ export type QueryTransfersArgs = {
   where?: InputMaybe<TransferWhereInput>;
 };
 
+export type QueryTransfersByTypeTimeseriesArgs = {
+  from: Scalars["DateTime"]["input"];
+  to?: InputMaybe<Scalars["DateTime"]["input"]>;
+};
+
 export type QueryTransfersConnectionArgs = {
   after?: InputMaybe<Scalars["String"]["input"]>;
   first?: InputMaybe<Scalars["Int"]["input"]>;
@@ -3049,8 +2967,36 @@ export type QueryTransfersConnectionArgs = {
   where?: InputMaybe<TransferWhereInput>;
 };
 
+export type QueryUniqueAccountsTimeseriesArgs = {
+  from: Scalars["DateTime"]["input"];
+  to?: InputMaybe<Scalars["DateTime"]["input"]>;
+};
+
+export type QueryUniqueOperatorsTimeseriesArgs = {
+  from: Scalars["DateTime"]["input"];
+  to?: InputMaybe<Scalars["DateTime"]["input"]>;
+};
+
 export type QueryWorkerByIdArgs = {
   id: Scalars["String"]["input"];
+};
+
+export type QueryWorkerMetricsArgs = {
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  orderBy?: InputMaybe<Array<WorkerMetricsOrderByInput>>;
+  where?: InputMaybe<WorkerMetricsWhereInput>;
+};
+
+export type QueryWorkerMetricsByIdArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type QueryWorkerMetricsConnectionArgs = {
+  after?: InputMaybe<Scalars["String"]["input"]>;
+  first?: InputMaybe<Scalars["Int"]["input"]>;
+  orderBy: Array<WorkerMetricsOrderByInput>;
+  where?: InputMaybe<WorkerMetricsWhereInput>;
 };
 
 export type QueryWorkerRewardByIdArgs = {
@@ -3125,6 +3071,18 @@ export type QueryWorkersConnectionArgs = {
   first?: InputMaybe<Scalars["Int"]["input"]>;
   orderBy: Array<WorkerOrderByInput>;
   where?: InputMaybe<WorkerWhereInput>;
+};
+
+export type RewardEntry = {
+  __typename?: "RewardEntry";
+  timestamp: Scalars["DateTime"]["output"];
+  value: Scalars["Float"]["output"];
+};
+
+export type ServedDataEntry = {
+  __typename?: "ServedDataEntry";
+  timestamp: Scalars["DateTime"]["output"];
+  value: Scalars["Float"]["output"];
 };
 
 export type Settings = {
@@ -3429,14 +3387,33 @@ export type SquidStatus = {
   height: Scalars["Float"]["output"];
 };
 
+export type StoredDataEntry = {
+  __typename?: "StoredDataEntry";
+  timestamp: Scalars["DateTime"]["output"];
+  value: Scalars["Float"]["output"];
+};
+
 export type Transfer = {
   __typename?: "Transfer";
   amount: Scalars["BigInt"]["output"];
   blockNumber: Scalars["Int"]["output"];
+  delegation?: Maybe<Delegation>;
   from: Account;
+  gatewayStake?: Maybe<GatewayStake>;
   id: Scalars["String"]["output"];
   timestamp: Scalars["DateTime"]["output"];
   to: Account;
+  txHash: Scalars["String"]["output"];
+  type: TransferType;
+  vesting?: Maybe<Account>;
+  worker?: Maybe<Worker>;
+};
+
+export type TransferCountByType = {
+  __typename?: "TransferCountByType";
+  timestamp: Scalars["DateTime"]["output"];
+  type: Scalars["String"]["output"];
+  value: Scalars["Float"]["output"];
 };
 
 export enum TransferDirection {
@@ -3463,6 +3440,54 @@ export enum TransferOrderByInput {
   BlockNumberDesc = "blockNumber_DESC",
   BlockNumberDescNullsFirst = "blockNumber_DESC_NULLS_FIRST",
   BlockNumberDescNullsLast = "blockNumber_DESC_NULLS_LAST",
+  DelegationClaimableRewardAsc = "delegation_claimableReward_ASC",
+  DelegationClaimableRewardAscNullsFirst = "delegation_claimableReward_ASC_NULLS_FIRST",
+  DelegationClaimableRewardAscNullsLast = "delegation_claimableReward_ASC_NULLS_LAST",
+  DelegationClaimableRewardDesc = "delegation_claimableReward_DESC",
+  DelegationClaimableRewardDescNullsFirst = "delegation_claimableReward_DESC_NULLS_FIRST",
+  DelegationClaimableRewardDescNullsLast = "delegation_claimableReward_DESC_NULLS_LAST",
+  DelegationClaimedRewardAsc = "delegation_claimedReward_ASC",
+  DelegationClaimedRewardAscNullsFirst = "delegation_claimedReward_ASC_NULLS_FIRST",
+  DelegationClaimedRewardAscNullsLast = "delegation_claimedReward_ASC_NULLS_LAST",
+  DelegationClaimedRewardDesc = "delegation_claimedReward_DESC",
+  DelegationClaimedRewardDescNullsFirst = "delegation_claimedReward_DESC_NULLS_FIRST",
+  DelegationClaimedRewardDescNullsLast = "delegation_claimedReward_DESC_NULLS_LAST",
+  DelegationDepositAsc = "delegation_deposit_ASC",
+  DelegationDepositAscNullsFirst = "delegation_deposit_ASC_NULLS_FIRST",
+  DelegationDepositAscNullsLast = "delegation_deposit_ASC_NULLS_LAST",
+  DelegationDepositDesc = "delegation_deposit_DESC",
+  DelegationDepositDescNullsFirst = "delegation_deposit_DESC_NULLS_FIRST",
+  DelegationDepositDescNullsLast = "delegation_deposit_DESC_NULLS_LAST",
+  DelegationIdAsc = "delegation_id_ASC",
+  DelegationIdAscNullsFirst = "delegation_id_ASC_NULLS_FIRST",
+  DelegationIdAscNullsLast = "delegation_id_ASC_NULLS_LAST",
+  DelegationIdDesc = "delegation_id_DESC",
+  DelegationIdDescNullsFirst = "delegation_id_DESC_NULLS_FIRST",
+  DelegationIdDescNullsLast = "delegation_id_DESC_NULLS_LAST",
+  DelegationLockEndAsc = "delegation_lockEnd_ASC",
+  DelegationLockEndAscNullsFirst = "delegation_lockEnd_ASC_NULLS_FIRST",
+  DelegationLockEndAscNullsLast = "delegation_lockEnd_ASC_NULLS_LAST",
+  DelegationLockEndDesc = "delegation_lockEnd_DESC",
+  DelegationLockEndDescNullsFirst = "delegation_lockEnd_DESC_NULLS_FIRST",
+  DelegationLockEndDescNullsLast = "delegation_lockEnd_DESC_NULLS_LAST",
+  DelegationLockStartAsc = "delegation_lockStart_ASC",
+  DelegationLockStartAscNullsFirst = "delegation_lockStart_ASC_NULLS_FIRST",
+  DelegationLockStartAscNullsLast = "delegation_lockStart_ASC_NULLS_LAST",
+  DelegationLockStartDesc = "delegation_lockStart_DESC",
+  DelegationLockStartDescNullsFirst = "delegation_lockStart_DESC_NULLS_FIRST",
+  DelegationLockStartDescNullsLast = "delegation_lockStart_DESC_NULLS_LAST",
+  DelegationLockedAsc = "delegation_locked_ASC",
+  DelegationLockedAscNullsFirst = "delegation_locked_ASC_NULLS_FIRST",
+  DelegationLockedAscNullsLast = "delegation_locked_ASC_NULLS_LAST",
+  DelegationLockedDesc = "delegation_locked_DESC",
+  DelegationLockedDescNullsFirst = "delegation_locked_DESC_NULLS_FIRST",
+  DelegationLockedDescNullsLast = "delegation_locked_DESC_NULLS_LAST",
+  DelegationStatusAsc = "delegation_status_ASC",
+  DelegationStatusAscNullsFirst = "delegation_status_ASC_NULLS_FIRST",
+  DelegationStatusAscNullsLast = "delegation_status_ASC_NULLS_LAST",
+  DelegationStatusDesc = "delegation_status_DESC",
+  DelegationStatusDescNullsFirst = "delegation_status_DESC_NULLS_FIRST",
+  DelegationStatusDescNullsLast = "delegation_status_DESC_NULLS_LAST",
   FromBalanceAsc = "from_balance_ASC",
   FromBalanceAscNullsFirst = "from_balance_ASC_NULLS_FIRST",
   FromBalanceAscNullsLast = "from_balance_ASC_NULLS_LAST",
@@ -3487,6 +3512,54 @@ export enum TransferOrderByInput {
   FromTypeDesc = "from_type_DESC",
   FromTypeDescNullsFirst = "from_type_DESC_NULLS_FIRST",
   FromTypeDescNullsLast = "from_type_DESC_NULLS_LAST",
+  GatewayStakeAmountAsc = "gatewayStake_amount_ASC",
+  GatewayStakeAmountAscNullsFirst = "gatewayStake_amount_ASC_NULLS_FIRST",
+  GatewayStakeAmountAscNullsLast = "gatewayStake_amount_ASC_NULLS_LAST",
+  GatewayStakeAmountDesc = "gatewayStake_amount_DESC",
+  GatewayStakeAmountDescNullsFirst = "gatewayStake_amount_DESC_NULLS_FIRST",
+  GatewayStakeAmountDescNullsLast = "gatewayStake_amount_DESC_NULLS_LAST",
+  GatewayStakeAutoExtensionAsc = "gatewayStake_autoExtension_ASC",
+  GatewayStakeAutoExtensionAscNullsFirst = "gatewayStake_autoExtension_ASC_NULLS_FIRST",
+  GatewayStakeAutoExtensionAscNullsLast = "gatewayStake_autoExtension_ASC_NULLS_LAST",
+  GatewayStakeAutoExtensionDesc = "gatewayStake_autoExtension_DESC",
+  GatewayStakeAutoExtensionDescNullsFirst = "gatewayStake_autoExtension_DESC_NULLS_FIRST",
+  GatewayStakeAutoExtensionDescNullsLast = "gatewayStake_autoExtension_DESC_NULLS_LAST",
+  GatewayStakeComputationUnitsPendingAsc = "gatewayStake_computationUnitsPending_ASC",
+  GatewayStakeComputationUnitsPendingAscNullsFirst = "gatewayStake_computationUnitsPending_ASC_NULLS_FIRST",
+  GatewayStakeComputationUnitsPendingAscNullsLast = "gatewayStake_computationUnitsPending_ASC_NULLS_LAST",
+  GatewayStakeComputationUnitsPendingDesc = "gatewayStake_computationUnitsPending_DESC",
+  GatewayStakeComputationUnitsPendingDescNullsFirst = "gatewayStake_computationUnitsPending_DESC_NULLS_FIRST",
+  GatewayStakeComputationUnitsPendingDescNullsLast = "gatewayStake_computationUnitsPending_DESC_NULLS_LAST",
+  GatewayStakeComputationUnitsAsc = "gatewayStake_computationUnits_ASC",
+  GatewayStakeComputationUnitsAscNullsFirst = "gatewayStake_computationUnits_ASC_NULLS_FIRST",
+  GatewayStakeComputationUnitsAscNullsLast = "gatewayStake_computationUnits_ASC_NULLS_LAST",
+  GatewayStakeComputationUnitsDesc = "gatewayStake_computationUnits_DESC",
+  GatewayStakeComputationUnitsDescNullsFirst = "gatewayStake_computationUnits_DESC_NULLS_FIRST",
+  GatewayStakeComputationUnitsDescNullsLast = "gatewayStake_computationUnits_DESC_NULLS_LAST",
+  GatewayStakeIdAsc = "gatewayStake_id_ASC",
+  GatewayStakeIdAscNullsFirst = "gatewayStake_id_ASC_NULLS_FIRST",
+  GatewayStakeIdAscNullsLast = "gatewayStake_id_ASC_NULLS_LAST",
+  GatewayStakeIdDesc = "gatewayStake_id_DESC",
+  GatewayStakeIdDescNullsFirst = "gatewayStake_id_DESC_NULLS_FIRST",
+  GatewayStakeIdDescNullsLast = "gatewayStake_id_DESC_NULLS_LAST",
+  GatewayStakeLockEndAsc = "gatewayStake_lockEnd_ASC",
+  GatewayStakeLockEndAscNullsFirst = "gatewayStake_lockEnd_ASC_NULLS_FIRST",
+  GatewayStakeLockEndAscNullsLast = "gatewayStake_lockEnd_ASC_NULLS_LAST",
+  GatewayStakeLockEndDesc = "gatewayStake_lockEnd_DESC",
+  GatewayStakeLockEndDescNullsFirst = "gatewayStake_lockEnd_DESC_NULLS_FIRST",
+  GatewayStakeLockEndDescNullsLast = "gatewayStake_lockEnd_DESC_NULLS_LAST",
+  GatewayStakeLockStartAsc = "gatewayStake_lockStart_ASC",
+  GatewayStakeLockStartAscNullsFirst = "gatewayStake_lockStart_ASC_NULLS_FIRST",
+  GatewayStakeLockStartAscNullsLast = "gatewayStake_lockStart_ASC_NULLS_LAST",
+  GatewayStakeLockStartDesc = "gatewayStake_lockStart_DESC",
+  GatewayStakeLockStartDescNullsFirst = "gatewayStake_lockStart_DESC_NULLS_FIRST",
+  GatewayStakeLockStartDescNullsLast = "gatewayStake_lockStart_DESC_NULLS_LAST",
+  GatewayStakeLockedAsc = "gatewayStake_locked_ASC",
+  GatewayStakeLockedAscNullsFirst = "gatewayStake_locked_ASC_NULLS_FIRST",
+  GatewayStakeLockedAscNullsLast = "gatewayStake_locked_ASC_NULLS_LAST",
+  GatewayStakeLockedDesc = "gatewayStake_locked_DESC",
+  GatewayStakeLockedDescNullsFirst = "gatewayStake_locked_DESC_NULLS_FIRST",
+  GatewayStakeLockedDescNullsLast = "gatewayStake_locked_DESC_NULLS_LAST",
   IdAsc = "id_ASC",
   IdAscNullsFirst = "id_ASC_NULLS_FIRST",
   IdAscNullsLast = "id_ASC_NULLS_LAST",
@@ -3523,6 +3596,272 @@ export enum TransferOrderByInput {
   ToTypeDesc = "to_type_DESC",
   ToTypeDescNullsFirst = "to_type_DESC_NULLS_FIRST",
   ToTypeDescNullsLast = "to_type_DESC_NULLS_LAST",
+  TxHashAsc = "txHash_ASC",
+  TxHashAscNullsFirst = "txHash_ASC_NULLS_FIRST",
+  TxHashAscNullsLast = "txHash_ASC_NULLS_LAST",
+  TxHashDesc = "txHash_DESC",
+  TxHashDescNullsFirst = "txHash_DESC_NULLS_FIRST",
+  TxHashDescNullsLast = "txHash_DESC_NULLS_LAST",
+  TypeAsc = "type_ASC",
+  TypeAscNullsFirst = "type_ASC_NULLS_FIRST",
+  TypeAscNullsLast = "type_ASC_NULLS_LAST",
+  TypeDesc = "type_DESC",
+  TypeDescNullsFirst = "type_DESC_NULLS_FIRST",
+  TypeDescNullsLast = "type_DESC_NULLS_LAST",
+  VestingBalanceAsc = "vesting_balance_ASC",
+  VestingBalanceAscNullsFirst = "vesting_balance_ASC_NULLS_FIRST",
+  VestingBalanceAscNullsLast = "vesting_balance_ASC_NULLS_LAST",
+  VestingBalanceDesc = "vesting_balance_DESC",
+  VestingBalanceDescNullsFirst = "vesting_balance_DESC_NULLS_FIRST",
+  VestingBalanceDescNullsLast = "vesting_balance_DESC_NULLS_LAST",
+  VestingClaimableDelegationCountAsc = "vesting_claimableDelegationCount_ASC",
+  VestingClaimableDelegationCountAscNullsFirst = "vesting_claimableDelegationCount_ASC_NULLS_FIRST",
+  VestingClaimableDelegationCountAscNullsLast = "vesting_claimableDelegationCount_ASC_NULLS_LAST",
+  VestingClaimableDelegationCountDesc = "vesting_claimableDelegationCount_DESC",
+  VestingClaimableDelegationCountDescNullsFirst = "vesting_claimableDelegationCount_DESC_NULLS_FIRST",
+  VestingClaimableDelegationCountDescNullsLast = "vesting_claimableDelegationCount_DESC_NULLS_LAST",
+  VestingIdAsc = "vesting_id_ASC",
+  VestingIdAscNullsFirst = "vesting_id_ASC_NULLS_FIRST",
+  VestingIdAscNullsLast = "vesting_id_ASC_NULLS_LAST",
+  VestingIdDesc = "vesting_id_DESC",
+  VestingIdDescNullsFirst = "vesting_id_DESC_NULLS_FIRST",
+  VestingIdDescNullsLast = "vesting_id_DESC_NULLS_LAST",
+  VestingTypeAsc = "vesting_type_ASC",
+  VestingTypeAscNullsFirst = "vesting_type_ASC_NULLS_FIRST",
+  VestingTypeAscNullsLast = "vesting_type_ASC_NULLS_LAST",
+  VestingTypeDesc = "vesting_type_DESC",
+  VestingTypeDescNullsFirst = "vesting_type_DESC_NULLS_FIRST",
+  VestingTypeDescNullsLast = "vesting_type_DESC_NULLS_LAST",
+  WorkerAprAsc = "worker_apr_ASC",
+  WorkerAprAscNullsFirst = "worker_apr_ASC_NULLS_FIRST",
+  WorkerAprAscNullsLast = "worker_apr_ASC_NULLS_LAST",
+  WorkerAprDesc = "worker_apr_DESC",
+  WorkerAprDescNullsFirst = "worker_apr_DESC_NULLS_FIRST",
+  WorkerAprDescNullsLast = "worker_apr_DESC_NULLS_LAST",
+  WorkerBondAsc = "worker_bond_ASC",
+  WorkerBondAscNullsFirst = "worker_bond_ASC_NULLS_FIRST",
+  WorkerBondAscNullsLast = "worker_bond_ASC_NULLS_LAST",
+  WorkerBondDesc = "worker_bond_DESC",
+  WorkerBondDescNullsFirst = "worker_bond_DESC_NULLS_FIRST",
+  WorkerBondDescNullsLast = "worker_bond_DESC_NULLS_LAST",
+  WorkerCapedDelegationAsc = "worker_capedDelegation_ASC",
+  WorkerCapedDelegationAscNullsFirst = "worker_capedDelegation_ASC_NULLS_FIRST",
+  WorkerCapedDelegationAscNullsLast = "worker_capedDelegation_ASC_NULLS_LAST",
+  WorkerCapedDelegationDesc = "worker_capedDelegation_DESC",
+  WorkerCapedDelegationDescNullsFirst = "worker_capedDelegation_DESC_NULLS_FIRST",
+  WorkerCapedDelegationDescNullsLast = "worker_capedDelegation_DESC_NULLS_LAST",
+  WorkerClaimableRewardAsc = "worker_claimableReward_ASC",
+  WorkerClaimableRewardAscNullsFirst = "worker_claimableReward_ASC_NULLS_FIRST",
+  WorkerClaimableRewardAscNullsLast = "worker_claimableReward_ASC_NULLS_LAST",
+  WorkerClaimableRewardDesc = "worker_claimableReward_DESC",
+  WorkerClaimableRewardDescNullsFirst = "worker_claimableReward_DESC_NULLS_FIRST",
+  WorkerClaimableRewardDescNullsLast = "worker_claimableReward_DESC_NULLS_LAST",
+  WorkerClaimedRewardAsc = "worker_claimedReward_ASC",
+  WorkerClaimedRewardAscNullsFirst = "worker_claimedReward_ASC_NULLS_FIRST",
+  WorkerClaimedRewardAscNullsLast = "worker_claimedReward_ASC_NULLS_LAST",
+  WorkerClaimedRewardDesc = "worker_claimedReward_DESC",
+  WorkerClaimedRewardDescNullsFirst = "worker_claimedReward_DESC_NULLS_FIRST",
+  WorkerClaimedRewardDescNullsLast = "worker_claimedReward_DESC_NULLS_LAST",
+  WorkerCreatedAtAsc = "worker_createdAt_ASC",
+  WorkerCreatedAtAscNullsFirst = "worker_createdAt_ASC_NULLS_FIRST",
+  WorkerCreatedAtAscNullsLast = "worker_createdAt_ASC_NULLS_LAST",
+  WorkerCreatedAtDesc = "worker_createdAt_DESC",
+  WorkerCreatedAtDescNullsFirst = "worker_createdAt_DESC_NULLS_FIRST",
+  WorkerCreatedAtDescNullsLast = "worker_createdAt_DESC_NULLS_LAST",
+  WorkerDTenureAsc = "worker_dTenure_ASC",
+  WorkerDTenureAscNullsFirst = "worker_dTenure_ASC_NULLS_FIRST",
+  WorkerDTenureAscNullsLast = "worker_dTenure_ASC_NULLS_LAST",
+  WorkerDTenureDesc = "worker_dTenure_DESC",
+  WorkerDTenureDescNullsFirst = "worker_dTenure_DESC_NULLS_FIRST",
+  WorkerDTenureDescNullsLast = "worker_dTenure_DESC_NULLS_LAST",
+  WorkerDelegationCountAsc = "worker_delegationCount_ASC",
+  WorkerDelegationCountAscNullsFirst = "worker_delegationCount_ASC_NULLS_FIRST",
+  WorkerDelegationCountAscNullsLast = "worker_delegationCount_ASC_NULLS_LAST",
+  WorkerDelegationCountDesc = "worker_delegationCount_DESC",
+  WorkerDelegationCountDescNullsFirst = "worker_delegationCount_DESC_NULLS_FIRST",
+  WorkerDelegationCountDescNullsLast = "worker_delegationCount_DESC_NULLS_LAST",
+  WorkerDescriptionAsc = "worker_description_ASC",
+  WorkerDescriptionAscNullsFirst = "worker_description_ASC_NULLS_FIRST",
+  WorkerDescriptionAscNullsLast = "worker_description_ASC_NULLS_LAST",
+  WorkerDescriptionDesc = "worker_description_DESC",
+  WorkerDescriptionDescNullsFirst = "worker_description_DESC_NULLS_FIRST",
+  WorkerDescriptionDescNullsLast = "worker_description_DESC_NULLS_LAST",
+  WorkerDialOkAsc = "worker_dialOk_ASC",
+  WorkerDialOkAscNullsFirst = "worker_dialOk_ASC_NULLS_FIRST",
+  WorkerDialOkAscNullsLast = "worker_dialOk_ASC_NULLS_LAST",
+  WorkerDialOkDesc = "worker_dialOk_DESC",
+  WorkerDialOkDescNullsFirst = "worker_dialOk_DESC_NULLS_FIRST",
+  WorkerDialOkDescNullsLast = "worker_dialOk_DESC_NULLS_LAST",
+  WorkerEmailAsc = "worker_email_ASC",
+  WorkerEmailAscNullsFirst = "worker_email_ASC_NULLS_FIRST",
+  WorkerEmailAscNullsLast = "worker_email_ASC_NULLS_LAST",
+  WorkerEmailDesc = "worker_email_DESC",
+  WorkerEmailDescNullsFirst = "worker_email_DESC_NULLS_FIRST",
+  WorkerEmailDescNullsLast = "worker_email_DESC_NULLS_LAST",
+  WorkerIdAsc = "worker_id_ASC",
+  WorkerIdAscNullsFirst = "worker_id_ASC_NULLS_FIRST",
+  WorkerIdAscNullsLast = "worker_id_ASC_NULLS_LAST",
+  WorkerIdDesc = "worker_id_DESC",
+  WorkerIdDescNullsFirst = "worker_id_DESC_NULLS_FIRST",
+  WorkerIdDescNullsLast = "worker_id_DESC_NULLS_LAST",
+  WorkerJailReasonAsc = "worker_jailReason_ASC",
+  WorkerJailReasonAscNullsFirst = "worker_jailReason_ASC_NULLS_FIRST",
+  WorkerJailReasonAscNullsLast = "worker_jailReason_ASC_NULLS_LAST",
+  WorkerJailReasonDesc = "worker_jailReason_DESC",
+  WorkerJailReasonDescNullsFirst = "worker_jailReason_DESC_NULLS_FIRST",
+  WorkerJailReasonDescNullsLast = "worker_jailReason_DESC_NULLS_LAST",
+  WorkerJailedAsc = "worker_jailed_ASC",
+  WorkerJailedAscNullsFirst = "worker_jailed_ASC_NULLS_FIRST",
+  WorkerJailedAscNullsLast = "worker_jailed_ASC_NULLS_LAST",
+  WorkerJailedDesc = "worker_jailed_DESC",
+  WorkerJailedDescNullsFirst = "worker_jailed_DESC_NULLS_FIRST",
+  WorkerJailedDescNullsLast = "worker_jailed_DESC_NULLS_LAST",
+  WorkerLivenessAsc = "worker_liveness_ASC",
+  WorkerLivenessAscNullsFirst = "worker_liveness_ASC_NULLS_FIRST",
+  WorkerLivenessAscNullsLast = "worker_liveness_ASC_NULLS_LAST",
+  WorkerLivenessDesc = "worker_liveness_DESC",
+  WorkerLivenessDescNullsFirst = "worker_liveness_DESC_NULLS_FIRST",
+  WorkerLivenessDescNullsLast = "worker_liveness_DESC_NULLS_LAST",
+  WorkerLockEndAsc = "worker_lockEnd_ASC",
+  WorkerLockEndAscNullsFirst = "worker_lockEnd_ASC_NULLS_FIRST",
+  WorkerLockEndAscNullsLast = "worker_lockEnd_ASC_NULLS_LAST",
+  WorkerLockEndDesc = "worker_lockEnd_DESC",
+  WorkerLockEndDescNullsFirst = "worker_lockEnd_DESC_NULLS_FIRST",
+  WorkerLockEndDescNullsLast = "worker_lockEnd_DESC_NULLS_LAST",
+  WorkerLockStartAsc = "worker_lockStart_ASC",
+  WorkerLockStartAscNullsFirst = "worker_lockStart_ASC_NULLS_FIRST",
+  WorkerLockStartAscNullsLast = "worker_lockStart_ASC_NULLS_LAST",
+  WorkerLockStartDesc = "worker_lockStart_DESC",
+  WorkerLockStartDescNullsFirst = "worker_lockStart_DESC_NULLS_FIRST",
+  WorkerLockStartDescNullsLast = "worker_lockStart_DESC_NULLS_LAST",
+  WorkerLockedAsc = "worker_locked_ASC",
+  WorkerLockedAscNullsFirst = "worker_locked_ASC_NULLS_FIRST",
+  WorkerLockedAscNullsLast = "worker_locked_ASC_NULLS_LAST",
+  WorkerLockedDesc = "worker_locked_DESC",
+  WorkerLockedDescNullsFirst = "worker_locked_DESC_NULLS_FIRST",
+  WorkerLockedDescNullsLast = "worker_locked_DESC_NULLS_LAST",
+  WorkerNameAsc = "worker_name_ASC",
+  WorkerNameAscNullsFirst = "worker_name_ASC_NULLS_FIRST",
+  WorkerNameAscNullsLast = "worker_name_ASC_NULLS_LAST",
+  WorkerNameDesc = "worker_name_DESC",
+  WorkerNameDescNullsFirst = "worker_name_DESC_NULLS_FIRST",
+  WorkerNameDescNullsLast = "worker_name_DESC_NULLS_LAST",
+  WorkerOnlineAsc = "worker_online_ASC",
+  WorkerOnlineAscNullsFirst = "worker_online_ASC_NULLS_FIRST",
+  WorkerOnlineAscNullsLast = "worker_online_ASC_NULLS_LAST",
+  WorkerOnlineDesc = "worker_online_DESC",
+  WorkerOnlineDescNullsFirst = "worker_online_DESC_NULLS_FIRST",
+  WorkerOnlineDescNullsLast = "worker_online_DESC_NULLS_LAST",
+  WorkerPeerIdAsc = "worker_peerId_ASC",
+  WorkerPeerIdAscNullsFirst = "worker_peerId_ASC_NULLS_FIRST",
+  WorkerPeerIdAscNullsLast = "worker_peerId_ASC_NULLS_LAST",
+  WorkerPeerIdDesc = "worker_peerId_DESC",
+  WorkerPeerIdDescNullsFirst = "worker_peerId_DESC_NULLS_FIRST",
+  WorkerPeerIdDescNullsLast = "worker_peerId_DESC_NULLS_LAST",
+  WorkerQueries24HoursAsc = "worker_queries24Hours_ASC",
+  WorkerQueries24HoursAscNullsFirst = "worker_queries24Hours_ASC_NULLS_FIRST",
+  WorkerQueries24HoursAscNullsLast = "worker_queries24Hours_ASC_NULLS_LAST",
+  WorkerQueries24HoursDesc = "worker_queries24Hours_DESC",
+  WorkerQueries24HoursDescNullsFirst = "worker_queries24Hours_DESC_NULLS_FIRST",
+  WorkerQueries24HoursDescNullsLast = "worker_queries24Hours_DESC_NULLS_LAST",
+  WorkerQueries90DaysAsc = "worker_queries90Days_ASC",
+  WorkerQueries90DaysAscNullsFirst = "worker_queries90Days_ASC_NULLS_FIRST",
+  WorkerQueries90DaysAscNullsLast = "worker_queries90Days_ASC_NULLS_LAST",
+  WorkerQueries90DaysDesc = "worker_queries90Days_DESC",
+  WorkerQueries90DaysDescNullsFirst = "worker_queries90Days_DESC_NULLS_FIRST",
+  WorkerQueries90DaysDescNullsLast = "worker_queries90Days_DESC_NULLS_LAST",
+  WorkerScannedData24HoursAsc = "worker_scannedData24Hours_ASC",
+  WorkerScannedData24HoursAscNullsFirst = "worker_scannedData24Hours_ASC_NULLS_FIRST",
+  WorkerScannedData24HoursAscNullsLast = "worker_scannedData24Hours_ASC_NULLS_LAST",
+  WorkerScannedData24HoursDesc = "worker_scannedData24Hours_DESC",
+  WorkerScannedData24HoursDescNullsFirst = "worker_scannedData24Hours_DESC_NULLS_FIRST",
+  WorkerScannedData24HoursDescNullsLast = "worker_scannedData24Hours_DESC_NULLS_LAST",
+  WorkerScannedData90DaysAsc = "worker_scannedData90Days_ASC",
+  WorkerScannedData90DaysAscNullsFirst = "worker_scannedData90Days_ASC_NULLS_FIRST",
+  WorkerScannedData90DaysAscNullsLast = "worker_scannedData90Days_ASC_NULLS_LAST",
+  WorkerScannedData90DaysDesc = "worker_scannedData90Days_DESC",
+  WorkerScannedData90DaysDescNullsFirst = "worker_scannedData90Days_DESC_NULLS_FIRST",
+  WorkerScannedData90DaysDescNullsLast = "worker_scannedData90Days_DESC_NULLS_LAST",
+  WorkerServedData24HoursAsc = "worker_servedData24Hours_ASC",
+  WorkerServedData24HoursAscNullsFirst = "worker_servedData24Hours_ASC_NULLS_FIRST",
+  WorkerServedData24HoursAscNullsLast = "worker_servedData24Hours_ASC_NULLS_LAST",
+  WorkerServedData24HoursDesc = "worker_servedData24Hours_DESC",
+  WorkerServedData24HoursDescNullsFirst = "worker_servedData24Hours_DESC_NULLS_FIRST",
+  WorkerServedData24HoursDescNullsLast = "worker_servedData24Hours_DESC_NULLS_LAST",
+  WorkerServedData90DaysAsc = "worker_servedData90Days_ASC",
+  WorkerServedData90DaysAscNullsFirst = "worker_servedData90Days_ASC_NULLS_FIRST",
+  WorkerServedData90DaysAscNullsLast = "worker_servedData90Days_ASC_NULLS_LAST",
+  WorkerServedData90DaysDesc = "worker_servedData90Days_DESC",
+  WorkerServedData90DaysDescNullsFirst = "worker_servedData90Days_DESC_NULLS_FIRST",
+  WorkerServedData90DaysDescNullsLast = "worker_servedData90Days_DESC_NULLS_LAST",
+  WorkerStakerAprAsc = "worker_stakerApr_ASC",
+  WorkerStakerAprAscNullsFirst = "worker_stakerApr_ASC_NULLS_FIRST",
+  WorkerStakerAprAscNullsLast = "worker_stakerApr_ASC_NULLS_LAST",
+  WorkerStakerAprDesc = "worker_stakerApr_DESC",
+  WorkerStakerAprDescNullsFirst = "worker_stakerApr_DESC_NULLS_FIRST",
+  WorkerStakerAprDescNullsLast = "worker_stakerApr_DESC_NULLS_LAST",
+  WorkerStatusAsc = "worker_status_ASC",
+  WorkerStatusAscNullsFirst = "worker_status_ASC_NULLS_FIRST",
+  WorkerStatusAscNullsLast = "worker_status_ASC_NULLS_LAST",
+  WorkerStatusDesc = "worker_status_DESC",
+  WorkerStatusDescNullsFirst = "worker_status_DESC_NULLS_FIRST",
+  WorkerStatusDescNullsLast = "worker_status_DESC_NULLS_LAST",
+  WorkerStoredDataAsc = "worker_storedData_ASC",
+  WorkerStoredDataAscNullsFirst = "worker_storedData_ASC_NULLS_FIRST",
+  WorkerStoredDataAscNullsLast = "worker_storedData_ASC_NULLS_LAST",
+  WorkerStoredDataDesc = "worker_storedData_DESC",
+  WorkerStoredDataDescNullsFirst = "worker_storedData_DESC_NULLS_FIRST",
+  WorkerStoredDataDescNullsLast = "worker_storedData_DESC_NULLS_LAST",
+  WorkerTotalDelegationRewardsAsc = "worker_totalDelegationRewards_ASC",
+  WorkerTotalDelegationRewardsAscNullsFirst = "worker_totalDelegationRewards_ASC_NULLS_FIRST",
+  WorkerTotalDelegationRewardsAscNullsLast = "worker_totalDelegationRewards_ASC_NULLS_LAST",
+  WorkerTotalDelegationRewardsDesc = "worker_totalDelegationRewards_DESC",
+  WorkerTotalDelegationRewardsDescNullsFirst = "worker_totalDelegationRewards_DESC_NULLS_FIRST",
+  WorkerTotalDelegationRewardsDescNullsLast = "worker_totalDelegationRewards_DESC_NULLS_LAST",
+  WorkerTotalDelegationAsc = "worker_totalDelegation_ASC",
+  WorkerTotalDelegationAscNullsFirst = "worker_totalDelegation_ASC_NULLS_FIRST",
+  WorkerTotalDelegationAscNullsLast = "worker_totalDelegation_ASC_NULLS_LAST",
+  WorkerTotalDelegationDesc = "worker_totalDelegation_DESC",
+  WorkerTotalDelegationDescNullsFirst = "worker_totalDelegation_DESC_NULLS_FIRST",
+  WorkerTotalDelegationDescNullsLast = "worker_totalDelegation_DESC_NULLS_LAST",
+  WorkerTrafficWeightAsc = "worker_trafficWeight_ASC",
+  WorkerTrafficWeightAscNullsFirst = "worker_trafficWeight_ASC_NULLS_FIRST",
+  WorkerTrafficWeightAscNullsLast = "worker_trafficWeight_ASC_NULLS_LAST",
+  WorkerTrafficWeightDesc = "worker_trafficWeight_DESC",
+  WorkerTrafficWeightDescNullsFirst = "worker_trafficWeight_DESC_NULLS_FIRST",
+  WorkerTrafficWeightDescNullsLast = "worker_trafficWeight_DESC_NULLS_LAST",
+  WorkerUptime24HoursAsc = "worker_uptime24Hours_ASC",
+  WorkerUptime24HoursAscNullsFirst = "worker_uptime24Hours_ASC_NULLS_FIRST",
+  WorkerUptime24HoursAscNullsLast = "worker_uptime24Hours_ASC_NULLS_LAST",
+  WorkerUptime24HoursDesc = "worker_uptime24Hours_DESC",
+  WorkerUptime24HoursDescNullsFirst = "worker_uptime24Hours_DESC_NULLS_FIRST",
+  WorkerUptime24HoursDescNullsLast = "worker_uptime24Hours_DESC_NULLS_LAST",
+  WorkerUptime90DaysAsc = "worker_uptime90Days_ASC",
+  WorkerUptime90DaysAscNullsFirst = "worker_uptime90Days_ASC_NULLS_FIRST",
+  WorkerUptime90DaysAscNullsLast = "worker_uptime90Days_ASC_NULLS_LAST",
+  WorkerUptime90DaysDesc = "worker_uptime90Days_DESC",
+  WorkerUptime90DaysDescNullsFirst = "worker_uptime90Days_DESC_NULLS_FIRST",
+  WorkerUptime90DaysDescNullsLast = "worker_uptime90Days_DESC_NULLS_LAST",
+  WorkerVersionAsc = "worker_version_ASC",
+  WorkerVersionAscNullsFirst = "worker_version_ASC_NULLS_FIRST",
+  WorkerVersionAscNullsLast = "worker_version_ASC_NULLS_LAST",
+  WorkerVersionDesc = "worker_version_DESC",
+  WorkerVersionDescNullsFirst = "worker_version_DESC_NULLS_FIRST",
+  WorkerVersionDescNullsLast = "worker_version_DESC_NULLS_LAST",
+  WorkerWebsiteAsc = "worker_website_ASC",
+  WorkerWebsiteAscNullsFirst = "worker_website_ASC_NULLS_FIRST",
+  WorkerWebsiteAscNullsLast = "worker_website_ASC_NULLS_LAST",
+  WorkerWebsiteDesc = "worker_website_DESC",
+  WorkerWebsiteDescNullsFirst = "worker_website_DESC_NULLS_FIRST",
+  WorkerWebsiteDescNullsLast = "worker_website_DESC_NULLS_LAST",
+}
+
+export enum TransferType {
+  Claim = "CLAIM",
+  Deposit = "DEPOSIT",
+  Release = "RELEASE",
+  Transfer = "TRANSFER",
+  Withdraw = "WITHDRAW",
 }
 
 export type TransferWhereInput = {
@@ -3546,8 +3885,12 @@ export type TransferWhereInput = {
   blockNumber_lte?: InputMaybe<Scalars["Int"]["input"]>;
   blockNumber_not_eq?: InputMaybe<Scalars["Int"]["input"]>;
   blockNumber_not_in?: InputMaybe<Array<Scalars["Int"]["input"]>>;
+  delegation?: InputMaybe<DelegationWhereInput>;
+  delegation_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
   from?: InputMaybe<AccountWhereInput>;
   from_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  gatewayStake?: InputMaybe<GatewayStakeWhereInput>;
+  gatewayStake_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
   id_contains?: InputMaybe<Scalars["String"]["input"]>;
   id_containsInsensitive?: InputMaybe<Scalars["String"]["input"]>;
   id_endsWith?: InputMaybe<Scalars["String"]["input"]>;
@@ -3576,6 +3919,32 @@ export type TransferWhereInput = {
   timestamp_not_in?: InputMaybe<Array<Scalars["DateTime"]["input"]>>;
   to?: InputMaybe<AccountWhereInput>;
   to_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  txHash_contains?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_containsInsensitive?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_endsWith?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_eq?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_gt?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_gte?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_in?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  txHash_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  txHash_lt?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_lte?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_not_contains?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_not_containsInsensitive?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_not_endsWith?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_not_eq?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_not_in?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  txHash_not_startsWith?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_startsWith?: InputMaybe<Scalars["String"]["input"]>;
+  type_eq?: InputMaybe<TransferType>;
+  type_in?: InputMaybe<Array<TransferType>>;
+  type_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  type_not_eq?: InputMaybe<TransferType>;
+  type_not_in?: InputMaybe<Array<TransferType>>;
+  vesting?: InputMaybe<AccountWhereInput>;
+  vesting_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  worker?: InputMaybe<WorkerWhereInput>;
+  worker_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 export type TransfersConnection = {
@@ -3585,6 +3954,18 @@ export type TransfersConnection = {
   totalCount: Scalars["Int"]["output"];
 };
 
+export type TvlEntry = {
+  __typename?: "TvlEntry";
+  timestamp: Scalars["DateTime"]["output"];
+  value: Scalars["Float"]["output"];
+};
+
+export type UniqueAccountsEntry = {
+  __typename?: "UniqueAccountsEntry";
+  timestamp: Scalars["DateTime"]["output"];
+  value: Scalars["Float"]["output"];
+};
+
 export type Worker = {
   __typename?: "Worker";
   apr?: Maybe<Scalars["Float"]["output"]>;
@@ -3592,7 +3973,6 @@ export type Worker = {
   capedDelegation: Scalars["BigInt"]["output"];
   claimableReward: Scalars["BigInt"]["output"];
   claimedReward: Scalars["BigInt"]["output"];
-  claims: Array<Claim>;
   createdAt: Scalars["DateTime"]["output"];
   dTenure?: Maybe<Scalars["Float"]["output"]>;
   dayUptimes?: Maybe<Array<WorkerDayUptime>>;
@@ -3635,13 +4015,6 @@ export type Worker = {
   website?: Maybe<Scalars["String"]["output"]>;
 };
 
-export type WorkerClaimsArgs = {
-  limit?: InputMaybe<Scalars["Int"]["input"]>;
-  offset?: InputMaybe<Scalars["Int"]["input"]>;
-  orderBy?: InputMaybe<Array<ClaimOrderByInput>>;
-  where?: InputMaybe<ClaimWhereInput>;
-};
-
 export type WorkerDelegationsArgs = {
   limit?: InputMaybe<Scalars["Int"]["input"]>;
   offset?: InputMaybe<Scalars["Int"]["input"]>;
@@ -3680,6 +4053,392 @@ export type WorkerEdge = {
   __typename?: "WorkerEdge";
   cursor: Scalars["String"]["output"];
   node: Worker;
+};
+
+export type WorkerMetrics = {
+  __typename?: "WorkerMetrics";
+  id: Scalars["String"]["output"];
+  pings: Scalars["Int"]["output"];
+  queries: Scalars["Int"]["output"];
+  scannedData: Scalars["BigInt"]["output"];
+  servedData: Scalars["BigInt"]["output"];
+  storedData: Scalars["BigInt"]["output"];
+  timestamp: Scalars["DateTime"]["output"];
+  uptime: Scalars["Float"]["output"];
+  worker: Worker;
+};
+
+export type WorkerMetricsConnection = {
+  __typename?: "WorkerMetricsConnection";
+  edges: Array<WorkerMetricsEdge>;
+  pageInfo: PageInfo;
+  totalCount: Scalars["Int"]["output"];
+};
+
+export type WorkerMetricsEdge = {
+  __typename?: "WorkerMetricsEdge";
+  cursor: Scalars["String"]["output"];
+  node: WorkerMetrics;
+};
+
+export enum WorkerMetricsOrderByInput {
+  IdAsc = "id_ASC",
+  IdAscNullsFirst = "id_ASC_NULLS_FIRST",
+  IdAscNullsLast = "id_ASC_NULLS_LAST",
+  IdDesc = "id_DESC",
+  IdDescNullsFirst = "id_DESC_NULLS_FIRST",
+  IdDescNullsLast = "id_DESC_NULLS_LAST",
+  PingsAsc = "pings_ASC",
+  PingsAscNullsFirst = "pings_ASC_NULLS_FIRST",
+  PingsAscNullsLast = "pings_ASC_NULLS_LAST",
+  PingsDesc = "pings_DESC",
+  PingsDescNullsFirst = "pings_DESC_NULLS_FIRST",
+  PingsDescNullsLast = "pings_DESC_NULLS_LAST",
+  QueriesAsc = "queries_ASC",
+  QueriesAscNullsFirst = "queries_ASC_NULLS_FIRST",
+  QueriesAscNullsLast = "queries_ASC_NULLS_LAST",
+  QueriesDesc = "queries_DESC",
+  QueriesDescNullsFirst = "queries_DESC_NULLS_FIRST",
+  QueriesDescNullsLast = "queries_DESC_NULLS_LAST",
+  ScannedDataAsc = "scannedData_ASC",
+  ScannedDataAscNullsFirst = "scannedData_ASC_NULLS_FIRST",
+  ScannedDataAscNullsLast = "scannedData_ASC_NULLS_LAST",
+  ScannedDataDesc = "scannedData_DESC",
+  ScannedDataDescNullsFirst = "scannedData_DESC_NULLS_FIRST",
+  ScannedDataDescNullsLast = "scannedData_DESC_NULLS_LAST",
+  ServedDataAsc = "servedData_ASC",
+  ServedDataAscNullsFirst = "servedData_ASC_NULLS_FIRST",
+  ServedDataAscNullsLast = "servedData_ASC_NULLS_LAST",
+  ServedDataDesc = "servedData_DESC",
+  ServedDataDescNullsFirst = "servedData_DESC_NULLS_FIRST",
+  ServedDataDescNullsLast = "servedData_DESC_NULLS_LAST",
+  StoredDataAsc = "storedData_ASC",
+  StoredDataAscNullsFirst = "storedData_ASC_NULLS_FIRST",
+  StoredDataAscNullsLast = "storedData_ASC_NULLS_LAST",
+  StoredDataDesc = "storedData_DESC",
+  StoredDataDescNullsFirst = "storedData_DESC_NULLS_FIRST",
+  StoredDataDescNullsLast = "storedData_DESC_NULLS_LAST",
+  TimestampAsc = "timestamp_ASC",
+  TimestampAscNullsFirst = "timestamp_ASC_NULLS_FIRST",
+  TimestampAscNullsLast = "timestamp_ASC_NULLS_LAST",
+  TimestampDesc = "timestamp_DESC",
+  TimestampDescNullsFirst = "timestamp_DESC_NULLS_FIRST",
+  TimestampDescNullsLast = "timestamp_DESC_NULLS_LAST",
+  UptimeAsc = "uptime_ASC",
+  UptimeAscNullsFirst = "uptime_ASC_NULLS_FIRST",
+  UptimeAscNullsLast = "uptime_ASC_NULLS_LAST",
+  UptimeDesc = "uptime_DESC",
+  UptimeDescNullsFirst = "uptime_DESC_NULLS_FIRST",
+  UptimeDescNullsLast = "uptime_DESC_NULLS_LAST",
+  WorkerAprAsc = "worker_apr_ASC",
+  WorkerAprAscNullsFirst = "worker_apr_ASC_NULLS_FIRST",
+  WorkerAprAscNullsLast = "worker_apr_ASC_NULLS_LAST",
+  WorkerAprDesc = "worker_apr_DESC",
+  WorkerAprDescNullsFirst = "worker_apr_DESC_NULLS_FIRST",
+  WorkerAprDescNullsLast = "worker_apr_DESC_NULLS_LAST",
+  WorkerBondAsc = "worker_bond_ASC",
+  WorkerBondAscNullsFirst = "worker_bond_ASC_NULLS_FIRST",
+  WorkerBondAscNullsLast = "worker_bond_ASC_NULLS_LAST",
+  WorkerBondDesc = "worker_bond_DESC",
+  WorkerBondDescNullsFirst = "worker_bond_DESC_NULLS_FIRST",
+  WorkerBondDescNullsLast = "worker_bond_DESC_NULLS_LAST",
+  WorkerCapedDelegationAsc = "worker_capedDelegation_ASC",
+  WorkerCapedDelegationAscNullsFirst = "worker_capedDelegation_ASC_NULLS_FIRST",
+  WorkerCapedDelegationAscNullsLast = "worker_capedDelegation_ASC_NULLS_LAST",
+  WorkerCapedDelegationDesc = "worker_capedDelegation_DESC",
+  WorkerCapedDelegationDescNullsFirst = "worker_capedDelegation_DESC_NULLS_FIRST",
+  WorkerCapedDelegationDescNullsLast = "worker_capedDelegation_DESC_NULLS_LAST",
+  WorkerClaimableRewardAsc = "worker_claimableReward_ASC",
+  WorkerClaimableRewardAscNullsFirst = "worker_claimableReward_ASC_NULLS_FIRST",
+  WorkerClaimableRewardAscNullsLast = "worker_claimableReward_ASC_NULLS_LAST",
+  WorkerClaimableRewardDesc = "worker_claimableReward_DESC",
+  WorkerClaimableRewardDescNullsFirst = "worker_claimableReward_DESC_NULLS_FIRST",
+  WorkerClaimableRewardDescNullsLast = "worker_claimableReward_DESC_NULLS_LAST",
+  WorkerClaimedRewardAsc = "worker_claimedReward_ASC",
+  WorkerClaimedRewardAscNullsFirst = "worker_claimedReward_ASC_NULLS_FIRST",
+  WorkerClaimedRewardAscNullsLast = "worker_claimedReward_ASC_NULLS_LAST",
+  WorkerClaimedRewardDesc = "worker_claimedReward_DESC",
+  WorkerClaimedRewardDescNullsFirst = "worker_claimedReward_DESC_NULLS_FIRST",
+  WorkerClaimedRewardDescNullsLast = "worker_claimedReward_DESC_NULLS_LAST",
+  WorkerCreatedAtAsc = "worker_createdAt_ASC",
+  WorkerCreatedAtAscNullsFirst = "worker_createdAt_ASC_NULLS_FIRST",
+  WorkerCreatedAtAscNullsLast = "worker_createdAt_ASC_NULLS_LAST",
+  WorkerCreatedAtDesc = "worker_createdAt_DESC",
+  WorkerCreatedAtDescNullsFirst = "worker_createdAt_DESC_NULLS_FIRST",
+  WorkerCreatedAtDescNullsLast = "worker_createdAt_DESC_NULLS_LAST",
+  WorkerDTenureAsc = "worker_dTenure_ASC",
+  WorkerDTenureAscNullsFirst = "worker_dTenure_ASC_NULLS_FIRST",
+  WorkerDTenureAscNullsLast = "worker_dTenure_ASC_NULLS_LAST",
+  WorkerDTenureDesc = "worker_dTenure_DESC",
+  WorkerDTenureDescNullsFirst = "worker_dTenure_DESC_NULLS_FIRST",
+  WorkerDTenureDescNullsLast = "worker_dTenure_DESC_NULLS_LAST",
+  WorkerDelegationCountAsc = "worker_delegationCount_ASC",
+  WorkerDelegationCountAscNullsFirst = "worker_delegationCount_ASC_NULLS_FIRST",
+  WorkerDelegationCountAscNullsLast = "worker_delegationCount_ASC_NULLS_LAST",
+  WorkerDelegationCountDesc = "worker_delegationCount_DESC",
+  WorkerDelegationCountDescNullsFirst = "worker_delegationCount_DESC_NULLS_FIRST",
+  WorkerDelegationCountDescNullsLast = "worker_delegationCount_DESC_NULLS_LAST",
+  WorkerDescriptionAsc = "worker_description_ASC",
+  WorkerDescriptionAscNullsFirst = "worker_description_ASC_NULLS_FIRST",
+  WorkerDescriptionAscNullsLast = "worker_description_ASC_NULLS_LAST",
+  WorkerDescriptionDesc = "worker_description_DESC",
+  WorkerDescriptionDescNullsFirst = "worker_description_DESC_NULLS_FIRST",
+  WorkerDescriptionDescNullsLast = "worker_description_DESC_NULLS_LAST",
+  WorkerDialOkAsc = "worker_dialOk_ASC",
+  WorkerDialOkAscNullsFirst = "worker_dialOk_ASC_NULLS_FIRST",
+  WorkerDialOkAscNullsLast = "worker_dialOk_ASC_NULLS_LAST",
+  WorkerDialOkDesc = "worker_dialOk_DESC",
+  WorkerDialOkDescNullsFirst = "worker_dialOk_DESC_NULLS_FIRST",
+  WorkerDialOkDescNullsLast = "worker_dialOk_DESC_NULLS_LAST",
+  WorkerEmailAsc = "worker_email_ASC",
+  WorkerEmailAscNullsFirst = "worker_email_ASC_NULLS_FIRST",
+  WorkerEmailAscNullsLast = "worker_email_ASC_NULLS_LAST",
+  WorkerEmailDesc = "worker_email_DESC",
+  WorkerEmailDescNullsFirst = "worker_email_DESC_NULLS_FIRST",
+  WorkerEmailDescNullsLast = "worker_email_DESC_NULLS_LAST",
+  WorkerIdAsc = "worker_id_ASC",
+  WorkerIdAscNullsFirst = "worker_id_ASC_NULLS_FIRST",
+  WorkerIdAscNullsLast = "worker_id_ASC_NULLS_LAST",
+  WorkerIdDesc = "worker_id_DESC",
+  WorkerIdDescNullsFirst = "worker_id_DESC_NULLS_FIRST",
+  WorkerIdDescNullsLast = "worker_id_DESC_NULLS_LAST",
+  WorkerJailReasonAsc = "worker_jailReason_ASC",
+  WorkerJailReasonAscNullsFirst = "worker_jailReason_ASC_NULLS_FIRST",
+  WorkerJailReasonAscNullsLast = "worker_jailReason_ASC_NULLS_LAST",
+  WorkerJailReasonDesc = "worker_jailReason_DESC",
+  WorkerJailReasonDescNullsFirst = "worker_jailReason_DESC_NULLS_FIRST",
+  WorkerJailReasonDescNullsLast = "worker_jailReason_DESC_NULLS_LAST",
+  WorkerJailedAsc = "worker_jailed_ASC",
+  WorkerJailedAscNullsFirst = "worker_jailed_ASC_NULLS_FIRST",
+  WorkerJailedAscNullsLast = "worker_jailed_ASC_NULLS_LAST",
+  WorkerJailedDesc = "worker_jailed_DESC",
+  WorkerJailedDescNullsFirst = "worker_jailed_DESC_NULLS_FIRST",
+  WorkerJailedDescNullsLast = "worker_jailed_DESC_NULLS_LAST",
+  WorkerLivenessAsc = "worker_liveness_ASC",
+  WorkerLivenessAscNullsFirst = "worker_liveness_ASC_NULLS_FIRST",
+  WorkerLivenessAscNullsLast = "worker_liveness_ASC_NULLS_LAST",
+  WorkerLivenessDesc = "worker_liveness_DESC",
+  WorkerLivenessDescNullsFirst = "worker_liveness_DESC_NULLS_FIRST",
+  WorkerLivenessDescNullsLast = "worker_liveness_DESC_NULLS_LAST",
+  WorkerLockEndAsc = "worker_lockEnd_ASC",
+  WorkerLockEndAscNullsFirst = "worker_lockEnd_ASC_NULLS_FIRST",
+  WorkerLockEndAscNullsLast = "worker_lockEnd_ASC_NULLS_LAST",
+  WorkerLockEndDesc = "worker_lockEnd_DESC",
+  WorkerLockEndDescNullsFirst = "worker_lockEnd_DESC_NULLS_FIRST",
+  WorkerLockEndDescNullsLast = "worker_lockEnd_DESC_NULLS_LAST",
+  WorkerLockStartAsc = "worker_lockStart_ASC",
+  WorkerLockStartAscNullsFirst = "worker_lockStart_ASC_NULLS_FIRST",
+  WorkerLockStartAscNullsLast = "worker_lockStart_ASC_NULLS_LAST",
+  WorkerLockStartDesc = "worker_lockStart_DESC",
+  WorkerLockStartDescNullsFirst = "worker_lockStart_DESC_NULLS_FIRST",
+  WorkerLockStartDescNullsLast = "worker_lockStart_DESC_NULLS_LAST",
+  WorkerLockedAsc = "worker_locked_ASC",
+  WorkerLockedAscNullsFirst = "worker_locked_ASC_NULLS_FIRST",
+  WorkerLockedAscNullsLast = "worker_locked_ASC_NULLS_LAST",
+  WorkerLockedDesc = "worker_locked_DESC",
+  WorkerLockedDescNullsFirst = "worker_locked_DESC_NULLS_FIRST",
+  WorkerLockedDescNullsLast = "worker_locked_DESC_NULLS_LAST",
+  WorkerNameAsc = "worker_name_ASC",
+  WorkerNameAscNullsFirst = "worker_name_ASC_NULLS_FIRST",
+  WorkerNameAscNullsLast = "worker_name_ASC_NULLS_LAST",
+  WorkerNameDesc = "worker_name_DESC",
+  WorkerNameDescNullsFirst = "worker_name_DESC_NULLS_FIRST",
+  WorkerNameDescNullsLast = "worker_name_DESC_NULLS_LAST",
+  WorkerOnlineAsc = "worker_online_ASC",
+  WorkerOnlineAscNullsFirst = "worker_online_ASC_NULLS_FIRST",
+  WorkerOnlineAscNullsLast = "worker_online_ASC_NULLS_LAST",
+  WorkerOnlineDesc = "worker_online_DESC",
+  WorkerOnlineDescNullsFirst = "worker_online_DESC_NULLS_FIRST",
+  WorkerOnlineDescNullsLast = "worker_online_DESC_NULLS_LAST",
+  WorkerPeerIdAsc = "worker_peerId_ASC",
+  WorkerPeerIdAscNullsFirst = "worker_peerId_ASC_NULLS_FIRST",
+  WorkerPeerIdAscNullsLast = "worker_peerId_ASC_NULLS_LAST",
+  WorkerPeerIdDesc = "worker_peerId_DESC",
+  WorkerPeerIdDescNullsFirst = "worker_peerId_DESC_NULLS_FIRST",
+  WorkerPeerIdDescNullsLast = "worker_peerId_DESC_NULLS_LAST",
+  WorkerQueries24HoursAsc = "worker_queries24Hours_ASC",
+  WorkerQueries24HoursAscNullsFirst = "worker_queries24Hours_ASC_NULLS_FIRST",
+  WorkerQueries24HoursAscNullsLast = "worker_queries24Hours_ASC_NULLS_LAST",
+  WorkerQueries24HoursDesc = "worker_queries24Hours_DESC",
+  WorkerQueries24HoursDescNullsFirst = "worker_queries24Hours_DESC_NULLS_FIRST",
+  WorkerQueries24HoursDescNullsLast = "worker_queries24Hours_DESC_NULLS_LAST",
+  WorkerQueries90DaysAsc = "worker_queries90Days_ASC",
+  WorkerQueries90DaysAscNullsFirst = "worker_queries90Days_ASC_NULLS_FIRST",
+  WorkerQueries90DaysAscNullsLast = "worker_queries90Days_ASC_NULLS_LAST",
+  WorkerQueries90DaysDesc = "worker_queries90Days_DESC",
+  WorkerQueries90DaysDescNullsFirst = "worker_queries90Days_DESC_NULLS_FIRST",
+  WorkerQueries90DaysDescNullsLast = "worker_queries90Days_DESC_NULLS_LAST",
+  WorkerScannedData24HoursAsc = "worker_scannedData24Hours_ASC",
+  WorkerScannedData24HoursAscNullsFirst = "worker_scannedData24Hours_ASC_NULLS_FIRST",
+  WorkerScannedData24HoursAscNullsLast = "worker_scannedData24Hours_ASC_NULLS_LAST",
+  WorkerScannedData24HoursDesc = "worker_scannedData24Hours_DESC",
+  WorkerScannedData24HoursDescNullsFirst = "worker_scannedData24Hours_DESC_NULLS_FIRST",
+  WorkerScannedData24HoursDescNullsLast = "worker_scannedData24Hours_DESC_NULLS_LAST",
+  WorkerScannedData90DaysAsc = "worker_scannedData90Days_ASC",
+  WorkerScannedData90DaysAscNullsFirst = "worker_scannedData90Days_ASC_NULLS_FIRST",
+  WorkerScannedData90DaysAscNullsLast = "worker_scannedData90Days_ASC_NULLS_LAST",
+  WorkerScannedData90DaysDesc = "worker_scannedData90Days_DESC",
+  WorkerScannedData90DaysDescNullsFirst = "worker_scannedData90Days_DESC_NULLS_FIRST",
+  WorkerScannedData90DaysDescNullsLast = "worker_scannedData90Days_DESC_NULLS_LAST",
+  WorkerServedData24HoursAsc = "worker_servedData24Hours_ASC",
+  WorkerServedData24HoursAscNullsFirst = "worker_servedData24Hours_ASC_NULLS_FIRST",
+  WorkerServedData24HoursAscNullsLast = "worker_servedData24Hours_ASC_NULLS_LAST",
+  WorkerServedData24HoursDesc = "worker_servedData24Hours_DESC",
+  WorkerServedData24HoursDescNullsFirst = "worker_servedData24Hours_DESC_NULLS_FIRST",
+  WorkerServedData24HoursDescNullsLast = "worker_servedData24Hours_DESC_NULLS_LAST",
+  WorkerServedData90DaysAsc = "worker_servedData90Days_ASC",
+  WorkerServedData90DaysAscNullsFirst = "worker_servedData90Days_ASC_NULLS_FIRST",
+  WorkerServedData90DaysAscNullsLast = "worker_servedData90Days_ASC_NULLS_LAST",
+  WorkerServedData90DaysDesc = "worker_servedData90Days_DESC",
+  WorkerServedData90DaysDescNullsFirst = "worker_servedData90Days_DESC_NULLS_FIRST",
+  WorkerServedData90DaysDescNullsLast = "worker_servedData90Days_DESC_NULLS_LAST",
+  WorkerStakerAprAsc = "worker_stakerApr_ASC",
+  WorkerStakerAprAscNullsFirst = "worker_stakerApr_ASC_NULLS_FIRST",
+  WorkerStakerAprAscNullsLast = "worker_stakerApr_ASC_NULLS_LAST",
+  WorkerStakerAprDesc = "worker_stakerApr_DESC",
+  WorkerStakerAprDescNullsFirst = "worker_stakerApr_DESC_NULLS_FIRST",
+  WorkerStakerAprDescNullsLast = "worker_stakerApr_DESC_NULLS_LAST",
+  WorkerStatusAsc = "worker_status_ASC",
+  WorkerStatusAscNullsFirst = "worker_status_ASC_NULLS_FIRST",
+  WorkerStatusAscNullsLast = "worker_status_ASC_NULLS_LAST",
+  WorkerStatusDesc = "worker_status_DESC",
+  WorkerStatusDescNullsFirst = "worker_status_DESC_NULLS_FIRST",
+  WorkerStatusDescNullsLast = "worker_status_DESC_NULLS_LAST",
+  WorkerStoredDataAsc = "worker_storedData_ASC",
+  WorkerStoredDataAscNullsFirst = "worker_storedData_ASC_NULLS_FIRST",
+  WorkerStoredDataAscNullsLast = "worker_storedData_ASC_NULLS_LAST",
+  WorkerStoredDataDesc = "worker_storedData_DESC",
+  WorkerStoredDataDescNullsFirst = "worker_storedData_DESC_NULLS_FIRST",
+  WorkerStoredDataDescNullsLast = "worker_storedData_DESC_NULLS_LAST",
+  WorkerTotalDelegationRewardsAsc = "worker_totalDelegationRewards_ASC",
+  WorkerTotalDelegationRewardsAscNullsFirst = "worker_totalDelegationRewards_ASC_NULLS_FIRST",
+  WorkerTotalDelegationRewardsAscNullsLast = "worker_totalDelegationRewards_ASC_NULLS_LAST",
+  WorkerTotalDelegationRewardsDesc = "worker_totalDelegationRewards_DESC",
+  WorkerTotalDelegationRewardsDescNullsFirst = "worker_totalDelegationRewards_DESC_NULLS_FIRST",
+  WorkerTotalDelegationRewardsDescNullsLast = "worker_totalDelegationRewards_DESC_NULLS_LAST",
+  WorkerTotalDelegationAsc = "worker_totalDelegation_ASC",
+  WorkerTotalDelegationAscNullsFirst = "worker_totalDelegation_ASC_NULLS_FIRST",
+  WorkerTotalDelegationAscNullsLast = "worker_totalDelegation_ASC_NULLS_LAST",
+  WorkerTotalDelegationDesc = "worker_totalDelegation_DESC",
+  WorkerTotalDelegationDescNullsFirst = "worker_totalDelegation_DESC_NULLS_FIRST",
+  WorkerTotalDelegationDescNullsLast = "worker_totalDelegation_DESC_NULLS_LAST",
+  WorkerTrafficWeightAsc = "worker_trafficWeight_ASC",
+  WorkerTrafficWeightAscNullsFirst = "worker_trafficWeight_ASC_NULLS_FIRST",
+  WorkerTrafficWeightAscNullsLast = "worker_trafficWeight_ASC_NULLS_LAST",
+  WorkerTrafficWeightDesc = "worker_trafficWeight_DESC",
+  WorkerTrafficWeightDescNullsFirst = "worker_trafficWeight_DESC_NULLS_FIRST",
+  WorkerTrafficWeightDescNullsLast = "worker_trafficWeight_DESC_NULLS_LAST",
+  WorkerUptime24HoursAsc = "worker_uptime24Hours_ASC",
+  WorkerUptime24HoursAscNullsFirst = "worker_uptime24Hours_ASC_NULLS_FIRST",
+  WorkerUptime24HoursAscNullsLast = "worker_uptime24Hours_ASC_NULLS_LAST",
+  WorkerUptime24HoursDesc = "worker_uptime24Hours_DESC",
+  WorkerUptime24HoursDescNullsFirst = "worker_uptime24Hours_DESC_NULLS_FIRST",
+  WorkerUptime24HoursDescNullsLast = "worker_uptime24Hours_DESC_NULLS_LAST",
+  WorkerUptime90DaysAsc = "worker_uptime90Days_ASC",
+  WorkerUptime90DaysAscNullsFirst = "worker_uptime90Days_ASC_NULLS_FIRST",
+  WorkerUptime90DaysAscNullsLast = "worker_uptime90Days_ASC_NULLS_LAST",
+  WorkerUptime90DaysDesc = "worker_uptime90Days_DESC",
+  WorkerUptime90DaysDescNullsFirst = "worker_uptime90Days_DESC_NULLS_FIRST",
+  WorkerUptime90DaysDescNullsLast = "worker_uptime90Days_DESC_NULLS_LAST",
+  WorkerVersionAsc = "worker_version_ASC",
+  WorkerVersionAscNullsFirst = "worker_version_ASC_NULLS_FIRST",
+  WorkerVersionAscNullsLast = "worker_version_ASC_NULLS_LAST",
+  WorkerVersionDesc = "worker_version_DESC",
+  WorkerVersionDescNullsFirst = "worker_version_DESC_NULLS_FIRST",
+  WorkerVersionDescNullsLast = "worker_version_DESC_NULLS_LAST",
+  WorkerWebsiteAsc = "worker_website_ASC",
+  WorkerWebsiteAscNullsFirst = "worker_website_ASC_NULLS_FIRST",
+  WorkerWebsiteAscNullsLast = "worker_website_ASC_NULLS_LAST",
+  WorkerWebsiteDesc = "worker_website_DESC",
+  WorkerWebsiteDescNullsFirst = "worker_website_DESC_NULLS_FIRST",
+  WorkerWebsiteDescNullsLast = "worker_website_DESC_NULLS_LAST",
+}
+
+export type WorkerMetricsWhereInput = {
+  AND?: InputMaybe<Array<WorkerMetricsWhereInput>>;
+  OR?: InputMaybe<Array<WorkerMetricsWhereInput>>;
+  id_contains?: InputMaybe<Scalars["String"]["input"]>;
+  id_containsInsensitive?: InputMaybe<Scalars["String"]["input"]>;
+  id_endsWith?: InputMaybe<Scalars["String"]["input"]>;
+  id_eq?: InputMaybe<Scalars["String"]["input"]>;
+  id_gt?: InputMaybe<Scalars["String"]["input"]>;
+  id_gte?: InputMaybe<Scalars["String"]["input"]>;
+  id_in?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  id_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  id_lt?: InputMaybe<Scalars["String"]["input"]>;
+  id_lte?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_contains?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_containsInsensitive?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_endsWith?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_eq?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_in?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  id_not_startsWith?: InputMaybe<Scalars["String"]["input"]>;
+  id_startsWith?: InputMaybe<Scalars["String"]["input"]>;
+  pings_eq?: InputMaybe<Scalars["Int"]["input"]>;
+  pings_gt?: InputMaybe<Scalars["Int"]["input"]>;
+  pings_gte?: InputMaybe<Scalars["Int"]["input"]>;
+  pings_in?: InputMaybe<Array<Scalars["Int"]["input"]>>;
+  pings_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  pings_lt?: InputMaybe<Scalars["Int"]["input"]>;
+  pings_lte?: InputMaybe<Scalars["Int"]["input"]>;
+  pings_not_eq?: InputMaybe<Scalars["Int"]["input"]>;
+  pings_not_in?: InputMaybe<Array<Scalars["Int"]["input"]>>;
+  queries_eq?: InputMaybe<Scalars["Int"]["input"]>;
+  queries_gt?: InputMaybe<Scalars["Int"]["input"]>;
+  queries_gte?: InputMaybe<Scalars["Int"]["input"]>;
+  queries_in?: InputMaybe<Array<Scalars["Int"]["input"]>>;
+  queries_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  queries_lt?: InputMaybe<Scalars["Int"]["input"]>;
+  queries_lte?: InputMaybe<Scalars["Int"]["input"]>;
+  queries_not_eq?: InputMaybe<Scalars["Int"]["input"]>;
+  queries_not_in?: InputMaybe<Array<Scalars["Int"]["input"]>>;
+  scannedData_eq?: InputMaybe<Scalars["BigInt"]["input"]>;
+  scannedData_gt?: InputMaybe<Scalars["BigInt"]["input"]>;
+  scannedData_gte?: InputMaybe<Scalars["BigInt"]["input"]>;
+  scannedData_in?: InputMaybe<Array<Scalars["BigInt"]["input"]>>;
+  scannedData_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  scannedData_lt?: InputMaybe<Scalars["BigInt"]["input"]>;
+  scannedData_lte?: InputMaybe<Scalars["BigInt"]["input"]>;
+  scannedData_not_eq?: InputMaybe<Scalars["BigInt"]["input"]>;
+  scannedData_not_in?: InputMaybe<Array<Scalars["BigInt"]["input"]>>;
+  servedData_eq?: InputMaybe<Scalars["BigInt"]["input"]>;
+  servedData_gt?: InputMaybe<Scalars["BigInt"]["input"]>;
+  servedData_gte?: InputMaybe<Scalars["BigInt"]["input"]>;
+  servedData_in?: InputMaybe<Array<Scalars["BigInt"]["input"]>>;
+  servedData_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  servedData_lt?: InputMaybe<Scalars["BigInt"]["input"]>;
+  servedData_lte?: InputMaybe<Scalars["BigInt"]["input"]>;
+  servedData_not_eq?: InputMaybe<Scalars["BigInt"]["input"]>;
+  servedData_not_in?: InputMaybe<Array<Scalars["BigInt"]["input"]>>;
+  storedData_eq?: InputMaybe<Scalars["BigInt"]["input"]>;
+  storedData_gt?: InputMaybe<Scalars["BigInt"]["input"]>;
+  storedData_gte?: InputMaybe<Scalars["BigInt"]["input"]>;
+  storedData_in?: InputMaybe<Array<Scalars["BigInt"]["input"]>>;
+  storedData_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  storedData_lt?: InputMaybe<Scalars["BigInt"]["input"]>;
+  storedData_lte?: InputMaybe<Scalars["BigInt"]["input"]>;
+  storedData_not_eq?: InputMaybe<Scalars["BigInt"]["input"]>;
+  storedData_not_in?: InputMaybe<Array<Scalars["BigInt"]["input"]>>;
+  timestamp_eq?: InputMaybe<Scalars["DateTime"]["input"]>;
+  timestamp_gt?: InputMaybe<Scalars["DateTime"]["input"]>;
+  timestamp_gte?: InputMaybe<Scalars["DateTime"]["input"]>;
+  timestamp_in?: InputMaybe<Array<Scalars["DateTime"]["input"]>>;
+  timestamp_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  timestamp_lt?: InputMaybe<Scalars["DateTime"]["input"]>;
+  timestamp_lte?: InputMaybe<Scalars["DateTime"]["input"]>;
+  timestamp_not_eq?: InputMaybe<Scalars["DateTime"]["input"]>;
+  timestamp_not_in?: InputMaybe<Array<Scalars["DateTime"]["input"]>>;
+  uptime_eq?: InputMaybe<Scalars["Float"]["input"]>;
+  uptime_gt?: InputMaybe<Scalars["Float"]["input"]>;
+  uptime_gte?: InputMaybe<Scalars["Float"]["input"]>;
+  uptime_in?: InputMaybe<Array<Scalars["Float"]["input"]>>;
+  uptime_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  uptime_lt?: InputMaybe<Scalars["Float"]["input"]>;
+  uptime_lte?: InputMaybe<Scalars["Float"]["input"]>;
+  uptime_not_eq?: InputMaybe<Scalars["Float"]["input"]>;
+  uptime_not_in?: InputMaybe<Array<Scalars["Float"]["input"]>>;
+  worker?: InputMaybe<WorkerWhereInput>;
+  worker_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
 export enum WorkerOrderByInput {
@@ -3958,8 +4717,10 @@ export enum WorkerOrderByInput {
 export type WorkerReward = {
   __typename?: "WorkerReward";
   amount: Scalars["BigInt"]["output"];
+  apr: Scalars["Float"]["output"];
   blockNumber: Scalars["Int"]["output"];
   id: Scalars["String"]["output"];
+  stakerApr: Scalars["Float"]["output"];
   stakersReward: Scalars["BigInt"]["output"];
   timestamp: Scalars["DateTime"]["output"];
   worker: Worker;
@@ -3978,6 +4739,12 @@ export enum WorkerRewardOrderByInput {
   AmountDesc = "amount_DESC",
   AmountDescNullsFirst = "amount_DESC_NULLS_FIRST",
   AmountDescNullsLast = "amount_DESC_NULLS_LAST",
+  AprAsc = "apr_ASC",
+  AprAscNullsFirst = "apr_ASC_NULLS_FIRST",
+  AprAscNullsLast = "apr_ASC_NULLS_LAST",
+  AprDesc = "apr_DESC",
+  AprDescNullsFirst = "apr_DESC_NULLS_FIRST",
+  AprDescNullsLast = "apr_DESC_NULLS_LAST",
   BlockNumberAsc = "blockNumber_ASC",
   BlockNumberAscNullsFirst = "blockNumber_ASC_NULLS_FIRST",
   BlockNumberAscNullsLast = "blockNumber_ASC_NULLS_LAST",
@@ -3990,6 +4757,12 @@ export enum WorkerRewardOrderByInput {
   IdDesc = "id_DESC",
   IdDescNullsFirst = "id_DESC_NULLS_FIRST",
   IdDescNullsLast = "id_DESC_NULLS_LAST",
+  StakerAprAsc = "stakerApr_ASC",
+  StakerAprAscNullsFirst = "stakerApr_ASC_NULLS_FIRST",
+  StakerAprAscNullsLast = "stakerApr_ASC_NULLS_LAST",
+  StakerAprDesc = "stakerApr_DESC",
+  StakerAprDescNullsFirst = "stakerApr_DESC_NULLS_FIRST",
+  StakerAprDescNullsLast = "stakerApr_DESC_NULLS_LAST",
   StakersRewardAsc = "stakersReward_ASC",
   StakersRewardAscNullsFirst = "stakersReward_ASC_NULLS_FIRST",
   StakersRewardAscNullsLast = "stakersReward_ASC_NULLS_LAST",
@@ -4238,6 +5011,15 @@ export type WorkerRewardWhereInput = {
   amount_lte?: InputMaybe<Scalars["BigInt"]["input"]>;
   amount_not_eq?: InputMaybe<Scalars["BigInt"]["input"]>;
   amount_not_in?: InputMaybe<Array<Scalars["BigInt"]["input"]>>;
+  apr_eq?: InputMaybe<Scalars["Float"]["input"]>;
+  apr_gt?: InputMaybe<Scalars["Float"]["input"]>;
+  apr_gte?: InputMaybe<Scalars["Float"]["input"]>;
+  apr_in?: InputMaybe<Array<Scalars["Float"]["input"]>>;
+  apr_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  apr_lt?: InputMaybe<Scalars["Float"]["input"]>;
+  apr_lte?: InputMaybe<Scalars["Float"]["input"]>;
+  apr_not_eq?: InputMaybe<Scalars["Float"]["input"]>;
+  apr_not_in?: InputMaybe<Array<Scalars["Float"]["input"]>>;
   blockNumber_eq?: InputMaybe<Scalars["Int"]["input"]>;
   blockNumber_gt?: InputMaybe<Scalars["Int"]["input"]>;
   blockNumber_gte?: InputMaybe<Scalars["Int"]["input"]>;
@@ -4264,6 +5046,15 @@ export type WorkerRewardWhereInput = {
   id_not_in?: InputMaybe<Array<Scalars["String"]["input"]>>;
   id_not_startsWith?: InputMaybe<Scalars["String"]["input"]>;
   id_startsWith?: InputMaybe<Scalars["String"]["input"]>;
+  stakerApr_eq?: InputMaybe<Scalars["Float"]["input"]>;
+  stakerApr_gt?: InputMaybe<Scalars["Float"]["input"]>;
+  stakerApr_gte?: InputMaybe<Scalars["Float"]["input"]>;
+  stakerApr_in?: InputMaybe<Array<Scalars["Float"]["input"]>>;
+  stakerApr_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  stakerApr_lt?: InputMaybe<Scalars["Float"]["input"]>;
+  stakerApr_lte?: InputMaybe<Scalars["Float"]["input"]>;
+  stakerApr_not_eq?: InputMaybe<Scalars["Float"]["input"]>;
+  stakerApr_not_in?: InputMaybe<Array<Scalars["Float"]["input"]>>;
   stakersReward_eq?: InputMaybe<Scalars["BigInt"]["input"]>;
   stakersReward_gt?: InputMaybe<Scalars["BigInt"]["input"]>;
   stakersReward_gte?: InputMaybe<Scalars["BigInt"]["input"]>;
@@ -5035,9 +5826,6 @@ export type WorkerWhereInput = {
   claimedReward_lte?: InputMaybe<Scalars["BigInt"]["input"]>;
   claimedReward_not_eq?: InputMaybe<Scalars["BigInt"]["input"]>;
   claimedReward_not_in?: InputMaybe<Array<Scalars["BigInt"]["input"]>>;
-  claims_every?: InputMaybe<ClaimWhereInput>;
-  claims_none?: InputMaybe<ClaimWhereInput>;
-  claims_some?: InputMaybe<ClaimWhereInput>;
   createdAt_eq?: InputMaybe<Scalars["DateTime"]["input"]>;
   createdAt_gt?: InputMaybe<Scalars["DateTime"]["input"]>;
   createdAt_gte?: InputMaybe<Scalars["DateTime"]["input"]>;
@@ -6056,6 +6844,189 @@ export type CurrentEpochQuery = {
   }>;
 };
 
+export type HoldersCountTimeseriesQueryVariables = Exact<{
+  from: Scalars["DateTime"]["input"];
+  to: Scalars["DateTime"]["input"];
+}>;
+
+export type HoldersCountTimeseriesQuery = {
+  __typename?: "Query";
+  holdersCountTimeseries: Array<{
+    __typename?: "HoldersCountEntry";
+    timestamp: string;
+    value: number;
+  }>;
+};
+
+export type LockedValueTimeseriesQueryVariables = Exact<{
+  from: Scalars["DateTime"]["input"];
+  to: Scalars["DateTime"]["input"];
+}>;
+
+export type LockedValueTimeseriesQuery = {
+  __typename?: "Query";
+  lockedValueTimeseries: Array<{
+    __typename?: "TvlEntry";
+    timestamp: string;
+    value: number;
+  }>;
+};
+
+export type ActiveWorkersTimeseriesQueryVariables = Exact<{
+  from: Scalars["DateTime"]["input"];
+  to: Scalars["DateTime"]["input"];
+}>;
+
+export type ActiveWorkersTimeseriesQuery = {
+  __typename?: "Query";
+  activeWorkersTimeseries: Array<{
+    __typename?: "ActiveWorkersEntry";
+    timestamp: string;
+    value: number;
+  }>;
+};
+
+export type UniqueOperatorsTimeseriesQueryVariables = Exact<{
+  from: Scalars["DateTime"]["input"];
+  to: Scalars["DateTime"]["input"];
+}>;
+
+export type UniqueOperatorsTimeseriesQuery = {
+  __typename?: "Query";
+  uniqueOperatorsTimeseries: Array<{
+    __typename?: "OperatorsEntry";
+    timestamp: string;
+    value: number;
+  }>;
+};
+
+export type DelegationsTimeseriesQueryVariables = Exact<{
+  from: Scalars["DateTime"]["input"];
+  to: Scalars["DateTime"]["input"];
+}>;
+
+export type DelegationsTimeseriesQuery = {
+  __typename?: "Query";
+  delegationsTimeseries: Array<{
+    __typename?: "DelegationsEntry";
+    timestamp: string;
+    value: number;
+  }>;
+};
+
+export type DelegatorsTimeseriesQueryVariables = Exact<{
+  from: Scalars["DateTime"]["input"];
+  to: Scalars["DateTime"]["input"];
+}>;
+
+export type DelegatorsTimeseriesQuery = {
+  __typename?: "Query";
+  delegatorsTimeseries: Array<{
+    __typename?: "DelegatorsEntry";
+    timestamp: string;
+    value: number;
+  }>;
+};
+
+export type TransfersByTypeTimeseriesQueryVariables = Exact<{
+  from: Scalars["DateTime"]["input"];
+  to: Scalars["DateTime"]["input"];
+}>;
+
+export type TransfersByTypeTimeseriesQuery = {
+  __typename?: "Query";
+  transfersByTypeTimeseries: Array<{
+    __typename?: "TransferCountByType";
+    timestamp: string;
+    type: string;
+    value: number;
+  }>;
+};
+
+export type UniqueAccountsTimeseriesQueryVariables = Exact<{
+  from: Scalars["DateTime"]["input"];
+  to: Scalars["DateTime"]["input"];
+}>;
+
+export type UniqueAccountsTimeseriesQuery = {
+  __typename?: "Query";
+  uniqueAccountsTimeseries: Array<{
+    __typename?: "UniqueAccountsEntry";
+    timestamp: string;
+    value: number;
+  }>;
+};
+
+export type QueriesCountTimeseriesQueryVariables = Exact<{
+  from: Scalars["DateTime"]["input"];
+  to: Scalars["DateTime"]["input"];
+}>;
+
+export type QueriesCountTimeseriesQuery = {
+  __typename?: "Query";
+  queriesCountTimeseries: Array<{
+    __typename?: "QueriesCountEntry";
+    timestamp: string;
+    value: number;
+  }>;
+};
+
+export type ServedDataTimeseriesQueryVariables = Exact<{
+  from: Scalars["DateTime"]["input"];
+  to: Scalars["DateTime"]["input"];
+}>;
+
+export type ServedDataTimeseriesQuery = {
+  __typename?: "Query";
+  servedDataTimeseries: Array<{
+    __typename?: "ServedDataEntry";
+    timestamp: string;
+    value: number;
+  }>;
+};
+
+export type StoredDataTimeseriesQueryVariables = Exact<{
+  from: Scalars["DateTime"]["input"];
+  to: Scalars["DateTime"]["input"];
+}>;
+
+export type StoredDataTimeseriesQuery = {
+  __typename?: "Query";
+  storedDataTimeseries: Array<{
+    __typename?: "StoredDataEntry";
+    timestamp: string;
+    value: number;
+  }>;
+};
+
+export type RewardTimeseriesQueryVariables = Exact<{
+  from: Scalars["DateTime"]["input"];
+  to: Scalars["DateTime"]["input"];
+}>;
+
+export type RewardTimeseriesQuery = {
+  __typename?: "Query";
+  rewardTimeseries: Array<{
+    __typename?: "RewardEntry";
+    timestamp: string;
+    value: number;
+  }>;
+};
+
+export type AprTimeseriesQueryVariables = Exact<{
+  from: Scalars["DateTime"]["input"];
+  to: Scalars["DateTime"]["input"];
+}>;
+
+export type AprTimeseriesQuery = {
+  __typename?: "Query";
+  aprTimeseries: Array<{
+    __typename?: "AprEntry";
+    timestamp: string;
+    value: { __typename?: "AprValue"; workerApr: number; stakerApr: number };
+  }>;
+};
+
 export const AccountFragmentFragmentDoc = `
     fragment AccountFragment on Account {
   id
@@ -6942,6 +7913,461 @@ export const useCurrentEpochQuery = <
       variables === undefined ? ["currentEpoch"] : ["currentEpoch", variables],
     queryFn: fetcher<CurrentEpochQuery, CurrentEpochQueryVariables>(
       CurrentEpochDocument,
+      variables,
+    ),
+    ...options,
+  });
+};
+
+export const HoldersCountTimeseriesDocument = `
+    query HoldersCountTimeseries($from: DateTime!, $to: DateTime!) {
+  holdersCountTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+    `;
+
+export const useHoldersCountTimeseriesQuery = <
+  TData = HoldersCountTimeseriesQuery,
+  TError = unknown,
+>(
+  variables: HoldersCountTimeseriesQueryVariables,
+  options?: Omit<
+    UseQueryOptions<HoldersCountTimeseriesQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      HoldersCountTimeseriesQuery,
+      TError,
+      TData
+    >["queryKey"];
+  },
+) => {
+  return useQuery<HoldersCountTimeseriesQuery, TError, TData>({
+    queryKey: ["HoldersCountTimeseries", variables],
+    queryFn: fetcher<
+      HoldersCountTimeseriesQuery,
+      HoldersCountTimeseriesQueryVariables
+    >(HoldersCountTimeseriesDocument, variables),
+    ...options,
+  });
+};
+
+export const LockedValueTimeseriesDocument = `
+    query LockedValueTimeseries($from: DateTime!, $to: DateTime!) {
+  lockedValueTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+    `;
+
+export const useLockedValueTimeseriesQuery = <
+  TData = LockedValueTimeseriesQuery,
+  TError = unknown,
+>(
+  variables: LockedValueTimeseriesQueryVariables,
+  options?: Omit<
+    UseQueryOptions<LockedValueTimeseriesQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      LockedValueTimeseriesQuery,
+      TError,
+      TData
+    >["queryKey"];
+  },
+) => {
+  return useQuery<LockedValueTimeseriesQuery, TError, TData>({
+    queryKey: ["LockedValueTimeseries", variables],
+    queryFn: fetcher<
+      LockedValueTimeseriesQuery,
+      LockedValueTimeseriesQueryVariables
+    >(LockedValueTimeseriesDocument, variables),
+    ...options,
+  });
+};
+
+export const ActiveWorkersTimeseriesDocument = `
+    query ActiveWorkersTimeseries($from: DateTime!, $to: DateTime!) {
+  activeWorkersTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+    `;
+
+export const useActiveWorkersTimeseriesQuery = <
+  TData = ActiveWorkersTimeseriesQuery,
+  TError = unknown,
+>(
+  variables: ActiveWorkersTimeseriesQueryVariables,
+  options?: Omit<
+    UseQueryOptions<ActiveWorkersTimeseriesQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      ActiveWorkersTimeseriesQuery,
+      TError,
+      TData
+    >["queryKey"];
+  },
+) => {
+  return useQuery<ActiveWorkersTimeseriesQuery, TError, TData>({
+    queryKey: ["ActiveWorkersTimeseries", variables],
+    queryFn: fetcher<
+      ActiveWorkersTimeseriesQuery,
+      ActiveWorkersTimeseriesQueryVariables
+    >(ActiveWorkersTimeseriesDocument, variables),
+    ...options,
+  });
+};
+
+export const UniqueOperatorsTimeseriesDocument = `
+    query UniqueOperatorsTimeseries($from: DateTime!, $to: DateTime!) {
+  uniqueOperatorsTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+    `;
+
+export const useUniqueOperatorsTimeseriesQuery = <
+  TData = UniqueOperatorsTimeseriesQuery,
+  TError = unknown,
+>(
+  variables: UniqueOperatorsTimeseriesQueryVariables,
+  options?: Omit<
+    UseQueryOptions<UniqueOperatorsTimeseriesQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      UniqueOperatorsTimeseriesQuery,
+      TError,
+      TData
+    >["queryKey"];
+  },
+) => {
+  return useQuery<UniqueOperatorsTimeseriesQuery, TError, TData>({
+    queryKey: ["UniqueOperatorsTimeseries", variables],
+    queryFn: fetcher<
+      UniqueOperatorsTimeseriesQuery,
+      UniqueOperatorsTimeseriesQueryVariables
+    >(UniqueOperatorsTimeseriesDocument, variables),
+    ...options,
+  });
+};
+
+export const DelegationsTimeseriesDocument = `
+    query DelegationsTimeseries($from: DateTime!, $to: DateTime!) {
+  delegationsTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+    `;
+
+export const useDelegationsTimeseriesQuery = <
+  TData = DelegationsTimeseriesQuery,
+  TError = unknown,
+>(
+  variables: DelegationsTimeseriesQueryVariables,
+  options?: Omit<
+    UseQueryOptions<DelegationsTimeseriesQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      DelegationsTimeseriesQuery,
+      TError,
+      TData
+    >["queryKey"];
+  },
+) => {
+  return useQuery<DelegationsTimeseriesQuery, TError, TData>({
+    queryKey: ["DelegationsTimeseries", variables],
+    queryFn: fetcher<
+      DelegationsTimeseriesQuery,
+      DelegationsTimeseriesQueryVariables
+    >(DelegationsTimeseriesDocument, variables),
+    ...options,
+  });
+};
+
+export const DelegatorsTimeseriesDocument = `
+    query DelegatorsTimeseries($from: DateTime!, $to: DateTime!) {
+  delegatorsTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+    `;
+
+export const useDelegatorsTimeseriesQuery = <
+  TData = DelegatorsTimeseriesQuery,
+  TError = unknown,
+>(
+  variables: DelegatorsTimeseriesQueryVariables,
+  options?: Omit<
+    UseQueryOptions<DelegatorsTimeseriesQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      DelegatorsTimeseriesQuery,
+      TError,
+      TData
+    >["queryKey"];
+  },
+) => {
+  return useQuery<DelegatorsTimeseriesQuery, TError, TData>({
+    queryKey: ["DelegatorsTimeseries", variables],
+    queryFn: fetcher<
+      DelegatorsTimeseriesQuery,
+      DelegatorsTimeseriesQueryVariables
+    >(DelegatorsTimeseriesDocument, variables),
+    ...options,
+  });
+};
+
+export const TransfersByTypeTimeseriesDocument = `
+    query TransfersByTypeTimeseries($from: DateTime!, $to: DateTime!) {
+  transfersByTypeTimeseries(from: $from, to: $to) {
+    timestamp
+    type
+    value
+  }
+}
+    `;
+
+export const useTransfersByTypeTimeseriesQuery = <
+  TData = TransfersByTypeTimeseriesQuery,
+  TError = unknown,
+>(
+  variables: TransfersByTypeTimeseriesQueryVariables,
+  options?: Omit<
+    UseQueryOptions<TransfersByTypeTimeseriesQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      TransfersByTypeTimeseriesQuery,
+      TError,
+      TData
+    >["queryKey"];
+  },
+) => {
+  return useQuery<TransfersByTypeTimeseriesQuery, TError, TData>({
+    queryKey: ["TransfersByTypeTimeseries", variables],
+    queryFn: fetcher<
+      TransfersByTypeTimeseriesQuery,
+      TransfersByTypeTimeseriesQueryVariables
+    >(TransfersByTypeTimeseriesDocument, variables),
+    ...options,
+  });
+};
+
+export const UniqueAccountsTimeseriesDocument = `
+    query UniqueAccountsTimeseries($from: DateTime!, $to: DateTime!) {
+  uniqueAccountsTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+    `;
+
+export const useUniqueAccountsTimeseriesQuery = <
+  TData = UniqueAccountsTimeseriesQuery,
+  TError = unknown,
+>(
+  variables: UniqueAccountsTimeseriesQueryVariables,
+  options?: Omit<
+    UseQueryOptions<UniqueAccountsTimeseriesQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      UniqueAccountsTimeseriesQuery,
+      TError,
+      TData
+    >["queryKey"];
+  },
+) => {
+  return useQuery<UniqueAccountsTimeseriesQuery, TError, TData>({
+    queryKey: ["UniqueAccountsTimeseries", variables],
+    queryFn: fetcher<
+      UniqueAccountsTimeseriesQuery,
+      UniqueAccountsTimeseriesQueryVariables
+    >(UniqueAccountsTimeseriesDocument, variables),
+    ...options,
+  });
+};
+
+export const QueriesCountTimeseriesDocument = `
+    query QueriesCountTimeseries($from: DateTime!, $to: DateTime!) {
+  queriesCountTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+    `;
+
+export const useQueriesCountTimeseriesQuery = <
+  TData = QueriesCountTimeseriesQuery,
+  TError = unknown,
+>(
+  variables: QueriesCountTimeseriesQueryVariables,
+  options?: Omit<
+    UseQueryOptions<QueriesCountTimeseriesQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      QueriesCountTimeseriesQuery,
+      TError,
+      TData
+    >["queryKey"];
+  },
+) => {
+  return useQuery<QueriesCountTimeseriesQuery, TError, TData>({
+    queryKey: ["QueriesCountTimeseries", variables],
+    queryFn: fetcher<
+      QueriesCountTimeseriesQuery,
+      QueriesCountTimeseriesQueryVariables
+    >(QueriesCountTimeseriesDocument, variables),
+    ...options,
+  });
+};
+
+export const ServedDataTimeseriesDocument = `
+    query ServedDataTimeseries($from: DateTime!, $to: DateTime!) {
+  servedDataTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+    `;
+
+export const useServedDataTimeseriesQuery = <
+  TData = ServedDataTimeseriesQuery,
+  TError = unknown,
+>(
+  variables: ServedDataTimeseriesQueryVariables,
+  options?: Omit<
+    UseQueryOptions<ServedDataTimeseriesQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      ServedDataTimeseriesQuery,
+      TError,
+      TData
+    >["queryKey"];
+  },
+) => {
+  return useQuery<ServedDataTimeseriesQuery, TError, TData>({
+    queryKey: ["ServedDataTimeseries", variables],
+    queryFn: fetcher<
+      ServedDataTimeseriesQuery,
+      ServedDataTimeseriesQueryVariables
+    >(ServedDataTimeseriesDocument, variables),
+    ...options,
+  });
+};
+
+export const StoredDataTimeseriesDocument = `
+    query StoredDataTimeseries($from: DateTime!, $to: DateTime!) {
+  storedDataTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+    `;
+
+export const useStoredDataTimeseriesQuery = <
+  TData = StoredDataTimeseriesQuery,
+  TError = unknown,
+>(
+  variables: StoredDataTimeseriesQueryVariables,
+  options?: Omit<
+    UseQueryOptions<StoredDataTimeseriesQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      StoredDataTimeseriesQuery,
+      TError,
+      TData
+    >["queryKey"];
+  },
+) => {
+  return useQuery<StoredDataTimeseriesQuery, TError, TData>({
+    queryKey: ["StoredDataTimeseries", variables],
+    queryFn: fetcher<
+      StoredDataTimeseriesQuery,
+      StoredDataTimeseriesQueryVariables
+    >(StoredDataTimeseriesDocument, variables),
+    ...options,
+  });
+};
+
+export const RewardTimeseriesDocument = `
+    query RewardTimeseries($from: DateTime!, $to: DateTime!) {
+  rewardTimeseries(from: $from, to: $to) {
+    timestamp
+    value
+  }
+}
+    `;
+
+export const useRewardTimeseriesQuery = <
+  TData = RewardTimeseriesQuery,
+  TError = unknown,
+>(
+  variables: RewardTimeseriesQueryVariables,
+  options?: Omit<
+    UseQueryOptions<RewardTimeseriesQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      RewardTimeseriesQuery,
+      TError,
+      TData
+    >["queryKey"];
+  },
+) => {
+  return useQuery<RewardTimeseriesQuery, TError, TData>({
+    queryKey: ["RewardTimeseries", variables],
+    queryFn: fetcher<RewardTimeseriesQuery, RewardTimeseriesQueryVariables>(
+      RewardTimeseriesDocument,
+      variables,
+    ),
+    ...options,
+  });
+};
+
+export const AprTimeseriesDocument = `
+    query AprTimeseries($from: DateTime!, $to: DateTime!) {
+  aprTimeseries(from: $from, to: $to) {
+    timestamp
+    value {
+      workerApr
+      stakerApr
+    }
+  }
+}
+    `;
+
+export const useAprTimeseriesQuery = <
+  TData = AprTimeseriesQuery,
+  TError = unknown,
+>(
+  variables: AprTimeseriesQueryVariables,
+  options?: Omit<
+    UseQueryOptions<AprTimeseriesQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<AprTimeseriesQuery, TError, TData>["queryKey"];
+  },
+) => {
+  return useQuery<AprTimeseriesQuery, TError, TData>({
+    queryKey: ["AprTimeseries", variables],
+    queryFn: fetcher<AprTimeseriesQuery, AprTimeseriesQueryVariables>(
+      AprTimeseriesDocument,
       variables,
     ),
     ...options,

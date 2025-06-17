@@ -16,7 +16,7 @@ import { FormikProps } from 'formik';
 import { VisibleIcon } from '@icons/VisibleIcon';
 import { VisibleOffIcon } from '@icons/VisibleOffIcon';
 
-export const TextField = styled(MaterialTextField)(({ theme }) => ({
+export const StyledFormikTextField = styled(MaterialTextField)(({ theme }) => ({
   'label + &': {
     marginTop: theme.spacing(3),
   },
@@ -121,7 +121,7 @@ export const FormikTextInput = <T extends Record<string, any>>({
   return (
     <FormControl fullWidth variant="standard">
       <InputLabel shrink>{label}</InputLabel>
-      <TextField
+      <StyledFormikTextField
         id={id as string}
         fullWidth
         className={variant}
