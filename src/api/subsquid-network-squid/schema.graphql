@@ -400,93 +400,93 @@ query currentEpoch {
   }
 }
 
-query HoldersCountTimeseries($from: DateTime!, $to: DateTime!) {
-  holdersCountTimeseries(from: $from, to: $to) {
+query HoldersCountTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  holdersCountTimeseries(from: $from, to: $to, step: $step) {
     timestamp
     value
   }
 }
 
-query LockedValueTimeseries($from: DateTime!, $to: DateTime!) {
-  lockedValueTimeseries(from: $from, to: $to) {
+query LockedValueTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  lockedValueTimeseries(from: $from, to: $to, step: $step) {
     timestamp
     value
   }
 }
 
-query ActiveWorkersTimeseries($from: DateTime!, $to: DateTime!) {
-  activeWorkersTimeseries(from: $from, to: $to) {
+query ActiveWorkersTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  activeWorkersTimeseries(from: $from, to: $to, step: $step) {
     timestamp
     value
   }
 }
 
-query UniqueOperatorsTimeseries($from: DateTime!, $to: DateTime!) {
-  uniqueOperatorsTimeseries(from: $from, to: $to) {
+query UniqueOperatorsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  uniqueOperatorsTimeseries(from: $from, to: $to, step: $step) {
     timestamp
     value
   }
 }
 
-query DelegationsTimeseries($from: DateTime!, $to: DateTime!) {
-  delegationsTimeseries(from: $from, to: $to) {
+query DelegationsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  delegationsTimeseries(from: $from, to: $to, step: $step) {
     timestamp
     value
   }
 }
 
-query DelegatorsTimeseries($from: DateTime!, $to: DateTime!) {
-  delegatorsTimeseries(from: $from, to: $to) {
+query DelegatorsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  delegatorsTimeseries(from: $from, to: $to, step: $step) {
     timestamp
     value
   }
 }
 
-query TransfersByTypeTimeseries($from: DateTime!, $to: DateTime!) {
-  transfersByTypeTimeseries(from: $from, to: $to) {
+query TransfersByTypeTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  transfersByTypeTimeseries(from: $from, to: $to, step: $step) {
     timestamp
     type
     value
   }
 }
 
-query UniqueAccountsTimeseries($from: DateTime!, $to: DateTime!) {
-  uniqueAccountsTimeseries(from: $from, to: $to) {
+query UniqueAccountsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  uniqueAccountsTimeseries(from: $from, to: $to, step: $step) {
     timestamp
     value
   }
 }
 
-query QueriesCountTimeseries($from: DateTime!, $to: DateTime!) {
-  queriesCountTimeseries(from: $from, to: $to) {
+query QueriesCountTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  queriesCountTimeseries(from: $from, to: $to, step: $step) {
     timestamp
     value
   }
 }
 
-query ServedDataTimeseries($from: DateTime!, $to: DateTime!) {
-  servedDataTimeseries(from: $from, to: $to) {
+query ServedDataTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  servedDataTimeseries(from: $from, to: $to, step: $step) {
     timestamp
     value
   }
 }
 
-query StoredDataTimeseries($from: DateTime!, $to: DateTime!) {
-  storedDataTimeseries(from: $from, to: $to) {
+query StoredDataTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  storedDataTimeseries(from: $from, to: $to, step: $step) {
     timestamp
     value
   }
 }
 
-query RewardTimeseries($from: DateTime!, $to: DateTime!) {
-  rewardTimeseries(from: $from, to: $to) {
+query RewardTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  rewardTimeseries(from: $from, to: $to, step: $step) {
     timestamp
     value
   }
 }
 
-query AprTimeseries($from: DateTime!, $to: DateTime!) {
-  aprTimeseries(from: $from, to: $to) {
+query AprTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  aprTimeseries(from: $from, to: $to, step: $step) {
     timestamp
     value {
       workerApr

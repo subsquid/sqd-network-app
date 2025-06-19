@@ -1,7 +1,6 @@
 import {
   Popover,
   TextField as MuiTextField,
-  Button,
   Box,
   List,
   ListItemButton,
@@ -11,109 +10,167 @@ import {
 import { usePopupState, bindTrigger, bindPopover, PopupState } from 'material-ui-popup-state/hooks';
 import { useState, useMemo } from 'react';
 import { Search } from '@components/Search';
-import {
-  format,
-  sub,
-  startOfDay,
-  endOfDay,
-  startOfWeek,
-  endOfWeek,
-  startOfMonth,
-  endOfMonth,
-  startOfYear,
-  endOfYear,
-  Duration,
-} from 'date-fns';
-import { Formik, useFormikContext } from 'formik';
+import { format } from 'date-fns';
+import { useFormik } from 'formik';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers';
-import { FormikDateTimePicker } from './FormikDateTimePicker';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import { parseTimeRange } from '@lib/datemath';
 
-const quickRanges = [
-  { label: 'Last 24 hours', duration: { hours: 24 } },
-  { label: 'Last 2 days', duration: { days: 2 } },
-  { label: 'Last 7 days', duration: { days: 7 } },
-  { label: 'Last 30 days', duration: { days: 30 } },
-  { label: 'Last 90 days', duration: { days: 90 } },
-  { label: 'Last 6 months', duration: { months: 6 } },
-  { label: 'Last 1 year', duration: { years: 1 } },
-  { label: 'Last 2 years', duration: { years: 2 } },
-  { label: 'Last 5 years', duration: { years: 5 } },
+const quickRanges: TimeRange[] = [
+  {
+    label: 'Last 12 hours',
+    start: 'now-12h',
+    end: 'now',
+  },
+  {
+    label: 'Last 24 hours',
+    start: 'now-1d',
+    end: 'now',
+  },
+  {
+    label: 'Last 2 days',
+    start: 'now-2d',
+    end: 'now',
+  },
+  {
+    label: 'Last 7 days',
+    start: 'now-7d',
+    end: 'now',
+  },
+  {
+    label: 'Last 30 days',
+    start: 'now-30d',
+    end: 'now',
+  },
+  {
+    label: 'Last 90 days',
+    start: 'now-90d',
+    end: 'now',
+  },
+  {
+    label: 'Last 6 months',
+    start: 'now-6M',
+    end: 'now',
+  },
+  {
+    label: 'Last 1 year',
+    start: 'now-1y',
+    end: 'now',
+  },
+  {
+    label: 'Last 2 years',
+    start: 'now-2y',
+    end: 'now',
+  },
+  {
+    label: 'Last 5 years',
+    start: 'now-5y',
+    end: 'now',
+  },
 ];
 
-const absoluteRanges = [
+const absoluteRanges: TimeRange[] = [
   {
     label: 'Today',
-    getRange: () => {
-      const now = new Date();
-      return { start: startOfDay(now), end: endOfDay(now) };
-    },
+    start: 'now/d',
+    end: 'now/d',
   },
   {
     label: 'Yesterday',
-    getRange: () => {
-      const now = new Date();
-      const yesterday = sub(now, { days: 1 });
-      return { start: startOfDay(yesterday), end: endOfDay(yesterday) };
-    },
+    start: 'now-1d/d',
+    end: 'now-1d/d',
   },
   {
     label: 'This week',
-    getRange: () => {
-      const now = new Date();
-      return { start: startOfWeek(now), end: endOfWeek(now) };
-    },
+    start: 'now/w',
+    end: 'now/w',
+  },
+  {
+    label: 'Last week',
+    start: 'now-1w/w',
+    end: 'now-1w/w',
   },
   {
     label: 'This month',
-    getRange: () => {
-      const now = new Date();
-      return { start: startOfMonth(now), end: endOfMonth(now) };
-    },
+    start: 'now/M',
+    end: 'now/M',
+  },
+  {
+    label: 'Last month',
+    start: 'now-1M/M',
+    end: 'now-1M/M',
   },
   {
     label: 'This year',
-    getRange: () => {
-      const now = new Date();
-      return { start: startOfYear(now), end: endOfYear(now) };
-    },
+    start: 'now/y',
+    end: 'now/y',
+  },
+  {
+    label: 'Last year',
+    start: 'now-1y/y',
+    end: 'now-1y/y',
   },
 ];
 
 interface TimeRange {
-  startDate: Date | null;
-  endDate: Date | null;
+  label?: string;
+  start: string; // Expression or ISO string
+  end: string; // Expression or ISO string, optional for "until now" ranges
 }
 
-const TimeRangePickerContent = ({ popupState }: { popupState: PopupState }) => {
-  const { values, setFieldValue, submitForm } = useFormikContext<TimeRange>();
+const TimeRangePickerContent = ({
+  value,
+  popupState,
+  onChange,
+}: {
+  value?: TimeRange;
+  popupState: PopupState;
+  onChange: (range: TimeRange) => void;
+}) => {
+  const [isCustom, setIsCustom] = useState(!value?.label);
   const [searchQuery, setSearchQuery] = useState('');
-
-  const handleQuickRangeSelect = (duration: Duration) => {
-    const now = new Date();
-    setFieldValue('endDate', now);
-    setFieldValue('startDate', sub(now, duration));
-  };
-
-  const handleAbsoluteRangeSelect = (getRange: () => { start: Date; end: Date }) => {
-    const { start, end } = getRange();
-    setFieldValue('startDate', start);
-    setFieldValue('endDate', end);
-  };
 
   const filteredQuickRanges = useMemo(() => {
     return quickRanges.filter(range =>
-      range.label.toLowerCase().includes(searchQuery.toLowerCase()),
+      range.label?.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [searchQuery]);
 
   const allRanges = useMemo(() => {
     const absolute = absoluteRanges.filter(range =>
-      range.label.toLowerCase().includes(searchQuery.toLowerCase()),
+      range.label?.toLowerCase().includes(searchQuery.toLowerCase()),
     );
     return [...filteredQuickRanges, ...absolute];
   }, [searchQuery, filteredQuickRanges]);
+
+  const formik = useFormik<Partial<{ start: Date; end: Date }>>({
+    initialValues: {
+      start: undefined,
+      end: undefined,
+    },
+    validate: values => {
+      if (!values.start) {
+        throw new Error('Start date is required');
+      } else if (!values.end) {
+        throw new Error('End date is required');
+      }
+    },
+    onSubmit: values => {
+      const { start, end } = values;
+      if (start && end) {
+        handleSelect({
+          start: start.toISOString(),
+          end: end.toISOString(),
+        });
+      }
+    },
+  });
+
+  const handleSelect = (range: TimeRange) => {
+    onChange(range);
+    popupState.close();
+  };
 
   return (
     <Box
@@ -138,21 +195,17 @@ const TimeRangePickerContent = ({ popupState }: { popupState: PopupState }) => {
         <Box sx={{ overflowY: 'auto', flex: 1 }}>
           <List dense sx={{ p: 0 }}>
             {allRanges.map(range => (
-              <ListItemButton
-                key={range.label}
-                onClick={() =>
-                  'duration' in range
-                    ? handleQuickRangeSelect(range.duration)
-                    : handleAbsoluteRangeSelect(range.getRange)
-                }
-              >
+              <ListItemButton key={range.label} onClick={() => handleSelect(range)}>
                 <ListItemText primary={range.label} />
               </ListItemButton>
             ))}
+            {/*<ListItemButton key="custom" onClick={() => setIsCustom(true)}>
+              <ListItemText primary="Custom" />
+            </ListItemButton>*/}
           </List>
         </Box>
       </Box>
-      <Box
+      {/* <Box
         sx={{
           py: 2,
           px: 2,
@@ -164,118 +217,140 @@ const TimeRangePickerContent = ({ popupState }: { popupState: PopupState }) => {
       >
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <FormikDateTimePicker
+            disabled={!isCustom}
             label="From"
             name="startDate"
             enableAccessibleFieldDOMStructure={false}
+            formik={formik}
           />
           <FormikDateTimePicker
+            disabled={!isCustom}
             label="To"
             name="endDate"
             enableAccessibleFieldDOMStructure={false}
+            formik={formik}
           />
         </Box>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
-          <Button variant="contained" onClick={() => popupState.close()} color="primary">
+          <Button
+            disabled={!isCustom}
+            variant="contained"
+            onClick={() => popupState.close()}
+            color="primary"
+          >
             CANCEL
           </Button>
-          <Button variant="contained" onClick={submitForm} color="info">
+          <Button
+            disabled={!isCustom || !formik.isValid}
+            variant="contained"
+            onClick={e => formik.handleSubmit()}
+            color="info"
+          >
             APPLY
           </Button>
         </Box>
-      </Box>
+      </Box>*/}
     </Box>
   );
 };
+
+function formatRange(range: TimeRange) {
+  if (range.label) {
+    return range.label;
+  }
+  const extistingRange = [...quickRanges, ...absoluteRanges].find(
+    r => range.start === r.start && range.end === r.end,
+  );
+  if (extistingRange) {
+    return extistingRange.label;
+  }
+
+  // Use parseTimeRange for smart handling of identical start/end expressions
+  const { from, to } = parseTimeRange(range.start, range.end);
+  const startText = format(from, 'yyyy-MM-dd HH:mm');
+  const endText = format(to, 'yyyy-MM-dd HH:mm');
+  return `${startText} to ${endText}`;
+}
 
 export const TimeRangePicker = ({
   value,
   onChange,
 }: {
-  value?: { from: Date; to: Date };
-  onChange: (range: { from: Date; to: Date }) => void;
+  value?: Omit<TimeRange, 'label'>;
+  onChange: (range: Omit<TimeRange, 'label'>) => void;
 }) => {
   const popupState = usePopupState({
     variant: 'popover',
     popupId: 'timeRangePicker',
   });
 
-  const [displayValue, setDisplayValue] = useState(
-    value
-      ? `${format(value.from, 'yyyy-MM-dd HH:mm')} - ${format(value.to, 'yyyy-MM-dd HH:mm')}`
-      : '',
-  );
+  const [displayValue, setDisplayValue] = useState(formatRange(value || quickRanges[0]));
+  const [selectedValue, setSelectedValue] = useState(value);
 
-  const handleApply = (values: TimeRange) => {
-    const { startDate, endDate } = values;
-    if (startDate && endDate) {
-      const formattedStart = format(startDate, 'yyyy-MM-dd HH:mm');
-      const formattedEnd = format(endDate, 'yyyy-MM-dd HH:mm');
-      setDisplayValue(`${formattedStart} - ${formattedEnd}`);
-      popupState.close();
-      onChange({ from: startDate, to: endDate });
-    }
+  const handleChange = (range: TimeRange) => {
+    setDisplayValue(formatRange(range));
+    setSelectedValue(range);
+    onChange(range);
   };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <Formik<TimeRange>
-        initialValues={{ startDate: value?.from || null, endDate: value?.to || null }}
-        onSubmit={handleApply}
-      >
-        <>
-          <MuiTextField
-            {...bindTrigger(popupState)}
-            value={displayValue}
-            variant="filled"
-            sx={{
-              '& .MuiInputBase-input': {
-                cursor: 'pointer',
-              },
-            }}
-            InputProps={{
-              readOnly: true,
-              endAdornment: (
-                <InputAdornment position="end">
-                  <ArrowDropDownIcon
-                    sx={{
-                      transform: popupState.isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                      transition: '0.2s',
-                    }}
-                  />
-                </InputAdornment>
-              ),
+      <>
+        <MuiTextField
+          {...bindTrigger(popupState)}
+          value={displayValue}
+          variant="filled"
+          color="secondary"
+          sx={{
+            '& .MuiInputBase-input': {
+              cursor: 'pointer',
+            },
+          }}
+          InputProps={{
+            readOnly: true,
+            endAdornment: (
+              <InputAdornment position="end">
+                <ArrowDropDownIcon
+                  sx={{
+                    transform: popupState.isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: '0.2s',
+                  }}
+                />
+              </InputAdornment>
+            ),
+            sx: {
+              cursor: 'pointer',
+            },
+          }}
+        />
+        <Popover
+          {...bindPopover(popupState)}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'left',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'left',
+          }}
+          slotProps={{
+            paper: {
               sx: {
-                cursor: 'pointer',
-                backgroundColor: 'white !important',
-                border: 'none !important',
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1,
+                mt: 1,
               },
-            }}
+            },
+          }}
+        >
+          <TimeRangePickerContent
+            value={selectedValue}
+            popupState={popupState}
+            onChange={handleChange}
           />
-          <Popover
-            {...bindPopover(popupState)}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'left',
-            }}
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'left',
-            }}
-            slotProps={{
-              paper: {
-                sx: {
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 1,
-                  mt: 1,
-                },
-              },
-            }}
-          >
-            <TimeRangePickerContent popupState={popupState} />
-          </Popover>
-        </>
-      </Formik>
+        </Popover>
+      </>
     </LocalizationProvider>
   );
 };

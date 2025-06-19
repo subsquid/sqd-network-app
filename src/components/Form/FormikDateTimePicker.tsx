@@ -1,5 +1,5 @@
 import React from 'react';
-import { useField } from 'formik';
+import { FormikProps } from 'formik';
 import { DateTimePicker, DateTimePickerProps } from '@mui/x-date-pickers/DateTimePicker';
 import { FormControl, InputLabel } from '@mui/material';
 import { StyledFormikTextField } from './FormikTextInput';
@@ -16,26 +16,31 @@ const PickerTextField = React.forwardRef<HTMLDivElement, any>((props, ref) => {
 });
 
 type FormikDateTimePickerProps = Omit<DateTimePickerProps, 'value' | 'onChange' | 'renderInput'> & {
+  formik: FormikProps<any>;
   name: string;
 };
 
-export const FormikDateTimePicker: React.FC<FormikDateTimePickerProps> = ({ name, ...rest }) => {
-  const [field, meta, helpers] = useField(name);
-
-  const { setValue } = helpers;
+export const FormikDateTimePicker: React.FC<FormikDateTimePickerProps> = ({
+  name,
+  formik,
+  ...rest
+}) => {
+  const { setFieldValue } = formik;
 
   return (
     <DateTimePicker
       {...rest}
-      value={field.value || null}
-      onChange={date => setValue(date)}
+      value={formik.values[name] || null}
+      onChange={date => {
+        setFieldValue(name, date);
+      }}
       slots={{
         textField: PickerTextField,
       }}
       slotProps={{
         textField: {
-          error: meta.touched && Boolean(meta.error),
-          helperText: meta.touched && meta.error,
+          error: formik.touched[name] && Boolean(formik.errors[name]),
+          helperText: formik.touched[name] && (formik.errors[name] as string),
         },
         calendarHeader: {},
         desktopPaper: {

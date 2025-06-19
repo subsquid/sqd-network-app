@@ -3,10 +3,10 @@ import prettyBytes from 'pretty-bytes';
 import { zeroAddress } from 'viem';
 import { getAddress } from 'viem/utils';
 
-export function percentFormatter(value?: number | string | BigNumber) {
+export function percentFormatter(value?: number | string | BigNumber, decimals = 2) {
   value = BigNumber(value || 0);
 
-  return `${value.lt(0.01) && value.gt(0) ? '<0.01' : value.toFixed(2)}%`;
+  return `${value.lt(0.01) && value.gt(0) ? '<0.01%' : value.toFixed(decimals)}%`;
 }
 
 const formatter8 = new Intl.NumberFormat('en-US', {
@@ -60,3 +60,18 @@ export function tokenFormatter(val: number | BigNumber, currency: string, decima
 
   return res + ` ${currency}`;
 }
+
+export const toCompact = new Intl.NumberFormat('en-US', {
+  notation: 'compact',
+  maximumFractionDigits: 1,
+});
+export const toNumber = new Intl.NumberFormat('en-US');
+
+export const toDate = new Intl.DateTimeFormat('en-US', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: 'numeric',
+  second: 'numeric',
+});

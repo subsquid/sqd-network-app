@@ -336,6 +336,28 @@ export const useCreateTheme = (mode: PaletteType) => {
                 padding: 0,
               },
             },
+            variants: [
+              {
+                props: { color: 'secondary' },
+                style: {
+                  backgroundColor: `${colors.background.paper} !important`,
+                  border: 'none',
+                  borderWidth: '0',
+                  '&.Mui-focused': {
+                    border: 'none',
+                  },
+                  '&:hover': {
+                    border: 'none',
+                  },
+                  '&.Mui-error': {
+                    border: 'none',
+                  },
+                  '&.Mui-disabled': {
+                    border: 'none',
+                  },
+                },
+              },
+            ],
           },
           MuiSelect: {
             styleOverrides: {
