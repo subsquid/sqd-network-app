@@ -17,7 +17,7 @@ import { SquaredChip } from '@components/Chip';
 // Visx XYChart primitives
 import { ParentSize } from '@visx/responsive';
 import { scaleLinear, scaleTime } from '@visx/scale';
-import { Line, Bar, LinePath } from '@visx/shape';
+import { Line, LinePath, Bar } from '@visx/shape';
 import { GlyphCircle } from '@visx/glyph';
 import {
   useTooltip,
@@ -56,13 +56,11 @@ import {
   useStoredDataTimeseriesQuery,
   StoredDataTimeseriesQuery,
 } from '@api/subsquid-network-squid';
-import { subDays } from 'date-fns';
 import { Loader } from '@components/Loader';
 import { CenteredPageWrapper } from '@layouts/NetworkLayout';
 import { fromSqd } from '@lib/network';
 import { TimeRangePicker } from '@components/Form';
 import { useLocationState, Location } from '@hooks/useLocationState';
-import { groupBy } from 'lodash-es';
 import {
   bytesFormatter,
   percentFormatter,
@@ -72,9 +70,7 @@ import {
   toNumber,
 } from '@lib/formatters/formatters';
 import { parseTimeRange } from '@lib/datemath';
-
-// ---------------------------------------------------------------------------
-// Constants and Types
+import { partition } from 'lodash-es';
 
 const CHART_CONFIG = {
   height: 200,
@@ -86,17 +82,36 @@ const CHART_CONFIG = {
   },
 } as const;
 
-export type LineChartDatum = {
+export type SingleLineChartDatum<N = true> = {
   x: Date;
-  y: number;
+  y: N extends true ? number | null : number;
 };
 
-export interface LineChartSeries {
-  name: string;
+export interface SingleLineChartSeries<T = true> extends LineChartSeriesBase {
+  stack?: false;
+  data: SingleLineChartDatum<T>[];
   color?: string;
-  data: LineChartDatum[];
-  type: 'line' | 'bar';
 }
+
+export interface StackedLineChartDatum<T = true> {
+  x: Date;
+  y: { key: string; value: T extends true ? number | null : number; color?: string }[];
+}
+
+export interface StackedLineChartSeries<T = true> extends LineChartSeriesBase {
+  stack: true;
+  data: StackedLineChartDatum<T>[];
+}
+
+export interface LineChartSeriesBase {
+  stack?: boolean;
+  type: 'line' | 'bar';
+  name: string;
+}
+
+export type LineChartSeries<T = true> = SingleLineChartSeries<T> | StackedLineChartSeries<T>;
+
+export type LineChartDatum<T = true> = SingleLineChartDatum<T> | StackedLineChartDatum<T>;
 
 export interface LineChartProps {
   series: LineChartSeries[];
@@ -110,10 +125,8 @@ export interface LineChartProps {
     x?: (x: Date) => string;
     y?: (y: number) => string;
   };
+  stack?: boolean;
 }
-
-// ---------------------------------------------------------------------------
-// Hooks
 
 function useChartPalette() {
   const theme = useTheme();
@@ -130,30 +143,70 @@ function useChartPalette() {
   );
 }
 
+function createGenerator<T>(v: T[]) {
+  let i = -1;
+
+  return {
+    next() {
+      i = (i + 1) % v.length;
+      return v[i];
+    },
+  };
+}
+
 function useChartScales(
   series: LineChartSeries[],
   xAxis?: { min?: Date; max?: Date },
   yAxis?: { min?: number; max?: number },
 ) {
+  const calculatePadding = useCallback((min: number, max: number, padding: number) => {
+    if (min === max) {
+      const defaultPadding = Math.abs(max * padding) || 1;
+      return [min - defaultPadding, max + defaultPadding];
+    }
+    const range = max - min;
+    const paddingAmount = range * padding;
+    return [
+      min >= 0 ? Math.max(min - paddingAmount, 0) : min - paddingAmount,
+      max <= 0 ? Math.min(max + paddingAmount, 0) : max + paddingAmount,
+    ];
+  }, []);
+
   const xScale = useMemo(() => {
     const allX = series.flatMap(s => s.data.map(d => d.x.getTime()));
-    const minX = xAxis?.min?.getTime() || Math.min(...allX);
-    const maxX = xAxis?.max?.getTime() || Math.max(...allX);
+
+    const [minX, maxX] = calculatePadding(
+      xAxis?.min?.getTime() || Math.min(...allX),
+      xAxis?.max?.getTime() || Math.max(...allX),
+      CHART_CONFIG.padding.x,
+    );
 
     return scaleTime<number>({
       domain: [minX, maxX],
     });
-  }, [series, xAxis]);
+  }, [series, xAxis, calculatePadding]);
 
   const yScale = useMemo(() => {
-    const allY = series.flatMap(s => s.data.map(d => d.y));
-    const minY = yAxis?.min ?? Math.min(...allY);
-    const maxY = yAxis?.max ?? Math.max(...allY);
+    const allY = series.flatMap(s =>
+      s.stack
+        ? s.data.map(d => d.y.reduce((acc, { value }) => acc + (value ?? 0), 0))
+        : s.data.map(d => d.y).filter(y => y != null),
+    );
+
+    let [minY, maxY] = calculatePadding(
+      yAxis?.min ?? Math.min(...allY),
+      yAxis?.max ?? Math.max(...allY),
+      CHART_CONFIG.padding.y,
+    );
+
+    if (series.some((s: LineChartSeries) => s.type === 'bar')) {
+      minY = Math.min(minY, 0);
+    }
 
     return scaleLinear<number>({
       domain: [minY, maxY],
     });
-  }, [series, yAxis]);
+  }, [series, yAxis, calculatePadding]);
 
   return { xScale, yScale };
 }
@@ -162,37 +215,19 @@ function useChartDomain(series: LineChartSeries[]) {
   return useMemo(() => {
     if (series.length === 0) return { x: undefined, y: undefined };
 
-    const allY = series.flatMap(s => s.data.map(d => d.y));
+    const allY = series.flatMap(s =>
+      s.stack
+        ? s.data.map(d => d.y.reduce((acc, { value }) => acc + (value ?? 0), 0))
+        : s.data.map(d => d.y),
+    );
     const allX = series.flatMap(s => s.data.map(d => d.x?.getTime() ?? 0));
 
-    const calculatePadding = (min: number, max: number, padding: number) => {
-      if (min === max) {
-        const defaultPadding = Math.abs(max * padding) || 1;
-        return [min - defaultPadding, max + defaultPadding];
-      }
-      const range = max - min;
-      const paddingAmount = range * padding;
-      return [
-        min >= 0 ? Math.max(min - paddingAmount, 0) : min - paddingAmount,
-        max <= 0 ? Math.min(max + paddingAmount, 0) : max + paddingAmount,
-      ];
-    };
-
-    const [minY, maxY] = calculatePadding(
-      Math.min(...allY),
-      Math.max(...allY),
-      CHART_CONFIG.padding.y,
-    );
-
-    const [minX, maxX] = calculatePadding(
-      Math.min(...allX),
-      Math.max(...allX),
-      CHART_CONFIG.padding.x,
-    );
-
     return {
-      x: { min: new Date(minX), max: new Date(maxX) },
-      y: { min: minY, max: maxY },
+      x: { min: new Date(Math.min(...allX)), max: new Date(Math.max(...allX)) },
+      y: {
+        min: Math.min(...allY.filter(y => y != null)),
+        max: Math.max(...allY.filter(y => y != null)),
+      },
     };
   }, [series]);
 }
@@ -226,12 +261,29 @@ function ChartTooltip({
   palette,
   tooltipFormat,
 }: {
-  tooltipData: Record<string, LineChartDatum>;
+  tooltipData: Record<string, SingleLineChartDatum<false>>;
   series: LineChartSeries[];
   palette: string[];
   tooltipFormat?: LineChartProps['tooltipFormat'];
 }) {
   const firstDatum = Object.values(tooltipData)[0];
+
+  // Create a map of series names to colors for quick lookup
+  const seriesColorMap = new Map<string, string>();
+
+  series.forEach((s, i) => {
+    if (s.stack) {
+      // For stacked series, we need to map each stack item key to a color
+      const stackedSeries = s as StackedLineChartSeries;
+      if (stackedSeries.data.length > 0) {
+        stackedSeries.data[0].y.forEach((item, stackIndex) => {
+          seriesColorMap.set(item.key, palette[stackIndex % palette.length]);
+        });
+      }
+    } else {
+      seriesColorMap.set(s.name, palette[i % palette.length]);
+    }
+  });
 
   return (
     <Paper variant="outlined">
@@ -243,9 +295,9 @@ function ChartTooltip({
           <Divider sx={{ my: 0.5 }} />
         </>
       )}
-      {series.map((s, i) => (
+      {Object.entries(tooltipData).map(([key, datum]) => (
         <Box
-          key={s.name}
+          key={key}
           sx={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -260,15 +312,13 @@ function ChartTooltip({
                 width: 8,
                 height: 8,
                 borderRadius: '50%',
-                bgcolor: s.color || palette[i % palette.length],
+                bgcolor: seriesColorMap.get(key) || palette[0],
               }}
             />
-            <Typography variant="body2">{s.name}</Typography>
+            <Typography variant="body2">{key}</Typography>
           </Box>
           <Typography variant="body2">
-            {tooltipFormat?.y && tooltipData[s.name]
-              ? tooltipFormat.y(tooltipData[s.name].y)
-              : String(tooltipData[s.name]?.y || '')}
+            {tooltipFormat?.y && datum.y != null ? tooltipFormat.y(datum.y) : String(datum.y || '')}
           </Typography>
         </Box>
       ))}
@@ -282,52 +332,176 @@ function ChartSeries({
   yScale,
   palette,
   width,
+  height,
+  margin,
+  tooltipFormat,
 }: {
   series: LineChartSeries[];
   xScale: any;
   yScale: any;
   palette: string[];
   width: number;
+  height: number;
+  margin: { top: number; right: number; bottom: number; left: number };
+  tooltipFormat?: LineChartProps['tooltipFormat'];
 }) {
+  const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null);
+  const theme = useTheme();
+
+  const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
+    useTooltip<Record<string, SingleLineChartDatum<false>>>();
+
+  const { containerRef: tooltipContainerRef, TooltipInPortal } = useTooltipInPortal({
+    scroll: true,
+  });
+
+  const bisectDate = useMemo(() => bisector<{ x: Date }, Date>(d => d.x).left, []);
+
+  const handleTooltip = useCallback(
+    (event: React.TouchEvent<SVGRectElement> | React.MouseEvent<SVGRectElement>) => {
+      const point = localPoint(event);
+      if (!point) return;
+
+      const groupRelativeX = point.x - margin.left;
+      const groupRelativeY = point.y - margin.top;
+      setCursor({ x: groupRelativeX, y: groupRelativeY });
+
+      const x0 = xScale.invert(groupRelativeX);
+      const tooltipData: Record<string, SingleLineChartDatum<false>> = {};
+
+      for (const s of series) {
+        if (s.stack) {
+          // Handle stacked series - show individual stack items
+          const stackedSeries = s as StackedLineChartSeries;
+          const index = bisectDate(stackedSeries.data, x0, 1);
+          const d0 = stackedSeries.data[index - 1];
+          const d1 = stackedSeries.data[index];
+          let d = d0;
+          if (d1) {
+            d = x0.valueOf() - d0.x.valueOf() > d1.x.valueOf() - x0.valueOf() ? d1 : d0;
+          }
+
+          for (const y of d.y) {
+            if (y.value != null) {
+              tooltipData[y.key] = { x: d.x, y: y.value };
+            }
+          }
+        } else {
+          // Handle single series
+          const singleSeries = s as SingleLineChartSeries;
+          const index = bisectDate(singleSeries.data, x0, 1);
+          const d0 = singleSeries.data[index - 1];
+          const d1 = singleSeries.data[index];
+          let d = d0;
+          if (d1) {
+            d = x0.valueOf() - d0.x.valueOf() > d1.x.valueOf() - x0.valueOf() ? d1 : d0;
+          }
+          if (d.y == null) continue;
+          tooltipData[s.name] = { x: d.x, y: d.y };
+        }
+      }
+
+      const firstDatum = Object.values(tooltipData)[0];
+      if (firstDatum) {
+        showTooltip({
+          tooltipData,
+          tooltipLeft: point.x - margin.left,
+          tooltipTop: point.y - margin.top,
+        });
+      }
+    },
+    [showTooltip, series, xScale, bisectDate, margin],
+  );
+
+  // Don't render if width is invalid
+  if (width <= 0) return null;
+
+  const [stacked, unstacked] = partition(series, s => s.stack) as [
+    StackedLineChartSeries[],
+    SingleLineChartSeries[],
+  ];
+
   return (
-    <>
-      {series.map((s, i) => {
-        const color = s.color || palette[i % palette.length];
+    <g ref={tooltipContainerRef}>
+      {stacked.map(series => {
+        if (series.type !== 'bar') return null;
+
+        const barWidth = Math.max((Math.max(0, width) / Math.max(1, series.data.length)) * 0.6, 1);
+
+        const barSegments = series.data.flatMap(d => {
+          const x = d.x;
+          const barX = Math.max(0, xScale(x) - barWidth / 2);
+
+          let offsetY = d.y.reduce((acc, { value }) => acc + (value ?? 0), 0);
+          return d.y.map(({ key, color, value }, i) => {
+            if (value == null) return null;
+
+            const barY = yScale(offsetY);
+            const barHeight = Math.max(0, yScale.range()[0] - barY);
+            offsetY -= value;
+
+            return (
+              <Bar
+                key={`${key}-${d.x.getTime()}`}
+                x={barX}
+                y={barY}
+                height={barHeight}
+                width={barWidth}
+                fill={color ?? palette[i % palette.length]}
+                rx={4}
+              />
+            );
+          });
+        });
+
+        return barSegments;
+      })}
+      {unstacked.map((s, i) => {
+        const color = s.color ?? palette[i % palette.length];
+
+        const data = s.data.filter(d => d.y != null);
 
         switch (s.type) {
           case 'line':
             return (
-              <>
-                <LinePath
-                  key={s.name}
-                  data={s.data}
-                  x={(d: LineChartDatum) => xScale(d.x)}
-                  y={(d: LineChartDatum) => yScale(d.y)}
+              <g key={s.name}>
+                <LinePath<SingleLineChartDatum>
+                  data={data}
+                  x={d => xScale(d.x)}
+                  y={d => yScale(d.y)}
                   stroke={color}
                   strokeWidth={4}
                 />
-                {s.data.map(d => (
-                  <GlyphCircle
-                    key={`${s.name}-${d.x?.getTime() ?? 0}`}
-                    left={xScale(d.x)}
-                    top={yScale(d.y)}
-                    size={40}
-                    fill={color}
-                  />
-                ))}
-              </>
+                {data.length <= 50 &&
+                  data.map(d => (
+                    <GlyphCircle
+                      key={`${s.name}-${d.x?.getTime() ?? 0}`}
+                      left={xScale(d.x)}
+                      top={yScale(d.y)}
+                      size={40}
+                      fill={color}
+                    />
+                  ))}
+              </g>
             );
           case 'bar':
             return (
               <Group key={s.name}>
-                {s.data.map(d => {
-                  const barWidth = Math.max((width / s.data.length) * 0.6, 1);
+                {data.map(d => {
+                  if (d.y == null) return null;
+                  const barWidth = Math.max(
+                    (Math.max(0, width) / Math.max(1, s.data.length)) * 0.6,
+                    1,
+                  );
+                  const barHeight = Math.max(0, yScale.range()[0] - yScale(d.y));
+                  const barY = yScale(Math.max(0, d.y));
+                  const barX = Math.max(0, xScale(d.x) - barWidth / 2);
                   return (
                     <Bar
                       key={`${s.name}-${d.x?.getTime() ?? 0}`}
-                      x={xScale(d.x) - barWidth / 2}
-                      y={yScale(d.y)}
-                      height={yScale.range()[0] - yScale(d.y)}
+                      x={barX}
+                      y={barY}
+                      height={barHeight}
                       width={barWidth}
                       fill={color}
                       rx={4}
@@ -340,65 +514,133 @@ function ChartSeries({
             return null;
         }
       })}
-    </>
+
+      {/* Tooltip crosshairs and glyphs */}
+      {tooltipOpen && cursor && (
+        <Group>
+          <Line
+            from={{ x: cursor.x, y: 0 }}
+            to={{ x: cursor.x, y: height }}
+            stroke={theme.palette.divider}
+            strokeWidth={1}
+            pointerEvents="none"
+            strokeDasharray="4,4"
+            shapeRendering="geometricPrecision"
+          />
+          <Line
+            from={{ x: 0, y: cursor.y }}
+            to={{ x: width, y: cursor.y }}
+            stroke={theme.palette.divider}
+            strokeWidth={1}
+            pointerEvents="none"
+            strokeDasharray="4,4"
+            shapeRendering="geometricPrecision"
+          />
+          {series.map((s: LineChartSeries, i: number) => {
+            // Only render glyphs for line charts, not for bars
+            if (s.type === 'bar') return null;
+
+            if (s.stack) {
+              // For stacked series, render glyphs for each stack item
+              const stackedSeries = s as StackedLineChartSeries;
+              const x0 = xScale.invert(cursor.x);
+              const index = bisectDate(stackedSeries.data, x0, 1);
+              const d0 = stackedSeries.data[index - 1];
+              const d1 = stackedSeries.data[index];
+              let d = d0;
+              if (d1) {
+                d = x0.valueOf() - d0.x.valueOf() > d1.x.valueOf() - x0.valueOf() ? d1 : d0;
+              }
+
+              let offsetY = d.y.reduce((acc, { value }) => acc + (value ?? 0), 0);
+              return d.y.map(({ key, value }, stackIndex) => {
+                if (value == null || !tooltipData?.[key]) return null;
+
+                // Calculate the center of this stack segment
+                const segmentCenterY = offsetY - value / 2;
+                offsetY -= value;
+
+                const color = palette[stackIndex % palette.length];
+                return (
+                  <GlyphCircle
+                    key={`${key}-tooltip-glyph`}
+                    left={xScale(d.x)}
+                    top={yScale(segmentCenterY)}
+                    size={64}
+                    fill={color}
+                    pointerEvents="none"
+                  />
+                );
+              });
+            } else {
+              // For single series, render single glyph
+              const datum = tooltipData?.[s.name];
+              if (!datum) return null;
+              const color = palette[i % palette.length];
+              return (
+                <GlyphCircle
+                  key={`${s.name}-tooltip-glyph`}
+                  left={xScale(datum.x)}
+                  top={yScale(datum.y)}
+                  size={64}
+                  fill={color}
+                  pointerEvents="none"
+                />
+              );
+            }
+          })}
+        </Group>
+      )}
+
+      {/* Invisible overlay for tooltip interactions */}
+      <rect
+        x={0}
+        y={0}
+        width={width}
+        height={height}
+        fill="transparent"
+        onTouchStart={handleTooltip}
+        onTouchMove={handleTooltip}
+        onMouseMove={handleTooltip}
+        onMouseLeave={() => {
+          hideTooltip();
+          setCursor(null);
+        }}
+      />
+
+      {/* Tooltip portal */}
+      {tooltipOpen && tooltipData && (
+        <TooltipInPortal
+          key={Math.random()}
+          top={tooltipTop}
+          left={tooltipLeft}
+          style={{
+            ...tooltipDefaultStyles,
+            backgroundColor: theme.palette.background.paper,
+            border: `1px solid ${theme.palette.divider}`,
+            color: theme.palette.text.primary,
+            padding: '0.5rem',
+          }}
+        >
+          <ChartTooltip
+            tooltipData={tooltipData}
+            series={series}
+            palette={palette}
+            tooltipFormat={tooltipFormat}
+          />
+        </TooltipInPortal>
+      )}
+    </g>
   );
 }
 
-function LineChart({ series, axisFormat, tooltipFormat, xAxis, yAxis }: LineChartProps) {
-  const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null);
+function LineChart({ series, axisFormat, tooltipFormat, xAxis, yAxis, stack }: LineChartProps) {
   const theme = useTheme();
   const palette = useChartPalette();
   const domain = useChartDomain(series);
   const { xScale, yScale } = useChartScales(series, xAxis || domain.x, yAxis || domain.y);
 
   const margin = useAutoMargin(xScale.ticks(), yScale.ticks(), axisFormat);
-
-  const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
-    useTooltip<Record<string, LineChartDatum>>();
-
-  const { containerRef: tooltipContainerRef, TooltipInPortal } = useTooltipInPortal({
-    scroll: true,
-  });
-
-  const bisectDate = useMemo(() => bisector<LineChartDatum, Date>(d => d.x).left, []);
-
-  const handleTooltip = useCallback(
-    (event: React.TouchEvent<SVGRectElement> | React.MouseEvent<SVGRectElement>, width: number) => {
-      const point = localPoint(event);
-      if (!point) return;
-
-      const xMax = width - margin.left - margin.right;
-      xScale.range([0, xMax]);
-
-      const groupRelativeX = point.x - margin.left;
-      const groupRelativeY = point.y - margin.top;
-      setCursor({ x: groupRelativeX, y: groupRelativeY });
-
-      const x0 = xScale.invert(groupRelativeX);
-      const tooltipData: Record<string, LineChartDatum> = {};
-
-      for (const s of series) {
-        const index = bisectDate(s.data, x0, 1);
-        const d0 = s.data[index - 1];
-        const d1 = s.data[index];
-        let d = d0;
-        if (d1) {
-          d = x0.valueOf() - d0.x.valueOf() > d1.x.valueOf() - x0.valueOf() ? d1 : d0;
-        }
-        tooltipData[s.name] = d;
-      }
-
-      const firstDatum = Object.values(tooltipData)[0];
-      if (firstDatum) {
-        showTooltip({
-          tooltipData,
-          tooltipLeft: point.x,
-          tooltipTop: point.y,
-        });
-      }
-    },
-    [showTooltip, series, xScale, bisectDate, margin],
-  );
 
   return (
     <ParentSize>
@@ -409,13 +651,13 @@ function LineChart({ series, axisFormat, tooltipFormat, xAxis, yAxis }: LineChar
         xScale.range([0, xMax]);
         yScale.range([yMax, 0]);
 
-        if (series.some((s: LineChartSeries) => s.type === 'bar')) {
-          yScale.domain([0, ...yScale.domain().slice(1)]);
+        if (width <= 0 || height <= 0 || xMax <= 0 || yMax <= 0) {
+          return <Typography variant="body2">Chart area too small</Typography>;
         }
 
         return (
           <Box>
-            <svg width={width} height={height} ref={tooltipContainerRef}>
+            <svg width={width} height={height}>
               <Group left={margin.left} top={margin.top}>
                 <AxisBottom
                   scale={xScale}
@@ -452,83 +694,12 @@ function LineChart({ series, axisFormat, tooltipFormat, xAxis, yAxis }: LineChar
                   yScale={yScale}
                   palette={palette}
                   width={xMax}
-                />
-
-                {tooltipOpen && cursor && (
-                  <Group>
-                    <Line
-                      from={{ x: cursor.x, y: 0 }}
-                      to={{ x: cursor.x, y: yMax }}
-                      stroke={theme.palette.divider}
-                      strokeWidth={1}
-                      pointerEvents="none"
-                      strokeDasharray="4,4"
-                      shapeRendering="geometricPrecision"
-                    />
-                    <Line
-                      from={{ x: 0, y: cursor.y }}
-                      to={{ x: xMax, y: cursor.y }}
-                      stroke={theme.palette.divider}
-                      strokeWidth={1}
-                      pointerEvents="none"
-                      strokeDasharray="4,4"
-                      shapeRendering="geometricPrecision"
-                    />
-                    {series.map((s: LineChartSeries, i: number) => {
-                      const datum = tooltipData?.[s.name];
-                      if (!datum) return null;
-                      const color = s.color || palette[i % palette.length];
-                      return (
-                        <GlyphCircle
-                          key={`${s.name}-tooltip-glyph`}
-                          left={xScale(datum.x)}
-                          top={yScale(datum.y)}
-                          size={64}
-                          fill={color}
-                          pointerEvents="none"
-                        />
-                      );
-                    })}
-                  </Group>
-                )}
-              </Group>
-
-              <rect
-                x={margin.left}
-                y={margin.top}
-                width={xMax}
-                height={yMax}
-                fill="transparent"
-                onTouchStart={e => handleTooltip(e, width)}
-                onTouchMove={e => handleTooltip(e, width)}
-                onMouseMove={e => handleTooltip(e, width)}
-                onMouseLeave={() => {
-                  hideTooltip();
-                  setCursor(null);
-                }}
-              />
-            </svg>
-            {tooltipOpen && tooltipData && (
-              <TooltipInPortal
-                key={Math.random()}
-                top={tooltipTop}
-                left={tooltipLeft}
-                style={{
-                  ...tooltipDefaultStyles,
-                  backgroundColor: theme.palette.background.paper,
-                  border: `1px solid ${theme.palette.divider}`,
-                  color: theme.palette.text.primary,
-                  padding: '0.5rem',
-                }}
-              >
-                <ChartTooltip
-                  tooltipData={tooltipData}
-                  series={series}
-                  palette={palette}
+                  height={yMax}
+                  margin={margin}
                   tooltipFormat={tooltipFormat}
                 />
-              </TooltipInPortal>
-            )}
+              </Group>
+            </svg>
           </Box>
         );
       }}
@@ -569,17 +740,24 @@ function AnalyticsChart<T>({
   );
 
   const { data, isLoading } = queryHook(queryVars);
+  const palette = createGenerator(useChartPalette());
 
   const series: LineChartSeries[] = useMemo(() => {
     const timeseriesData = data ? dataSelector(data) : null;
-    return timeseriesData || [];
+    if (!timeseriesData) return [];
+
+    // Add colors to series that don't have them
+    return timeseriesData.map(s => ({
+      ...s,
+      color: palette.next(),
+    }));
   }, [data, dataSelector]);
 
   const hasData = series.some(s => s.data.length > 0);
 
   return (
     <Card title={<SquaredChip label={title} color="primary" />}>
-      <Box height={CHART_CONFIG.height}>
+      <Box height={CHART_CONFIG.height} display="flex" alignItems="center" justifyContent="center">
         {isLoading ? (
           <Loader />
         ) : hasData ? (
@@ -590,6 +768,7 @@ function AnalyticsChart<T>({
               ...tooltipFormat,
             }}
             axisFormat={axisFormat}
+            xAxis={{ min: range.from, max: range.to }}
           />
         ) : (
           <Typography variant="body1">No data</Typography>
@@ -599,9 +778,6 @@ function AnalyticsChart<T>({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Chart Configurations
-
 const CHART_CONFIGS = {
   holders: {
     title: 'Holders',
@@ -609,10 +785,12 @@ const CHART_CONFIGS = {
     dataSelector: (data: HoldersCountTimeseriesQuery) => [
       {
         name: 'Holders',
-        data: data.holdersCountTimeseries.map(d => ({
-          x: new Date(d.timestamp),
-          y: d.value,
-        })),
+        data: data.holdersCountTimeseries
+          .filter(d => d.value != null)
+          .map(d => ({
+            x: new Date(d.timestamp),
+            y: d.value ?? null,
+          })),
         type: 'line' as const,
       },
     ],
@@ -631,7 +809,7 @@ const CHART_CONFIGS = {
         name: 'TVL',
         data: data.lockedValueTimeseries.map(d => ({
           x: new Date(d.timestamp),
-          y: fromSqd(d.value).toNumber(),
+          y: d.value != null ? fromSqd(d.value).toNumber() : null,
         })),
         type: 'line' as const,
       },
@@ -649,10 +827,12 @@ const CHART_CONFIGS = {
     dataSelector: (data: ActiveWorkersTimeseriesQuery) => [
       {
         name: 'Active Workers',
-        data: data.activeWorkersTimeseries.map(d => ({
-          x: new Date(d.timestamp),
-          y: d.value,
-        })),
+        data: data.activeWorkersTimeseries
+          .filter(d => d.value != null)
+          .map(d => ({
+            x: new Date(d.timestamp),
+            y: d.value ?? null,
+          })),
         type: 'line' as const,
       },
     ],
@@ -669,10 +849,12 @@ const CHART_CONFIGS = {
     dataSelector: (data: UniqueOperatorsTimeseriesQuery) => [
       {
         name: 'Unique Operators',
-        data: data.uniqueOperatorsTimeseries.map(d => ({
-          x: new Date(d.timestamp),
-          y: d.value,
-        })),
+        data: data.uniqueOperatorsTimeseries
+          .filter(d => d.value != null)
+          .map(d => ({
+            x: new Date(d.timestamp),
+            y: d.value ?? null,
+          })),
         type: 'line' as const,
       },
     ],
@@ -689,10 +871,12 @@ const CHART_CONFIGS = {
     dataSelector: (data: DelegationsTimeseriesQuery) => [
       {
         name: 'Delegations',
-        data: data.delegationsTimeseries.map(d => ({
-          x: new Date(d.timestamp),
-          y: d.value,
-        })),
+        data: data.delegationsTimeseries
+          .filter(d => d.value != null)
+          .map(d => ({
+            x: new Date(d.timestamp),
+            y: d.value ?? null,
+          })),
         type: 'line' as const,
       },
     ],
@@ -709,10 +893,12 @@ const CHART_CONFIGS = {
     dataSelector: (data: DelegatorsTimeseriesQuery) => [
       {
         name: 'Unique Delegators',
-        data: data.delegatorsTimeseries.map(d => ({
-          x: new Date(d.timestamp),
-          y: d.value,
-        })),
+        data: data.delegatorsTimeseries
+          .filter(d => d.value != null)
+          .map(d => ({
+            x: new Date(d.timestamp),
+            y: d.value ?? null,
+          })),
         type: 'line' as const,
       },
     ],
@@ -731,7 +917,7 @@ const CHART_CONFIGS = {
         name: 'Worker APR',
         data: data.aprTimeseries.map(d => ({
           x: new Date(d.timestamp),
-          y: d.value.workerApr,
+          y: d.value?.workerApr ?? null,
         })),
         type: 'line' as const,
       },
@@ -739,7 +925,7 @@ const CHART_CONFIGS = {
         name: 'Staker APR',
         data: data.aprTimeseries.map(d => ({
           x: new Date(d.timestamp),
-          y: d.value.stakerApr,
+          y: d.value?.stakerApr ?? null,
         })),
         type: 'line' as const,
       },
@@ -754,16 +940,28 @@ const CHART_CONFIGS = {
   reward: {
     title: 'Reward',
     queryHook: useRewardTimeseriesQuery,
-    dataSelector: (data: RewardTimeseriesQuery) => [
-      {
-        name: 'Reward',
-        data: data.rewardTimeseries.map(d => ({
-          x: new Date(d.timestamp),
-          y: fromSqd(d.value).toNumber(),
-        })),
-        type: 'bar' as const,
-      },
-    ],
+    dataSelector: (data: RewardTimeseriesQuery) => {
+      return [
+        {
+          name: 'Stacked Rewards',
+          data: data.rewardTimeseries.map(d => ({
+            x: new Date(d.timestamp),
+            y: [
+              {
+                key: 'Worker reward',
+                value: fromSqd(d.value?.workerReward).toNumber(),
+              },
+              {
+                key: 'Staker reward',
+                value: fromSqd(d.value?.stakerReward).toNumber(),
+              },
+            ],
+          })),
+          type: 'bar' as const,
+          stack: true as const,
+        },
+      ];
+    },
     tooltipFormat: {
       y: (d: number) => tokenFormatter(d, 'SQD'),
     },
@@ -777,13 +975,35 @@ const CHART_CONFIGS = {
     dataSelector: (data: TransfersByTypeTimeseriesQuery) => [
       {
         name: 'Transfers',
-        data: Object.entries(groupBy(data.transfersByTypeTimeseries, d => d.timestamp)).map(
-          ([, transfers]) => ({
-            x: new Date(transfers[0].timestamp),
-            y: transfers.reduce((acc, d) => acc + d.value, 0),
-          }),
-        ),
+        data: data.transfersByTypeTimeseries.map(d => ({
+          x: new Date(d.timestamp),
+          y: d.value
+            ? [
+                {
+                  key: 'Transfer',
+                  value: d.value.transfer,
+                },
+                {
+                  key: 'Deposit',
+                  value: d.value.deposit,
+                },
+                {
+                  key: 'Withdraw',
+                  value: d.value.withdraw,
+                },
+                {
+                  key: 'Reward',
+                  value: d.value.reward,
+                },
+                {
+                  key: 'Release',
+                  value: d.value.release,
+                },
+              ]
+            : [],
+        })),
         type: 'bar' as const,
+        stack: true as const,
       },
     ],
     tooltipFormat: {
@@ -801,7 +1021,7 @@ const CHART_CONFIGS = {
         name: 'Unique Accounts',
         data: data.uniqueAccountsTimeseries.map(d => ({
           x: new Date(d.timestamp),
-          y: d.value,
+          y: d.value ?? null,
         })),
         type: 'line' as const,
       },
@@ -821,7 +1041,7 @@ const CHART_CONFIGS = {
         name: 'Queries',
         data: data.queriesCountTimeseries.map(d => ({
           x: new Date(d.timestamp),
-          y: d.value,
+          y: d.value ?? null,
         })),
         type: 'bar' as const,
       },
@@ -841,7 +1061,7 @@ const CHART_CONFIGS = {
         name: 'Served Data',
         data: data.servedDataTimeseries.map(d => ({
           x: new Date(d.timestamp),
-          y: d.value,
+          y: d.value ?? null,
         })),
         type: 'bar' as const,
       },
@@ -861,7 +1081,7 @@ const CHART_CONFIGS = {
         name: 'Stored Data',
         data: data.storedDataTimeseries.map(d => ({
           x: new Date(d.timestamp),
-          y: d.value,
+          y: d.value ?? null,
         })),
         type: 'line' as const,
       },
@@ -874,85 +1094,6 @@ const CHART_CONFIGS = {
     },
   },
 } as const;
-
-// ---------------------------------------------------------------------------
-// Individual Chart Components
-
-export function HoldersCount({ range, step }: { range: { from: Date; to: Date }; step?: string }) {
-  return <AnalyticsChart range={range} {...CHART_CONFIGS.holders} step={step} />;
-}
-
-export function LockedValue({ range, step }: { range: { from: Date; to: Date }; step?: string }) {
-  return <AnalyticsChart range={range} {...CHART_CONFIGS.lockedValue} step={step} />;
-}
-
-export function ActiveWorkersChart({
-  range,
-  step,
-}: {
-  range: { from: Date; to: Date };
-  step?: string;
-}) {
-  return <AnalyticsChart range={range} {...CHART_CONFIGS.activeWorkers} step={step} />;
-}
-
-export function UniqueOperatorsCount({
-  range,
-  step,
-}: { range: { from: Date; to: Date }; step?: string }) {
-  return <AnalyticsChart range={range} {...CHART_CONFIGS.uniqueOperators} step={step} />;
-}
-
-export function DelegationsCount({
-  range,
-  step,
-}: { range: { from: Date; to: Date }; step?: string }) {
-  return <AnalyticsChart range={range} {...CHART_CONFIGS.delegations} step={step} />;
-}
-
-export function UniqueDelegatorsCount({
-  range,
-  step,
-}: { range: { from: Date; to: Date }; step?: string }) {
-  return <AnalyticsChart range={range} {...CHART_CONFIGS.uniqueDelegators} step={step} />;
-}
-
-export function Apr({ range, step }: { range: { from: Date; to: Date }; step?: string }) {
-  return <AnalyticsChart range={range} {...CHART_CONFIGS.apr} step={step} />;
-}
-
-export function Reward({ range, step }: { range: { from: Date; to: Date }; step?: string }) {
-  return <AnalyticsChart range={range} {...CHART_CONFIGS.reward} step={step} />;
-}
-
-export function TransfersCount({
-  range,
-  step,
-}: { range: { from: Date; to: Date }; step?: string }) {
-  return <AnalyticsChart range={range} {...CHART_CONFIGS.transfers} step={step} />;
-}
-
-export function UniqueAccountsCount({
-  range,
-  step,
-}: { range: { from: Date; to: Date }; step?: string }) {
-  return <AnalyticsChart range={range} {...CHART_CONFIGS.uniqueAccounts} step={step} />;
-}
-
-export function QueriesCount({ range, step }: { range: { from: Date; to: Date }; step?: string }) {
-  return <AnalyticsChart range={range} {...CHART_CONFIGS.queries} step={step} />;
-}
-
-export function ServedData({ range, step }: { range: { from: Date; to: Date }; step?: string }) {
-  return <AnalyticsChart range={range} {...CHART_CONFIGS.servedData} step={step} />;
-}
-
-export function StoredData({ range, step }: { range: { from: Date; to: Date }; step?: string }) {
-  return <AnalyticsChart range={range} {...CHART_CONFIGS.storedData} step={step} />;
-}
-
-// ---------------------------------------------------------------------------
-// Main Analytics Component
 
 export function Analytics() {
   const [state, setState] = useLocationState({
@@ -1007,43 +1148,43 @@ export function Analytics() {
       </Box>
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <HoldersCount range={range} step={state.step} />
+          <AnalyticsChart range={range} {...CHART_CONFIGS.holders} step={state.step} />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <LockedValue range={range} step={state.step} />
+          <AnalyticsChart range={range} {...CHART_CONFIGS.lockedValue} step={state.step} />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <ActiveWorkersChart range={range} step={state.step} />
+          <AnalyticsChart range={range} {...CHART_CONFIGS.activeWorkers} step={state.step} />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <UniqueOperatorsCount range={range} step={state.step} />
+          <AnalyticsChart range={range} {...CHART_CONFIGS.uniqueOperators} step={state.step} />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <DelegationsCount range={range} step={state.step} />
+          <AnalyticsChart range={range} {...CHART_CONFIGS.delegations} step={state.step} />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <UniqueDelegatorsCount range={range} step={state.step} />
+          <AnalyticsChart range={range} {...CHART_CONFIGS.uniqueDelegators} step={state.step} />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Apr range={range} step={state.step} />
+          <AnalyticsChart range={range} {...CHART_CONFIGS.apr} step={state.step} />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Reward range={range} step={state.step} />
+          <AnalyticsChart range={range} {...CHART_CONFIGS.reward} step={state.step} />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <TransfersCount range={range} step={state.step} />
+          <AnalyticsChart range={range} {...CHART_CONFIGS.transfers} step={state.step} />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <UniqueAccountsCount range={range} step={state.step} />
+          <AnalyticsChart range={range} {...CHART_CONFIGS.uniqueAccounts} step={state.step} />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <QueriesCount range={range} step={state.step} />
+          <AnalyticsChart range={range} {...CHART_CONFIGS.queries} step={state.step} />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <ServedData range={range} step={state.step} />
+          <AnalyticsChart range={range} {...CHART_CONFIGS.servedData} step={state.step} />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <StoredData range={range} step={state.step} />
+          <AnalyticsChart range={range} {...CHART_CONFIGS.storedData} step={state.step} />
         </Grid>
       </Grid>
     </CenteredPageWrapper>

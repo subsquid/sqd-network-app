@@ -445,8 +445,13 @@ query DelegatorsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
 query TransfersByTypeTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   transfersByTypeTimeseries(from: $from, to: $to, step: $step) {
     timestamp
-    type
-    value
+    value {
+      deposit
+      withdraw
+      transfer
+      reward
+      release
+    }
   }
 }
 
@@ -481,7 +486,10 @@ query StoredDataTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
 query RewardTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   rewardTimeseries(from: $from, to: $to, step: $step) {
     timestamp
-    value
+    value {
+      workerReward
+      stakerReward
+    }
   }
 }
 
