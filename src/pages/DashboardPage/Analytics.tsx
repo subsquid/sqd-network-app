@@ -336,6 +336,7 @@ function ChartSeries({
   height,
   margin,
   tooltipFormat,
+  step,
 }: {
   series: LineChartSeries[];
   xScale: any;
@@ -345,6 +346,7 @@ function ChartSeries({
   height: number;
   margin: { top: number; right: number; bottom: number; left: number };
   tooltipFormat?: LineChartProps['tooltipFormat'];
+  step?: string;
 }) {
   const theme = useTheme();
 
@@ -363,6 +365,25 @@ function ChartSeries({
     height,
   });
 
+  const calculateOptimalBarWidth = useCallback((data: { x: Date }[]) => {
+    if (data.length < 2) return Math.min(width * 0.1, 40); // Fallback for single point
+    
+    const [minTime, maxTime] = xScale.domain();
+    const timeRangeMs = maxTime - minTime;
+    
+    const sortedData = [...data].sort((a, b) => a.x.getTime() - b.x.getTime());
+    const intervals = [];
+    for (let i = 1; i < sortedData.length; i++) {
+      intervals.push(sortedData[i].x.getTime() - sortedData[i - 1].x.getTime());
+    }
+    const avgInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
+    
+    const expectedDataPoints = Math.max(timeRangeMs / avgInterval, data.length);
+    
+    const calculatedWidth = (width / expectedDataPoints) * 0.6;
+    return calculatedWidth;
+  }, [width, xScale]);
+
   const handleTooltip = useCallback(
     (event: React.TouchEvent<SVGRectElement> | React.MouseEvent<SVGRectElement>) => {
       const point = localPoint(event);
@@ -374,7 +395,6 @@ function ChartSeries({
       setCursor({
         x: groupRelativeX,
         y: groupRelativeY,
-        isVisible: true,
       });
 
       const x0 = xScale.invert(groupRelativeX);
@@ -436,7 +456,7 @@ function ChartSeries({
       {stacked.map(series => {
         if (series.type !== 'bar') return null;
 
-        const barWidth = Math.max((Math.max(0, width) / Math.max(1, series.data.length)) * 0.6, 1);
+        const barWidth = calculateOptimalBarWidth(series.data);
 
         const barSegments = series.data.flatMap(d => {
           const x = d.x;
@@ -503,14 +523,11 @@ function ChartSeries({
               </g>
             );
           case 'bar':
+            const barWidth = calculateOptimalBarWidth(data);
             return (
               <Group key={s.name}>
                 {data.map(d => {
                   if (d.y == null) return null;
-                  const barWidth = Math.max(
-                    (Math.max(0, width) / Math.max(1, s.data.length)) * 0.6,
-                    1,
-                  );
                   const barHeight = Math.max(0, yScale.range()[0] - yScale(d.y));
                   const barY = yScale(Math.max(0, d.y));
                   const barX = Math.max(0, xScale(d.x) - barWidth / 2);
@@ -533,8 +550,7 @@ function ChartSeries({
         }
       })}
 
-      {/* Shared crosshairs from context */}
-      {cursor?.isVisible && (
+      {cursor && (
         <Group>
           <Line
             from={{ x: cursor.x, y: 0 }} // Convert relative back to pixels
@@ -734,7 +750,6 @@ interface ChartConfig<T> {
 interface CursorState {
   x: number;
   y: number;
-  isVisible: boolean;
 }
 
 const SharedCursorContext = createContext<{
@@ -774,7 +789,6 @@ function useSharedCursor({
             ? {
                 x: cursor.x / width,
                 y: cursor.y / height,
-                isVisible: cursor.isVisible,
               }
             : null,
         );
@@ -790,7 +804,6 @@ function useSharedCursor({
         ? {
             x: context.cursor.x * width,
             y: context.cursor.y * height,
-            isVisible: context.cursor.isVisible,
           }
         : null,
     );
@@ -801,7 +814,6 @@ function useSharedCursor({
       ? {
           x: cursorState.x,
           y: cursorState.y,
-          isVisible: cursorState.isVisible,
         }
       : null,
     setCursor,
