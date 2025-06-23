@@ -1,12 +1,4 @@
-import {
-  Popover,
-  TextField as MuiTextField,
-  Box,
-  List,
-  ListItemButton,
-  ListItemText,
-  InputAdornment,
-} from '@mui/material';
+import { Popover, TextField as MuiTextField, Box, InputAdornment, MenuItem } from '@mui/material';
 import { usePopupState, bindTrigger, bindPopover, PopupState } from 'material-ui-popup-state/hooks';
 import { useState, useMemo } from 'react';
 import { Search } from '@components/Search';
@@ -61,11 +53,6 @@ const quickRanges: TimeRange[] = [
   {
     label: 'Last 2 years',
     start: 'now-2y',
-    end: 'now',
-  },
-  {
-    label: 'Last 5 years',
-    start: 'now-5y',
     end: 'now',
   },
 ];
@@ -193,16 +180,14 @@ const TimeRangePickerContent = ({
           <Search placeholder="Search" value={searchQuery} onChange={setSearchQuery} fullWidth />
         </Box>
         <Box sx={{ overflowY: 'auto', flex: 1 }}>
-          <List dense sx={{ p: 0 }}>
-            {allRanges.map(range => (
-              <ListItemButton key={range.label} onClick={() => handleSelect(range)}>
-                <ListItemText primary={range.label} />
-              </ListItemButton>
-            ))}
-            {/*<ListItemButton key="custom" onClick={() => setIsCustom(true)}>
+          {allRanges.map(range => (
+            <MenuItem key={range.label} onClick={() => handleSelect(range)}>
+              {range.label}
+            </MenuItem>
+          ))}
+          {/*<ListItemButton key="custom" onClick={() => setIsCustom(true)}>
               <ListItemText primary="Custom" />
             </ListItemButton>*/}
-          </List>
         </Box>
       </Box>
       {/* <Box

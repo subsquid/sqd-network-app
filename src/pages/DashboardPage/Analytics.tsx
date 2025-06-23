@@ -5,6 +5,7 @@ import { Card } from '@components/Card';
 import {
   Box,
   Divider,
+  FormControl,
   Grid,
   MenuItem,
   Paper,
@@ -420,7 +421,7 @@ function ChartSeries({
         });
       }
     },
-    [showTooltip, series, xScale, bisectDate, margin, setCursor, width, height],
+    [showTooltip, series, xScale, bisectDate, margin, setCursor],
   );
 
   if (width <= 0) return null;
@@ -1201,6 +1202,8 @@ export function Analytics() {
     return parseTimeRange(rangeRaw.start, rangeRaw.end);
   }, [rangeRaw]);
 
+  const stepOptions = ['auto', '1h', '3h', '6h', '12h', '1d', '3d', '1w', '2w', '1M', '3M', '6M'];
+
   return (
     <CenteredPageWrapper className="wide">
       <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
@@ -1215,22 +1218,20 @@ export function Analytics() {
             />
           </Box>
           <Box>
-            <Select
-              value={state.step}
-              onChange={e => setState.step(e.target.value)}
-              variant="filled"
-              color="secondary"
-            >
-              {['auto', '1h', '3h', '6h', '12h', '1d', '3d', '1w', '2w', '1M', '3M', '6M'].map(
-                step => {
-                  return (
-                    <MenuItem key={step} value={step}>
-                      {step}
-                    </MenuItem>
-                  );
-                },
-              )}
-            </Select>
+            <FormControl>
+              <Select
+                value={state.step}
+                onChange={e => setState.step(e.target.value)}
+                variant="filled"
+                color="secondary"
+              >
+                {stepOptions.map(step => (
+                  <MenuItem key={step} value={step}>
+                    {step}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Box>
         </Stack>
       </Box>
