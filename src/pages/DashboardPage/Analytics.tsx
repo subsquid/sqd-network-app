@@ -16,7 +16,8 @@ import {
 import { SquaredChip } from '@components/Chip';
 import { ParentSize } from '@visx/responsive';
 import { scaleLinear, scaleTime } from '@visx/scale';
-import { Line, LinePath, Bar } from '@visx/shape';
+import { Line, LinePath, Bar, AreaClosed } from '@visx/shape';
+import { alpha } from '@mui/material';
 import { GlyphCircle } from '@visx/glyph';
 import {
   useTooltip,
@@ -473,6 +474,14 @@ function ChartSeries({
           case 'line':
             return (
               <g key={s.name}>
+                <AreaClosed<SingleLineChartDatum>
+                  data={data}
+                  x={d => xScale(d.x)}
+                  y={d => yScale(d.y)}
+                  yScale={yScale}
+                  fill={color}
+                  fillOpacity={0.25}
+                />
                 <LinePath<SingleLineChartDatum>
                   data={data}
                   x={d => xScale(d.x)}
