@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, createContext, useContext, useEffect } from 'react';
 
 // Components
 import { Card } from '@components/Card';
@@ -14,7 +14,6 @@ import {
   useTheme,
 } from '@mui/material';
 import { SquaredChip } from '@components/Chip';
-// Visx XYChart primitives
 import { ParentSize } from '@visx/responsive';
 import { scaleLinear, scaleTime } from '@visx/scale';
 import { Line, LinePath, Bar } from '@visx/shape';
@@ -345,7 +344,6 @@ function ChartSeries({
   margin: { top: number; right: number; bottom: number; left: number };
   tooltipFormat?: LineChartProps['tooltipFormat'];
 }) {
-  const [cursor, setCursor] = useState<{ x: number; y: number } | null>(null);
   const theme = useTheme();
 
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
@@ -357,6 +355,12 @@ function ChartSeries({
 
   const bisectDate = useMemo(() => bisector<{ x: Date }, Date>(d => d.x).left, []);
 
+  const { cursor, setCursor } = useSharedCursor({
+    shared: true,
+    width,
+    height,
+  });
+
   const handleTooltip = useCallback(
     (event: React.TouchEvent<SVGRectElement> | React.MouseEvent<SVGRectElement>) => {
       const point = localPoint(event);
@@ -364,7 +368,12 @@ function ChartSeries({
 
       const groupRelativeX = point.x - margin.left;
       const groupRelativeY = point.y - margin.top;
-      setCursor({ x: groupRelativeX, y: groupRelativeY });
+
+      setCursor({
+        x: groupRelativeX,
+        y: groupRelativeY,
+        isVisible: true,
+      });
 
       const x0 = xScale.invert(groupRelativeX);
       const tooltipData: Record<string, SingleLineChartDatum<false>> = {};
@@ -410,10 +419,9 @@ function ChartSeries({
         });
       }
     },
-    [showTooltip, series, xScale, bisectDate, margin],
+    [showTooltip, series, xScale, bisectDate, margin, setCursor, width, height],
   );
 
-  // Don't render if width is invalid
   if (width <= 0) return null;
 
   const [stacked, unstacked] = partition(series, s => s.stack) as [
@@ -515,35 +523,36 @@ function ChartSeries({
         }
       })}
 
-      {/* Tooltip crosshairs and glyphs */}
-      {tooltipOpen && cursor && (
+      {/* Shared crosshairs from context */}
+      {cursor?.isVisible && (
         <Group>
           <Line
-            from={{ x: cursor.x, y: 0 }}
+            from={{ x: cursor.x, y: 0 }} // Convert relative back to pixels
             to={{ x: cursor.x, y: height }}
-            stroke={theme.palette.divider}
-            strokeWidth={1}
+            stroke={theme.palette.primary.main}
+            strokeWidth={2}
             pointerEvents="none"
             strokeDasharray="4,4"
-            shapeRendering="geometricPrecision"
           />
           <Line
-            from={{ x: 0, y: cursor.y }}
+            from={{ x: 0, y: cursor.y }} // Convert relative back to pixels
             to={{ x: width, y: cursor.y }}
-            stroke={theme.palette.divider}
-            strokeWidth={1}
+            stroke={theme.palette.primary.main}
+            strokeWidth={2}
             pointerEvents="none"
             strokeDasharray="4,4"
-            shapeRendering="geometricPrecision"
           />
+        </Group>
+      )}
+
+      {tooltipOpen && (
+        <Group>
           {series.map((s: LineChartSeries, i: number) => {
-            // Only render glyphs for line charts, not for bars
             if (s.type === 'bar') return null;
 
             if (s.stack) {
-              // For stacked series, render glyphs for each stack item
               const stackedSeries = s as StackedLineChartSeries;
-              const x0 = xScale.invert(cursor.x);
+              const x0 = cursor ? xScale.invert(cursor.x * width) : 0;
               const index = bisectDate(stackedSeries.data, x0, 1);
               const d0 = stackedSeries.data[index - 1];
               const d1 = stackedSeries.data[index];
@@ -556,7 +565,6 @@ function ChartSeries({
               return d.y.map(({ key, value }, stackIndex) => {
                 if (value == null || !tooltipData?.[key]) return null;
 
-                // Calculate the center of this stack segment
                 const segmentCenterY = offsetY - value / 2;
                 offsetY -= value;
 
@@ -573,7 +581,6 @@ function ChartSeries({
                 );
               });
             } else {
-              // For single series, render single glyph
               const datum = tooltipData?.[s.name];
               if (!datum) return null;
               const color = palette[i % palette.length];
@@ -592,7 +599,6 @@ function ChartSeries({
         </Group>
       )}
 
-      {/* Invisible overlay for tooltip interactions */}
       <rect
         x={0}
         y={0}
@@ -707,15 +713,89 @@ function LineChart({ series, axisFormat, tooltipFormat, xAxis, yAxis, stack }: L
   );
 }
 
-// ---------------------------------------------------------------------------
-// Generic Chart Component
-
 interface ChartConfig<T> {
   title: string;
   queryHook: (vars: { from: string; to: string }) => { data: T | undefined; isLoading: boolean };
   dataSelector: (data: T) => LineChartSeries[] | null | undefined;
   tooltipFormat?: LineChartProps['tooltipFormat'];
   axisFormat?: LineChartProps['axisFormat'];
+}
+
+interface CursorState {
+  x: number;
+  y: number;
+  isVisible: boolean;
+}
+
+const SharedCursorContext = createContext<{
+  cursor: CursorState | null;
+  setSharedCursor: (cursor: CursorState | null) => void;
+} | null>(null);
+
+function SharedCursorProvider({ children }: { children: React.ReactNode }) {
+  const [cursor, setSharedCursor] = useState<CursorState | null>(null);
+
+  return (
+    <SharedCursorContext.Provider value={{ cursor, setSharedCursor }}>
+      {children}
+    </SharedCursorContext.Provider>
+  );
+}
+
+function useSharedCursor({
+  shared,
+  width,
+  height,
+}: { shared?: boolean; width: number; height: number }) {
+  const context = useContext(SharedCursorContext);
+  if (shared && !context) {
+    throw new Error('shared cursor must be used within a SharedCursorProvider');
+  }
+
+  const [cursorState, setCursorState] = useState<CursorState | null>(null);
+
+  const setCursor = useCallback(
+    (cursor: CursorState | null) => {
+      setCursorState(cursor);
+      if (width <= 0 || height <= 0) return;
+      if (shared) {
+        context?.setSharedCursor?.(
+          cursor
+            ? {
+                x: cursor.x / width,
+                y: cursor.y / height,
+                isVisible: cursor.isVisible,
+              }
+            : null,
+        );
+      }
+    },
+    [shared, context, width, height],
+  );
+
+  useEffect(() => {
+    if (!shared) return;
+    setCursorState(
+      context?.cursor
+        ? {
+            x: context.cursor.x * width,
+            y: context.cursor.y * height,
+            isVisible: context.cursor.isVisible,
+          }
+        : null,
+    );
+  }, [width, height, shared, context]);
+
+  return {
+    cursor: cursorState
+      ? {
+          x: cursorState.x,
+          y: cursorState.y,
+          isVisible: cursorState.isVisible,
+        }
+      : null,
+    setCursor,
+  };
 }
 
 function AnalyticsChart<T>({
@@ -746,12 +826,11 @@ function AnalyticsChart<T>({
     const timeseriesData = data ? dataSelector(data) : null;
     if (!timeseriesData) return [];
 
-    // Add colors to series that don't have them
     return timeseriesData.map(s => ({
       ...s,
       color: palette.next(),
     }));
-  }, [data, dataSelector]);
+  }, [data, dataSelector, palette]);
 
   const hasData = series.some(s => s.data.length > 0);
 
@@ -1146,47 +1225,49 @@ export function Analytics() {
           </Box>
         </Stack>
       </Box>
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <AnalyticsChart range={range} {...CHART_CONFIGS.holders} step={state.step} />
+      <SharedCursorProvider>
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <AnalyticsChart range={range} {...CHART_CONFIGS.holders} step={state.step} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <AnalyticsChart range={range} {...CHART_CONFIGS.lockedValue} step={state.step} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <AnalyticsChart range={range} {...CHART_CONFIGS.activeWorkers} step={state.step} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <AnalyticsChart range={range} {...CHART_CONFIGS.uniqueOperators} step={state.step} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <AnalyticsChart range={range} {...CHART_CONFIGS.delegations} step={state.step} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <AnalyticsChart range={range} {...CHART_CONFIGS.uniqueDelegators} step={state.step} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <AnalyticsChart range={range} {...CHART_CONFIGS.apr} step={state.step} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <AnalyticsChart range={range} {...CHART_CONFIGS.reward} step={state.step} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <AnalyticsChart range={range} {...CHART_CONFIGS.transfers} step={state.step} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <AnalyticsChart range={range} {...CHART_CONFIGS.uniqueAccounts} step={state.step} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <AnalyticsChart range={range} {...CHART_CONFIGS.queries} step={state.step} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <AnalyticsChart range={range} {...CHART_CONFIGS.servedData} step={state.step} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <AnalyticsChart range={range} {...CHART_CONFIGS.storedData} step={state.step} />
+          </Grid>
         </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <AnalyticsChart range={range} {...CHART_CONFIGS.lockedValue} step={state.step} />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <AnalyticsChart range={range} {...CHART_CONFIGS.activeWorkers} step={state.step} />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <AnalyticsChart range={range} {...CHART_CONFIGS.uniqueOperators} step={state.step} />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <AnalyticsChart range={range} {...CHART_CONFIGS.delegations} step={state.step} />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <AnalyticsChart range={range} {...CHART_CONFIGS.uniqueDelegators} step={state.step} />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <AnalyticsChart range={range} {...CHART_CONFIGS.apr} step={state.step} />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <AnalyticsChart range={range} {...CHART_CONFIGS.reward} step={state.step} />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <AnalyticsChart range={range} {...CHART_CONFIGS.transfers} step={state.step} />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <AnalyticsChart range={range} {...CHART_CONFIGS.uniqueAccounts} step={state.step} />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <AnalyticsChart range={range} {...CHART_CONFIGS.queries} step={state.step} />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <AnalyticsChart range={range} {...CHART_CONFIGS.servedData} step={state.step} />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <AnalyticsChart range={range} {...CHART_CONFIGS.storedData} step={state.step} />
-        </Grid>
-      </Grid>
+      </SharedCursorProvider>
     </CenteredPageWrapper>
   );
 }
