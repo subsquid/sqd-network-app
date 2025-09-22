@@ -139,7 +139,7 @@ export const Worker = ({ backPath }: { backPath: string }) => {
             worker={worker}
             owner={worker.owner}
             canEdit={
-              worker.realOwner.id === address &&
+              isOwned(worker, address) &&
               [ApiWorkerStatus.Active, ApiWorkerStatus.Registering].includes(worker.status)
             }
           />
@@ -266,7 +266,7 @@ export const Worker = ({ backPath }: { backPath: string }) => {
         </Stack>
       </Card>
 
-      {worker.realOwner.id === address && worker.status !== ApiWorkerStatus.Withdrawn ? (
+      {isOwned(worker, address) && worker.status !== ApiWorkerStatus.Withdrawn ? (
         <Box mt={3} display="flex" justifyContent="flex-end">
           {worker.status === WorkerStatus.Deregistered ||
           worker.status === WorkerStatus.Deregistering ? (
@@ -291,3 +291,12 @@ export const Worker = ({ backPath }: { backPath: string }) => {
     </CenteredPageWrapper>
   );
 };
+
+function isOwned(
+  something: { owner: { id: string; owner?: { id: string } } },
+  address: string | undefined,
+) {
+  return (
+    address != null && (something.owner.id === address || something.owner.owner?.id === address)
+  );
+}

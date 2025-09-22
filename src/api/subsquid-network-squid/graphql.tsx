@@ -5900,8 +5900,12 @@ export type WorkerProfileFragmentFragment = {
 
 export type WorkerOwnershipFragmentFragment = {
   __typename?: "Worker";
-  owner: { __typename?: "Account"; id: string; type: AccountType };
-  realOwner: { __typename?: "Account"; id: string };
+  owner: {
+    __typename?: "Account";
+    id: string;
+    type: AccountType;
+    owned: Array<{ __typename?: "Account"; id: string }>;
+  };
 };
 
 export type WorkerFragmentFragment = {
@@ -5931,8 +5935,12 @@ export type WorkerFragmentFragment = {
     pending: boolean;
     timestamp?: string;
   }>;
-  owner: { __typename?: "Account"; id: string; type: AccountType };
-  realOwner: { __typename?: "Account"; id: string };
+  owner: {
+    __typename?: "Account";
+    id: string;
+    type: AccountType;
+    owned: Array<{ __typename?: "Account"; id: string }>;
+  };
 };
 
 export type WorkerDetailedFragmentFragment = {
@@ -5981,8 +5989,12 @@ export type WorkerDetailedFragmentFragment = {
     pending: boolean;
     timestamp?: string;
   }>;
-  owner: { __typename?: "Account"; id: string; type: AccountType };
-  realOwner: { __typename?: "Account"; id: string };
+  owner: {
+    __typename?: "Account";
+    id: string;
+    type: AccountType;
+    owned: Array<{ __typename?: "Account"; id: string }>;
+  };
 };
 
 export type AllWorkersQueryVariables = Exact<{ [key: string]: never }>;
@@ -6016,8 +6028,12 @@ export type AllWorkersQuery = {
       pending: boolean;
       timestamp?: string;
     }>;
-    owner: { __typename?: "Account"; id: string; type: AccountType };
-    realOwner: { __typename?: "Account"; id: string };
+    owner: {
+      __typename?: "Account";
+      id: string;
+      type: AccountType;
+      owned: Array<{ __typename?: "Account"; id: string }>;
+    };
   }>;
 };
 
@@ -6083,8 +6099,12 @@ export type WorkerByPeerIdQuery = {
       pending: boolean;
       timestamp?: string;
     }>;
-    owner: { __typename?: "Account"; id: string; type: AccountType };
-    realOwner: { __typename?: "Account"; id: string };
+    owner: {
+      __typename?: "Account";
+      id: string;
+      type: AccountType;
+      owned: Array<{ __typename?: "Account"; id: string }>;
+    };
   }>;
 };
 
@@ -6139,8 +6159,12 @@ export type MyWorkersQuery = {
       pending: boolean;
       timestamp?: string;
     }>;
-    owner: { __typename?: "Account"; id: string; type: AccountType };
-    realOwner: { __typename?: "Account"; id: string };
+    owner: {
+      __typename?: "Account";
+      id: string;
+      type: AccountType;
+      owned: Array<{ __typename?: "Account"; id: string }>;
+    };
   }>;
 };
 
@@ -6183,8 +6207,12 @@ export type WorkerOwnerQuery = {
   __typename?: "Query";
   workerById?: {
     __typename?: "Worker";
-    owner: { __typename?: "Account"; id: string; type: AccountType };
-    realOwner: { __typename?: "Account"; id: string };
+    owner: {
+      __typename?: "Account";
+      id: string;
+      type: AccountType;
+      owned: Array<{ __typename?: "Account"; id: string }>;
+    };
   };
 };
 
@@ -6231,8 +6259,12 @@ export type MyDelegationsQuery = {
       pending: boolean;
       timestamp?: string;
     }>;
-    owner: { __typename?: "Account"; id: string; type: AccountType };
-    realOwner: { __typename?: "Account"; id: string };
+    owner: {
+      __typename?: "Account";
+      id: string;
+      type: AccountType;
+      owned: Array<{ __typename?: "Account"; id: string }>;
+    };
   }>;
 };
 
@@ -6363,12 +6395,6 @@ export const AccountFragmentFragmentDoc = `
   balance
 }
     `;
-export const OwnerFragmentFragmentDoc = `
-    fragment OwnerFragment on Account {
-  id
-  type
-}
-    `;
 export const DelegationFragmentFragmentDoc = `
     fragment DelegationFragment on Delegation {
   deposit
@@ -6377,10 +6403,11 @@ export const DelegationFragmentFragmentDoc = `
   locked
   lockEnd
   owner {
-    ...OwnerFragment
+    id
+    type
   }
 }
-    ${OwnerFragmentFragmentDoc}`;
+    `;
 export const VestingFragmentFragmentDoc = `
     fragment VestingFragment on Account {
   id
@@ -6427,13 +6454,19 @@ export const WorkerStatsFragmentFragmentDoc = `
   lockEnd
 }
     `;
+export const OwnerFragmentFragmentDoc = `
+    fragment OwnerFragment on Account {
+  id
+  type
+}
+    `;
 export const WorkerOwnershipFragmentFragmentDoc = `
     fragment WorkerOwnershipFragment on Worker {
   owner {
     ...OwnerFragment
-  }
-  realOwner {
-    id
+    owned {
+      id
+    }
   }
 }
     ${OwnerFragmentFragmentDoc}`;
@@ -6744,7 +6777,7 @@ export const useVestingsByAccountQuery = <
 export const TemporaryHoldingsByAccountDocument = `
     query temporaryHoldingsByAccount($address: String!) {
   accounts(
-    where: {owner: {id_eq: $address}, type_eq: TEMPORARY_HOLDING, OR: {temporaryHolding: {beneficiary: {id_eq: $address}}}}
+    where: {OR: [{temporaryHolding: {beneficiary: {id_eq: $address}}}, {owner: {id_eq: $address}, type_eq: TEMPORARY_HOLDING}]}
   ) {
     ...AccountFragment
     temporaryHolding {
@@ -6947,7 +6980,9 @@ export const WorkerByPeerIdDocument = `
     query workerByPeerId($peerId: String!, $address: String) {
   workers(where: {peerId_eq: $peerId}, limit: 1) {
     ...WorkerDetailedFragment
-    delegations(where: {realOwner: {id_eq: $address}, deposit_gt: 0}) {
+    delegations(
+      where: {OR: [{owner: {id_eq: $address}, deposit_gt: 0}, {owner: {owner: {id_eq: $address}}, deposit_gt: 0}]}
+    ) {
       ...DelegationFragment
     }
   }
@@ -7016,7 +7051,7 @@ export const MyWorkersDocument = `
     query myWorkers($address: String!) {
   workers(
     orderBy: id_ASC
-    where: {realOwner: {id_eq: $address}, status_not_eq: WITHDRAWN}
+    where: {OR: [{owner: {id_eq: $address}, status_not_eq: WITHDRAWN}, {owner: {owner: {id_eq: $address}}, status_not_eq: WITHDRAWN}]}
   ) {
     ...WorkerFragment
     ...WorkerRewardsFragment
@@ -7043,7 +7078,10 @@ export const useMyWorkersQuery = <TData = MyWorkersQuery, TError = unknown>(
 
 export const MyWorkersCountDocument = `
     query myWorkersCount($address: String!) {
-  workersConnection(orderBy: id_ASC, where: {realOwner: {id_eq: $address}}) {
+  workersConnection(
+    orderBy: id_ASC
+    where: {OR: [{owner: {id_eq: $address}}, {owner: {owner: {id_eq: $address}}}]}
+  ) {
     totalCount
   }
 }
@@ -7145,10 +7183,12 @@ export const MyDelegationsDocument = `
     query myDelegations($address: String!, $workerId: String) {
   workers(
     orderBy: id_ASC
-    where: {peerId_eq: $workerId, delegations_some: {realOwner: {id_eq: $address}, deposit_gt: 0}}
+    where: {peerId_eq: $workerId, delegations_some: {OR: [{owner: {id_eq: $address}, deposit_gt: 0}, {owner: {owner: {id_eq: $address}}, deposit_gt: 0}]}}
   ) {
     ...WorkerFragment
-    delegations(where: {realOwner: {id_eq: $address}, deposit_gt: 0}) {
+    delegations(
+      where: {OR: [{owner: {id_eq: $address}, deposit_gt: 0}, {owner: {owner: {id_eq: $address}}, deposit_gt: 0}]}
+    ) {
       ...DelegationFragment
     }
   }
@@ -7180,7 +7220,9 @@ export const useMyDelegationsQuery = <
 
 export const MyClaimsDocument = `
     query myClaims($address: String!) {
-  delegations(where: {realOwner: {id_eq: $address}, claimableReward_gt: 0}) {
+  delegations(
+    where: {OR: [{owner: {id_eq: $address}, claimableReward_gt: 0}, {owner: {owner: {id_eq: $address}}, claimableReward_gt: 0}]}
+  ) {
     claimableReward
     deposit
     worker {
@@ -7190,7 +7232,9 @@ export const MyClaimsDocument = `
       ...OwnerFragment
     }
   }
-  workers(where: {realOwner: {id_eq: $address}, claimableReward_gt: 0}) {
+  workers(
+    where: {OR: [{owner: {id_eq: $address}, claimableReward_gt: 0}, {owner: {owner: {id_eq: $address}}, claimableReward_gt: 0}]}
+  ) {
     ...WorkerBaseFragment
     claimableReward
     owner {
@@ -7276,7 +7320,9 @@ export const useMyGatewaysQuery = <TData = MyGatewaysQuery, TError = unknown>(
 
 export const MyGatewayStakesDocument = `
     query myGatewayStakes($address: String!) {
-  gatewayStakes(where: {realOwner: {id_eq: $address}, amount_gt: "0"}) {
+  gatewayStakes(
+    where: {OR: [{owner: {id_eq: $address}, amount_gt: "0"}, {owner: {owner: {id_eq: $address}}, amount_gt: "0"}]}
+  ) {
     ...GatewayStakeFragment
   }
   networkStats {
