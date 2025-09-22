@@ -44,6 +44,8 @@ export type Account = {
   id: Scalars["String"]["output"];
   owned: Array<Account>;
   owner?: Maybe<Account>;
+  temporaryHolding?: Maybe<TemporaryHoldingData>;
+  temporaryHoldings: Array<TemporaryHoldingData>;
   transfers: Array<AccountTransfer>;
   transfersFrom: Array<Transfer>;
   transfersTo: Array<Transfer>;
@@ -92,6 +94,13 @@ export type AccountOwnedArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   orderBy?: InputMaybe<Array<AccountOrderByInput>>;
   where?: InputMaybe<AccountWhereInput>;
+};
+
+export type AccountTemporaryHoldingsArgs = {
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  orderBy?: InputMaybe<Array<TemporaryHoldingDataOrderByInput>>;
+  where?: InputMaybe<TemporaryHoldingDataWhereInput>;
 };
 
 export type AccountTransfersArgs = {
@@ -178,6 +187,24 @@ export enum AccountOrderByInput {
   OwnerTypeDesc = "owner_type_DESC",
   OwnerTypeDescNullsFirst = "owner_type_DESC_NULLS_FIRST",
   OwnerTypeDescNullsLast = "owner_type_DESC_NULLS_LAST",
+  TemporaryHoldingIdAsc = "temporaryHolding_id_ASC",
+  TemporaryHoldingIdAscNullsFirst = "temporaryHolding_id_ASC_NULLS_FIRST",
+  TemporaryHoldingIdAscNullsLast = "temporaryHolding_id_ASC_NULLS_LAST",
+  TemporaryHoldingIdDesc = "temporaryHolding_id_DESC",
+  TemporaryHoldingIdDescNullsFirst = "temporaryHolding_id_DESC_NULLS_FIRST",
+  TemporaryHoldingIdDescNullsLast = "temporaryHolding_id_DESC_NULLS_LAST",
+  TemporaryHoldingLockedAsc = "temporaryHolding_locked_ASC",
+  TemporaryHoldingLockedAscNullsFirst = "temporaryHolding_locked_ASC_NULLS_FIRST",
+  TemporaryHoldingLockedAscNullsLast = "temporaryHolding_locked_ASC_NULLS_LAST",
+  TemporaryHoldingLockedDesc = "temporaryHolding_locked_DESC",
+  TemporaryHoldingLockedDescNullsFirst = "temporaryHolding_locked_DESC_NULLS_FIRST",
+  TemporaryHoldingLockedDescNullsLast = "temporaryHolding_locked_DESC_NULLS_LAST",
+  TemporaryHoldingUnlockedAtAsc = "temporaryHolding_unlockedAt_ASC",
+  TemporaryHoldingUnlockedAtAscNullsFirst = "temporaryHolding_unlockedAt_ASC_NULLS_FIRST",
+  TemporaryHoldingUnlockedAtAscNullsLast = "temporaryHolding_unlockedAt_ASC_NULLS_LAST",
+  TemporaryHoldingUnlockedAtDesc = "temporaryHolding_unlockedAt_DESC",
+  TemporaryHoldingUnlockedAtDescNullsFirst = "temporaryHolding_unlockedAt_DESC_NULLS_FIRST",
+  TemporaryHoldingUnlockedAtDescNullsLast = "temporaryHolding_unlockedAt_DESC_NULLS_LAST",
   TypeAsc = "type_ASC",
   TypeAscNullsFirst = "type_ASC_NULLS_FIRST",
   TypeAscNullsLast = "type_ASC_NULLS_LAST",
@@ -365,6 +392,11 @@ export type AccountWhereInput = {
   owned_some?: InputMaybe<AccountWhereInput>;
   owner?: InputMaybe<AccountWhereInput>;
   owner_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  temporaryHolding?: InputMaybe<TemporaryHoldingDataWhereInput>;
+  temporaryHolding_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  temporaryHoldings_every?: InputMaybe<TemporaryHoldingDataWhereInput>;
+  temporaryHoldings_none?: InputMaybe<TemporaryHoldingDataWhereInput>;
+  temporaryHoldings_some?: InputMaybe<TemporaryHoldingDataWhereInput>;
   transfersFrom_every?: InputMaybe<TransferWhereInput>;
   transfersFrom_none?: InputMaybe<TransferWhereInput>;
   transfersFrom_some?: InputMaybe<TransferWhereInput>;
@@ -2797,6 +2829,9 @@ export type Query = {
   settingsById?: Maybe<Settings>;
   settingsConnection: SettingsConnection;
   squidStatus: SquidStatus;
+  temporaryHoldingData: Array<TemporaryHoldingData>;
+  temporaryHoldingDataById?: Maybe<TemporaryHoldingData>;
+  temporaryHoldingDataConnection: TemporaryHoldingDataConnection;
   transferById?: Maybe<Transfer>;
   transfers: Array<Transfer>;
   transfersConnection: TransfersConnection;
@@ -3029,6 +3064,24 @@ export type QuerySettingsConnectionArgs = {
   first?: InputMaybe<Scalars["Int"]["input"]>;
   orderBy: Array<SettingsOrderByInput>;
   where?: InputMaybe<SettingsWhereInput>;
+};
+
+export type QueryTemporaryHoldingDataArgs = {
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  orderBy?: InputMaybe<Array<TemporaryHoldingDataOrderByInput>>;
+  where?: InputMaybe<TemporaryHoldingDataWhereInput>;
+};
+
+export type QueryTemporaryHoldingDataByIdArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type QueryTemporaryHoldingDataConnectionArgs = {
+  after?: InputMaybe<Scalars["String"]["input"]>;
+  first?: InputMaybe<Scalars["Int"]["input"]>;
+  orderBy: Array<TemporaryHoldingDataOrderByInput>;
+  where?: InputMaybe<TemporaryHoldingDataWhereInput>;
 };
 
 export type QueryTransferByIdArgs = {
@@ -3427,6 +3480,162 @@ export type SquidStatus = {
   __typename?: "SquidStatus";
   finalizedHeight: Scalars["Float"]["output"];
   height: Scalars["Float"]["output"];
+};
+
+export type TemporaryHoldingData = {
+  __typename?: "TemporaryHoldingData";
+  account: Account;
+  admin: Account;
+  beneficiary: Account;
+  id: Scalars["String"]["output"];
+  locked: Scalars["Boolean"]["output"];
+  unlockedAt: Scalars["DateTime"]["output"];
+};
+
+export type TemporaryHoldingDataConnection = {
+  __typename?: "TemporaryHoldingDataConnection";
+  edges: Array<TemporaryHoldingDataEdge>;
+  pageInfo: PageInfo;
+  totalCount: Scalars["Int"]["output"];
+};
+
+export type TemporaryHoldingDataEdge = {
+  __typename?: "TemporaryHoldingDataEdge";
+  cursor: Scalars["String"]["output"];
+  node: TemporaryHoldingData;
+};
+
+export enum TemporaryHoldingDataOrderByInput {
+  AccountBalanceAsc = "account_balance_ASC",
+  AccountBalanceAscNullsFirst = "account_balance_ASC_NULLS_FIRST",
+  AccountBalanceAscNullsLast = "account_balance_ASC_NULLS_LAST",
+  AccountBalanceDesc = "account_balance_DESC",
+  AccountBalanceDescNullsFirst = "account_balance_DESC_NULLS_FIRST",
+  AccountBalanceDescNullsLast = "account_balance_DESC_NULLS_LAST",
+  AccountClaimableDelegationCountAsc = "account_claimableDelegationCount_ASC",
+  AccountClaimableDelegationCountAscNullsFirst = "account_claimableDelegationCount_ASC_NULLS_FIRST",
+  AccountClaimableDelegationCountAscNullsLast = "account_claimableDelegationCount_ASC_NULLS_LAST",
+  AccountClaimableDelegationCountDesc = "account_claimableDelegationCount_DESC",
+  AccountClaimableDelegationCountDescNullsFirst = "account_claimableDelegationCount_DESC_NULLS_FIRST",
+  AccountClaimableDelegationCountDescNullsLast = "account_claimableDelegationCount_DESC_NULLS_LAST",
+  AccountIdAsc = "account_id_ASC",
+  AccountIdAscNullsFirst = "account_id_ASC_NULLS_FIRST",
+  AccountIdAscNullsLast = "account_id_ASC_NULLS_LAST",
+  AccountIdDesc = "account_id_DESC",
+  AccountIdDescNullsFirst = "account_id_DESC_NULLS_FIRST",
+  AccountIdDescNullsLast = "account_id_DESC_NULLS_LAST",
+  AccountTypeAsc = "account_type_ASC",
+  AccountTypeAscNullsFirst = "account_type_ASC_NULLS_FIRST",
+  AccountTypeAscNullsLast = "account_type_ASC_NULLS_LAST",
+  AccountTypeDesc = "account_type_DESC",
+  AccountTypeDescNullsFirst = "account_type_DESC_NULLS_FIRST",
+  AccountTypeDescNullsLast = "account_type_DESC_NULLS_LAST",
+  AdminBalanceAsc = "admin_balance_ASC",
+  AdminBalanceAscNullsFirst = "admin_balance_ASC_NULLS_FIRST",
+  AdminBalanceAscNullsLast = "admin_balance_ASC_NULLS_LAST",
+  AdminBalanceDesc = "admin_balance_DESC",
+  AdminBalanceDescNullsFirst = "admin_balance_DESC_NULLS_FIRST",
+  AdminBalanceDescNullsLast = "admin_balance_DESC_NULLS_LAST",
+  AdminClaimableDelegationCountAsc = "admin_claimableDelegationCount_ASC",
+  AdminClaimableDelegationCountAscNullsFirst = "admin_claimableDelegationCount_ASC_NULLS_FIRST",
+  AdminClaimableDelegationCountAscNullsLast = "admin_claimableDelegationCount_ASC_NULLS_LAST",
+  AdminClaimableDelegationCountDesc = "admin_claimableDelegationCount_DESC",
+  AdminClaimableDelegationCountDescNullsFirst = "admin_claimableDelegationCount_DESC_NULLS_FIRST",
+  AdminClaimableDelegationCountDescNullsLast = "admin_claimableDelegationCount_DESC_NULLS_LAST",
+  AdminIdAsc = "admin_id_ASC",
+  AdminIdAscNullsFirst = "admin_id_ASC_NULLS_FIRST",
+  AdminIdAscNullsLast = "admin_id_ASC_NULLS_LAST",
+  AdminIdDesc = "admin_id_DESC",
+  AdminIdDescNullsFirst = "admin_id_DESC_NULLS_FIRST",
+  AdminIdDescNullsLast = "admin_id_DESC_NULLS_LAST",
+  AdminTypeAsc = "admin_type_ASC",
+  AdminTypeAscNullsFirst = "admin_type_ASC_NULLS_FIRST",
+  AdminTypeAscNullsLast = "admin_type_ASC_NULLS_LAST",
+  AdminTypeDesc = "admin_type_DESC",
+  AdminTypeDescNullsFirst = "admin_type_DESC_NULLS_FIRST",
+  AdminTypeDescNullsLast = "admin_type_DESC_NULLS_LAST",
+  BeneficiaryBalanceAsc = "beneficiary_balance_ASC",
+  BeneficiaryBalanceAscNullsFirst = "beneficiary_balance_ASC_NULLS_FIRST",
+  BeneficiaryBalanceAscNullsLast = "beneficiary_balance_ASC_NULLS_LAST",
+  BeneficiaryBalanceDesc = "beneficiary_balance_DESC",
+  BeneficiaryBalanceDescNullsFirst = "beneficiary_balance_DESC_NULLS_FIRST",
+  BeneficiaryBalanceDescNullsLast = "beneficiary_balance_DESC_NULLS_LAST",
+  BeneficiaryClaimableDelegationCountAsc = "beneficiary_claimableDelegationCount_ASC",
+  BeneficiaryClaimableDelegationCountAscNullsFirst = "beneficiary_claimableDelegationCount_ASC_NULLS_FIRST",
+  BeneficiaryClaimableDelegationCountAscNullsLast = "beneficiary_claimableDelegationCount_ASC_NULLS_LAST",
+  BeneficiaryClaimableDelegationCountDesc = "beneficiary_claimableDelegationCount_DESC",
+  BeneficiaryClaimableDelegationCountDescNullsFirst = "beneficiary_claimableDelegationCount_DESC_NULLS_FIRST",
+  BeneficiaryClaimableDelegationCountDescNullsLast = "beneficiary_claimableDelegationCount_DESC_NULLS_LAST",
+  BeneficiaryIdAsc = "beneficiary_id_ASC",
+  BeneficiaryIdAscNullsFirst = "beneficiary_id_ASC_NULLS_FIRST",
+  BeneficiaryIdAscNullsLast = "beneficiary_id_ASC_NULLS_LAST",
+  BeneficiaryIdDesc = "beneficiary_id_DESC",
+  BeneficiaryIdDescNullsFirst = "beneficiary_id_DESC_NULLS_FIRST",
+  BeneficiaryIdDescNullsLast = "beneficiary_id_DESC_NULLS_LAST",
+  BeneficiaryTypeAsc = "beneficiary_type_ASC",
+  BeneficiaryTypeAscNullsFirst = "beneficiary_type_ASC_NULLS_FIRST",
+  BeneficiaryTypeAscNullsLast = "beneficiary_type_ASC_NULLS_LAST",
+  BeneficiaryTypeDesc = "beneficiary_type_DESC",
+  BeneficiaryTypeDescNullsFirst = "beneficiary_type_DESC_NULLS_FIRST",
+  BeneficiaryTypeDescNullsLast = "beneficiary_type_DESC_NULLS_LAST",
+  IdAsc = "id_ASC",
+  IdAscNullsFirst = "id_ASC_NULLS_FIRST",
+  IdAscNullsLast = "id_ASC_NULLS_LAST",
+  IdDesc = "id_DESC",
+  IdDescNullsFirst = "id_DESC_NULLS_FIRST",
+  IdDescNullsLast = "id_DESC_NULLS_LAST",
+  LockedAsc = "locked_ASC",
+  LockedAscNullsFirst = "locked_ASC_NULLS_FIRST",
+  LockedAscNullsLast = "locked_ASC_NULLS_LAST",
+  LockedDesc = "locked_DESC",
+  LockedDescNullsFirst = "locked_DESC_NULLS_FIRST",
+  LockedDescNullsLast = "locked_DESC_NULLS_LAST",
+  UnlockedAtAsc = "unlockedAt_ASC",
+  UnlockedAtAscNullsFirst = "unlockedAt_ASC_NULLS_FIRST",
+  UnlockedAtAscNullsLast = "unlockedAt_ASC_NULLS_LAST",
+  UnlockedAtDesc = "unlockedAt_DESC",
+  UnlockedAtDescNullsFirst = "unlockedAt_DESC_NULLS_FIRST",
+  UnlockedAtDescNullsLast = "unlockedAt_DESC_NULLS_LAST",
+}
+
+export type TemporaryHoldingDataWhereInput = {
+  AND?: InputMaybe<Array<TemporaryHoldingDataWhereInput>>;
+  OR?: InputMaybe<Array<TemporaryHoldingDataWhereInput>>;
+  account?: InputMaybe<AccountWhereInput>;
+  account_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  admin?: InputMaybe<AccountWhereInput>;
+  admin_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  beneficiary?: InputMaybe<AccountWhereInput>;
+  beneficiary_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  id_contains?: InputMaybe<Scalars["String"]["input"]>;
+  id_containsInsensitive?: InputMaybe<Scalars["String"]["input"]>;
+  id_endsWith?: InputMaybe<Scalars["String"]["input"]>;
+  id_eq?: InputMaybe<Scalars["String"]["input"]>;
+  id_gt?: InputMaybe<Scalars["String"]["input"]>;
+  id_gte?: InputMaybe<Scalars["String"]["input"]>;
+  id_in?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  id_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  id_lt?: InputMaybe<Scalars["String"]["input"]>;
+  id_lte?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_contains?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_containsInsensitive?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_endsWith?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_eq?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_in?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  id_not_startsWith?: InputMaybe<Scalars["String"]["input"]>;
+  id_startsWith?: InputMaybe<Scalars["String"]["input"]>;
+  locked_eq?: InputMaybe<Scalars["Boolean"]["input"]>;
+  locked_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  locked_not_eq?: InputMaybe<Scalars["Boolean"]["input"]>;
+  unlockedAt_eq?: InputMaybe<Scalars["DateTime"]["input"]>;
+  unlockedAt_gt?: InputMaybe<Scalars["DateTime"]["input"]>;
+  unlockedAt_gte?: InputMaybe<Scalars["DateTime"]["input"]>;
+  unlockedAt_in?: InputMaybe<Array<Scalars["DateTime"]["input"]>>;
+  unlockedAt_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  unlockedAt_lt?: InputMaybe<Scalars["DateTime"]["input"]>;
+  unlockedAt_lte?: InputMaybe<Scalars["DateTime"]["input"]>;
+  unlockedAt_not_eq?: InputMaybe<Scalars["DateTime"]["input"]>;
+  unlockedAt_not_in?: InputMaybe<Array<Scalars["DateTime"]["input"]>>;
 };
 
 export type Transfer = {
@@ -5415,11 +5624,85 @@ export type SettingsQuery = {
   };
 };
 
+export type NetworkSummaryQueryVariables = Exact<{ [key: string]: never }>;
+
+export type NetworkSummaryQuery = {
+  __typename?: "Query";
+  networkStats: {
+    __typename?: "NetworkStats";
+    onlineWorkersCount: number;
+    queries90Days: string;
+    queries24Hours: string;
+    servedData90Days: string;
+    servedData24Hours: string;
+    stakerApr: number;
+    totalBond: string;
+    totalDelegation: string;
+    storedData: string;
+    workerApr: number;
+    workersCount: number;
+    aprs: Array<{
+      __typename?: "AprSnapshot";
+      stakerApr: number;
+      timestamp: string;
+      workerApr: number;
+    }>;
+  };
+};
+
+export type CurrentEpochQueryVariables = Exact<{ [key: string]: never }>;
+
+export type CurrentEpochQuery = {
+  __typename?: "Query";
+  networkStats: {
+    __typename?: "NetworkStats";
+    blockTimeL1: number;
+    lastBlockL1: number;
+    lastBlockTimestampL1: string;
+  };
+  epoches: Array<{
+    __typename?: "Epoch";
+    number: number;
+    start: number;
+    end: number;
+  }>;
+};
+
 export type AccountFragmentFragment = {
   __typename?: "Account";
   id: string;
   type: AccountType;
   balance: string;
+};
+
+export type OwnerFragmentFragment = {
+  __typename?: "Account";
+  id: string;
+  type: AccountType;
+};
+
+export type DelegationFragmentFragment = {
+  __typename?: "Delegation";
+  deposit: string;
+  claimableReward: string;
+  claimedReward: string;
+  locked?: boolean;
+  lockEnd?: number;
+  owner: { __typename?: "Account"; id: string; type: AccountType };
+};
+
+export type GatewayStakeBaseFragmentFragment = {
+  __typename?: "GatewayStake";
+  id: string;
+  amount: string;
+};
+
+export type VestingFragmentFragment = {
+  __typename?: "Account";
+  id: string;
+  type: AccountType;
+  balance: string;
+  owner?: { __typename?: "Account"; id: string };
 };
 
 export type SourcesQueryVariables = Exact<{
@@ -5433,6 +5716,35 @@ export type SourcesQuery = {
     id: string;
     type: AccountType;
     balance: string;
+  }>;
+};
+
+export type VestingsByAccountQueryVariables = Exact<{
+  address: Scalars["String"]["input"];
+}>;
+
+export type VestingsByAccountQuery = {
+  __typename?: "Query";
+  accounts: Array<{
+    __typename?: "Account";
+    id: string;
+    type: AccountType;
+    balance: string;
+  }>;
+};
+
+export type TemporaryHoldingsByAccountQueryVariables = Exact<{
+  address: Scalars["String"]["input"];
+}>;
+
+export type TemporaryHoldingsByAccountQuery = {
+  __typename?: "Query";
+  accounts: Array<{
+    __typename?: "Account";
+    id: string;
+    type: AccountType;
+    balance: string;
+    temporaryHolding?: { __typename?: "TemporaryHoldingData"; locked: boolean };
   }>;
 };
 
@@ -5459,12 +5771,16 @@ export type SourcesWithAssetsQuery = {
       __typename?: "Delegation";
       deposit: string;
       claimableReward: string;
+      claimedReward: string;
+      locked?: boolean;
+      lockEnd?: number;
       worker: {
         __typename?: "Worker";
         id: string;
         name?: string;
         peerId: string;
       };
+      owner: { __typename?: "Account"; id: string; type: AccountType };
     }>;
     gatewayStakes: Array<{
       __typename?: "GatewayStake";
@@ -5490,14 +5806,33 @@ export type SourcesWithDelegationsQuery = {
       __typename?: "Delegation";
       deposit: string;
       claimableReward: string;
+      claimedReward: string;
+      locked?: boolean;
+      lockEnd?: number;
       worker: {
         __typename?: "Worker";
         id: string;
         name?: string;
         peerId: string;
       };
+      owner: { __typename?: "Account"; id: string; type: AccountType };
     }>;
   }>;
+};
+
+export type VestingByAddressQueryVariables = Exact<{
+  address: Scalars["String"]["input"];
+}>;
+
+export type VestingByAddressQuery = {
+  __typename?: "Query";
+  accountById?: {
+    __typename?: "Account";
+    id: string;
+    type: AccountType;
+    balance: string;
+    owner?: { __typename?: "Account"; id: string };
+  };
 };
 
 export type WorkerBaseFragmentFragment = {
@@ -5522,47 +5857,23 @@ export type WorkerStatusFragmentFragment = {
   }>;
 };
 
-export type WorkerFragmentFragment = {
+export type WorkerStatsFragmentFragment = {
   __typename?: "Worker";
   version?: string;
   createdAt: string;
   uptime90Days?: number;
+  uptime24Hours?: number;
   apr?: number;
   stakerApr?: number;
   totalDelegation: string;
   capedDelegation: string;
-  locked?: boolean;
-  lockEnd?: number;
-  id: string;
-  name?: string;
-  peerId: string;
-  status: WorkerStatus;
-  online?: boolean;
-  jailed?: boolean;
-  dialOk?: boolean;
-  jailReason?: string;
-  owner: { __typename?: "Account"; id: string; type: AccountType };
-  realOwner: { __typename?: "Account"; id: string };
-  statusHistory: Array<{
-    __typename?: "WorkerStatusChange";
-    blockNumber: number;
-    pending: boolean;
-    timestamp?: string;
-  }>;
-};
-
-export type WorkerFullFragmentFragment = {
-  __typename?: "Worker";
-  bond: string;
-  claimableReward: string;
-  claimedReward: string;
-  uptime24Hours?: number;
   delegationCount: number;
   locked?: boolean;
-  totalDelegationRewards: string;
-  website?: string;
-  email?: string;
-  description?: string;
+  lockEnd?: number;
+};
+
+export type WorkerMetricsFragmentFragment = {
+  __typename?: "Worker";
   queries24Hours?: string;
   queries90Days?: string;
   scannedData24Hours?: string;
@@ -5570,14 +5881,31 @@ export type WorkerFullFragmentFragment = {
   servedData24Hours?: string;
   servedData90Days?: string;
   storedData?: string;
-  lockEnd?: number;
-  version?: string;
-  createdAt: string;
-  uptime90Days?: number;
-  apr?: number;
-  stakerApr?: number;
-  totalDelegation: string;
-  capedDelegation: string;
+};
+
+export type WorkerRewardsFragmentFragment = {
+  __typename?: "Worker";
+  bond: string;
+  claimableReward: string;
+  claimedReward: string;
+  totalDelegationRewards: string;
+};
+
+export type WorkerProfileFragmentFragment = {
+  __typename?: "Worker";
+  website?: string;
+  email?: string;
+  description?: string;
+};
+
+export type WorkerOwnershipFragmentFragment = {
+  __typename?: "Worker";
+  owner: { __typename?: "Account"; id: string; type: AccountType };
+  realOwner: { __typename?: "Account"; id: string };
+};
+
+export type WorkerFragmentFragment = {
+  __typename?: "Worker";
   id: string;
   name?: string;
   peerId: string;
@@ -5586,19 +5914,75 @@ export type WorkerFullFragmentFragment = {
   jailed?: boolean;
   dialOk?: boolean;
   jailReason?: string;
-  dayUptimes?: Array<{
-    __typename?: "WorkerDayUptime";
-    timestamp: string;
-    uptime: number;
-  }>;
-  owner: { __typename?: "Account"; id: string; type: AccountType };
-  realOwner: { __typename?: "Account"; id: string };
+  version?: string;
+  createdAt: string;
+  uptime90Days?: number;
+  uptime24Hours?: number;
+  apr?: number;
+  stakerApr?: number;
+  totalDelegation: string;
+  capedDelegation: string;
+  delegationCount: number;
+  locked?: boolean;
+  lockEnd?: number;
   statusHistory: Array<{
     __typename?: "WorkerStatusChange";
     blockNumber: number;
     pending: boolean;
     timestamp?: string;
   }>;
+  owner: { __typename?: "Account"; id: string; type: AccountType };
+  realOwner: { __typename?: "Account"; id: string };
+};
+
+export type WorkerDetailedFragmentFragment = {
+  __typename?: "Worker";
+  bond: string;
+  claimableReward: string;
+  claimedReward: string;
+  totalDelegationRewards: string;
+  queries24Hours?: string;
+  queries90Days?: string;
+  scannedData24Hours?: string;
+  scannedData90Days?: string;
+  servedData24Hours?: string;
+  servedData90Days?: string;
+  storedData?: string;
+  website?: string;
+  email?: string;
+  description?: string;
+  id: string;
+  name?: string;
+  peerId: string;
+  status: WorkerStatus;
+  online?: boolean;
+  jailed?: boolean;
+  dialOk?: boolean;
+  jailReason?: string;
+  version?: string;
+  createdAt: string;
+  uptime90Days?: number;
+  uptime24Hours?: number;
+  apr?: number;
+  stakerApr?: number;
+  totalDelegation: string;
+  capedDelegation: string;
+  delegationCount: number;
+  locked?: boolean;
+  lockEnd?: number;
+  dayUptimes?: Array<{
+    __typename?: "WorkerDayUptime";
+    timestamp: string;
+    uptime: number;
+  }>;
+  statusHistory: Array<{
+    __typename?: "WorkerStatusChange";
+    blockNumber: number;
+    pending: boolean;
+    timestamp?: string;
+  }>;
+  owner: { __typename?: "Account"; id: string; type: AccountType };
+  realOwner: { __typename?: "Account"; id: string };
 };
 
 export type AllWorkersQueryVariables = Exact<{ [key: string]: never }>;
@@ -5607,15 +5991,6 @@ export type AllWorkersQuery = {
   __typename?: "Query";
   workers: Array<{
     __typename?: "Worker";
-    version?: string;
-    createdAt: string;
-    uptime90Days?: number;
-    apr?: number;
-    stakerApr?: number;
-    totalDelegation: string;
-    capedDelegation: string;
-    locked?: boolean;
-    lockEnd?: number;
     id: string;
     name?: string;
     peerId: string;
@@ -5624,14 +5999,25 @@ export type AllWorkersQuery = {
     jailed?: boolean;
     dialOk?: boolean;
     jailReason?: string;
-    owner: { __typename?: "Account"; id: string; type: AccountType };
-    realOwner: { __typename?: "Account"; id: string };
+    version?: string;
+    createdAt: string;
+    uptime90Days?: number;
+    uptime24Hours?: number;
+    apr?: number;
+    stakerApr?: number;
+    totalDelegation: string;
+    capedDelegation: string;
+    delegationCount: number;
+    locked?: boolean;
+    lockEnd?: number;
     statusHistory: Array<{
       __typename?: "WorkerStatusChange";
       blockNumber: number;
       pending: boolean;
       timestamp?: string;
     }>;
+    owner: { __typename?: "Account"; id: string; type: AccountType };
+    realOwner: { __typename?: "Account"; id: string };
   }>;
 };
 
@@ -5647,13 +6033,7 @@ export type WorkerByPeerIdQuery = {
     bond: string;
     claimableReward: string;
     claimedReward: string;
-    uptime24Hours?: number;
-    delegationCount: number;
-    locked?: boolean;
     totalDelegationRewards: string;
-    website?: string;
-    email?: string;
-    description?: string;
     queries24Hours?: string;
     queries90Days?: string;
     scannedData24Hours?: string;
@@ -5661,14 +6041,9 @@ export type WorkerByPeerIdQuery = {
     servedData24Hours?: string;
     servedData90Days?: string;
     storedData?: string;
-    lockEnd?: number;
-    version?: string;
-    createdAt: string;
-    uptime90Days?: number;
-    apr?: number;
-    stakerApr?: number;
-    totalDelegation: string;
-    capedDelegation: string;
+    website?: string;
+    email?: string;
+    description?: string;
     id: string;
     name?: string;
     peerId: string;
@@ -5677,11 +6052,22 @@ export type WorkerByPeerIdQuery = {
     jailed?: boolean;
     dialOk?: boolean;
     jailReason?: string;
+    version?: string;
+    createdAt: string;
+    uptime90Days?: number;
+    uptime24Hours?: number;
+    apr?: number;
+    stakerApr?: number;
+    totalDelegation: string;
+    capedDelegation: string;
+    delegationCount: number;
+    locked?: boolean;
+    lockEnd?: number;
     delegations: Array<{
       __typename?: "Delegation";
+      deposit: string;
       claimableReward: string;
       claimedReward: string;
-      deposit: string;
       locked?: boolean;
       lockEnd?: number;
       owner: { __typename?: "Account"; id: string; type: AccountType };
@@ -5691,14 +6077,14 @@ export type WorkerByPeerIdQuery = {
       timestamp: string;
       uptime: number;
     }>;
-    owner: { __typename?: "Account"; id: string; type: AccountType };
-    realOwner: { __typename?: "Account"; id: string };
     statusHistory: Array<{
       __typename?: "WorkerStatusChange";
       blockNumber: number;
       pending: boolean;
       timestamp?: string;
     }>;
+    owner: { __typename?: "Account"; id: string; type: AccountType };
+    realOwner: { __typename?: "Account"; id: string };
   }>;
 };
 
@@ -5724,18 +6110,10 @@ export type MyWorkersQuery = {
   __typename?: "Query";
   workers: Array<{
     __typename?: "Worker";
-    uptime24Hours?: number;
+    bond: string;
     claimableReward: string;
     claimedReward: string;
-    version?: string;
-    createdAt: string;
-    uptime90Days?: number;
-    apr?: number;
-    stakerApr?: number;
-    totalDelegation: string;
-    capedDelegation: string;
-    locked?: boolean;
-    lockEnd?: number;
+    totalDelegationRewards: string;
     id: string;
     name?: string;
     peerId: string;
@@ -5744,14 +6122,25 @@ export type MyWorkersQuery = {
     jailed?: boolean;
     dialOk?: boolean;
     jailReason?: string;
-    owner: { __typename?: "Account"; id: string; type: AccountType };
-    realOwner: { __typename?: "Account"; id: string };
+    version?: string;
+    createdAt: string;
+    uptime90Days?: number;
+    uptime24Hours?: number;
+    apr?: number;
+    stakerApr?: number;
+    totalDelegation: string;
+    capedDelegation: string;
+    delegationCount: number;
+    locked?: boolean;
+    lockEnd?: number;
     statusHistory: Array<{
       __typename?: "WorkerStatusChange";
       blockNumber: number;
       pending: boolean;
       timestamp?: string;
     }>;
+    owner: { __typename?: "Account"; id: string; type: AccountType };
+    realOwner: { __typename?: "Account"; id: string };
   }>;
 };
 
@@ -5808,15 +6197,6 @@ export type MyDelegationsQuery = {
   __typename?: "Query";
   workers: Array<{
     __typename?: "Worker";
-    version?: string;
-    createdAt: string;
-    uptime90Days?: number;
-    apr?: number;
-    stakerApr?: number;
-    totalDelegation: string;
-    capedDelegation: string;
-    locked?: boolean;
-    lockEnd?: number;
     id: string;
     name?: string;
     peerId: string;
@@ -5825,49 +6205,34 @@ export type MyDelegationsQuery = {
     jailed?: boolean;
     dialOk?: boolean;
     jailReason?: string;
+    version?: string;
+    createdAt: string;
+    uptime90Days?: number;
+    uptime24Hours?: number;
+    apr?: number;
+    stakerApr?: number;
+    totalDelegation: string;
+    capedDelegation: string;
+    delegationCount: number;
+    locked?: boolean;
+    lockEnd?: number;
     delegations: Array<{
       __typename?: "Delegation";
+      deposit: string;
       claimableReward: string;
       claimedReward: string;
-      deposit: string;
       locked?: boolean;
       lockEnd?: number;
       owner: { __typename?: "Account"; id: string; type: AccountType };
     }>;
-    owner: { __typename?: "Account"; id: string; type: AccountType };
-    realOwner: { __typename?: "Account"; id: string };
     statusHistory: Array<{
       __typename?: "WorkerStatusChange";
       blockNumber: number;
       pending: boolean;
       timestamp?: string;
     }>;
-  }>;
-};
-
-export type MyAssetsQueryVariables = Exact<{
-  address: Scalars["String"]["input"];
-}>;
-
-export type MyAssetsQuery = {
-  __typename?: "Query";
-  accounts: Array<{
-    __typename?: "Account";
-    balance: string;
-    owned: Array<{ __typename?: "Account"; id: string; balance: string }>;
-  }>;
-  workers: Array<{
-    __typename?: "Worker";
-    bond: string;
-    claimableReward: string;
-    id: string;
-    name?: string;
-    peerId: string;
-  }>;
-  delegations: Array<{
-    __typename?: "Delegation";
-    claimableReward: string;
-    deposit: string;
+    owner: { __typename?: "Account"; id: string; type: AccountType };
+    realOwner: { __typename?: "Account"; id: string };
   }>;
 };
 
@@ -5912,6 +6277,19 @@ export type GatewayFragmentFragment = {
   owner: { __typename?: "Account"; id: string; type: AccountType };
 };
 
+export type GatewayStakeFragmentFragment = {
+  __typename?: "GatewayStake";
+  autoExtension: boolean;
+  computationUnits: string;
+  computationUnitsPending?: string;
+  locked: boolean;
+  lockStart?: number;
+  lockEnd?: number;
+  id: string;
+  amount: string;
+  owner: { __typename?: "Account"; id: string; type: AccountType };
+};
+
 export type GatewayByPeerIdQueryVariables = Exact<{
   peerId: Scalars["String"]["input"];
 }>;
@@ -5930,18 +6308,6 @@ export type GatewayByPeerIdQuery = {
     createdAt: string;
     owner: { __typename?: "Account"; id: string; type: AccountType };
   };
-};
-
-export type GatewayStakeFragmentFragment = {
-  __typename?: "GatewayStake";
-  autoExtension: boolean;
-  amount: string;
-  computationUnits: string;
-  computationUnitsPending?: string;
-  locked: boolean;
-  lockStart?: number;
-  lockEnd?: number;
-  owner: { __typename?: "Account"; id: string; type: AccountType };
 };
 
 export type MyGatewaysQueryVariables = Exact<{
@@ -5973,12 +6339,13 @@ export type MyGatewayStakesQuery = {
   gatewayStakes: Array<{
     __typename?: "GatewayStake";
     autoExtension: boolean;
-    amount: string;
     computationUnits: string;
     computationUnitsPending?: string;
     locked: boolean;
     lockStart?: number;
     lockEnd?: number;
+    id: string;
+    amount: string;
     owner: { __typename?: "Account"; id: string; type: AccountType };
   }>;
   networkStats: {
@@ -5989,78 +6356,39 @@ export type MyGatewayStakesQuery = {
   };
 };
 
-export type VestingFragmentFragment = {
-  __typename?: "Account";
-  id: string;
-  type: AccountType;
-  balance: string;
-  owner?: { __typename?: "Account"; id: string };
-};
-
-export type VestingByAddressQueryVariables = Exact<{
-  address: Scalars["String"]["input"];
-}>;
-
-export type VestingByAddressQuery = {
-  __typename?: "Query";
-  accountById?: {
-    __typename?: "Account";
-    id: string;
-    type: AccountType;
-    balance: string;
-    owner?: { __typename?: "Account"; id: string };
-  };
-};
-
-export type NetworkSummaryQueryVariables = Exact<{ [key: string]: never }>;
-
-export type NetworkSummaryQuery = {
-  __typename?: "Query";
-  networkStats: {
-    __typename?: "NetworkStats";
-    onlineWorkersCount: number;
-    queries90Days: string;
-    queries24Hours: string;
-    servedData90Days: string;
-    servedData24Hours: string;
-    stakerApr: number;
-    totalBond: string;
-    totalDelegation: string;
-    storedData: string;
-    workerApr: number;
-    workersCount: number;
-    aprs: Array<{
-      __typename?: "AprSnapshot";
-      stakerApr: number;
-      timestamp: string;
-      workerApr: number;
-    }>;
-  };
-};
-
-export type CurrentEpochQueryVariables = Exact<{ [key: string]: never }>;
-
-export type CurrentEpochQuery = {
-  __typename?: "Query";
-  networkStats: {
-    __typename?: "NetworkStats";
-    blockTimeL1: number;
-    lastBlockL1: number;
-    lastBlockTimestampL1: string;
-  };
-  epoches: Array<{
-    __typename?: "Epoch";
-    number: number;
-    start: number;
-    end: number;
-  }>;
-};
-
 export const AccountFragmentFragmentDoc = `
     fragment AccountFragment on Account {
   id
   type
   balance
+}
+    `;
+export const OwnerFragmentFragmentDoc = `
+    fragment OwnerFragment on Account {
+  id
+  type
+}
+    `;
+export const DelegationFragmentFragmentDoc = `
+    fragment DelegationFragment on Delegation {
+  deposit
+  claimableReward
+  claimedReward
+  locked
+  lockEnd
+  owner {
+    ...OwnerFragment
+  }
+}
+    ${OwnerFragmentFragmentDoc}`;
+export const VestingFragmentFragmentDoc = `
+    fragment VestingFragment on Account {
+  id
+  type
+  balance
+  owner {
+    id
+  }
 }
     `;
 export const WorkerBaseFragmentFragmentDoc = `
@@ -6084,42 +6412,52 @@ export const WorkerStatusFragmentFragmentDoc = `
   }
 }
     `;
-export const WorkerFragmentFragmentDoc = `
-    fragment WorkerFragment on Worker {
-  ...WorkerBaseFragment
-  ...WorkerStatusFragment
+export const WorkerStatsFragmentFragmentDoc = `
+    fragment WorkerStatsFragment on Worker {
   version
   createdAt
   uptime90Days
+  uptime24Hours
   apr
   stakerApr
   totalDelegation
   capedDelegation
+  delegationCount
   locked
   lockEnd
+}
+    `;
+export const WorkerOwnershipFragmentFragmentDoc = `
+    fragment WorkerOwnershipFragment on Worker {
   owner {
-    id
-    type
+    ...OwnerFragment
   }
   realOwner {
     id
   }
 }
+    ${OwnerFragmentFragmentDoc}`;
+export const WorkerFragmentFragmentDoc = `
+    fragment WorkerFragment on Worker {
+  ...WorkerBaseFragment
+  ...WorkerStatusFragment
+  ...WorkerStatsFragment
+  ...WorkerOwnershipFragment
+}
     ${WorkerBaseFragmentFragmentDoc}
-${WorkerStatusFragmentFragmentDoc}`;
-export const WorkerFullFragmentFragmentDoc = `
-    fragment WorkerFullFragment on Worker {
-  ...WorkerFragment
+${WorkerStatusFragmentFragmentDoc}
+${WorkerStatsFragmentFragmentDoc}
+${WorkerOwnershipFragmentFragmentDoc}`;
+export const WorkerRewardsFragmentFragmentDoc = `
+    fragment WorkerRewardsFragment on Worker {
   bond
   claimableReward
   claimedReward
-  uptime24Hours
-  delegationCount
-  locked
   totalDelegationRewards
-  website
-  email
-  description
+}
+    `;
+export const WorkerMetricsFragmentFragmentDoc = `
+    fragment WorkerMetricsFragment on Worker {
   queries24Hours
   queries90Days
   scannedData24Hours
@@ -6127,14 +6465,30 @@ export const WorkerFullFragmentFragmentDoc = `
   servedData24Hours
   servedData90Days
   storedData
+}
+    `;
+export const WorkerProfileFragmentFragmentDoc = `
+    fragment WorkerProfileFragment on Worker {
+  website
+  email
+  description
+}
+    `;
+export const WorkerDetailedFragmentFragmentDoc = `
+    fragment WorkerDetailedFragment on Worker {
+  ...WorkerFragment
+  ...WorkerRewardsFragment
+  ...WorkerMetricsFragment
+  ...WorkerProfileFragment
   dayUptimes {
     timestamp
     uptime
   }
-  locked
-  lockEnd
 }
-    ${WorkerFragmentFragmentDoc}`;
+    ${WorkerFragmentFragmentDoc}
+${WorkerRewardsFragmentFragmentDoc}
+${WorkerMetricsFragmentFragmentDoc}
+${WorkerProfileFragmentFragmentDoc}`;
 export const GatewayFragmentFragmentDoc = `
     fragment GatewayFragment on Gateway {
   id
@@ -6146,36 +6500,31 @@ export const GatewayFragmentFragmentDoc = `
   website
   createdAt
   owner {
-    id
-    type
+    ...OwnerFragment
   }
+}
+    ${OwnerFragmentFragmentDoc}`;
+export const GatewayStakeBaseFragmentFragmentDoc = `
+    fragment GatewayStakeBaseFragment on GatewayStake {
+  id
+  amount
 }
     `;
 export const GatewayStakeFragmentFragmentDoc = `
     fragment GatewayStakeFragment on GatewayStake {
+  ...GatewayStakeBaseFragment
   owner {
-    id
-    type
+    ...OwnerFragment
   }
   autoExtension
-  amount
   computationUnits
   computationUnitsPending
   locked
   lockStart
   lockEnd
 }
-    `;
-export const VestingFragmentFragmentDoc = `
-    fragment VestingFragment on Account {
-  id
-  type
-  balance
-  owner {
-    id
-  }
-}
-    `;
+    ${GatewayStakeBaseFragmentFragmentDoc}
+${OwnerFragmentFragmentDoc}`;
 export const SquidNetworkHeightDocument = `
     query squidNetworkHeight {
   squidStatus {
@@ -6245,6 +6594,92 @@ export const useSettingsQuery = <TData = SettingsQuery, TError = unknown>(
   });
 };
 
+export const NetworkSummaryDocument = `
+    query networkSummary {
+  networkStats {
+    onlineWorkersCount
+    queries90Days
+    queries24Hours
+    servedData90Days
+    servedData24Hours
+    stakerApr
+    totalBond
+    totalDelegation
+    storedData
+    workerApr
+    workersCount
+    aprs {
+      stakerApr
+      timestamp
+      workerApr
+    }
+  }
+}
+    `;
+
+export const useNetworkSummaryQuery = <
+  TData = NetworkSummaryQuery,
+  TError = unknown,
+>(
+  variables?: NetworkSummaryQueryVariables,
+  options?: Omit<
+    UseQueryOptions<NetworkSummaryQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<NetworkSummaryQuery, TError, TData>["queryKey"];
+  },
+) => {
+  return useQuery<NetworkSummaryQuery, TError, TData>({
+    queryKey:
+      variables === undefined
+        ? ["networkSummary"]
+        : ["networkSummary", variables],
+    queryFn: fetcher<NetworkSummaryQuery, NetworkSummaryQueryVariables>(
+      NetworkSummaryDocument,
+      variables,
+    ),
+    ...options,
+  });
+};
+
+export const CurrentEpochDocument = `
+    query currentEpoch {
+  networkStats {
+    blockTimeL1
+    lastBlockL1
+    lastBlockTimestampL1
+  }
+  epoches(limit: 1, orderBy: id_DESC) {
+    number
+    start
+    end
+  }
+}
+    `;
+
+export const useCurrentEpochQuery = <
+  TData = CurrentEpochQuery,
+  TError = unknown,
+>(
+  variables?: CurrentEpochQueryVariables,
+  options?: Omit<
+    UseQueryOptions<CurrentEpochQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<CurrentEpochQuery, TError, TData>["queryKey"];
+  },
+) => {
+  return useQuery<CurrentEpochQuery, TError, TData>({
+    queryKey:
+      variables === undefined ? ["currentEpoch"] : ["currentEpoch", variables],
+    queryFn: fetcher<CurrentEpochQuery, CurrentEpochQueryVariables>(
+      CurrentEpochDocument,
+      variables,
+    ),
+    ...options,
+  });
+};
+
 export const SourcesDocument = `
     query sources($address: String!) {
   accounts(
@@ -6272,6 +6707,79 @@ export const useSourcesQuery = <TData = SourcesQuery, TError = unknown>(
   });
 };
 
+export const VestingsByAccountDocument = `
+    query vestingsByAccount($address: String!) {
+  accounts(where: {owner: {id_eq: $address}, type_eq: VESTING}) {
+    ...AccountFragment
+  }
+}
+    ${AccountFragmentFragmentDoc}`;
+
+export const useVestingsByAccountQuery = <
+  TData = VestingsByAccountQuery,
+  TError = unknown,
+>(
+  variables: VestingsByAccountQueryVariables,
+  options?: Omit<
+    UseQueryOptions<VestingsByAccountQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      VestingsByAccountQuery,
+      TError,
+      TData
+    >["queryKey"];
+  },
+) => {
+  return useQuery<VestingsByAccountQuery, TError, TData>({
+    queryKey: ["vestingsByAccount", variables],
+    queryFn: fetcher<VestingsByAccountQuery, VestingsByAccountQueryVariables>(
+      VestingsByAccountDocument,
+      variables,
+    ),
+    ...options,
+  });
+};
+
+export const TemporaryHoldingsByAccountDocument = `
+    query temporaryHoldingsByAccount($address: String!) {
+  accounts(
+    where: {owner: {id_eq: $address}, type_eq: TEMPORARY_HOLDING, OR: {temporaryHolding: {beneficiary: {id_eq: $address}}}}
+  ) {
+    ...AccountFragment
+    temporaryHolding {
+      locked
+    }
+  }
+}
+    ${AccountFragmentFragmentDoc}`;
+
+export const useTemporaryHoldingsByAccountQuery = <
+  TData = TemporaryHoldingsByAccountQuery,
+  TError = unknown,
+>(
+  variables: TemporaryHoldingsByAccountQueryVariables,
+  options?: Omit<
+    UseQueryOptions<TemporaryHoldingsByAccountQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      TemporaryHoldingsByAccountQuery,
+      TError,
+      TData
+    >["queryKey"];
+  },
+) => {
+  return useQuery<TemporaryHoldingsByAccountQuery, TError, TData>({
+    queryKey: ["temporaryHoldingsByAccount", variables],
+    queryFn: fetcher<
+      TemporaryHoldingsByAccountQuery,
+      TemporaryHoldingsByAccountQueryVariables
+    >(TemporaryHoldingsByAccountDocument, variables),
+    ...options,
+  });
+};
+
 export const SourcesWithAssetsDocument = `
     query sourcesWithAssets($address: String!) {
   accounts(
@@ -6285,20 +6793,20 @@ export const SourcesWithAssetsDocument = `
       claimableReward
     }
     delegations2(where: {OR: [{deposit_gt: 0}, {claimableReward_gt: 0}]}) {
-      deposit
-      claimableReward
+      ...DelegationFragment
       worker {
         ...WorkerBaseFragment
       }
     }
     gatewayStakes(where: {amount_gt: 0}) {
-      id
-      amount
+      ...GatewayStakeBaseFragment
     }
   }
 }
     ${AccountFragmentFragmentDoc}
-${WorkerBaseFragmentFragmentDoc}`;
+${WorkerBaseFragmentFragmentDoc}
+${DelegationFragmentFragmentDoc}
+${GatewayStakeBaseFragmentFragmentDoc}`;
 
 export const useSourcesWithAssetsQuery = <
   TData = SourcesWithAssetsQuery,
@@ -6336,8 +6844,7 @@ export const SourcesWithDelegationsDocument = `
     delegations2(
       where: {OR: [{deposit_gt: 0}], AND: [{worker: {peerId_eq: $peerId}}]}
     ) {
-      deposit
-      claimableReward
+      ...DelegationFragment
       worker {
         ...WorkerBaseFragment
       }
@@ -6345,6 +6852,7 @@ export const SourcesWithDelegationsDocument = `
   }
 }
     ${AccountFragmentFragmentDoc}
+${DelegationFragmentFragmentDoc}
 ${WorkerBaseFragmentFragmentDoc}`;
 
 export const useSourcesWithDelegationsQuery = <
@@ -6369,6 +6877,40 @@ export const useSourcesWithDelegationsQuery = <
       SourcesWithDelegationsQuery,
       SourcesWithDelegationsQueryVariables
     >(SourcesWithDelegationsDocument, variables),
+    ...options,
+  });
+};
+
+export const VestingByAddressDocument = `
+    query vestingByAddress($address: String!) {
+  accountById(id: $address) {
+    ...VestingFragment
+  }
+}
+    ${VestingFragmentFragmentDoc}`;
+
+export const useVestingByAddressQuery = <
+  TData = VestingByAddressQuery,
+  TError = unknown,
+>(
+  variables: VestingByAddressQueryVariables,
+  options?: Omit<
+    UseQueryOptions<VestingByAddressQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      VestingByAddressQuery,
+      TError,
+      TData
+    >["queryKey"];
+  },
+) => {
+  return useQuery<VestingByAddressQuery, TError, TData>({
+    queryKey: ["vestingByAddress", variables],
+    queryFn: fetcher<VestingByAddressQuery, VestingByAddressQueryVariables>(
+      VestingByAddressDocument,
+      variables,
+    ),
     ...options,
   });
 };
@@ -6404,21 +6946,14 @@ export const useAllWorkersQuery = <TData = AllWorkersQuery, TError = unknown>(
 export const WorkerByPeerIdDocument = `
     query workerByPeerId($peerId: String!, $address: String) {
   workers(where: {peerId_eq: $peerId}, limit: 1) {
-    ...WorkerFullFragment
+    ...WorkerDetailedFragment
     delegations(where: {realOwner: {id_eq: $address}, deposit_gt: 0}) {
-      claimableReward
-      claimedReward
-      deposit
-      locked
-      lockEnd
-      owner {
-        id
-        type
-      }
+      ...DelegationFragment
     }
   }
 }
-    ${WorkerFullFragmentFragmentDoc}`;
+    ${WorkerDetailedFragmentFragmentDoc}
+${DelegationFragmentFragmentDoc}`;
 
 export const useWorkerByPeerIdQuery = <
   TData = WorkerByPeerIdQuery,
@@ -6484,12 +7019,11 @@ export const MyWorkersDocument = `
     where: {realOwner: {id_eq: $address}, status_not_eq: WITHDRAWN}
   ) {
     ...WorkerFragment
-    uptime24Hours
-    claimableReward
-    claimedReward
+    ...WorkerRewardsFragment
   }
 }
-    ${WorkerFragmentFragmentDoc}`;
+    ${WorkerFragmentFragmentDoc}
+${WorkerRewardsFragmentFragmentDoc}`;
 
 export const useMyWorkersQuery = <TData = MyWorkersQuery, TError = unknown>(
   variables: MyWorkersQueryVariables,
@@ -6583,16 +7117,10 @@ export const useWorkerDelegationInfoQuery = <
 export const WorkerOwnerDocument = `
     query workerOwner($workerId: String!) {
   workerById(id: $workerId) {
-    owner {
-      id
-      type
-    }
-    realOwner {
-      id
-    }
+    ...WorkerOwnershipFragment
   }
 }
-    `;
+    ${WorkerOwnershipFragmentFragmentDoc}`;
 
 export const useWorkerOwnerQuery = <TData = WorkerOwnerQuery, TError = unknown>(
   variables: WorkerOwnerQueryVariables,
@@ -6621,19 +7149,12 @@ export const MyDelegationsDocument = `
   ) {
     ...WorkerFragment
     delegations(where: {realOwner: {id_eq: $address}, deposit_gt: 0}) {
-      claimableReward
-      claimedReward
-      deposit
-      locked
-      lockEnd
-      owner {
-        id
-        type
-      }
+      ...DelegationFragment
     }
   }
 }
-    ${WorkerFragmentFragmentDoc}`;
+    ${WorkerFragmentFragmentDoc}
+${DelegationFragmentFragmentDoc}`;
 
 export const useMyDelegationsQuery = <
   TData = MyDelegationsQuery,
@@ -6657,45 +7178,6 @@ export const useMyDelegationsQuery = <
   });
 };
 
-export const MyAssetsDocument = `
-    query myAssets($address: String!) {
-  accounts(where: {id_eq: $address}) {
-    balance
-    owned {
-      id
-      balance
-    }
-  }
-  workers(where: {realOwner: {id_eq: $address}}) {
-    ...WorkerBaseFragment
-    bond
-    claimableReward
-  }
-  delegations(
-    where: {realOwner: {id_eq: $address}, AND: {OR: [{deposit_gt: 0}, {claimableReward_gt: 0}]}}
-  ) {
-    claimableReward
-    deposit
-  }
-}
-    ${WorkerBaseFragmentFragmentDoc}`;
-
-export const useMyAssetsQuery = <TData = MyAssetsQuery, TError = unknown>(
-  variables: MyAssetsQueryVariables,
-  options?: Omit<UseQueryOptions<MyAssetsQuery, TError, TData>, "queryKey"> & {
-    queryKey?: UseQueryOptions<MyAssetsQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<MyAssetsQuery, TError, TData>({
-    queryKey: ["myAssets", variables],
-    queryFn: fetcher<MyAssetsQuery, MyAssetsQueryVariables>(
-      MyAssetsDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
 export const MyClaimsDocument = `
     query myClaims($address: String!) {
   delegations(where: {realOwner: {id_eq: $address}, claimableReward_gt: 0}) {
@@ -6705,20 +7187,19 @@ export const MyClaimsDocument = `
       ...WorkerBaseFragment
     }
     owner {
-      id
-      type
+      ...OwnerFragment
     }
   }
   workers(where: {realOwner: {id_eq: $address}, claimableReward_gt: 0}) {
     ...WorkerBaseFragment
     claimableReward
     owner {
-      id
-      type
+      ...OwnerFragment
     }
   }
 }
-    ${WorkerBaseFragmentFragmentDoc}`;
+    ${WorkerBaseFragmentFragmentDoc}
+${OwnerFragmentFragmentDoc}`;
 
 export const useMyClaimsQuery = <TData = MyClaimsQuery, TError = unknown>(
   variables: MyClaimsQueryVariables,
@@ -6822,126 +7303,6 @@ export const useMyGatewayStakesQuery = <
     queryKey: ["myGatewayStakes", variables],
     queryFn: fetcher<MyGatewayStakesQuery, MyGatewayStakesQueryVariables>(
       MyGatewayStakesDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const VestingByAddressDocument = `
-    query vestingByAddress($address: String!) {
-  accountById(id: $address) {
-    ...VestingFragment
-  }
-}
-    ${VestingFragmentFragmentDoc}`;
-
-export const useVestingByAddressQuery = <
-  TData = VestingByAddressQuery,
-  TError = unknown,
->(
-  variables: VestingByAddressQueryVariables,
-  options?: Omit<
-    UseQueryOptions<VestingByAddressQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      VestingByAddressQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<VestingByAddressQuery, TError, TData>({
-    queryKey: ["vestingByAddress", variables],
-    queryFn: fetcher<VestingByAddressQuery, VestingByAddressQueryVariables>(
-      VestingByAddressDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const NetworkSummaryDocument = `
-    query networkSummary {
-  networkStats {
-    onlineWorkersCount
-    queries90Days
-    queries24Hours
-    servedData90Days
-    servedData24Hours
-    stakerApr
-    totalBond
-    totalDelegation
-    storedData
-    workerApr
-    workersCount
-    aprs {
-      stakerApr
-      timestamp
-      workerApr
-    }
-  }
-}
-    `;
-
-export const useNetworkSummaryQuery = <
-  TData = NetworkSummaryQuery,
-  TError = unknown,
->(
-  variables?: NetworkSummaryQueryVariables,
-  options?: Omit<
-    UseQueryOptions<NetworkSummaryQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<NetworkSummaryQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<NetworkSummaryQuery, TError, TData>({
-    queryKey:
-      variables === undefined
-        ? ["networkSummary"]
-        : ["networkSummary", variables],
-    queryFn: fetcher<NetworkSummaryQuery, NetworkSummaryQueryVariables>(
-      NetworkSummaryDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const CurrentEpochDocument = `
-    query currentEpoch {
-  networkStats {
-    blockTimeL1
-    lastBlockL1
-    lastBlockTimestampL1
-  }
-  epoches(limit: 1, orderBy: id_DESC) {
-    number
-    start
-    end
-  }
-}
-    `;
-
-export const useCurrentEpochQuery = <
-  TData = CurrentEpochQuery,
-  TError = unknown,
->(
-  variables?: CurrentEpochQueryVariables,
-  options?: Omit<
-    UseQueryOptions<CurrentEpochQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<CurrentEpochQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<CurrentEpochQuery, TError, TData>({
-    queryKey:
-      variables === undefined ? ["currentEpoch"] : ["currentEpoch", variables],
-    queryFn: fetcher<CurrentEpochQuery, CurrentEpochQueryVariables>(
-      CurrentEpochDocument,
       variables,
     ),
     ...options,

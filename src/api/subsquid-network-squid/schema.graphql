@@ -2,6 +2,7 @@
 
 scalar BigInt
 
+# Network status and configuration queries
 query squidNetworkHeight {
   squidStatus {
     height
@@ -19,349 +20,6 @@ query settings {
         recommendedWorkerVersion
       }
     }
-  }
-}
-
-### ACCOUNT ###
-
-fragment AccountFragment on Account {
-  id
-  type
-  balance
-}
-
-query sources($address: String!) {
-  accounts(
-    where: { OR: [{ id_eq: $address }, { owner: { id_eq: $address } }] }
-    orderBy: [type_ASC, id_ASC]
-  ) {
-    ...AccountFragment
-  }
-}
-
-query sourcesWithAssets($address: String!) {
-  accounts(
-    where: { OR: [{ id_eq: $address }, { owner: { id_eq: $address } }] }
-    orderBy: [type_ASC, id_ASC]
-  ) {
-    ...AccountFragment
-
-    workers2(where: { OR: [{ bond_gt: 0 }, { claimableReward_gt: 0 }] }) {
-      ...WorkerBaseFragment
-      bond
-      claimableReward
-    }
-
-    delegations2(where: { OR: [{ deposit_gt: 0 }, { claimableReward_gt: 0 }] }) {
-      deposit
-      claimableReward
-      worker {
-        ...WorkerBaseFragment
-      }
-    }
-
-    gatewayStakes(where: { amount_gt: 0 }) {
-      id
-      amount
-    }
-  }
-}
-
-query sourcesWithDelegations($address: String!, $peerId: String) {
-  accounts(
-    where: { OR: [{ id_eq: $address }, { owner: { id_eq: $address } }] }
-    orderBy: [type_ASC, id_ASC]
-  ) {
-    ...AccountFragment
-
-    delegations2(where: { OR: [{ deposit_gt: 0 }], AND: [{ worker: { peerId_eq: $peerId } }] }) {
-      deposit
-      claimableReward
-      worker {
-        ...WorkerBaseFragment
-      }
-    }
-  }
-}
-
-### WORKERS ###
-
-fragment WorkerBaseFragment on Worker {
-  id
-  name
-  peerId
-}
-
-fragment WorkerStatusFragment on Worker {
-  status
-  online
-  jailed
-  dialOk
-  jailReason
-  statusHistory(orderBy: id_DESC, limit: 1) {
-    blockNumber
-    pending
-    timestamp
-  }
-}
-
-fragment WorkerFragment on Worker {
-  ...WorkerBaseFragment
-  ...WorkerStatusFragment
-  version
-  createdAt
-  uptime90Days
-  apr
-  stakerApr
-  totalDelegation
-  capedDelegation
-  locked
-  lockEnd
-  owner {
-    id
-    type
-  }
-  realOwner {
-    id
-  }
-}
-
-fragment WorkerFullFragment on Worker {
-  ...WorkerFragment
-  bond
-  claimableReward
-  claimedReward
-  uptime24Hours
-  delegationCount
-  locked
-  totalDelegationRewards
-  website
-  email
-  description
-  queries24Hours
-  queries90Days
-  scannedData24Hours
-  scannedData90Days
-  servedData24Hours
-  servedData90Days
-  storedData
-  dayUptimes {
-    timestamp
-    uptime
-  }
-  locked
-  lockEnd
-}
-
-query allWorkers {
-  workers(where: { status_eq: ACTIVE }, orderBy: totalDelegation_ASC) {
-    ...WorkerFragment
-  }
-}
-
-query workerByPeerId($peerId: String!, $address: String) {
-  workers(where: { peerId_eq: $peerId }, limit: 1) {
-    ...WorkerFullFragment
-    delegations(where: { realOwner: { id_eq: $address }, deposit_gt: 0 }) {
-      claimableReward
-      claimedReward
-      deposit
-      locked
-      lockEnd
-      owner {
-        id
-        type
-      }
-    }
-  }
-}
-
-query workerDaysUptimeById($id: String!, $from: DateTime!) {
-  workerSnapshotsByDay(workerId: $id, from: $from) {
-    timestamp
-    uptime
-  }
-}
-
-query myWorkers($address: String!) {
-  workers(orderBy: id_ASC, where: { realOwner: { id_eq: $address }, status_not_eq: WITHDRAWN }) {
-    ...WorkerFragment
-    uptime24Hours
-    claimableReward
-    claimedReward
-  }
-}
-
-query myWorkersCount($address: String!) {
-  workersConnection(orderBy: id_ASC, where: { realOwner: { id_eq: $address } }) {
-    totalCount
-  }
-}
-
-query workerDelegationInfo($workerId: String!) {
-  workerById(id: $workerId) {
-    bond
-    totalDelegation
-    capedDelegation
-    liveness
-    dTenure
-    trafficWeight
-  }
-
-  settings(limit: 1) {
-    utilizedStake
-    baseApr
-  }
-}
-
-query workerOwner($workerId: String!) {
-  workerById(id: $workerId) {
-    owner {
-      id
-      type
-    }
-    realOwner {
-      id
-    }
-  }
-}
-
-query myDelegations($address: String!, $workerId: String) {
-  workers(
-    orderBy: id_ASC
-    where: {
-      peerId_eq: $workerId
-      delegations_some: { realOwner: { id_eq: $address }, deposit_gt: 0 }
-    }
-  ) {
-    ...WorkerFragment
-    delegations(where: { realOwner: { id_eq: $address }, deposit_gt: 0 }) {
-      claimableReward
-      claimedReward
-      deposit
-      locked
-      lockEnd
-      owner {
-        id
-        type
-      }
-    }
-  }
-}
-
-query myAssets($address: String!) {
-  accounts(where: { id_eq: $address }) {
-    balance
-    owned {
-      id
-      balance
-    }
-  }
-  workers(where: { realOwner: { id_eq: $address } }) {
-    ...WorkerBaseFragment
-    bond
-    claimableReward
-  }
-  delegations(
-    where: {
-      realOwner: { id_eq: $address }
-      AND: { OR: [{ deposit_gt: 0 }, { claimableReward_gt: 0 }] }
-    }
-  ) {
-    claimableReward
-    deposit
-  }
-}
-
-query myClaims($address: String!) {
-  delegations(where: { realOwner: { id_eq: $address }, claimableReward_gt: 0 }) {
-    claimableReward
-    deposit
-    worker {
-      ...WorkerBaseFragment
-    }
-    owner {
-      id
-      type
-    }
-  }
-  workers(where: { realOwner: { id_eq: $address }, claimableReward_gt: 0 }) {
-    ...WorkerBaseFragment
-    claimableReward
-    owner {
-      id
-      type
-    }
-  }
-}
-
-### GATEWAYS ###
-
-fragment GatewayFragment on Gateway {
-  id
-  name
-  status
-  description
-  email
-  endpointUrl
-  website
-  createdAt
-  owner {
-    id
-    type
-  }
-}
-
-query gatewayByPeerId($peerId: String!) {
-  gatewayById(id: $peerId) {
-    ...GatewayFragment
-  }
-}
-
-fragment GatewayStakeFragment on GatewayStake {
-  owner {
-    id
-    type
-  }
-  autoExtension
-  amount
-  computationUnits
-  computationUnitsPending
-  locked
-  lockStart
-  lockEnd
-}
-
-query myGateways($address: String!) {
-  gateways(where: { owner: { id_eq: $address }, status_not_eq: DEREGISTERED }) {
-    ...GatewayFragment
-  }
-}
-
-query myGatewayStakes($address: String!) {
-  gatewayStakes(where: { realOwner: { id_eq: $address }, amount_gt: "0" }) {
-    ...GatewayStakeFragment
-  }
-
-  networkStats {
-    blockTimeL1
-    lastBlockL1
-    lastBlockTimestampL1
-  }
-}
-
-fragment VestingFragment on Account {
-  id
-  type
-  balance
-  owner {
-    id
-  }
-}
-
-query vestingByAddress($address: String!) {
-  accountById(id: $address) {
-    ...VestingFragment
   }
 }
 
@@ -397,5 +55,376 @@ query currentEpoch {
     number
     start
     end
+  }
+}
+
+### FRAGMENTS ###
+
+# Base fragments
+fragment AccountFragment on Account {
+  id
+  type
+  balance
+}
+
+fragment OwnerFragment on Account {
+  id
+  type
+}
+
+fragment DelegationFragment on Delegation {
+  deposit
+  claimableReward
+  claimedReward
+  locked
+  lockEnd
+  owner {
+    ...OwnerFragment
+  }
+}
+
+fragment GatewayStakeBaseFragment on GatewayStake {
+  id
+  amount
+}
+
+fragment VestingFragment on Account {
+  id
+  type
+  balance
+  owner {
+    id
+  }
+}
+
+### ACCOUNT QUERIES ###
+
+# Get basic account information
+query sources($address: String!) {
+  accounts(
+    where: { OR: [{ id_eq: $address }, { owner: { id_eq: $address } }] }
+    orderBy: [type_ASC, id_ASC]
+  ) {
+    ...AccountFragment
+  }
+}
+
+query vestingsByAccount($address: String!) {
+  accounts(where: { owner: { id_eq: $address }, type_eq: VESTING }) {
+    ...AccountFragment
+  }
+}
+
+query temporaryHoldingsByAccount($address: String!) {
+  accounts(
+    where: {
+      OR: [
+        { temporaryHolding: { beneficiary: { id_eq: $address } } }
+        { owner: { id_eq: $address }, type_eq: TEMPORARY_HOLDING }
+      ]
+    }
+  ) {
+    ...AccountFragment
+    temporaryHolding {
+      locked
+    }
+  }
+}
+
+# Get accounts with all associated assets
+query sourcesWithAssets($address: String!) {
+  accounts(
+    where: { OR: [{ id_eq: $address }, { owner: { id_eq: $address } }] }
+    orderBy: [type_ASC, id_ASC]
+  ) {
+    ...AccountFragment
+
+    workers2(where: { OR: [{ bond_gt: 0 }, { claimableReward_gt: 0 }] }) {
+      ...WorkerBaseFragment
+      bond
+      claimableReward
+    }
+
+    delegations2(where: { OR: [{ deposit_gt: 0 }, { claimableReward_gt: 0 }] }) {
+      ...DelegationFragment
+      worker {
+        ...WorkerBaseFragment
+      }
+    }
+
+    gatewayStakes(where: { amount_gt: 0 }) {
+      ...GatewayStakeBaseFragment
+    }
+  }
+}
+
+# Get accounts with delegations for specific worker
+query sourcesWithDelegations($address: String!, $peerId: String) {
+  accounts(
+    where: { OR: [{ id_eq: $address }, { owner: { id_eq: $address } }] }
+    orderBy: [type_ASC, id_ASC]
+  ) {
+    ...AccountFragment
+
+    delegations2(where: { OR: [{ deposit_gt: 0 }], AND: [{ worker: { peerId_eq: $peerId } }] }) {
+      ...DelegationFragment
+      worker {
+        ...WorkerBaseFragment
+      }
+    }
+  }
+}
+
+# Get user's vesting account
+query vestingByAddress($address: String!) {
+  accountById(id: $address) {
+    ...VestingFragment
+  }
+}
+
+### WORKER FRAGMENTS ###
+
+fragment WorkerBaseFragment on Worker {
+  id
+  name
+  peerId
+}
+
+fragment WorkerStatusFragment on Worker {
+  status
+  online
+  jailed
+  dialOk
+  jailReason
+  statusHistory(orderBy: id_DESC, limit: 1) {
+    blockNumber
+    pending
+    timestamp
+  }
+}
+
+fragment WorkerStatsFragment on Worker {
+  version
+  createdAt
+  uptime90Days
+  uptime24Hours
+  apr
+  stakerApr
+  totalDelegation
+  capedDelegation
+  delegationCount
+  locked
+  lockEnd
+}
+
+fragment WorkerMetricsFragment on Worker {
+  queries24Hours
+  queries90Days
+  scannedData24Hours
+  scannedData90Days
+  servedData24Hours
+  servedData90Days
+  storedData
+}
+
+fragment WorkerRewardsFragment on Worker {
+  bond
+  claimableReward
+  claimedReward
+  totalDelegationRewards
+}
+
+fragment WorkerProfileFragment on Worker {
+  website
+  email
+  description
+}
+
+fragment WorkerOwnershipFragment on Worker {
+  owner {
+    ...OwnerFragment
+  }
+  realOwner {
+    id
+  }
+}
+
+fragment WorkerFragment on Worker {
+  ...WorkerBaseFragment
+  ...WorkerStatusFragment
+  ...WorkerStatsFragment
+  ...WorkerOwnershipFragment
+}
+
+fragment WorkerDetailedFragment on Worker {
+  ...WorkerFragment
+  ...WorkerRewardsFragment
+  ...WorkerMetricsFragment
+  ...WorkerProfileFragment
+  dayUptimes {
+    timestamp
+    uptime
+  }
+}
+
+### WORKER QUERIES ###
+
+# Get all active workers
+query allWorkers {
+  workers(where: { status_eq: ACTIVE }, orderBy: totalDelegation_ASC) {
+    ...WorkerFragment
+  }
+}
+
+# Get detailed worker information by peer ID
+query workerByPeerId($peerId: String!, $address: String) {
+  workers(where: { peerId_eq: $peerId }, limit: 1) {
+    ...WorkerDetailedFragment
+    delegations(where: { realOwner: { id_eq: $address }, deposit_gt: 0 }) {
+      ...DelegationFragment
+    }
+  }
+}
+
+# Get worker uptime history
+query workerDaysUptimeById($id: String!, $from: DateTime!) {
+  workerSnapshotsByDay(workerId: $id, from: $from) {
+    timestamp
+    uptime
+  }
+}
+
+# Get user's owned workers
+query myWorkers($address: String!) {
+  workers(orderBy: id_ASC, where: { realOwner: { id_eq: $address }, status_not_eq: WITHDRAWN }) {
+    ...WorkerFragment
+    ...WorkerRewardsFragment
+  }
+}
+
+# Get count of user's workers
+query myWorkersCount($address: String!) {
+  workersConnection(orderBy: id_ASC, where: { realOwner: { id_eq: $address } }) {
+    totalCount
+  }
+}
+
+# Get worker delegation information for staking calculations
+query workerDelegationInfo($workerId: String!) {
+  workerById(id: $workerId) {
+    bond
+    totalDelegation
+    capedDelegation
+    liveness
+    dTenure
+    trafficWeight
+  }
+
+  settings(limit: 1) {
+    utilizedStake
+    baseApr
+  }
+}
+
+# Get worker ownership information
+query workerOwner($workerId: String!) {
+  workerById(id: $workerId) {
+    ...WorkerOwnershipFragment
+  }
+}
+
+# Get user's delegations to workers
+query myDelegations($address: String!, $workerId: String) {
+  workers(
+    orderBy: id_ASC
+    where: {
+      peerId_eq: $workerId
+      delegations_some: { realOwner: { id_eq: $address }, deposit_gt: 0 }
+    }
+  ) {
+    ...WorkerFragment
+    delegations(where: { realOwner: { id_eq: $address }, deposit_gt: 0 }) {
+      ...DelegationFragment
+    }
+  }
+}
+
+# Get user's claimable rewards
+query myClaims($address: String!) {
+  delegations(where: { realOwner: { id_eq: $address }, claimableReward_gt: 0 }) {
+    claimableReward
+    deposit
+    worker {
+      ...WorkerBaseFragment
+    }
+    owner {
+      ...OwnerFragment
+    }
+  }
+
+  workers(where: { realOwner: { id_eq: $address }, claimableReward_gt: 0 }) {
+    ...WorkerBaseFragment
+    claimableReward
+    owner {
+      ...OwnerFragment
+    }
+  }
+}
+
+### GATEWAY FRAGMENTS ###
+
+fragment GatewayFragment on Gateway {
+  id
+  name
+  status
+  description
+  email
+  endpointUrl
+  website
+  createdAt
+  owner {
+    ...OwnerFragment
+  }
+}
+
+fragment GatewayStakeFragment on GatewayStake {
+  ...GatewayStakeBaseFragment
+  owner {
+    ...OwnerFragment
+  }
+  autoExtension
+  computationUnits
+  computationUnitsPending
+  locked
+  lockStart
+  lockEnd
+}
+
+### GATEWAY QUERIES ###
+
+# Get gateway by peer ID
+query gatewayByPeerId($peerId: String!) {
+  gatewayById(id: $peerId) {
+    ...GatewayFragment
+  }
+}
+
+# Get user's gateways
+query myGateways($address: String!) {
+  gateways(where: { owner: { id_eq: $address }, status_not_eq: DEREGISTERED }) {
+    ...GatewayFragment
+  }
+}
+
+# Get user's gateway stakes with network info
+query myGatewayStakes($address: String!) {
+  gatewayStakes(where: { realOwner: { id_eq: $address }, amount_gt: "0" }) {
+    ...GatewayStakeFragment
+  }
+
+  networkStats {
+    blockTimeL1
+    lastBlockL1
+    lastBlockTimestampL1
   }
 }

@@ -6,8 +6,9 @@ import { CodegenConfig } from '@graphql-codegen/cli';
 export default {
   overwrite: true,
   schema:
-    process.env.SQUID_API_URL ||
-    'https://subsquid.squids.live/subsquid-network-mainnet@v5/api/graphql',
+    process.env.NETWORK === 'mainnet'
+      ? process.env.MAINNET_SQUID_API_URL
+      : process.env.TESTNET_SQUID_API_URL,
   documents: ['src/api/subsquid-network-squid/schema.graphql'],
   hooks: {
     afterOneFileWrite: ['prettier --write'],
