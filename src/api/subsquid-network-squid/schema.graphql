@@ -310,6 +310,10 @@ query myWorkers($address: String!) {
       OR: [
         { owner: { id_eq: $address }, status_not_eq: WITHDRAWN }
         { owner: { owner: { id_eq: $address } }, status_not_eq: WITHDRAWN }
+        {
+          owner: { temporaryHolding: { beneficiary: { id_eq: $address } } }
+          status_not_eq: WITHDRAWN
+        }
       ]
     }
   ) {
@@ -362,6 +366,7 @@ query myDelegations($address: String!, $workerId: String) {
         OR: [
           { owner: { id_eq: $address }, deposit_gt: 0 }
           { owner: { owner: { id_eq: $address } }, deposit_gt: 0 }
+          { owner: { temporaryHolding: { beneficiary: { id_eq: $address } } }, deposit_gt: 0 }
         ]
       }
     }
@@ -372,6 +377,7 @@ query myDelegations($address: String!, $workerId: String) {
         OR: [
           { owner: { id_eq: $address }, deposit_gt: 0 }
           { owner: { owner: { id_eq: $address } }, deposit_gt: 0 }
+          { owner: { temporaryHolding: { beneficiary: { id_eq: $address } } }, deposit_gt: 0 }
         ]
       }
     ) {

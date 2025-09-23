@@ -292,7 +292,7 @@ export const Worker = ({ backPath }: { backPath: string }) => {
   );
 };
 
-function isOwned(
+export function isOwned(
   something: { owner: { id: string; owner?: { id: string } } },
   address: string | undefined,
 ) {

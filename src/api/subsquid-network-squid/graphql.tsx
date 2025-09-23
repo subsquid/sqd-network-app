@@ -7051,7 +7051,7 @@ export const MyWorkersDocument = `
     query myWorkers($address: String!) {
   workers(
     orderBy: id_ASC
-    where: {OR: [{owner: {id_eq: $address}, status_not_eq: WITHDRAWN}, {owner: {owner: {id_eq: $address}}, status_not_eq: WITHDRAWN}]}
+    where: {OR: [{owner: {id_eq: $address}, status_not_eq: WITHDRAWN}, {owner: {owner: {id_eq: $address}}, status_not_eq: WITHDRAWN}, {owner: {temporaryHolding: {beneficiary: {id_eq: $address}}}, status_not_eq: WITHDRAWN}]}
   ) {
     ...WorkerFragment
     ...WorkerRewardsFragment
@@ -7183,11 +7183,11 @@ export const MyDelegationsDocument = `
     query myDelegations($address: String!, $workerId: String) {
   workers(
     orderBy: id_ASC
-    where: {peerId_eq: $workerId, delegations_some: {OR: [{owner: {id_eq: $address}, deposit_gt: 0}, {owner: {owner: {id_eq: $address}}, deposit_gt: 0}]}}
+    where: {peerId_eq: $workerId, delegations_some: {OR: [{owner: {id_eq: $address}, deposit_gt: 0}, {owner: {owner: {id_eq: $address}}, deposit_gt: 0}, {owner: {temporaryHolding: {beneficiary: {id_eq: $address}}}, deposit_gt: 0}]}}
   ) {
     ...WorkerFragment
     delegations(
-      where: {OR: [{owner: {id_eq: $address}, deposit_gt: 0}, {owner: {owner: {id_eq: $address}}, deposit_gt: 0}]}
+      where: {OR: [{owner: {id_eq: $address}, deposit_gt: 0}, {owner: {owner: {id_eq: $address}}, deposit_gt: 0}, {owner: {temporaryHolding: {beneficiary: {id_eq: $address}}}, deposit_gt: 0}]}
     ) {
       ...DelegationFragment
     }
