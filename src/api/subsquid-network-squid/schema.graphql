@@ -81,6 +81,9 @@ fragment DelegationFragment on Delegation {
   owner {
     id
     type
+    owner {
+      id
+    }
   }
 }
 
@@ -244,7 +247,7 @@ fragment WorkerProfileFragment on Worker {
 fragment WorkerOwnershipFragment on Worker {
   owner {
     ...OwnerFragment
-    owned {
+    owner {
       id
     }
   }

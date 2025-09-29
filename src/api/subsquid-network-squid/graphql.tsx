@@ -5688,7 +5688,12 @@ export type DelegationFragmentFragment = {
   claimedReward: string;
   locked?: boolean;
   lockEnd?: number;
-  owner: { __typename?: "Account"; id: string; type: AccountType };
+  owner: {
+    __typename?: "Account";
+    id: string;
+    type: AccountType;
+    owner?: { __typename?: "Account"; id: string };
+  };
 };
 
 export type GatewayStakeBaseFragmentFragment = {
@@ -5780,7 +5785,12 @@ export type SourcesWithAssetsQuery = {
         name?: string;
         peerId: string;
       };
-      owner: { __typename?: "Account"; id: string; type: AccountType };
+      owner: {
+        __typename?: "Account";
+        id: string;
+        type: AccountType;
+        owner?: { __typename?: "Account"; id: string };
+      };
     }>;
     gatewayStakes: Array<{
       __typename?: "GatewayStake";
@@ -5815,7 +5825,12 @@ export type SourcesWithDelegationsQuery = {
         name?: string;
         peerId: string;
       };
-      owner: { __typename?: "Account"; id: string; type: AccountType };
+      owner: {
+        __typename?: "Account";
+        id: string;
+        type: AccountType;
+        owner?: { __typename?: "Account"; id: string };
+      };
     }>;
   }>;
 };
@@ -5904,7 +5919,7 @@ export type WorkerOwnershipFragmentFragment = {
     __typename?: "Account";
     id: string;
     type: AccountType;
-    owned: Array<{ __typename?: "Account"; id: string }>;
+    owner?: { __typename?: "Account"; id: string };
   };
 };
 
@@ -5939,7 +5954,7 @@ export type WorkerFragmentFragment = {
     __typename?: "Account";
     id: string;
     type: AccountType;
-    owned: Array<{ __typename?: "Account"; id: string }>;
+    owner?: { __typename?: "Account"; id: string };
   };
 };
 
@@ -5993,7 +6008,7 @@ export type WorkerDetailedFragmentFragment = {
     __typename?: "Account";
     id: string;
     type: AccountType;
-    owned: Array<{ __typename?: "Account"; id: string }>;
+    owner?: { __typename?: "Account"; id: string };
   };
 };
 
@@ -6032,7 +6047,7 @@ export type AllWorkersQuery = {
       __typename?: "Account";
       id: string;
       type: AccountType;
-      owned: Array<{ __typename?: "Account"; id: string }>;
+      owner?: { __typename?: "Account"; id: string };
     };
   }>;
 };
@@ -6086,7 +6101,12 @@ export type WorkerByPeerIdQuery = {
       claimedReward: string;
       locked?: boolean;
       lockEnd?: number;
-      owner: { __typename?: "Account"; id: string; type: AccountType };
+      owner: {
+        __typename?: "Account";
+        id: string;
+        type: AccountType;
+        owner?: { __typename?: "Account"; id: string };
+      };
     }>;
     dayUptimes?: Array<{
       __typename?: "WorkerDayUptime";
@@ -6103,7 +6123,7 @@ export type WorkerByPeerIdQuery = {
       __typename?: "Account";
       id: string;
       type: AccountType;
-      owned: Array<{ __typename?: "Account"; id: string }>;
+      owner?: { __typename?: "Account"; id: string };
     };
   }>;
 };
@@ -6163,7 +6183,7 @@ export type MyWorkersQuery = {
       __typename?: "Account";
       id: string;
       type: AccountType;
-      owned: Array<{ __typename?: "Account"; id: string }>;
+      owner?: { __typename?: "Account"; id: string };
     };
   }>;
 };
@@ -6211,7 +6231,7 @@ export type WorkerOwnerQuery = {
       __typename?: "Account";
       id: string;
       type: AccountType;
-      owned: Array<{ __typename?: "Account"; id: string }>;
+      owner?: { __typename?: "Account"; id: string };
     };
   };
 };
@@ -6251,7 +6271,12 @@ export type MyDelegationsQuery = {
       claimedReward: string;
       locked?: boolean;
       lockEnd?: number;
-      owner: { __typename?: "Account"; id: string; type: AccountType };
+      owner: {
+        __typename?: "Account";
+        id: string;
+        type: AccountType;
+        owner?: { __typename?: "Account"; id: string };
+      };
     }>;
     statusHistory: Array<{
       __typename?: "WorkerStatusChange";
@@ -6263,7 +6288,7 @@ export type MyDelegationsQuery = {
       __typename?: "Account";
       id: string;
       type: AccountType;
-      owned: Array<{ __typename?: "Account"; id: string }>;
+      owner?: { __typename?: "Account"; id: string };
     };
   }>;
 };
@@ -6405,6 +6430,9 @@ export const DelegationFragmentFragmentDoc = `
   owner {
     id
     type
+    owner {
+      id
+    }
   }
 }
     `;
@@ -6464,7 +6492,7 @@ export const WorkerOwnershipFragmentFragmentDoc = `
     fragment WorkerOwnershipFragment on Worker {
   owner {
     ...OwnerFragment
-    owned {
+    owner {
       id
     }
   }
