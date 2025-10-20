@@ -18,7 +18,6 @@ import { SquaredChip } from '@components/Chip';
 import { ParentSize } from '@visx/responsive';
 import { scaleLinear, scaleTime } from '@visx/scale';
 import { Line, LinePath, Bar, AreaClosed } from '@visx/shape';
-import { alpha } from '@mui/material';
 import { GlyphCircle } from '@visx/glyph';
 import {
   useTooltip,
@@ -29,49 +28,14 @@ import { AxisBottom, AxisLeft } from '@visx/axis';
 import { localPoint } from '@visx/event';
 import { bisector } from 'd3-array';
 import { Group } from '@visx/group';
-import {
-  HoldersCountTimeseriesQuery,
-  LockedValueTimeseriesQuery,
-  ActiveWorkersTimeseriesQuery,
-  useActiveWorkersTimeseriesQuery,
-  useAprTimeseriesQuery,
-  DelegationsTimeseriesQuery,
-  useDelegationsTimeseriesQuery,
-  DelegatorsTimeseriesQuery,
-  useDelegatorsTimeseriesQuery,
-  useHoldersCountTimeseriesQuery,
-  useLockedValueTimeseriesQuery,
-  useUniqueOperatorsTimeseriesQuery,
-  UniqueOperatorsTimeseriesQuery,
-  AprTimeseriesQuery,
-  useRewardTimeseriesQuery,
-  RewardTimeseriesQuery,
-  useTransfersByTypeTimeseriesQuery,
-  TransfersByTypeTimeseriesQuery,
-  useUniqueAccountsTimeseriesQuery,
-  UniqueAccountsTimeseriesQuery,
-  useQueriesCountTimeseriesQuery,
-  QueriesCountTimeseriesQuery,
-  useServedDataTimeseriesQuery,
-  ServedDataTimeseriesQuery,
-  useStoredDataTimeseriesQuery,
-  StoredDataTimeseriesQuery,
-} from '@api/subsquid-network-squid';
 import { Loader } from '@components/Loader';
 import { CenteredPageWrapper } from '@layouts/NetworkLayout';
-import { fromSqd } from '@lib/network';
 import { TimeRangePicker } from '@components/Form';
 import { useLocationState, Location } from '@hooks/useLocationState';
-import {
-  bytesFormatter,
-  percentFormatter,
-  tokenFormatter,
-  toCompact,
-  toDate,
-  toNumber,
-} from '@lib/formatters/formatters';
+import { toDate } from '@lib/formatters/formatters';
 import { parseTimeRange } from '@lib/datemath';
 import { partition } from 'lodash-es';
+import { CHARTS, DEFAULT_GRID_SIZE, type ChartConfig } from './chartConfigs';
 
 const CHART_CONFIG = {
   height: 200,
@@ -82,6 +46,10 @@ const CHART_CONFIG = {
     x: 0.025, // 2% padding for x-axis
   },
 } as const;
+
+// ============================================================================
+// Types - Exported for use in chartConfigs.ts
+// ============================================================================
 
 export type SingleLineChartDatum<N = true> = {
   x: Date;
@@ -127,7 +95,16 @@ export interface LineChartProps {
     y?: (y: number) => string;
   };
   stack?: boolean;
+  // Visual styling
+  strokeWidth?: number;
+  fillOpacity?: number;
+  pointSize?: number;
+  barBorderRadius?: number;
 }
+
+// ============================================================================
+// Chart Internals
+// ============================================================================
 
 function useChartPalette() {
   const theme = useTheme();
@@ -337,6 +314,10 @@ function ChartSeries({
   margin,
   tooltipFormat,
   step,
+  strokeWidth = 2,
+  fillOpacity = 0.25,
+  pointSize = 10,
+  barBorderRadius = 4,
 }: {
   series: LineChartSeries[];
   xScale: any;
@@ -347,6 +328,10 @@ function ChartSeries({
   margin: { top: number; right: number; bottom: number; left: number };
   tooltipFormat?: LineChartProps['tooltipFormat'];
   step?: string;
+  strokeWidth?: number;
+  fillOpacity?: number;
+  pointSize?: number;
+  barBorderRadius?: number;
 }) {
   const theme = useTheme();
 
@@ -365,24 +350,27 @@ function ChartSeries({
     height,
   });
 
-  const calculateOptimalBarWidth = useCallback((data: { x: Date }[]) => {
-    if (data.length < 2) return Math.min(width * 0.1, 40); // Fallback for single point
-    
-    const [minTime, maxTime] = xScale.domain();
-    const timeRangeMs = maxTime - minTime;
-    
-    const sortedData = [...data].sort((a, b) => a.x.getTime() - b.x.getTime());
-    const intervals = [];
-    for (let i = 1; i < sortedData.length; i++) {
-      intervals.push(sortedData[i].x.getTime() - sortedData[i - 1].x.getTime());
-    }
-    const avgInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
-    
-    const expectedDataPoints = Math.max(timeRangeMs / avgInterval, data.length);
-    
-    const calculatedWidth = (width / expectedDataPoints) * 0.6;
-    return calculatedWidth;
-  }, [width, xScale]);
+  const calculateOptimalBarWidth = useCallback(
+    (data: { x: Date }[]) => {
+      if (data.length < 2) return Math.min(width * 0.1, 40); // Fallback for single point
+
+      const [minTime, maxTime] = xScale.domain();
+      const timeRangeMs = maxTime - minTime;
+
+      const sortedData = [...data].sort((a, b) => a.x.getTime() - b.x.getTime());
+      const intervals = [];
+      for (let i = 1; i < sortedData.length; i++) {
+        intervals.push(sortedData[i].x.getTime() - sortedData[i - 1].x.getTime());
+      }
+      const avgInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
+
+      const expectedDataPoints = Math.max(timeRangeMs / avgInterval, data.length);
+
+      const calculatedWidth = (width / expectedDataPoints) * 0.6;
+      return calculatedWidth;
+    },
+    [width, xScale],
+  );
 
   const handleTooltip = useCallback(
     (event: React.TouchEvent<SVGRectElement> | React.MouseEvent<SVGRectElement>) => {
@@ -478,7 +466,7 @@ function ChartSeries({
                 height={barHeight}
                 width={barWidth}
                 fill={color ?? palette[i % palette.length]}
-                rx={4}
+                rx={barBorderRadius}
               />
             );
           });
@@ -501,14 +489,14 @@ function ChartSeries({
                   y={d => yScale(d.y)}
                   yScale={yScale}
                   fill={color}
-                  fillOpacity={0.25}
+                  fillOpacity={fillOpacity}
                 />
                 <LinePath<SingleLineChartDatum>
                   data={data}
                   x={d => xScale(d.x)}
                   y={d => yScale(d.y)}
                   stroke={color}
-                  strokeWidth={4}
+                  strokeWidth={strokeWidth}
                 />
                 {data.length <= 50 &&
                   data.map(d => (
@@ -516,7 +504,7 @@ function ChartSeries({
                       key={`${s.name}-${d.x?.getTime() ?? 0}`}
                       left={xScale(d.x)}
                       top={yScale(d.y)}
-                      size={40}
+                      size={pointSize}
                       fill={color}
                     />
                   ))}
@@ -539,7 +527,7 @@ function ChartSeries({
                       height={barHeight}
                       width={barWidth}
                       fill={color}
-                      rx={4}
+                      rx={barBorderRadius}
                     />
                   );
                 })}
@@ -666,7 +654,18 @@ function ChartSeries({
   );
 }
 
-function LineChart({ series, axisFormat, tooltipFormat, xAxis, yAxis, stack }: LineChartProps) {
+function LineChart({
+  series,
+  axisFormat,
+  tooltipFormat,
+  xAxis,
+  yAxis,
+  stack,
+  strokeWidth = 2,
+  fillOpacity = 0.25,
+  pointSize = 10,
+  barBorderRadius = 4,
+}: LineChartProps) {
   const theme = useTheme();
   const palette = useChartPalette();
   const domain = useChartDomain(series);
@@ -729,6 +728,10 @@ function LineChart({ series, axisFormat, tooltipFormat, xAxis, yAxis, stack }: L
                   height={yMax}
                   margin={margin}
                   tooltipFormat={tooltipFormat}
+                  strokeWidth={strokeWidth}
+                  fillOpacity={fillOpacity}
+                  pointSize={pointSize}
+                  barBorderRadius={barBorderRadius}
                 />
               </Group>
             </svg>
@@ -739,13 +742,9 @@ function LineChart({ series, axisFormat, tooltipFormat, xAxis, yAxis, stack }: L
   );
 }
 
-interface ChartConfig<T> {
-  title: string;
-  queryHook: (vars: { from: string; to: string }) => { data: T | undefined; isLoading: boolean };
-  dataSelector: (data: T) => LineChartSeries[] | null | undefined;
-  tooltipFormat?: LineChartProps['tooltipFormat'];
-  axisFormat?: LineChartProps['axisFormat'];
-}
+// ============================================================================
+// Shared Cursor for synchronized chart interactions
+// ============================================================================
 
 interface CursorState {
   x: number;
@@ -828,6 +827,11 @@ function AnalyticsChart<T>({
   tooltipFormat,
   axisFormat,
   step,
+  height = CHART_CONFIG.height,
+  strokeWidth,
+  fillOpacity,
+  pointSize,
+  barBorderRadius,
 }: {
   range: { from: Date; to: Date };
   step?: string;
@@ -858,7 +862,7 @@ function AnalyticsChart<T>({
 
   return (
     <Card title={<SquaredChip label={title} color="primary" />}>
-      <Box height={CHART_CONFIG.height} display="flex" alignItems="center" justifyContent="center">
+      <Box height={height} display="flex" alignItems="center" justifyContent="center">
         {isLoading ? (
           <Loader />
         ) : hasData ? (
@@ -870,6 +874,10 @@ function AnalyticsChart<T>({
             }}
             axisFormat={axisFormat}
             xAxis={{ min: range.from, max: range.to }}
+            strokeWidth={strokeWidth}
+            fillOpacity={fillOpacity}
+            pointSize={pointSize}
+            barBorderRadius={barBorderRadius}
           />
         ) : (
           <Typography variant="body1">No data</Typography>
@@ -879,322 +887,9 @@ function AnalyticsChart<T>({
   );
 }
 
-const CHART_CONFIGS = {
-  holders: {
-    title: 'Holders',
-    queryHook: useHoldersCountTimeseriesQuery,
-    dataSelector: (data: HoldersCountTimeseriesQuery) => [
-      {
-        name: 'Holders',
-        data: data.holdersCountTimeseries
-          .filter(d => d.value != null)
-          .map(d => ({
-            x: new Date(d.timestamp),
-            y: d.value ?? null,
-          })),
-        type: 'line' as const,
-      },
-    ],
-    tooltipFormat: {
-      y: (d: number) => new Intl.NumberFormat('en-US').format(d),
-    },
-    axisFormat: {
-      y: (d: number) => new Intl.NumberFormat('en-US', { notation: 'compact' }).format(d),
-    },
-  },
-  lockedValue: {
-    title: 'Locked Value',
-    queryHook: useLockedValueTimeseriesQuery,
-    dataSelector: (data: LockedValueTimeseriesQuery) => [
-      {
-        name: 'TVL',
-        data: data.lockedValueTimeseries.map(d => ({
-          x: new Date(d.timestamp),
-          y: d.value != null ? fromSqd(d.value).toNumber() : null,
-        })),
-        type: 'line' as const,
-      },
-    ],
-    tooltipFormat: {
-      y: (d: number) => tokenFormatter(d, 'SQD'),
-    },
-    axisFormat: {
-      y: (d: number) => toCompact.format(d),
-    },
-  },
-  activeWorkers: {
-    title: 'Active Workers',
-    queryHook: useActiveWorkersTimeseriesQuery,
-    dataSelector: (data: ActiveWorkersTimeseriesQuery) => [
-      {
-        name: 'Active Workers',
-        data: data.activeWorkersTimeseries
-          .filter(d => d.value != null)
-          .map(d => ({
-            x: new Date(d.timestamp),
-            y: d.value ?? null,
-          })),
-        type: 'line' as const,
-      },
-    ],
-    tooltipFormat: {
-      y: (d: number) => toNumber.format(d),
-    },
-    axisFormat: {
-      y: (d: number) => toCompact.format(d),
-    },
-  },
-  uniqueOperators: {
-    title: 'Unique Operators',
-    queryHook: useUniqueOperatorsTimeseriesQuery,
-    dataSelector: (data: UniqueOperatorsTimeseriesQuery) => [
-      {
-        name: 'Unique Operators',
-        data: data.uniqueOperatorsTimeseries
-          .filter(d => d.value != null)
-          .map(d => ({
-            x: new Date(d.timestamp),
-            y: d.value ?? null,
-          })),
-        type: 'line' as const,
-      },
-    ],
-    tooltipFormat: {
-      y: (d: number) => toNumber.format(d),
-    },
-    axisFormat: {
-      y: (d: number) => toCompact.format(d),
-    },
-  },
-  delegations: {
-    title: 'Delegations',
-    queryHook: useDelegationsTimeseriesQuery,
-    dataSelector: (data: DelegationsTimeseriesQuery) => [
-      {
-        name: 'Delegations',
-        data: data.delegationsTimeseries
-          .filter(d => d.value != null)
-          .map(d => ({
-            x: new Date(d.timestamp),
-            y: d.value ?? null,
-          })),
-        type: 'line' as const,
-      },
-    ],
-    tooltipFormat: {
-      y: (d: number) => toNumber.format(d),
-    },
-    axisFormat: {
-      y: (d: number) => toCompact.format(d),
-    },
-  },
-  uniqueDelegators: {
-    title: 'Unique Delegators',
-    queryHook: useDelegatorsTimeseriesQuery,
-    dataSelector: (data: DelegatorsTimeseriesQuery) => [
-      {
-        name: 'Unique Delegators',
-        data: data.delegatorsTimeseries
-          .filter(d => d.value != null)
-          .map(d => ({
-            x: new Date(d.timestamp),
-            y: d.value ?? null,
-          })),
-        type: 'line' as const,
-      },
-    ],
-    tooltipFormat: {
-      y: (d: number) => toNumber.format(d),
-    },
-    axisFormat: {
-      y: (d: number) => toCompact.format(d),
-    },
-  },
-  apr: {
-    title: 'APR',
-    queryHook: useAprTimeseriesQuery,
-    dataSelector: (data: AprTimeseriesQuery) => [
-      {
-        name: 'Worker APR',
-        data: data.aprTimeseries.map(d => ({
-          x: new Date(d.timestamp),
-          y: d.value?.workerApr ?? null,
-        })),
-        type: 'line' as const,
-      },
-      {
-        name: 'Staker APR',
-        data: data.aprTimeseries.map(d => ({
-          x: new Date(d.timestamp),
-          y: d.value?.stakerApr ?? null,
-        })),
-        type: 'line' as const,
-      },
-    ],
-    tooltipFormat: {
-      y: (d: number) => percentFormatter(d),
-    },
-    axisFormat: {
-      y: (d: number) => percentFormatter(d, 0),
-    },
-  },
-  reward: {
-    title: 'Reward',
-    queryHook: useRewardTimeseriesQuery,
-    dataSelector: (data: RewardTimeseriesQuery) => {
-      return [
-        {
-          name: 'Stacked Rewards',
-          data: data.rewardTimeseries.map(d => ({
-            x: new Date(d.timestamp),
-            y: [
-              {
-                key: 'Worker reward',
-                value: fromSqd(d.value?.workerReward).toNumber(),
-              },
-              {
-                key: 'Staker reward',
-                value: fromSqd(d.value?.stakerReward).toNumber(),
-              },
-            ],
-          })),
-          type: 'bar' as const,
-          stack: true as const,
-        },
-      ];
-    },
-    tooltipFormat: {
-      y: (d: number) => tokenFormatter(d, 'SQD'),
-    },
-    axisFormat: {
-      y: (d: number) => toCompact.format(d),
-    },
-  },
-  transfers: {
-    title: 'Transfers',
-    queryHook: useTransfersByTypeTimeseriesQuery,
-    dataSelector: (data: TransfersByTypeTimeseriesQuery) => [
-      {
-        name: 'Transfers',
-        data: data.transfersByTypeTimeseries.map(d => ({
-          x: new Date(d.timestamp),
-          y: d.value
-            ? [
-                {
-                  key: 'Transfer',
-                  value: d.value.transfer,
-                },
-                {
-                  key: 'Deposit',
-                  value: d.value.deposit,
-                },
-                {
-                  key: 'Withdraw',
-                  value: d.value.withdraw,
-                },
-                {
-                  key: 'Reward',
-                  value: d.value.reward,
-                },
-                {
-                  key: 'Release',
-                  value: d.value.release,
-                },
-              ]
-            : [],
-        })),
-        type: 'bar' as const,
-        stack: true as const,
-      },
-    ],
-    tooltipFormat: {
-      y: (d: number) => toNumber.format(d),
-    },
-    axisFormat: {
-      y: (d: number) => toCompact.format(d),
-    },
-  },
-  uniqueAccounts: {
-    title: 'Active Accounts',
-    queryHook: useUniqueAccountsTimeseriesQuery,
-    dataSelector: (data: UniqueAccountsTimeseriesQuery) => [
-      {
-        name: 'Unique Accounts',
-        data: data.uniqueAccountsTimeseries.map(d => ({
-          x: new Date(d.timestamp),
-          y: d.value ?? null,
-        })),
-        type: 'line' as const,
-      },
-    ],
-    tooltipFormat: {
-      y: (d: number) => toNumber.format(d),
-    },
-    axisFormat: {
-      y: (d: number) => toCompact.format(d),
-    },
-  },
-  queries: {
-    title: 'Queries Count',
-    queryHook: useQueriesCountTimeseriesQuery,
-    dataSelector: (data: QueriesCountTimeseriesQuery) => [
-      {
-        name: 'Queries',
-        data: data.queriesCountTimeseries.map(d => ({
-          x: new Date(d.timestamp),
-          y: d.value ?? null,
-        })),
-        type: 'bar' as const,
-      },
-    ],
-    tooltipFormat: {
-      y: (d: number) => toNumber.format(d),
-    },
-    axisFormat: {
-      y: (d: number) => toCompact.format(d),
-    },
-  },
-  servedData: {
-    title: 'Served Data',
-    queryHook: useServedDataTimeseriesQuery,
-    dataSelector: (data: ServedDataTimeseriesQuery) => [
-      {
-        name: 'Served Data',
-        data: data.servedDataTimeseries.map(d => ({
-          x: new Date(d.timestamp),
-          y: d.value ?? null,
-        })),
-        type: 'bar' as const,
-      },
-    ],
-    tooltipFormat: {
-      y: (d: number) => bytesFormatter(d),
-    },
-    axisFormat: {
-      y: (d: number) => bytesFormatter(d, true),
-    },
-  },
-  storedData: {
-    title: 'Stored Data',
-    queryHook: useStoredDataTimeseriesQuery,
-    dataSelector: (data: StoredDataTimeseriesQuery) => [
-      {
-        name: 'Stored Data',
-        data: data.storedDataTimeseries.map(d => ({
-          x: new Date(d.timestamp),
-          y: d.value ?? null,
-        })),
-        type: 'line' as const,
-      },
-    ],
-    tooltipFormat: {
-      y: (d: number) => bytesFormatter(d),
-    },
-    axisFormat: {
-      y: (d: number) => bytesFormatter(d, true),
-    },
-  },
-} as const;
+// ============================================================================
+// Analytics Component
+// ============================================================================
 
 export function Analytics() {
   const [state, setState] = useLocationState({
@@ -1249,45 +944,11 @@ export function Analytics() {
       </Box>
       <SharedCursorProvider>
         <Grid container spacing={2}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <AnalyticsChart range={range} {...CHART_CONFIGS.holders} step={state.step} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <AnalyticsChart range={range} {...CHART_CONFIGS.lockedValue} step={state.step} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <AnalyticsChart range={range} {...CHART_CONFIGS.activeWorkers} step={state.step} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <AnalyticsChart range={range} {...CHART_CONFIGS.uniqueOperators} step={state.step} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <AnalyticsChart range={range} {...CHART_CONFIGS.delegations} step={state.step} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <AnalyticsChart range={range} {...CHART_CONFIGS.uniqueDelegators} step={state.step} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <AnalyticsChart range={range} {...CHART_CONFIGS.apr} step={state.step} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <AnalyticsChart range={range} {...CHART_CONFIGS.reward} step={state.step} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <AnalyticsChart range={range} {...CHART_CONFIGS.transfers} step={state.step} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <AnalyticsChart range={range} {...CHART_CONFIGS.uniqueAccounts} step={state.step} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <AnalyticsChart range={range} {...CHART_CONFIGS.queries} step={state.step} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <AnalyticsChart range={range} {...CHART_CONFIGS.servedData} step={state.step} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <AnalyticsChart range={range} {...CHART_CONFIGS.storedData} step={state.step} />
-          </Grid>
+          {CHARTS.map(({ key, config }) => (
+            <Grid key={key} size={config.gridSize || DEFAULT_GRID_SIZE}>
+              <AnalyticsChart range={range} {...config} step={state.step} />
+            </Grid>
+          ))}
         </Grid>
       </SharedCursorProvider>
     </CenteredPageWrapper>
