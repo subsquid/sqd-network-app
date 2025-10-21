@@ -1,12 +1,13 @@
 import React, { PropsWithChildren } from 'react';
 
-import { Box, Paper, styled, Theme } from '@mui/material';
+import { Box, Paper, styled, Theme, Typography } from '@mui/material';
 import { SxProps } from '@mui/system/styleFunctionSx';
 import classNames from 'classnames';
 import { Loader } from '@components/Loader';
 
 export interface CardProps {
   title?: React.ReactNode;
+  subtitle?: React.ReactNode;
   sx?: SxProps<Theme>;
   noPadding?: boolean;
   outlined?: boolean;
@@ -18,14 +19,18 @@ export interface CardProps {
 }
 
 export const CardWrapper = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(1.5),
+  padding: theme.spacing(2),
+  transition: 'all 200ms ease-out',
+  background: theme.palette.background.default,
+  borderColor: theme.palette.divider,
+  borderWidth: 1,
+  borderStyle: 'solid',
   boxShadow: 'none',
-  transition: 'all 300ms ease-out',
 
   '&.disabled': {
     color: theme.palette.text.secondary,
     textAlign: 'center',
-    opacity: 0.7,
+    opacity: 0.5,
     pointerEvents: 'none',
   },
 
@@ -38,6 +43,7 @@ export const CardWrapper = styled(Paper)(({ theme }) => ({
     borderColor: theme.palette.divider,
     borderWidth: 1,
     borderStyle: 'solid',
+    boxShadow: 'none',
   },
 
   '&.noShadow': {
@@ -48,6 +54,7 @@ export const CardWrapper = styled(Paper)(({ theme }) => ({
 export const Card = ({
   children,
   title,
+  subtitle,
   noShadow,
   noPadding,
   outlined,
@@ -76,9 +83,22 @@ export const Card = ({
           height: 1,
         }}
       >
-        {title || action ? (
-          <Box display="flex" justifyContent="space-between" mb={2}>
-            <Box>{title}</Box>
+        {title || subtitle || action ? (
+          <Box display="flex" justifyContent="space-between" mb={2.5}>
+            <Box>
+              {typeof title === 'string' ? (
+                <Typography variant="h6" fontWeight={600} color="text.primary">
+                  {title}
+                </Typography>
+              ) : (
+                <Box>{title}</Box>
+              )}
+              {subtitle && (
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
+                  {subtitle}
+                </Typography>
+              )}
+            </Box>
             <Box>{action}</Box>
           </Box>
         ) : null}

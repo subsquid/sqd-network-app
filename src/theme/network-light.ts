@@ -33,9 +33,9 @@ export const NetworkLightTheme = {
   },
   background: {
     paper: '#ffffff',
-    default: '#f0f2f5',
+    default: '#ffffff',
   },
-  divider: '#C2CAD6',
+  divider: '#d6d8dc',
   action: {
     active: alpha('#404a5a', 1),
     activatedOpacity: 0.2,

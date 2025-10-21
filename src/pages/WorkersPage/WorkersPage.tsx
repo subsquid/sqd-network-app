@@ -43,23 +43,19 @@ export function MyWorkers() {
   const isLoading = isSourcesLoading || isWorkersLoading;
 
   return (
-    <Card
-      title={<SquaredChip label="My Workers" color="primary" />}
-      action={
-        <Stack direction="row" spacing={1}>
-          <Button
-            color="secondary"
-            variant="outlined"
-            component={Link}
-            target="_blank"
-            to="https://docs.sqd.dev/subsquid-network/participate/worker/"
-          >
-            LEARN MORE
-          </Button>
-          <AddWorkerButton sources={sources} disabled={isLoading} />
-        </Stack>
-      }
-    >
+    <>
+      <Stack direction="row" spacing={1}>
+        <Button
+          color="secondary"
+          variant="outlined"
+          component={Link}
+          target="_blank"
+          to="https://docs.sqd.dev/subsquid-network/participate/worker/"
+        >
+          LEARN MORE
+        </Button>
+        <AddWorkerButton sources={sources} disabled={isLoading} />
+      </Stack>
       <DashboardTable loading={isLoading}>
         <>
           <TableHead>
@@ -145,7 +141,7 @@ export function MyWorkers() {
           </TableBody>
         </>
       </DashboardTable>
-    </Card>
+    </>
   );
 }
 

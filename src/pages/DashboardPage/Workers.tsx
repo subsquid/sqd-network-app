@@ -113,17 +113,13 @@ export function Workers() {
   const isLoading = isSourcesLoading || isWorkersLoading;
 
   return (
-    <Card
-      title={<SquaredChip label="Workers" color="primary" />}
-      action={
-        <Search
-          placeholder="Search"
-          value={query.search}
-          onChange={setQuery.search}
-          fullWidth={isMobile}
-        />
-      }
-    >
+    <>
+      <Search
+        placeholder="Search"
+        value={query.search}
+        onChange={setQuery.search}
+        fullWidth={isMobile}
+      />
       <DashboardTable loading={isLoading} sx={{ mb: 2 }}>
         <TableHead>
           <TableRow>
@@ -202,6 +198,6 @@ export function Workers() {
       {!isWorkersLoading && (
         <TableNavigation page={page} totalPages={totalPages} setPage={setQuery.page} />
       )}
-    </Card>
+    </>
   );
 }
