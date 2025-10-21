@@ -19,10 +19,13 @@ export interface CardProps {
 }
 
 export const CardWrapper = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(3),
-  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06)',
+  padding: theme.spacing(2),
   transition: 'all 200ms ease-out',
-  borderRadius: theme.spacing(1.5),
+  background: theme.palette.background.default,
+  borderColor: theme.palette.divider,
+  borderWidth: 1,
+  borderStyle: 'solid',
+  boxShadow: 'none',
 
   '&.disabled': {
     color: theme.palette.text.secondary,

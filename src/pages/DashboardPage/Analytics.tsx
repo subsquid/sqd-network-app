@@ -43,6 +43,8 @@ import { parseTimeRange } from '@lib/datemath';
 import { partition } from 'lodash-es';
 import { CHARTS, DEFAULT_GRID_SIZE, type ChartConfig, type ChartCategory } from './chartConfigs';
 import { SummaryKPICards } from './SummaryKPICards';
+import { SquaredChip } from '@components/Chip';
+import { BackButton } from '@components/BackButton';
 
 const CHART_CONFIG = {
   height: 240,
@@ -485,95 +487,37 @@ function ChartSeries({
 
         return barSegments;
       })}
-      {grouped && unstacked.some(s => s.type === 'bar') ? (
-        // Grouped bars rendering
-        (() => {
-          const barSeries = unstacked.filter(s => s.type === 'bar');
-          if (barSeries.length === 0) return null;
+      {grouped && unstacked.some(s => s.type === 'bar')
+        ? // Grouped bars rendering
+          (() => {
+            const barSeries = unstacked.filter(s => s.type === 'bar');
+            if (barSeries.length === 0) return null;
 
-          const referenceData = barSeries[0].data.filter(d => d.y != null);
-          const barWidth = calculateOptimalBarWidth(referenceData);
-          const groupWidth = barWidth * 0.9;
-          const individualBarWidth = groupWidth / barSeries.length;
+            const referenceData = barSeries[0].data.filter(d => d.y != null);
+            const barWidth = calculateOptimalBarWidth(referenceData);
+            const groupWidth = barWidth * 0.9;
+            const individualBarWidth = groupWidth / barSeries.length;
 
-          return barSeries.map((s, seriesIndex) => {
-            const color = s.color ?? palette[seriesIndex % palette.length];
-            const data = s.data.filter(d => d.y != null);
+            return barSeries.map((s, seriesIndex) => {
+              const color = s.color ?? palette[seriesIndex % palette.length];
+              const data = s.data.filter(d => d.y != null);
 
-            return (
-              <Group key={s.name}>
-                {data.map(d => {
-                  if (d.y == null) return null;
-                  const barHeight = Math.max(0, yScale.range()[0] - yScale(d.y));
-                  const barY = yScale(Math.max(0, d.y));
-                  const groupX = xScale(d.x) - groupWidth / 2;
-                  const barX = Math.max(0, groupX + seriesIndex * individualBarWidth);
-
-                  return (
-                    <Bar
-                      key={`${s.name}-${d.x?.getTime() ?? 0}`}
-                      x={barX}
-                      y={barY}
-                      height={barHeight}
-                      width={individualBarWidth}
-                      fill={color}
-                      rx={barBorderRadius}
-                    />
-                  );
-                })}
-              </Group>
-            );
-          });
-        })()
-      ) : (
-        unstacked.map((s, i) => {
-          const color = s.color ?? palette[i % palette.length];
-
-          const data = s.data.filter(d => d.y != null);
-          const gradientId = `gradient-${s.name.replace(/\s+/g, '-')}-${i}`;
-
-          switch (s.type) {
-            case 'line':
-              return (
-                <g key={s.name}>
-                  <defs>
-                    <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
-                      <stop offset="0%" stopColor={color} stopOpacity={fillOpacity * 1.5} />
-                      <stop offset="100%" stopColor={color} stopOpacity={0.02} />
-                    </linearGradient>
-                  </defs>
-                  <AreaClosed<SingleLineChartDatum>
-                    data={data}
-                    x={d => xScale(d.x)}
-                    y={d => yScale(d.y)}
-                    yScale={yScale}
-                    fill={`url(#${gradientId})`}
-                  />
-                  <LinePath<SingleLineChartDatum>
-                    data={data}
-                    x={d => xScale(d.x)}
-                    y={d => yScale(d.y)}
-                    stroke={color}
-                    strokeWidth={strokeWidth}
-                  />
-                </g>
-              );
-            case 'bar':
-              const barWidth = calculateOptimalBarWidth(data);
               return (
                 <Group key={s.name}>
                   {data.map(d => {
                     if (d.y == null) return null;
                     const barHeight = Math.max(0, yScale.range()[0] - yScale(d.y));
                     const barY = yScale(Math.max(0, d.y));
-                    const barX = Math.max(0, xScale(d.x) - barWidth / 2);
+                    const groupX = xScale(d.x) - groupWidth / 2;
+                    const barX = Math.max(0, groupX + seriesIndex * individualBarWidth);
+
                     return (
                       <Bar
                         key={`${s.name}-${d.x?.getTime() ?? 0}`}
                         x={barX}
                         y={barY}
                         height={barHeight}
-                        width={barWidth}
+                        width={individualBarWidth}
                         fill={color}
                         rx={barBorderRadius}
                       />
@@ -581,11 +525,67 @@ function ChartSeries({
                   })}
                 </Group>
               );
-            default:
-              return null;
-          }
-        })
-      )}
+            });
+          })()
+        : unstacked.map((s, i) => {
+            const color = s.color ?? palette[i % palette.length];
+
+            const data = s.data.filter(d => d.y != null);
+            const gradientId = `gradient-${s.name.replace(/\s+/g, '-')}-${i}`;
+
+            switch (s.type) {
+              case 'line':
+                return (
+                  <g key={s.name}>
+                    <defs>
+                      <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stopColor={color} stopOpacity={fillOpacity * 1.5} />
+                        <stop offset="100%" stopColor={color} stopOpacity={0.02} />
+                      </linearGradient>
+                    </defs>
+                    <AreaClosed<SingleLineChartDatum>
+                      data={data}
+                      x={d => xScale(d.x)}
+                      y={d => yScale(d.y)}
+                      yScale={yScale}
+                      fill={`url(#${gradientId})`}
+                    />
+                    <LinePath<SingleLineChartDatum>
+                      data={data}
+                      x={d => xScale(d.x)}
+                      y={d => yScale(d.y)}
+                      stroke={color}
+                      strokeWidth={strokeWidth}
+                    />
+                  </g>
+                );
+              case 'bar':
+                const barWidth = calculateOptimalBarWidth(data);
+                return (
+                  <Group key={s.name}>
+                    {data.map(d => {
+                      if (d.y == null) return null;
+                      const barHeight = Math.max(0, yScale.range()[0] - yScale(d.y));
+                      const barY = yScale(Math.max(0, d.y));
+                      const barX = Math.max(0, xScale(d.x) - barWidth / 2);
+                      return (
+                        <Bar
+                          key={`${s.name}-${d.x?.getTime() ?? 0}`}
+                          x={barX}
+                          y={barY}
+                          height={barHeight}
+                          width={barWidth}
+                          fill={color}
+                          rx={barBorderRadius}
+                        />
+                      );
+                    })}
+                  </Group>
+                );
+              default:
+                return null;
+            }
+          })}
 
       {cursor && (
         <Group>
@@ -907,7 +907,7 @@ function AnalyticsChart<T>({
   // Create harmonious color palette based on primary color
   const chartPalette = useMemo(() => {
     if (!primaryColor) return defaultPalette;
-    
+
     // For multi-series charts, create variations of the primary color
     // For single series, just use the primary color
     return [
@@ -935,14 +935,7 @@ function AnalyticsChart<T>({
   const showLegend = series.length > 1 && title !== 'APR';
 
   return (
-    <Card 
-      title={
-        <Typography variant="h6" fontWeight={600} color="text.primary">
-          {title}
-        </Typography>
-      } 
-      subtitle={subtitle}
-    >
+    <Card title={<SquaredChip label={title} />} subtitle={subtitle}>
       <Box display="flex" flexDirection="column">
         <Box height={height} display="flex" alignItems="center" justifyContent="center">
           {isLoading ? (
@@ -985,22 +978,22 @@ function AnalyticsChart<T>({
 function adjustColorBrightness(hex: string, percent: number): string {
   // Remove # if present
   hex = hex.replace('#', '');
-  
+
   // Convert to RGB
   const r = parseInt(hex.substring(0, 2), 16);
   const g = parseInt(hex.substring(2, 4), 16);
   const b = parseInt(hex.substring(4, 6), 16);
-  
+
   // Adjust brightness
   const adjust = (value: number) => {
     const adjusted = value + (value * percent) / 100;
     return Math.max(0, Math.min(255, Math.round(adjusted)));
   };
-  
+
   const newR = adjust(r);
   const newG = adjust(g);
   const newB = adjust(b);
-  
+
   // Convert back to hex
   return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
 }
@@ -1009,10 +1002,10 @@ function adjustColorBrightness(hex: string, percent: number): string {
 // Chart Legend Component
 // ============================================================================
 
-function ChartLegend({ 
-  series, 
-  palette 
-}: { 
+function ChartLegend({
+  series,
+  palette,
+}: {
   series: LineChartSeries[];
   palette: string[];
 }) {
@@ -1022,7 +1015,18 @@ function ChartLegend({
   }));
 
   return (
-    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2.5, justifyContent: 'center', mt: 2.5, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 2.5,
+        justifyContent: 'center',
+        mt: 2.5,
+        pt: 2,
+        borderTop: '1px solid',
+        borderColor: 'divider',
+      }}
+    >
       {items.map(item => (
         <Box key={item.name} display="flex" alignItems="center" gap={1}>
           <Box
@@ -1047,10 +1051,10 @@ function ChartLegend({
 // ============================================================================
 
 const TIME_RANGE_PRESETS = [
-  { label: 'Last 30 days', value: '30d', start: 'now-30d', end: 'now-1d/d', step: '1d' },
-  { label: 'Last 6 months', value: '6M', start: 'now-6M', end: 'now-1d/d', step: '3d' },
-  { label: 'Last year', value: '1y', start: 'now-1y', end: 'now-1d/d', step: '3d' },
-  { label: 'All time', value: 'all', start: '2024-05-20', end: 'now-1d/d', step: '3d' },
+  { label: 'Last 30 days', value: '30d', start: 'now-30d', end: 'now', step: '1d' },
+  { label: 'Last 6 months', value: '6M', start: 'now-6M', end: 'now', step: '3d' },
+  { label: 'Last year', value: '1y', start: 'now-1y', end: 'now', step: '3d' },
+  { label: 'All time', value: 'all', start: '2024-05-20', end: 'now', step: '3d' },
 ];
 
 const DEFAULT_TIME_RANGE = '30d';
@@ -1076,7 +1080,7 @@ export function Analytics() {
     const parsed = parseTimeRange(selectedPreset.start, selectedPreset.end);
     // Ensure start date is never before May 20, 2024
     const minStartDate = new Date('2024-05-20T00:00:00Z');
-    if (parsed.from < minStartDate) {
+    if (parsed.from.getTime() < minStartDate.getTime()) {
       parsed.from = minStartDate;
     }
     return parsed;
@@ -1093,197 +1097,58 @@ export function Analytics() {
 
   return (
     <CenteredPageWrapper className="wide">
-      <Breadcrumbs sx={{ mb: 3 }}>
-        <Link
-          component={RouterLink}
-          to="/dashboard"
-          underline="hover"
-          sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-          color="inherit"
+      <BackButton path="/dashboard" />
+      <Box
+        sx={{
+          mb: 4,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 2,
+        }}
+      >
+        <ToggleButtonGroup
+          value={state.category}
+          exclusive
+          onChange={(_, value) => value && setState.category(value)}
         >
-          <HomeIcon sx={{ fontSize: 18 }} />
-          Dashboard
-        </Link>
-        <Typography color="text.primary" fontWeight={600}>
-          Analytics
-        </Typography>
-      </Breadcrumbs>
+          {CATEGORY_TABS.map(tab => (
+            <ToggleButton key={tab.value} value={tab.value}>
+              {tab.label}
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
 
-      <SummaryKPICards range={range} step={step} />
-      
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-        <Box
+        <Select
+          value={state.timeRange}
+          onChange={e => setState.timeRange(e.target.value)}
+          variant="standard"
+          disableUnderline
           sx={{
-            display: 'inline-flex',
-            bgcolor: 'action.hover',
-            borderRadius: 1.5,
-            p: 0.5,
+            fontSize: '14px',
+            border: 'none',
+            outline: 'none',
+            '& .MuiSelect-select': {
+              padding: 0,
+              border: 'none',
+              outline: 'none',
+            },
+            '&:focus': {
+              outline: 'none',
+            },
           }}
         >
-          <ToggleButtonGroup
-            value={state.category}
-            exclusive
-            onChange={(_, value) => value && setState.category(value)}
-            sx={{
-              '& .MuiToggleButtonGroup-grouped': {
-                border: 0,
-                borderRadius: '8px !important',
-              },
-              '& .MuiToggleButton-root': {
-                px: 2.5,
-                py: 1,
-                textTransform: 'none',
-                fontWeight: 500,
-                fontSize: 14,
-                color: 'text.secondary',
-                border: 0,
-                '&:hover': {
-                  bgcolor: 'rgba(255, 255, 255, 0.3)',
-                  color: 'text.primary',
-                },
-                '&.Mui-selected': {
-                  fontWeight: 600,
-                  bgcolor: 'background.paper',
-                  color: 'text.primary',
-                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                  '&:hover': {
-                    bgcolor: 'background.paper',
-                  },
-                },
-              },
-            }}
-          >
-            {CATEGORY_TABS.map(tab => (
-              <ToggleButton key={tab.value} value={tab.value}>
-                {tab.label}
-              </ToggleButton>
-            ))}
-          </ToggleButtonGroup>
-        </Box>
-        
-        <Box
-          sx={{
-            display: 'inline-flex',
-          }}
-        >
-          <ThemeProvider
-            theme={theme =>
-              createTheme(theme, {
-                components: {
-                  MuiMenu: {
-                    styleOverrides: {
-                      paper: {
-                        backgroundColor: '#FFFFFF !important',
-                        background: '#FFFFFF !important',
-                      },
-                    },
-                  },
-                },
-              })
-            }
-          >
-            <Select
-              value={state.timeRange}
-              onChange={e => setState.timeRange(e.target.value)}
-              variant="standard"
-              disableUnderline
-              sx={{
-                fontSize: 14,
-                fontWeight: 600,
-                color: '#1A1A1A',
-                bgcolor: '#FFFFFF',
-                borderRadius: '10px',
-                border: '1px solid #E0E0E0',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  borderColor: '#999999',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
-                },
-                '& .MuiSelect-select': {
-                  px: 3,
-                  py: 1.5,
-                  pr: '32px !important',
-                  bgcolor: 'transparent',
-                  borderRadius: '10px',
-                  transition: 'all 0.2s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  '&:focus': {
-                    bgcolor: 'transparent',
-                  },
-                },
-                '& .MuiSelect-icon': {
-                  color: '#666666',
-                  right: 10,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  transition: 'color 0.2s ease',
-                },
-                '&:hover .MuiSelect-icon': {
-                  color: '#1A1A1A',
-                },
-              }}
-              MenuProps={{
-                PaperProps: {
-                  style: {
-                    backgroundColor: '#FFFFFF',
-                    background: '#FFFFFF',
-                    marginTop: '12px',
-                    border: '1px solid #EEEEEE',
-                    borderRadius: '12px',
-                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 20px rgba(0, 0, 0, 0.08)',
-                    opacity: 1,
-                  },
-                },
-                sx: {
-                  '& .MuiPaper-root': {
-                    bgcolor: '#FFFFFF !important',
-                    background: '#FFFFFF !important',
-                  },
-                  '& .MuiList-root': {
-                    py: 1,
-                    bgcolor: '#FFFFFF !important',
-                    background: '#FFFFFF !important',
-                  },
-                  '& .MuiMenuItem-root': {
-                    fontSize: 14,
-                    fontWeight: 500,
-                    px: 3,
-                    py: 1.5,
-                    mx: 1,
-                    my: 0.25,
-                    borderRadius: '8px',
-                    color: '#1A1A1A',
-                    bgcolor: '#FFFFFF !important',
-                    transition: 'all 0.15s ease',
-                    '&:hover': {
-                      bgcolor: '#FAFAFA !important',
-                      color: '#000000',
-                    },
-                    '&.Mui-selected': {
-                      bgcolor: '#F9F9F9 !important',
-                      color: '#000000',
-                      fontWeight: 600,
-                      '&:hover': {
-                        bgcolor: '#F5F5F5 !important',
-                      },
-                    },
-                  },
-                },
-              }}
-            >
-              {TIME_RANGE_PRESETS.map(preset => (
-                <MenuItem key={preset.value} value={preset.value}>
-                  {preset.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </ThemeProvider>
-        </Box>
+          {TIME_RANGE_PRESETS.map(preset => (
+            <MenuItem key={preset.value} value={preset.value}>
+              {preset.label}
+            </MenuItem>
+          ))}
+        </Select>
       </Box>
-      
+
       <SharedCursorProvider>
-        <Grid container spacing={3.5}>
+        <Grid container spacing={2}>
           {filteredCharts.map(({ key, config }) => (
             <Grid key={key} size={config.gridSize || DEFAULT_GRID_SIZE}>
               <AnalyticsChart range={range} {...config} step={step} />
