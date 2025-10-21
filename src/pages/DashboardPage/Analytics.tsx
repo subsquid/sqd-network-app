@@ -4,17 +4,24 @@ import React, { useCallback, useMemo, useState, createContext, useContext, useEf
 import { Card } from '@components/Card';
 import {
   Box,
+  Breadcrumbs,
+  createTheme,
   Divider,
   FormControl,
   Grid,
+  Link,
   MenuItem,
   Paper,
   Select,
-  Stack,
+  Skeleton,
+  ThemeProvider,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
   useTheme,
 } from '@mui/material';
-import { SquaredChip } from '@components/Chip';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
+import HomeIcon from '@mui/icons-material/Home';
 import { ParentSize } from '@visx/responsive';
 import { scaleLinear, scaleTime } from '@visx/scale';
 import { Line, LinePath, Bar, AreaClosed } from '@visx/shape';
@@ -28,22 +35,22 @@ import { AxisBottom, AxisLeft } from '@visx/axis';
 import { localPoint } from '@visx/event';
 import { bisector } from 'd3-array';
 import { Group } from '@visx/group';
-import { Loader } from '@components/Loader';
+import { Link as RouterLink } from 'react-router-dom';
 import { CenteredPageWrapper } from '@layouts/NetworkLayout';
-import { TimeRangePicker } from '@components/Form';
 import { useLocationState, Location } from '@hooks/useLocationState';
 import { toDate } from '@lib/formatters/formatters';
 import { parseTimeRange } from '@lib/datemath';
 import { partition } from 'lodash-es';
-import { CHARTS, DEFAULT_GRID_SIZE, type ChartConfig } from './chartConfigs';
+import { CHARTS, DEFAULT_GRID_SIZE, type ChartConfig, type ChartCategory } from './chartConfigs';
+import { SummaryKPICards } from './SummaryKPICards';
 
 const CHART_CONFIG = {
-  height: 200,
+  height: 240,
   // Base margins - will be automatically calculated
-  baseMargin: { top: 8, right: 16, bottom: 24, left: 24 },
+  baseMargin: { top: 12, right: 20, bottom: 32, left: 32 },
   padding: {
     y: 0.1, // 10% padding for y-axis
-    x: 0.025, // 2% padding for x-axis
+    x: 0.02, // 2% padding for x-axis - ensures proper spacing
   },
 } as const;
 
@@ -59,7 +66,6 @@ export type SingleLineChartDatum<N = true> = {
 export interface SingleLineChartSeries<T = true> extends LineChartSeriesBase {
   stack?: false;
   data: SingleLineChartDatum<T>[];
-  color?: string;
 }
 
 export interface StackedLineChartDatum<T = true> {
@@ -76,6 +82,7 @@ export interface LineChartSeriesBase {
   stack?: boolean;
   type: 'line' | 'bar';
   name: string;
+  color?: string;
 }
 
 export type LineChartSeries<T = true> = SingleLineChartSeries<T> | StackedLineChartSeries<T>;
@@ -100,6 +107,7 @@ export interface LineChartProps {
   fillOpacity?: number;
   pointSize?: number;
   barBorderRadius?: number;
+  grouped?: boolean;
 }
 
 // ============================================================================
@@ -255,11 +263,12 @@ function ChartTooltip({
       const stackedSeries = s as StackedLineChartSeries;
       if (stackedSeries.data.length > 0) {
         stackedSeries.data[0].y.forEach((item, stackIndex) => {
-          seriesColorMap.set(item.key, palette[stackIndex % palette.length]);
+          seriesColorMap.set(item.key, item.color ?? palette[stackIndex % palette.length]);
         });
       }
     } else {
-      seriesColorMap.set(s.name, palette[i % palette.length]);
+      // Use series.color if available, fallback to palette
+      seriesColorMap.set(s.name, s.color ?? palette[i % palette.length]);
     }
   });
 
@@ -318,6 +327,7 @@ function ChartSeries({
   fillOpacity = 0.25,
   pointSize = 10,
   barBorderRadius = 4,
+  grouped = false,
 }: {
   series: LineChartSeries[];
   xScale: any;
@@ -332,6 +342,7 @@ function ChartSeries({
   fillOpacity?: number;
   pointSize?: number;
   barBorderRadius?: number;
+  grouped?: boolean;
 }) {
   const theme = useTheme();
 
@@ -366,7 +377,7 @@ function ChartSeries({
 
       const expectedDataPoints = Math.max(timeRangeMs / avgInterval, data.length);
 
-      const calculatedWidth = (width / expectedDataPoints) * 0.6;
+      const calculatedWidth = (width / expectedDataPoints) * 0.5;
       return calculatedWidth;
     },
     [width, xScale],
@@ -474,58 +485,37 @@ function ChartSeries({
 
         return barSegments;
       })}
-      {unstacked.map((s, i) => {
-        const color = s.color ?? palette[i % palette.length];
+      {grouped && unstacked.some(s => s.type === 'bar') ? (
+        // Grouped bars rendering
+        (() => {
+          const barSeries = unstacked.filter(s => s.type === 'bar');
+          if (barSeries.length === 0) return null;
 
-        const data = s.data.filter(d => d.y != null);
+          const referenceData = barSeries[0].data.filter(d => d.y != null);
+          const barWidth = calculateOptimalBarWidth(referenceData);
+          const groupWidth = barWidth * 0.9;
+          const individualBarWidth = groupWidth / barSeries.length;
 
-        switch (s.type) {
-          case 'line':
-            return (
-              <g key={s.name}>
-                <AreaClosed<SingleLineChartDatum>
-                  data={data}
-                  x={d => xScale(d.x)}
-                  y={d => yScale(d.y)}
-                  yScale={yScale}
-                  fill={color}
-                  fillOpacity={fillOpacity}
-                />
-                <LinePath<SingleLineChartDatum>
-                  data={data}
-                  x={d => xScale(d.x)}
-                  y={d => yScale(d.y)}
-                  stroke={color}
-                  strokeWidth={strokeWidth}
-                />
-                {data.length <= 50 &&
-                  data.map(d => (
-                    <GlyphCircle
-                      key={`${s.name}-${d.x?.getTime() ?? 0}`}
-                      left={xScale(d.x)}
-                      top={yScale(d.y)}
-                      size={pointSize}
-                      fill={color}
-                    />
-                  ))}
-              </g>
-            );
-          case 'bar':
-            const barWidth = calculateOptimalBarWidth(data);
+          return barSeries.map((s, seriesIndex) => {
+            const color = s.color ?? palette[seriesIndex % palette.length];
+            const data = s.data.filter(d => d.y != null);
+
             return (
               <Group key={s.name}>
                 {data.map(d => {
                   if (d.y == null) return null;
                   const barHeight = Math.max(0, yScale.range()[0] - yScale(d.y));
                   const barY = yScale(Math.max(0, d.y));
-                  const barX = Math.max(0, xScale(d.x) - barWidth / 2);
+                  const groupX = xScale(d.x) - groupWidth / 2;
+                  const barX = Math.max(0, groupX + seriesIndex * individualBarWidth);
+
                   return (
                     <Bar
                       key={`${s.name}-${d.x?.getTime() ?? 0}`}
                       x={barX}
                       y={barY}
                       height={barHeight}
-                      width={barWidth}
+                      width={individualBarWidth}
                       fill={color}
                       rx={barBorderRadius}
                     />
@@ -533,28 +523,89 @@ function ChartSeries({
                 })}
               </Group>
             );
-          default:
-            return null;
-        }
-      })}
+          });
+        })()
+      ) : (
+        unstacked.map((s, i) => {
+          const color = s.color ?? palette[i % palette.length];
+
+          const data = s.data.filter(d => d.y != null);
+          const gradientId = `gradient-${s.name.replace(/\s+/g, '-')}-${i}`;
+
+          switch (s.type) {
+            case 'line':
+              return (
+                <g key={s.name}>
+                  <defs>
+                    <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="0%" stopColor={color} stopOpacity={fillOpacity * 1.5} />
+                      <stop offset="100%" stopColor={color} stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <AreaClosed<SingleLineChartDatum>
+                    data={data}
+                    x={d => xScale(d.x)}
+                    y={d => yScale(d.y)}
+                    yScale={yScale}
+                    fill={`url(#${gradientId})`}
+                  />
+                  <LinePath<SingleLineChartDatum>
+                    data={data}
+                    x={d => xScale(d.x)}
+                    y={d => yScale(d.y)}
+                    stroke={color}
+                    strokeWidth={strokeWidth}
+                  />
+                </g>
+              );
+            case 'bar':
+              const barWidth = calculateOptimalBarWidth(data);
+              return (
+                <Group key={s.name}>
+                  {data.map(d => {
+                    if (d.y == null) return null;
+                    const barHeight = Math.max(0, yScale.range()[0] - yScale(d.y));
+                    const barY = yScale(Math.max(0, d.y));
+                    const barX = Math.max(0, xScale(d.x) - barWidth / 2);
+                    return (
+                      <Bar
+                        key={`${s.name}-${d.x?.getTime() ?? 0}`}
+                        x={barX}
+                        y={barY}
+                        height={barHeight}
+                        width={barWidth}
+                        fill={color}
+                        rx={barBorderRadius}
+                      />
+                    );
+                  })}
+                </Group>
+              );
+            default:
+              return null;
+          }
+        })
+      )}
 
       {cursor && (
         <Group>
           <Line
             from={{ x: cursor.x, y: 0 }} // Convert relative back to pixels
             to={{ x: cursor.x, y: height }}
-            stroke={theme.palette.primary.main}
-            strokeWidth={2}
+            stroke={theme.palette.divider}
+            strokeWidth={1}
             pointerEvents="none"
             strokeDasharray="4,4"
+            opacity={0.6}
           />
           <Line
             from={{ x: 0, y: cursor.y }} // Convert relative back to pixels
             to={{ x: width, y: cursor.y }}
-            stroke={theme.palette.primary.main}
-            strokeWidth={2}
+            stroke={theme.palette.divider}
+            strokeWidth={1}
             pointerEvents="none"
             strokeDasharray="4,4"
+            opacity={0.6}
           />
         </Group>
       )}
@@ -576,13 +627,13 @@ function ChartSeries({
               }
 
               let offsetY = d.y.reduce((acc, { value }) => acc + (value ?? 0), 0);
-              return d.y.map(({ key, value }, stackIndex) => {
+              return d.y.map(({ key, value, color: itemColor }, stackIndex) => {
                 if (value == null || !tooltipData?.[key]) return null;
 
                 const segmentCenterY = offsetY - value / 2;
                 offsetY -= value;
 
-                const color = palette[stackIndex % palette.length];
+                const color = itemColor ?? palette[stackIndex % palette.length];
                 return (
                   <GlyphCircle
                     key={`${key}-tooltip-glyph`}
@@ -597,7 +648,7 @@ function ChartSeries({
             } else {
               const datum = tooltipData?.[s.name];
               if (!datum) return null;
-              const color = palette[i % palette.length];
+              const color = s.color ?? palette[i % palette.length];
               return (
                 <GlyphCircle
                   key={`${s.name}-tooltip-glyph`}
@@ -665,6 +716,7 @@ function LineChart({
   fillOpacity = 0.25,
   pointSize = 10,
   barBorderRadius = 4,
+  grouped = false,
 }: LineChartProps) {
   const theme = useTheme();
   const palette = useChartPalette();
@@ -694,8 +746,8 @@ function LineChart({
                   scale={xScale}
                   top={yMax}
                   numTicks={5}
-                  stroke={theme.palette.divider}
-                  strokeWidth={2}
+                  stroke="transparent"
+                  strokeWidth={1}
                   tickStroke={theme.palette.divider}
                   tickLabelProps={() => ({
                     fill: theme.palette.text.secondary,
@@ -707,8 +759,8 @@ function LineChart({
                   scale={yScale}
                   numTicks={5}
                   tickFormat={axisFormat?.y as any}
-                  stroke={theme.palette.divider}
-                  strokeWidth={2}
+                  stroke="transparent"
+                  strokeWidth={1}
                   tickStroke={theme.palette.divider}
                   tickLabelProps={() => ({
                     fill: theme.palette.text.secondary,
@@ -732,6 +784,7 @@ function LineChart({
                   fillOpacity={fillOpacity}
                   pointSize={pointSize}
                   barBorderRadius={barBorderRadius}
+                  grouped={grouped}
                 />
               </Group>
             </svg>
@@ -821,6 +874,8 @@ function useSharedCursor({
 
 function AnalyticsChart<T>({
   title,
+  subtitle,
+  primaryColor,
   range,
   queryHook,
   dataSelector,
@@ -832,6 +887,7 @@ function AnalyticsChart<T>({
   fillOpacity,
   pointSize,
   barBorderRadius,
+  grouped,
 }: {
   range: { from: Date; to: Date };
   step?: string;
@@ -846,7 +902,24 @@ function AnalyticsChart<T>({
   );
 
   const { data, isLoading } = queryHook(queryVars);
-  const palette = createGenerator(useChartPalette());
+  const defaultPalette = useChartPalette();
+
+  // Create harmonious color palette based on primary color
+  const chartPalette = useMemo(() => {
+    if (!primaryColor) return defaultPalette;
+    
+    // For multi-series charts, create variations of the primary color
+    // For single series, just use the primary color
+    return [
+      primaryColor,
+      adjustColorBrightness(primaryColor, 20),
+      adjustColorBrightness(primaryColor, -20),
+      adjustColorBrightness(primaryColor, 40),
+      adjustColorBrightness(primaryColor, -40),
+    ];
+  }, [primaryColor, defaultPalette]);
+
+  const palette = createGenerator(chartPalette);
 
   const series: LineChartSeries[] = useMemo(() => {
     const timeseriesData = data ? dataSelector(data) : null;
@@ -854,36 +927,118 @@ function AnalyticsChart<T>({
 
     return timeseriesData.map(s => ({
       ...s,
-      color: palette.next(),
+      color: s.color || palette.next(), // Use explicit color if provided, otherwise generate one
     }));
   }, [data, dataSelector, palette]);
 
   const hasData = series.some(s => s.data.length > 0);
+  const showLegend = series.length > 1 && title !== 'APR';
 
   return (
-    <Card title={<SquaredChip label={title} color="primary" />}>
-      <Box height={height} display="flex" alignItems="center" justifyContent="center">
-        {isLoading ? (
-          <Loader />
-        ) : hasData ? (
-          <LineChart
-            series={series}
-            tooltipFormat={{
-              x: (d: Date) => toDate.format(d),
-              ...tooltipFormat,
-            }}
-            axisFormat={axisFormat}
-            xAxis={{ min: range.from, max: range.to }}
-            strokeWidth={strokeWidth}
-            fillOpacity={fillOpacity}
-            pointSize={pointSize}
-            barBorderRadius={barBorderRadius}
-          />
-        ) : (
-          <Typography variant="body1">No data</Typography>
+    <Card 
+      title={
+        <Typography variant="h6" fontWeight={600} color="text.primary">
+          {title}
+        </Typography>
+      } 
+      subtitle={subtitle}
+    >
+      <Box display="flex" flexDirection="column">
+        <Box height={height} display="flex" alignItems="center" justifyContent="center">
+          {isLoading ? (
+            <Skeleton variant="rectangular" width="100%" height={height} />
+          ) : hasData ? (
+            <LineChart
+              series={series}
+              tooltipFormat={{
+                x: (d: Date) => toDate.format(d),
+                ...tooltipFormat,
+              }}
+              axisFormat={axisFormat}
+              strokeWidth={strokeWidth}
+              fillOpacity={fillOpacity}
+              pointSize={0}
+              barBorderRadius={barBorderRadius}
+              grouped={grouped}
+            />
+          ) : (
+            <Box sx={{ textAlign: 'center', py: 6 }}>
+              <ShowChartIcon sx={{ fontSize: 56, color: 'text.disabled', mb: 2, opacity: 0.3 }} />
+              <Typography variant="body1" color="text.secondary" gutterBottom fontWeight={500}>
+                No data available
+              </Typography>
+              <Typography variant="body2" color="text.disabled" fontSize={13}>
+                Data will appear once collected for the selected time range
+              </Typography>
+            </Box>
+          )}
+        </Box>
+        {showLegend && hasData && !isLoading && (
+          <ChartLegend series={series} palette={chartPalette} />
         )}
       </Box>
     </Card>
+  );
+}
+
+// Helper function to adjust color brightness
+function adjustColorBrightness(hex: string, percent: number): string {
+  // Remove # if present
+  hex = hex.replace('#', '');
+  
+  // Convert to RGB
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  
+  // Adjust brightness
+  const adjust = (value: number) => {
+    const adjusted = value + (value * percent) / 100;
+    return Math.max(0, Math.min(255, Math.round(adjusted)));
+  };
+  
+  const newR = adjust(r);
+  const newG = adjust(g);
+  const newB = adjust(b);
+  
+  // Convert back to hex
+  return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+}
+
+// ============================================================================
+// Chart Legend Component
+// ============================================================================
+
+function ChartLegend({ 
+  series, 
+  palette 
+}: { 
+  series: LineChartSeries[];
+  palette: string[];
+}) {
+  const items = series.map((s, i) => ({
+    name: s.name,
+    color: s.color ?? palette[i % palette.length],
+  }));
+
+  return (
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2.5, justifyContent: 'center', mt: 2.5, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+      {items.map(item => (
+        <Box key={item.name} display="flex" alignItems="center" gap={1}>
+          <Box
+            sx={{
+              width: 10,
+              height: 10,
+              borderRadius: 0.5,
+              bgcolor: item.color,
+            }}
+          />
+          <Typography variant="caption" color="text.secondary" fontSize={11}>
+            {item.name}
+          </Typography>
+        </Box>
+      ))}
+    </Box>
   );
 }
 
@@ -891,62 +1046,247 @@ function AnalyticsChart<T>({
 // Analytics Component
 // ============================================================================
 
+const TIME_RANGE_PRESETS = [
+  { label: 'Last 30 days', value: '30d', start: 'now-30d', end: 'now-1d/d', step: '1d' },
+  { label: 'Last 6 months', value: '6M', start: 'now-6M', end: 'now-1d/d', step: '3d' },
+  { label: 'Last year', value: '1y', start: 'now-1y', end: 'now-1d/d', step: '3d' },
+  { label: 'All time', value: 'all', start: '2024-05-20', end: 'now-1d/d', step: '3d' },
+];
+
+const DEFAULT_TIME_RANGE = '30d';
+
+const CATEGORY_TABS = [
+  { label: 'All', value: 'all' as const },
+  { label: 'Network Health', value: 'network' as const },
+  { label: 'Economics', value: 'economics' as const },
+  { label: 'Usage', value: 'usage' as const },
+];
+
 export function Analytics() {
   const [state, setState] = useLocationState({
-    from: new Location.String(''),
-    to: new Location.String(''),
-    step: new Location.String('auto'),
+    timeRange: new Location.String(DEFAULT_TIME_RANGE),
+    category: new Location.String('all'),
   });
 
-  const rangeRaw = useMemo(() => {
-    return {
-      start: state.from || 'now-90d',
-      end: state.to || 'now',
-    };
-  }, [state.from, state.to]);
+  const selectedPreset = useMemo(() => {
+    return TIME_RANGE_PRESETS.find(p => p.value === state.timeRange) || TIME_RANGE_PRESETS[0];
+  }, [state.timeRange]);
 
   const range = useMemo(() => {
-    return parseTimeRange(rangeRaw.start, rangeRaw.end);
-  }, [rangeRaw]);
+    const parsed = parseTimeRange(selectedPreset.start, selectedPreset.end);
+    // Ensure start date is never before May 20, 2024
+    const minStartDate = new Date('2024-05-20T00:00:00Z');
+    if (parsed.from < minStartDate) {
+      parsed.from = minStartDate;
+    }
+    return parsed;
+  }, [selectedPreset]);
 
-  const stepOptions = ['auto', '1h', '3h', '6h', '12h', '1d', '3d', '1w', '2w', '1M', '3M', '6M'];
+  const step = selectedPreset.step;
+
+  const filteredCharts = useMemo(() => {
+    if (state.category === 'all') {
+      return CHARTS;
+    }
+    return CHARTS.filter(({ config }) => config.category === state.category);
+  }, [state.category]);
 
   return (
     <CenteredPageWrapper className="wide">
-      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-        <Stack direction="row" spacing={1}>
-          <Box width={160}>
-            <TimeRangePicker
-              value={rangeRaw}
-              onChange={range => {
-                setState.from(range.start);
-                setState.to(range.end);
+      <Breadcrumbs sx={{ mb: 3 }}>
+        <Link
+          component={RouterLink}
+          to="/dashboard"
+          underline="hover"
+          sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+          color="inherit"
+        >
+          <HomeIcon sx={{ fontSize: 18 }} />
+          Dashboard
+        </Link>
+        <Typography color="text.primary" fontWeight={600}>
+          Analytics
+        </Typography>
+      </Breadcrumbs>
+
+      <SummaryKPICards range={range} step={step} />
+      
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+        <Box
+          sx={{
+            display: 'inline-flex',
+            bgcolor: 'action.hover',
+            borderRadius: 1.5,
+            p: 0.5,
+          }}
+        >
+          <ToggleButtonGroup
+            value={state.category}
+            exclusive
+            onChange={(_, value) => value && setState.category(value)}
+            sx={{
+              '& .MuiToggleButtonGroup-grouped': {
+                border: 0,
+                borderRadius: '8px !important',
+              },
+              '& .MuiToggleButton-root': {
+                px: 2.5,
+                py: 1,
+                textTransform: 'none',
+                fontWeight: 500,
+                fontSize: 14,
+                color: 'text.secondary',
+                border: 0,
+                '&:hover': {
+                  bgcolor: 'rgba(255, 255, 255, 0.3)',
+                  color: 'text.primary',
+                },
+                '&.Mui-selected': {
+                  fontWeight: 600,
+                  bgcolor: 'background.paper',
+                  color: 'text.primary',
+                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                  '&:hover': {
+                    bgcolor: 'background.paper',
+                  },
+                },
+              },
+            }}
+          >
+            {CATEGORY_TABS.map(tab => (
+              <ToggleButton key={tab.value} value={tab.value}>
+                {tab.label}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+        </Box>
+        
+        <Box
+          sx={{
+            display: 'inline-flex',
+          }}
+        >
+          <ThemeProvider
+            theme={theme =>
+              createTheme(theme, {
+                components: {
+                  MuiMenu: {
+                    styleOverrides: {
+                      paper: {
+                        backgroundColor: '#FFFFFF !important',
+                        background: '#FFFFFF !important',
+                      },
+                    },
+                  },
+                },
+              })
+            }
+          >
+            <Select
+              value={state.timeRange}
+              onChange={e => setState.timeRange(e.target.value)}
+              variant="standard"
+              disableUnderline
+              sx={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: '#1A1A1A',
+                bgcolor: '#FFFFFF',
+                borderRadius: '10px',
+                border: '1px solid #E0E0E0',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  borderColor: '#999999',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+                },
+                '& .MuiSelect-select': {
+                  px: 3,
+                  py: 1.5,
+                  pr: '32px !important',
+                  bgcolor: 'transparent',
+                  borderRadius: '10px',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  '&:focus': {
+                    bgcolor: 'transparent',
+                  },
+                },
+                '& .MuiSelect-icon': {
+                  color: '#666666',
+                  right: 10,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  transition: 'color 0.2s ease',
+                },
+                '&:hover .MuiSelect-icon': {
+                  color: '#1A1A1A',
+                },
               }}
-            />
-          </Box>
-          <Box>
-            <FormControl>
-              <Select
-                value={state.step}
-                onChange={e => setState.step(e.target.value)}
-                variant="filled"
-                color="secondary"
-              >
-                {stepOptions.map(step => (
-                  <MenuItem key={step} value={step}>
-                    {step}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-        </Stack>
+              MenuProps={{
+                PaperProps: {
+                  style: {
+                    backgroundColor: '#FFFFFF',
+                    background: '#FFFFFF',
+                    marginTop: '12px',
+                    border: '1px solid #EEEEEE',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05), 0 10px 20px rgba(0, 0, 0, 0.08)',
+                    opacity: 1,
+                  },
+                },
+                sx: {
+                  '& .MuiPaper-root': {
+                    bgcolor: '#FFFFFF !important',
+                    background: '#FFFFFF !important',
+                  },
+                  '& .MuiList-root': {
+                    py: 1,
+                    bgcolor: '#FFFFFF !important',
+                    background: '#FFFFFF !important',
+                  },
+                  '& .MuiMenuItem-root': {
+                    fontSize: 14,
+                    fontWeight: 500,
+                    px: 3,
+                    py: 1.5,
+                    mx: 1,
+                    my: 0.25,
+                    borderRadius: '8px',
+                    color: '#1A1A1A',
+                    bgcolor: '#FFFFFF !important',
+                    transition: 'all 0.15s ease',
+                    '&:hover': {
+                      bgcolor: '#FAFAFA !important',
+                      color: '#000000',
+                    },
+                    '&.Mui-selected': {
+                      bgcolor: '#F9F9F9 !important',
+                      color: '#000000',
+                      fontWeight: 600,
+                      '&:hover': {
+                        bgcolor: '#F5F5F5 !important',
+                      },
+                    },
+                  },
+                },
+              }}
+            >
+              {TIME_RANGE_PRESETS.map(preset => (
+                <MenuItem key={preset.value} value={preset.value}>
+                  {preset.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </ThemeProvider>
+        </Box>
       </Box>
+      
       <SharedCursorProvider>
-        <Grid container spacing={2}>
-          {CHARTS.map(({ key, config }) => (
+        <Grid container spacing={3.5}>
+          {filteredCharts.map(({ key, config }) => (
             <Grid key={key} size={config.gridSize || DEFAULT_GRID_SIZE}>
-              <AnalyticsChart range={range} {...config} step={state.step} />
+              <AnalyticsChart range={range} {...config} step={step} />
             </Grid>
           ))}
         </Grid>

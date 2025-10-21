@@ -1,4 +1,5 @@
 import { Box, SxProps, Theme, styled } from '@mui/material';
+import { Link } from 'react-router-dom';
 
 import { LogoFull } from './LogoFull';
 
@@ -43,6 +44,10 @@ export interface LogoProps {
   primarySx?: SxProps<Theme>;
   /** Custom styles for the secondary text */
   secondarySx?: SxProps<Theme>;
+  /** Whether the logo should be clickable */
+  clickable?: boolean;
+  /** The route to navigate to when clicked */
+  to?: string;
 }
 
 export function Logo({
@@ -52,8 +57,10 @@ export function Logo({
   sx,
   primarySx,
   secondarySx,
+  clickable = true,
+  to = '/dashboard',
 }: LogoProps) {
-  return (
+  const logoContent = (
     <LogoWrapper sx={sx}>
       <LogoFull />
       {showNetwork && (
@@ -64,4 +71,22 @@ export function Logo({
       )}
     </LogoWrapper>
   );
+
+  if (clickable) {
+    return (
+      <Link
+        to={to}
+        style={{
+          textDecoration: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          cursor: 'pointer',
+        }}
+      >
+        {logoContent}
+      </Link>
+    );
+  }
+
+  return logoContent;
 }

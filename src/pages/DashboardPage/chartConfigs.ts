@@ -12,7 +12,6 @@ import {
   useAprTimeseriesQuery,
   useDelegationsTimeseriesQuery,
   useDelegatorsTimeseriesQuery,
-  useHoldersCountTimeseriesQuery,
   useLockedValueTimeseriesQuery,
   useUniqueOperatorsTimeseriesQuery,
   useRewardTimeseriesQuery,
@@ -36,12 +35,18 @@ import type { LineChartProps, LineChartSeries } from './Analytics';
 // Types
 // ============================================================================
 
+export type ChartCategory = 'network' | 'economics' | 'usage';
+
 export interface ChartConfig<T> {
   title: string;
+  subtitle?: string;
+  primaryColor?: string;
+  category: ChartCategory;
   queryHook: (vars: { from: string; to: string }) => { data: T | undefined; isLoading: boolean };
   dataSelector: (data: T) => LineChartSeries[] | null | undefined;
   tooltipFormat?: LineChartProps['tooltipFormat'];
   axisFormat?: LineChartProps['axisFormat'];
+  yAxisScale?: 'linear' | 'log';
   // Layout configuration
   height?: number;
   gridSize?: { xs?: number; sm?: number; md?: number; lg?: number; xl?: number };
@@ -50,6 +55,7 @@ export interface ChartConfig<T> {
   fillOpacity?: number;
   pointSize?: number;
   barBorderRadius?: number;
+  grouped?: boolean; // For grouped bar charts
 }
 
 // ============================================================================
@@ -93,6 +99,9 @@ export type FormatterPreset = keyof typeof FORMATTERS;
  */
 export function createSimpleChart<T extends Record<string, any>>(config: {
   title: string;
+  subtitle?: string;
+  primaryColor?: string;
+  category: ChartCategory;
   queryHook: (vars: { from: string; to: string }) => { data: T | undefined; isLoading: boolean };
   dataPath: (data: T) => Array<{ timestamp: string; value: number | null | undefined }>;
   seriesName?: string;
@@ -108,6 +117,9 @@ export function createSimpleChart<T extends Record<string, any>>(config: {
 }): ChartConfig<T> {
   const {
     title,
+    subtitle,
+    primaryColor,
+    category,
     queryHook,
     dataPath,
     seriesName = title,
@@ -124,6 +136,9 @@ export function createSimpleChart<T extends Record<string, any>>(config: {
 
   return {
     title,
+    subtitle,
+    primaryColor,
+    category,
     queryHook,
     dataSelector: (data: T) => [
       {
@@ -153,13 +168,18 @@ export function createSimpleChart<T extends Record<string, any>>(config: {
  */
 export function createMultiSeriesChart<T extends Record<string, any>, V = any>(config: {
   title: string;
+  subtitle?: string;
+  primaryColor?: string;
+  category: ChartCategory;
   queryHook: (vars: { from: string; to: string }) => { data: T | undefined; isLoading: boolean };
   dataPath: (data: T) => Array<{ timestamp: string; value: V }>;
   series: Array<{
     name: string;
     valuePath: (value: V) => number | null | undefined;
+    color?: string;
   }>;
   type?: 'line' | 'bar';
+  grouped?: boolean;
   formatter?: FormatterPreset;
   height?: number;
   gridSize?: { xs?: number; sm?: number; md?: number; lg?: number; xl?: number };
@@ -170,10 +190,14 @@ export function createMultiSeriesChart<T extends Record<string, any>, V = any>(c
 }): ChartConfig<T> {
   const {
     title,
+    subtitle,
+    primaryColor,
+    category,
     queryHook,
     dataPath,
     series,
     type = 'line',
+    grouped,
     formatter = 'number',
     height,
     gridSize,
@@ -185,10 +209,14 @@ export function createMultiSeriesChart<T extends Record<string, any>, V = any>(c
 
   return {
     title,
+    subtitle,
+    primaryColor,
+    category,
     queryHook,
     dataSelector: (data: T) =>
       series.map(s => ({
         name: s.name,
+        color: s.color,
         data: dataPath(data).map(d => ({
           x: new Date(d.timestamp),
           y: s.valuePath(d.value) ?? null,
@@ -203,6 +231,7 @@ export function createMultiSeriesChart<T extends Record<string, any>, V = any>(c
     fillOpacity,
     pointSize,
     barBorderRadius,
+    grouped,
   };
 }
 
@@ -211,23 +240,32 @@ export function createMultiSeriesChart<T extends Record<string, any>, V = any>(c
  */
 export function createStackedChart<T extends Record<string, any>, V = any>(config: {
   title: string;
+  subtitle?: string;
+  primaryColor?: string;
+  category: ChartCategory;
   queryHook: (vars: { from: string; to: string }) => { data: T | undefined; isLoading: boolean };
   dataPath: (data: T) => Array<{ timestamp: string; value: V }>;
   stacks: Array<{
     key: string;
     valuePath: (value: V) => number;
+    color?: string;
   }>;
   formatter?: FormatterPreset;
+  yAxisScale?: 'linear' | 'log';
   height?: number;
   gridSize?: { xs?: number; sm?: number; md?: number; lg?: number; xl?: number };
   barBorderRadius?: number;
 }): ChartConfig<T> {
   const {
     title,
+    subtitle,
+    primaryColor,
+    category,
     queryHook,
     dataPath,
     stacks,
     formatter = 'number',
+    yAxisScale,
     height,
     gridSize,
     barBorderRadius,
@@ -235,6 +273,9 @@ export function createStackedChart<T extends Record<string, any>, V = any>(confi
 
   return {
     title,
+    subtitle,
+    primaryColor,
+    category,
     queryHook,
     dataSelector: (data: T) => [
       {
@@ -244,6 +285,7 @@ export function createStackedChart<T extends Record<string, any>, V = any>(confi
           y: stacks.map(s => ({
             key: s.key,
             value: s.valuePath(d.value),
+            color: s.color,
           })),
         })),
         type: 'bar' as const,
@@ -252,6 +294,7 @@ export function createStackedChart<T extends Record<string, any>, V = any>(confi
     ],
     tooltipFormat: { y: FORMATTERS[formatter].tooltip },
     axisFormat: { y: FORMATTERS[formatter].axis },
+    yAxisScale,
     height,
     gridSize,
     barBorderRadius,
@@ -291,115 +334,172 @@ export function createStackedChart<T extends Record<string, any>, V = any>(confi
 //   - More opaque fill: fillOpacity: 0.5
 
 export const CHART_CONFIGS = {
-  holders: createSimpleChart({
-    title: 'Holders',
-    queryHook: useHoldersCountTimeseriesQuery,
-    dataPath: data => data.holdersCountTimeseries,
-    formatter: 'compactNumber',
-  }),
-
   lockedValue: createSimpleChart({
     title: 'Locked Value',
+    subtitle: 'Total value locked in the network',
+    primaryColor: '#4A90E2',
+    category: 'economics',
     queryHook: useLockedValueTimeseriesQuery,
     dataPath: data => data.lockedValueTimeseries,
     seriesName: 'TVL',
     formatter: 'token',
     valueTransform: v => fromSqd(v).toNumber(),
-    // Example: custom styling options
-    // height: 300,              // Taller chart
-    // gridSize: { xs: 12 },     // Full width
-    // strokeWidth: 3,           // Thicker line
-    // fillOpacity: 0.4,         // More opaque fill
-    // pointSize: 15,            // Larger data points
+    strokeWidth: 2,
+    fillOpacity: 0.25,
   }),
 
   activeWorkers: createSimpleChart({
     title: 'Active Workers',
+    subtitle: 'Number of workers actively processing queries',
+    primaryColor: '#10B981',
+    category: 'network',
     queryHook: useActiveWorkersTimeseriesQuery,
     dataPath: data => data.activeWorkersTimeseries,
+    strokeWidth: 2,
+    fillOpacity: 0.25,
   }),
 
-  uniqueOperators: createSimpleChart({
-    title: 'Unique Operators',
-    queryHook: useUniqueOperatorsTimeseriesQuery,
-    dataPath: data => data.uniqueOperatorsTimeseries,
-  }),
-
-  delegations: createSimpleChart({
-    title: 'Delegations',
-    queryHook: useDelegationsTimeseriesQuery,
-    dataPath: data => data.delegationsTimeseries,
-  }),
-
-  uniqueDelegators: createSimpleChart({
-    title: 'Unique Delegators',
-    queryHook: useDelegatorsTimeseriesQuery,
-    dataPath: data => data.delegatorsTimeseries,
+  reward: createStackedChart({
+    title: 'Rewards',
+    subtitle: 'Rewards distributed to workers and stakers',
+    primaryColor: '#10B981',
+    category: 'economics',
+    queryHook: useRewardTimeseriesQuery,
+    dataPath: data => data.rewardTimeseries,
+    stacks: [
+      { 
+        key: 'Worker Reward', 
+        valuePath: v => fromSqd(v?.workerReward).toNumber(),
+        color: '#5B8FF9',
+      },
+      { 
+        key: 'Staker Reward', 
+        valuePath: v => fromSqd(v?.stakerReward).toNumber(),
+        color: '#61CDBB',
+      },
+    ],
+    formatter: 'token',
+    barBorderRadius: 2,
+    gridSize: { xs: 12, md: 6 },
   }),
 
   apr: createMultiSeriesChart({
     title: 'APR',
+    subtitle: 'Annual percentage rate for workers and stakers',
+    primaryColor: '#6B7280',
+    category: 'economics',
     queryHook: useAprTimeseriesQuery,
     dataPath: data => data.aprTimeseries,
     series: [
-      { name: 'Worker APR', valuePath: v => v?.workerApr },
-      { name: 'Staker APR', valuePath: v => v?.stakerApr },
+      { name: 'Worker APR', valuePath: v => v?.workerApr, color: '#5B8FF9' },
+      { name: 'Staker APR', valuePath: v => v?.stakerApr, color: '#61CDBB' },
     ],
     formatter: 'percent',
+    strokeWidth: 2,
+    fillOpacity: 0.25,
+    gridSize: { xs: 12, md: 6 },
   }),
 
-  reward: createStackedChart({
-    title: 'Reward',
-    queryHook: useRewardTimeseriesQuery,
-    dataPath: data => data.rewardTimeseries,
-    stacks: [
-      { key: 'Worker reward', valuePath: v => fromSqd(v?.workerReward).toNumber() },
-      { key: 'Staker reward', valuePath: v => fromSqd(v?.stakerReward).toNumber() },
-    ],
-    formatter: 'token',
+  uniqueOperators: createSimpleChart({
+    title: 'Unique Operators',
+    subtitle: 'Distinct operators running workers',
+    primaryColor: '#8B5CF6',
+    category: 'network',
+    queryHook: useUniqueOperatorsTimeseriesQuery,
+    dataPath: data => data.uniqueOperatorsTimeseries,
+    strokeWidth: 2,
+    fillOpacity: 0.25,
+  }),
+
+  delegations: createSimpleChart({
+    title: 'Delegations',
+    subtitle: 'Total active delegation contracts',
+    primaryColor: '#F59E0B',
+    category: 'network',
+    queryHook: useDelegationsTimeseriesQuery,
+    dataPath: data => data.delegationsTimeseries,
+    strokeWidth: 2,
+    fillOpacity: 0.25,
+  }),
+
+  uniqueDelegators: createSimpleChart({
+    title: 'Unique Delegators',
+    subtitle: 'Number of unique delegating accounts',
+    primaryColor: '#06B6D4',
+    category: 'network',
+    queryHook: useDelegatorsTimeseriesQuery,
+    dataPath: data => data.delegatorsTimeseries,
+    strokeWidth: 2,
+    fillOpacity: 0.25,
   }),
 
   transfers: createStackedChart({
     title: 'Transfers',
+    subtitle: 'Token transfer activity by type',
+    primaryColor: '#6B7280',
+    category: 'economics',
     queryHook: useTransfersByTypeTimeseriesQuery,
     dataPath: data => data.transfersByTypeTimeseries,
     stacks: [
-      { key: 'Transfer', valuePath: v => v?.transfer ?? 0 },
-      { key: 'Deposit', valuePath: v => v?.deposit ?? 0 },
-      { key: 'Withdraw', valuePath: v => v?.withdraw ?? 0 },
-      { key: 'Reward', valuePath: v => v?.reward ?? 0 },
-      { key: 'Release', valuePath: v => v?.release ?? 0 },
+      { key: 'Transfer', valuePath: v => v?.transfer ?? 0, color: '#4A90E2' },
+      { key: 'Deposit', valuePath: v => v?.deposit ?? 0, color: '#10B981' },
+      { key: 'Withdraw', valuePath: v => v?.withdraw ?? 0, color: '#F59E0B' },
+      { key: 'Reward', valuePath: v => v?.reward ?? 0, color: '#8B5CF6' },
+      { key: 'Release', valuePath: v => v?.release ?? 0, color: '#06B6D4' },
     ],
+    formatter: 'number',
+    barBorderRadius: 2,
   }),
 
   uniqueAccounts: createSimpleChart({
     title: 'Active Accounts',
+    subtitle: 'Accounts with recent activity',
+    primaryColor: '#06B6D4',
+    category: 'usage',
     queryHook: useUniqueAccountsTimeseriesQuery,
     dataPath: data => data.uniqueAccountsTimeseries,
     seriesName: 'Unique Accounts',
+    strokeWidth: 2,
+    fillOpacity: 0.25,
   }),
 
   queries: createSimpleChart({
     title: 'Queries Count',
+    subtitle: 'Total queries processed',
+    primaryColor: '#8B5CF6',
+    category: 'usage',
     queryHook: useQueriesCountTimeseriesQuery,
     dataPath: data => data.queriesCountTimeseries,
     seriesName: 'Queries',
-    type: 'bar',
+    type: 'line',
+    formatter: 'number',
+    strokeWidth: 2,
+    fillOpacity: 0.3,
   }),
 
   servedData: createSimpleChart({
     title: 'Served Data',
+    subtitle: 'Total data served to clients',
+    primaryColor: '#F59E0B',
+    category: 'usage',
     queryHook: useServedDataTimeseriesQuery,
     dataPath: data => data.servedDataTimeseries,
-    type: 'bar',
+    type: 'line',
     formatter: 'bytes',
+    strokeWidth: 2,
+    fillOpacity: 0.3,
   }),
 
   storedData: createSimpleChart({
     title: 'Stored Data',
+    subtitle: 'Total data stored in the network',
+    primaryColor: '#4A90E2',
+    category: 'usage',
     queryHook: useStoredDataTimeseriesQuery,
     dataPath: data => data.storedDataTimeseries,
     formatter: 'bytes',
+    strokeWidth: 2,
+    fillOpacity: 0.25,
   }),
 } as const;
 

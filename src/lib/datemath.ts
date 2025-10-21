@@ -56,6 +56,14 @@ export function parseDateMath(expression: string, anchor: Date = new Date()): Da
     return anchor;
   }
 
+  // Handle plain ISO date strings (e.g., "2024-05-20", "2024-05-20T00:00:00Z")
+  if (/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?)?$/.test(expression)) {
+    const parsedDate = parseISO(expression);
+    if (isValid(parsedDate)) {
+      return parsedDate;
+    }
+  }
+
   // Handle anchor||expression format (e.g., "2024-01-01||+1M")
   if (expression.includes('||')) {
     const [anchorStr, mathStr] = expression.split('||');
@@ -81,6 +89,7 @@ export function isDateMathExpression(expression: string): boolean {
     // Check for basic patterns
     const patterns = [
       /^now([+-]\d+[yMwdhms])*(?:\/[yMwdhms])?$/,
+      /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?)?$/, // Plain ISO date strings
       /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z?)?\|\|[+-]\d+[yMwdhms](?:\/[yMwdhms])?$/,
       /^now.*to.*now.*$/,
     ];
