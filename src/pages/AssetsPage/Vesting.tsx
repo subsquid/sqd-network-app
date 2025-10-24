@@ -134,7 +134,7 @@ export function Vesting({ backPath }: { backPath: string }) {
           ) : null
         }
       />
-      <Card outlined>
+      <Card variant="outlined">
         <Stack spacing={3} divider={<Divider orientation="horizontal" flexItem />}>
           <Box>
             <Title label="Info" />

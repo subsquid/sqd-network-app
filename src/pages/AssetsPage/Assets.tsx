@@ -262,7 +262,7 @@ export function MyAssets() {
     <Box minHeight={448} mb={2} display="flex">
       <Card
         sx={{ width: 1 }}
-        title={<SquaredChip label="My Assets" color="primary" />}
+        title="My Assets"
         action={
           <Stack direction="row" spacing={1}>
             <ClaimButton disabled={isLoading || !hasAvailableClaims} />

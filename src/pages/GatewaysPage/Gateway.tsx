@@ -11,10 +11,10 @@ import { CopyToClipboard } from '@components/CopyToClipboard';
 import { Loader } from '@components/Loader';
 import { NotFound } from '@components/NotFound';
 import { CenteredPageWrapper } from '@layouts/NetworkLayout';
-import { Title } from '@pages/WorkersPage/Worker';
 
 import { GatewayCard } from './GatewayCard';
 import { GatewayUnregisterButton } from './GatewayUnregister';
+import { SquaredChip } from '@components/Chip';
 
 export const DescLabel = styled(Box, {
   name: 'DescLabel',
@@ -55,7 +55,7 @@ export const Gateway = ({ backPath }: { backPath: string }) => {
           <GatewayCard gateway={gateway} canEdit={false} />
           <Stack mt={4} spacing={3} divider={<Divider orientation="horizontal" flexItem />}>
             <Box>
-              <Title label="Info" />
+              <SquaredChip label="Info" />
               <Stack spacing={2} direction="column">
                 <Stack direction="row">
                   <DescLabel>Registered</DescLabel>

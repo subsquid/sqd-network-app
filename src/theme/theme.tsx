@@ -242,6 +242,7 @@ export const useCreateTheme = (mode: PaletteType) => {
                 border: 'none',
                 boxShadow: 'none',
                 borderRadius: radius.md, // 12px for papers/cards
+                backgroundColor: colors.background.paper,
               }),
               elevation1: {
                 boxShadow: 'none',
@@ -256,6 +257,15 @@ export const useCreateTheme = (mode: PaletteType) => {
                 boxShadow: 'none',
               },
             },
+            variants: [
+              {
+                props: { variant: 'outlined' },
+                style: {
+                  backgroundColor: colors.background.default,
+                  border: `1px solid ${colors.divider}`,
+                },
+              },
+            ],
             defaultProps: {
               elevation: 0,
             },
@@ -263,11 +273,28 @@ export const useCreateTheme = (mode: PaletteType) => {
           MuiCard: {
             styleOverrides: {
               root: {
-                padding: 1.5 * spacing,
+                padding: spacing * 2,
                 overflow: 'visible',
                 boxShadow: 'none',
+                background: colors.background.default,
+                border: `1px solid ${colors.divider}`,
+                transition: 'all 200ms ease-out',
               },
             },
+            variants: [
+              {
+                props: { variant: 'outlined' },
+                style: {
+                  border: `1px solid ${colors.divider}`,
+                },
+              },
+              {
+                props: { variant: 'elevation' },
+                style: {
+                  border: 'none',
+                },
+              },
+            ],
             defaultProps: {
               elevation: 0,
             },
@@ -282,9 +309,6 @@ export const useCreateTheme = (mode: PaletteType) => {
                   display: 'none',
                 },
                 borderRadius: theme.shape.borderRadius, // Use theme default (8px)
-                borderStyle: 'solid',
-                borderWidth: '1px',
-                backgroundColor: '#f0f2f5 !important',
                 height: 'auto',
                 transition: 'all 300ms ease-out',
               }),
@@ -298,9 +322,6 @@ export const useCreateTheme = (mode: PaletteType) => {
                 padding: `${spacing * 1.25}px ${spacing * 1.75}px`,
                 fontSize: '16px',
                 lineHeight: '24px',
-                // '&:hover': {
-                //   backgroundColor: colors.background.paper,
-                // },
               },
               adornedStart: {
                 paddingLeft: spacing,
@@ -316,20 +337,26 @@ export const useCreateTheme = (mode: PaletteType) => {
           MuiFilledInput: {
             styleOverrides: {
               root: {
-                backgroundColor: '#f0f2f5',
-                borderColor: colors.divider,
-
+                backgroundColor: colors.background.paper,
+                border: 'none',
+                '&:before': {
+                  display: 'none',
+                },
+                '&:after': {
+                  display: 'none',
+                },
                 '&.Mui-focused': {
-                  borderColor: colors.secondary.main,
+                  backgroundColor: colors.background.paper,
                 },
                 '&:hover': {
-                  borderColor: colors.text.secondary,
+                  backgroundColor: colors.background.paper,
                 },
                 '&.Mui-error': {
-                  borderColor: colors.error.main,
+                  backgroundColor: colors.background.paper,
                 },
                 '&.Mui-disabled': {
-                  borderStyle: 'dashed',
+                  backgroundColor: colors.background.paper,
+                  opacity: 0.6,
                 },
               },
               input: {
@@ -354,28 +381,6 @@ export const useCreateTheme = (mode: PaletteType) => {
                 padding: 0,
               },
             },
-            variants: [
-              {
-                props: { color: 'secondary' },
-                style: {
-                  backgroundColor: `${colors.background.paper} !important`,
-                  border: 'none',
-                  borderWidth: '0',
-                  '&.Mui-focused': {
-                    border: 'none',
-                  },
-                  '&:hover': {
-                    border: 'none',
-                  },
-                  '&.Mui-error': {
-                    border: 'none',
-                  },
-                  '&.Mui-disabled': {
-                    border: 'none',
-                  },
-                },
-              },
-            ],
           },
           MuiSelect: {
             styleOverrides: {
@@ -385,7 +390,7 @@ export const useCreateTheme = (mode: PaletteType) => {
               },
               select: {
                 '&.MuiInputBase-input.MuiInput-input': {
-                  backgroundColor: '#f0f2f5',
+                  backgroundColor: colors.background.default,
                   borderRadius: radius.md,
                   padding: `${spacing}px ${spacing * 1.5}px`,
                   fontSize: '14px',
@@ -397,7 +402,7 @@ export const useCreateTheme = (mode: PaletteType) => {
                     backgroundColor: colors.divider,
                   },
                   '&:focus': {
-                    backgroundColor: '#f0f2f5',
+                    backgroundColor: colors.background.default,
                     outline: 'none',
                   },
                 },
@@ -424,7 +429,7 @@ export const useCreateTheme = (mode: PaletteType) => {
           MuiToggleButtonGroup: {
             styleOverrides: {
               root: {
-                backgroundColor: '#f0f2f5',
+                backgroundColor: colors.background.paper,
                 borderRadius: radius.md,
                 '& .MuiToggleButtonGroup-grouped': {
                   border: 0,
@@ -545,10 +550,32 @@ export const useCreateTheme = (mode: PaletteType) => {
           MuiOutlinedInput: {
             styleOverrides: {
               root: {
+                backgroundColor: colors.background.default,
                 transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
                 '&.Mui-focused': {
-                  borderColor: colors.primary.main,
-                  boxShadow: 'none',
+                  backgroundColor: colors.background.default,
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: colors.secondary.main,
+                    borderWidth: '1px',
+                  },
+                },
+                '&:hover': {
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: colors.text.secondary,
+                    borderWidth: '1px',
+                  },
+                },
+                '&.Mui-error': {
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: colors.error.main,
+                    borderWidth: '1px',
+                  },
+                },
+                '&.Mui-disabled': {
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderStyle: 'dashed',
+                    borderWidth: '1px',
+                  },
                 },
                 '& .MuiSelect-select': {
                   paddingTop: `${spacing * 1.25}px`,
@@ -560,6 +587,8 @@ export const useCreateTheme = (mode: PaletteType) => {
               },
               notchedOutline: {
                 borderColor: colors.divider,
+                borderWidth: '1px !important',
+                borderStyle: 'solid',
                 transition: 'border-color 200ms cubic-bezier(0.4, 0, 0.2, 1)',
               },
               input: {
@@ -582,6 +611,11 @@ export const useCreateTheme = (mode: PaletteType) => {
                 borderStyle: 'solid',
                 borderWidth: '1px',
                 borderColor: colors.divider,
+                borderRadius: radius.sm,
+                // Styled variant (primary text color)
+                '&.styled': {
+                  color: colors.text.primary,
+                },
               },
               arrow: {
                 color: colors.background.paper,
@@ -605,6 +639,15 @@ export const useCreateTheme = (mode: PaletteType) => {
                 lineHeight: '24px',
                 height: spacing * 3,
                 transition: 'all 200ms ease-out',
+                // Squared variant
+                '&.squared': {
+                  borderRadius: radius.sm,
+                  fontSize: 16,
+                  fontWeight: 600,
+                  '& .MuiChip-label': {
+                    padding: `0 ${spacing * 0.5}px`,
+                  },
+                },
               },
               label: {
                 margin: 0,
@@ -630,11 +673,16 @@ export const useCreateTheme = (mode: PaletteType) => {
                 elevation: 0,
               },
             },
+            styleOverrides: {
+              paper: {
+                background: colors.background.default,
+              },
+            },
           },
           MuiMenu: {
             styleOverrides: {
               paper: {
-                background: colors.background.paper,
+                background: colors.background.default,
                 border: `1px solid ${colors.divider}`,
                 borderStyle: 'solid',
                 borderWidth: '1px',
@@ -659,7 +707,6 @@ export const useCreateTheme = (mode: PaletteType) => {
                 '& path': {
                   transition: 'fill ease-out 150ms',
                 },
-                borderRadius: radius.sm,
                 '&:hover': {
                   backgroundColor: colors.action.hover,
                 },

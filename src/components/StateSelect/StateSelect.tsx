@@ -14,7 +14,7 @@ import {
 export const PaperSelect = styled(Select, {
   name: 'PaperSelect',
 })(({ theme }) => ({
-  borderRadius: 4,
+  borderRadius: theme.shape.borderRadius,
   fontSize: '0.875rem',
   backgroundColor: theme.palette.background.paper,
 

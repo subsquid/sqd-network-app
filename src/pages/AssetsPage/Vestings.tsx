@@ -8,7 +8,6 @@ import { useReadContracts } from 'wagmi';
 
 import { vestingAbi } from '@api/contracts';
 import { AccountType, useSourcesQuery, useSquid } from '@api/subsquid-network-squid';
-import { SquaredChip } from '@components/Chip';
 import { DashboardTable, NoItems } from '@components/Table';
 import { NameWithAvatar } from '@components/SourceWalletName';
 import { useAccount } from '@network/useAccount';
@@ -18,7 +17,7 @@ import { ReleaseButton } from './ReleaseButton';
 import { useMemo } from 'react';
 import { CopyToClipboard } from '@components/CopyToClipboard';
 import { Link } from 'react-router-dom';
-import { Card } from '@components/Card';
+import { SectionHeader } from '@components/SectionHeader';
 
 export function MyVestings() {
   const account = useAccount();
@@ -86,7 +85,8 @@ export function MyVestings() {
   );
 
   return (
-    <Card title={<SquaredChip label="My Vestings" color="primary" />}>
+    <>
+      <SectionHeader title="My Vestings" />
       <DashboardTable loading={isLoading || isVestingsLoading}>
         <TableHead>
           <TableRow>
@@ -140,6 +140,6 @@ export function MyVestings() {
           )}
         </TableBody>
       </DashboardTable>
-    </Card>
+    </>
   );
 }

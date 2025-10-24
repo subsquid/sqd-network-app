@@ -23,8 +23,7 @@ import { WorkerDelegate } from '@pages/WorkersPage/WorkerDelegate';
 import { WorkerName } from '@pages/WorkersPage/WorkerName';
 import { WorkerStatusChip } from '@pages/WorkersPage/WorkerStatus';
 import { WorkerVersion } from '@pages/WorkersPage/WorkerVersion';
-import { Card } from '@components/Card';
-import { SquaredChip } from '@components/Chip/SquaredChip';
+import { SectionHeader } from '@components/SectionHeader';
 
 function TableNavigation({
   totalPages,
@@ -113,12 +112,16 @@ export function Workers() {
   const isLoading = isSourcesLoading || isWorkersLoading;
 
   return (
-    <>
-      <Search
-        placeholder="Search"
-        value={query.search}
-        onChange={setQuery.search}
-        fullWidth={isMobile}
+    <Box>
+      <SectionHeader
+        title={
+          <Search
+            placeholder="Search"
+            value={query.search}
+            onChange={setQuery.search}
+            fullWidth={isMobile}
+          />
+        }
       />
       <DashboardTable loading={isLoading} sx={{ mb: 2 }}>
         <TableHead>
@@ -198,6 +201,6 @@ export function Workers() {
       {!isWorkersLoading && (
         <TableNavigation page={page} totalPages={totalPages} setPage={setQuery.page} />
       )}
-    </>
+    </Box>
   );
 }

@@ -4,24 +4,18 @@ import React, { useCallback, useMemo, useState, createContext, useContext, useEf
 import { Card } from '@components/Card';
 import {
   Box,
-  Breadcrumbs,
-  createTheme,
   Divider,
-  FormControl,
   Grid,
-  Link,
   MenuItem,
   Paper,
   Select,
   Skeleton,
-  ThemeProvider,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
   useTheme,
 } from '@mui/material';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
-import HomeIcon from '@mui/icons-material/Home';
 import { ParentSize } from '@visx/responsive';
 import { scaleLinear, scaleTime } from '@visx/scale';
 import { Line, LinePath, Bar, AreaClosed } from '@visx/shape';
@@ -35,16 +29,12 @@ import { AxisBottom, AxisLeft } from '@visx/axis';
 import { localPoint } from '@visx/event';
 import { bisector } from 'd3-array';
 import { Group } from '@visx/group';
-import { Link as RouterLink } from 'react-router-dom';
-import { CenteredPageWrapper } from '@layouts/NetworkLayout';
+import { CenteredPageWrapper, PageTitle } from '@layouts/NetworkLayout';
 import { useLocationState, Location } from '@hooks/useLocationState';
 import { toDate } from '@lib/formatters/formatters';
 import { parseTimeRange } from '@lib/datemath';
 import { partition } from 'lodash-es';
-import { CHARTS, DEFAULT_GRID_SIZE, type ChartConfig, type ChartCategory } from './chartConfigs';
-import { SummaryKPICards } from './SummaryKPICards';
-import { SquaredChip } from '@components/Chip';
-import { BackButton } from '@components/BackButton';
+import { CHARTS, DEFAULT_GRID_SIZE, type ChartConfig } from './chartConfigs';
 
 const CHART_CONFIG = {
   height: 240,
@@ -275,7 +265,7 @@ function ChartTooltip({
   });
 
   return (
-    <Paper variant="outlined">
+    <Paper variant="outlined" sx={{ p: 1 }}>
       {firstDatum && (
         <>
           <Typography variant="body2">
@@ -592,7 +582,7 @@ function ChartSeries({
           <Line
             from={{ x: cursor.x, y: 0 }} // Convert relative back to pixels
             to={{ x: cursor.x, y: height }}
-            stroke={theme.palette.divider}
+            stroke={theme.palette.secondary.main}
             strokeWidth={1}
             pointerEvents="none"
             strokeDasharray="4,4"
@@ -601,7 +591,7 @@ function ChartSeries({
           <Line
             from={{ x: 0, y: cursor.y }} // Convert relative back to pixels
             to={{ x: width, y: cursor.y }}
-            stroke={theme.palette.divider}
+            stroke={theme.palette.secondary.main}
             strokeWidth={1}
             pointerEvents="none"
             strokeDasharray="4,4"
@@ -692,6 +682,8 @@ function ChartSeries({
             color: theme.palette.text.primary,
             padding: '0.5rem',
           }}
+          unstyled
+          applyPositionStyle
         >
           <ChartTooltip
             tooltipData={tooltipData}
@@ -935,7 +927,7 @@ function AnalyticsChart<T>({
   const showLegend = series.length > 1 && title !== 'APR';
 
   return (
-    <Card title={<SquaredChip label={title} />} subtitle={subtitle}>
+    <Card title={title} subtitle={subtitle}>
       <Box display="flex" flexDirection="column">
         <Box height={height} display="flex" alignItems="center" justifyContent="center">
           {isLoading ? (
@@ -1051,10 +1043,10 @@ function ChartLegend({
 // ============================================================================
 
 const TIME_RANGE_PRESETS = [
-  { label: 'Last 30 days', value: '30d', start: 'now-30d', end: 'now', step: '1d' },
-  { label: 'Last 6 months', value: '6M', start: 'now-6M', end: 'now', step: '3d' },
-  { label: 'Last year', value: '1y', start: 'now-1y', end: 'now', step: '3d' },
-  { label: 'All time', value: 'all', start: '2024-05-20', end: 'now', step: '3d' },
+  { label: '30 days', value: '30d', start: 'now-30d', end: 'now', step: '1d' },
+  { label: '6 months', value: '6M', start: 'now-6M', end: 'now', step: '3d' },
+  { label: '1 year', value: '1y', start: 'now-1y', end: 'now', step: '1w' },
+  { label: 'All time', value: 'all', start: '2024-05-20', end: 'now', step: '1w' },
 ];
 
 const DEFAULT_TIME_RANGE = '30d';
@@ -1097,10 +1089,10 @@ export function Analytics() {
 
   return (
     <CenteredPageWrapper className="wide">
-      <BackButton path="/dashboard" />
+      <PageTitle title="Analytics" backPath="/dashboard" />
       <Box
         sx={{
-          mb: 4,
+          mb: 2,
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -1123,21 +1115,8 @@ export function Analytics() {
         <Select
           value={state.timeRange}
           onChange={e => setState.timeRange(e.target.value)}
-          variant="standard"
+          variant="filled"
           disableUnderline
-          sx={{
-            fontSize: '14px',
-            border: 'none',
-            outline: 'none',
-            '& .MuiSelect-select': {
-              padding: 0,
-              border: 'none',
-              outline: 'none',
-            },
-            '&:focus': {
-              outline: 'none',
-            },
-          }}
         >
           {TIME_RANGE_PRESETS.map(preset => (
             <MenuItem key={preset.value} value={preset.value}>
@@ -1151,7 +1130,7 @@ export function Analytics() {
         <Grid container spacing={2}>
           {filteredCharts.map(({ key, config }) => (
             <Grid key={key} size={config.gridSize || DEFAULT_GRID_SIZE}>
-              <AnalyticsChart range={range} {...config} step={step} />
+              <AnalyticsChart range={range} {...config}  />
             </Grid>
           ))}
         </Grid>

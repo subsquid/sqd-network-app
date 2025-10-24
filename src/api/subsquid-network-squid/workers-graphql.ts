@@ -209,6 +209,10 @@ interface WorkersQueryParams {
   sortDir: SortDir;
 }
 
+function escapeRegExp(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export function useWorkers({ page, perPage, search, sortBy, sortDir }: WorkersQueryParams) {
   const { isPending: isSettingsLoading } = useNetworkSettings();
   const { data, isPending } = useAllWorkersQuery({});
@@ -217,7 +221,7 @@ export function useWorkers({ page, perPage, search, sortBy, sortDir }: WorkersQu
     const filtered = (data?.workers || [])
       .filter(w => {
         if (!search) return true;
-        const regex = new RegExp(search, 'i');
+        const regex = new RegExp(escapeRegExp(search), 'i');
         return w.peerId.match(regex) || w.name?.match(regex);
       })
       .map(w => ({

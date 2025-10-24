@@ -12,6 +12,7 @@ import { useAccount } from '@network/useAccount';
 import { useContracts } from '@network/useContracts';
 
 import { DepositButton } from './DepositButton';
+import { SectionHeader } from '@components/SectionHeader';
 
 export function OtcContracts() {
   const account = useAccount();
@@ -29,11 +30,8 @@ export function OtcContracts() {
 
   return (
     <Box>
-      <DashboardTable
-        loading={isLoading}
-        title={<SquaredChip label="Buyback" color="primary" />}
-        sx={{ mb: 2 }}
-      >
+      <SectionHeader title="Buyback" />
+      <DashboardTable loading={isLoading} sx={{ mb: 2 }}>
         <TableHead>
           <TableRow>
             <TableCell>Contract</TableCell>

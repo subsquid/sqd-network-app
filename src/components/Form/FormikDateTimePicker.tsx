@@ -10,7 +10,7 @@ const PickerTextField = React.forwardRef<HTMLDivElement, any>((props, ref) => {
   return (
     <FormControl fullWidth variant="standard">
       <InputLabel shrink>{label}</InputLabel>
-      <StyledFormikTextField variant="filled" {...other} ref={ref} />
+      <StyledFormikTextField variant="outlined" {...other} ref={ref} />
     </FormControl>
   );
 });

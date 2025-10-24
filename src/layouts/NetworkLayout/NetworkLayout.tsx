@@ -43,6 +43,7 @@ const AppBar = styled(AppBarMaterial, {
   name: 'AppBar',
 })(({ theme }) => ({
   zIndex: theme.zIndex.appBar,
+  background: theme.palette.background.default,
 }));
 
 const AppToolbar = styled(Box)(({ theme }) => ({
@@ -114,7 +115,7 @@ const Sidebar = styled(Drawer, {
       width: SIDEBAR_WIDTH.L,
       background: theme.palette.primary.main,
       border: 'none',
-      borderRadius: `0 ${theme.shape.borderRadius}px ${theme.shape.borderRadius}px 0`,
+      borderRadius: 0,
       padding: theme.spacing(0, 1, 1, 1),
     },
   };

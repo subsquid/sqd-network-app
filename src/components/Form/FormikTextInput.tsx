@@ -126,7 +126,7 @@ export const FormikTextInput = <T extends Record<string, any>>({
         fullWidth
         className={variant}
         type={visible ? 'text' : type}
-        variant="filled"
+        variant="outlined"
         multiline={multiline}
         minRows={minRows}
         maxRows={maxRows}

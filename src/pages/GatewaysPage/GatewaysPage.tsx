@@ -26,7 +26,6 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
-  SxProps,
 } from '@mui/material';
 import { Link, Outlet } from 'react-router-dom';
 
@@ -48,6 +47,7 @@ import { GatewayStakeButton } from './GatewayStake';
 import { GatewayUnregisterButton } from './GatewayUnregister';
 import { GatewayUnstakeButton } from './GatewayUnstake';
 import { useStakeInfo } from '@api/contracts/useStakeInfo';
+import { SectionHeader } from '@components/SectionHeader';
 import { Card } from '@components/Card';
 
 function AppliesTooltip({ timestamp }: { timestamp?: string }) {
@@ -155,22 +155,24 @@ export function MyGateways() {
   const isLoading = isGatewaysQueryLoading;
 
   return (
-    <Card
-      title={<SquaredChip label="My Portals" color="primary" />}
-      action={
-        <Stack direction="row" spacing={1}>
-          <Button
-            color="secondary"
-            variant="outlined"
-            component={Link}
-            to="https://docs.sqd.dev/subsquid-network/participate/portal/"
-          >
-            LEARN MORE
-          </Button>
-          <AddGatewayButton disabled={isLoading} />
-        </Stack>
-      }
-    >
+    <>
+      <SectionHeader
+        title="My Portals"
+        action={
+          <Stack direction="row" spacing={1}>
+            <Button
+              color="secondary"
+              variant="outlined"
+              component={Link}
+              target="_blank"
+              to="https://docs.sqd.dev/subsquid-network/participate/portal/"
+            >
+              LEARN MORE
+            </Button>
+            <AddGatewayButton disabled={isLoading} />
+          </Stack>
+        }
+      />
       <DashboardTable loading={isLoading} sx={{ mb: 2 }}>
         <TableHead>
           <TableRow>
@@ -201,7 +203,7 @@ export function MyGateways() {
           )}
         </TableBody>
       </DashboardTable>
-    </Card>
+    </>
   );
 }
 

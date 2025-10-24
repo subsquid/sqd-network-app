@@ -15,6 +15,7 @@ import { WorkerDelegate } from '@pages/WorkersPage/WorkerDelegate';
 import { WorkerName } from '@pages/WorkersPage/WorkerName';
 import { WorkerStatusChip } from '@pages/WorkersPage/WorkerStatus';
 import { WorkerUndelegate } from '@pages/WorkersPage/WorkerUndelegate';
+import { SectionHeader } from '@components/SectionHeader';
 
 export function MyDelegations() {
   const [query, setQuery] = useLocationState({
@@ -33,8 +34,8 @@ export function MyDelegations() {
   const isLoading = isDelegationsLoading || isSourcesLoading;
 
   return (
-    <>
-      <SquaredChip label="My Delegations" color="primary" />
+    <Box>
+      <SectionHeader title="My Delegations" />
       <DashboardTable loading={isLoading} sx={{ mb: 2 }}>
         <TableHead>
           <TableRow>
@@ -113,7 +114,7 @@ export function MyDelegations() {
           )}
         </TableBody>
       </DashboardTable>
-    </>
+    </Box>
   );
 }
 

@@ -53,7 +53,6 @@ export const Search = ({ value, onChange, fullWidth, placeholder }: SearchProps)
         value={realTimeValue}
         size="small"
         fullWidth={fullWidth}
-        autoComplete="off"
         onChange={handleInputChange}
         InputProps={{
           startAdornment: <SearchIcon />,

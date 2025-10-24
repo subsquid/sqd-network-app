@@ -59,7 +59,7 @@ export const FormikSelect = <T extends Record<string, any>>({
         disabled={disabled}
         onChange={onChange}
         value={formik.values[id] as string}
-        variant="filled"
+        variant="outlined"
       >
         {options.map(option => (
           <MenuItem disabled={option.disabled} key={option.value} value={option.value}>

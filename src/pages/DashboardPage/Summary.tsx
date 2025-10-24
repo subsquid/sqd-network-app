@@ -40,7 +40,7 @@ function OnlineInfo() {
     <Card
       sx={{ height: 1 }}
       loading={isLoading}
-      title={<SquaredChip label="Workers Online" color="primary" />}
+      title="Workers Online"
       action={
         !isLoading && (
           <Stack direction="row" spacing={1}>
@@ -97,7 +97,7 @@ function CurrentEpoch() {
     <Card
       sx={{ height: 1 }}
       loading={isLoading}
-      title={<SquaredChip label="Current epoch" color="primary" />}
+      title="Current epoch"
       action={!isLoading && <CurrentEpochEstimation epochEnd={epochEnd} />}
     >
       <Box height={1} display="flex" alignItems="flex-end">
@@ -115,7 +115,7 @@ function Stats() {
     <Card
       sx={{ height: 1 }}
       loading={isLoading}
-      title={<SquaredChip label="Other Data" color="primary" />}
+      title="Other Data"
       action={
         <Button
           component={Link}
@@ -259,7 +259,7 @@ function WorkersApr({ length }: { length?: number }) {
     <Card
       loading={isLoading}
       sx={{ height: 1, overflow: 'visible' }}
-      title={<SquaredChip label="Worker APR" color="primary" />}
+      title="Worker APR"
       action={
         !isLoading && (
           <HelpTooltip title="Median value">
@@ -297,7 +297,7 @@ function DelegatorsApr({ length }: { length?: number }) {
     <Card
       loading={isLoading}
       sx={{ height: 1, overflow: 'visible' }}
-      title={<SquaredChip label="Delegator APR" color="primary" />}
+      title="Delegator APR"
       action={
         !isLoading && (
           <Stack direction="row" alignItems="center" spacing={0.5}>

@@ -31,7 +31,7 @@ const TopBannerWrapper = styled(Box, {
 
     [theme.breakpoints.down('xs')]: {
       alignItems: 'flex-start',
-      padding: '10px 0',
+      padding: theme.spacing(1.25, 0),
 
       '& .description': {
         flexFlow: 'column',
