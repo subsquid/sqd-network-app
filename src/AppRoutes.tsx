@@ -28,12 +28,16 @@ export const AppRoutes = () => {
 
         <Route path="/assets">
           <Route element={<AssetsPage />} index />
-          <Route element={<Vesting backPath="/assets" />} path="vestings/:address" />
         </Route>
+
+        <Route element={<Vesting backPath="/assets" />} path="vesting/:address" />
 
         <Route path="/workers">
           <Route element={<WorkersPage />} index />
           {/* <Route element={<AddNewWorker />} path="add" /> */}
+        </Route>
+
+        <Route path="worker">
           <Route element={<Worker backPath="/dashboard" />} path=":peerId" />
         </Route>
         <Route path="/delegations">

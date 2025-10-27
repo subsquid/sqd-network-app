@@ -112,7 +112,7 @@ export function MyVestings() {
                         <CopyToClipboard
                           text={vesting.id}
                           content={
-                            <Link to={`/assets/vestings/${vesting.id}`}>
+                            <Link to={`/vesting/${vesting.id}`}>
                               {addressFormatter(vesting.id, true)}
                             </Link>
                           }
