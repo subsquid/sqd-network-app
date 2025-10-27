@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
 import {
   ArrowOutwardOutlined,
@@ -84,8 +84,7 @@ const MenuListItemSecondaryIcon = styled(ListItemIcon, {
 }));
 
 interface ItemProps {
-  forceActive?: boolean;
-  forceInactive?: boolean;
+  selected: boolean;
   path: string;
   target?: string;
   disabled?: boolean;
@@ -96,8 +95,7 @@ interface ItemProps {
 }
 
 export const Item = ({
-  forceActive,
-  forceInactive,
+  selected,
   path,
   target,
   label,
@@ -106,11 +104,8 @@ export const Item = ({
   RightIcon,
   onClick,
 }: ItemProps) => {
-  const location = useLocation();
-  const active = forceActive || (!forceInactive && location.pathname.startsWith(path));
-
-  const startIcon = typeof LeftIcon === 'function' ? LeftIcon(active) : LeftIcon;
-  const endIcon = typeof RightIcon === 'function' ? RightIcon(active) : RightIcon;
+  const startIcon = typeof LeftIcon === 'function' ? LeftIcon(selected) : LeftIcon;
+  const endIcon = typeof RightIcon === 'function' ? RightIcon(selected) : RightIcon;
 
   return (
     <MenuListItem disablePadding>
@@ -118,7 +113,7 @@ export const Item = ({
         component={Link}
         to={path}
         onClick={onClick}
-        selected={active}
+        selected={selected}
         disabled={disabled}
         target={target}
         rel={target ? 'noreferrer' : undefined}
@@ -134,6 +129,24 @@ export const Item = ({
 export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
   const { isWorkerOperator } = useIsWorkerOperator();
   const workersChatUrl = useWorkersChatUrl();
+  const location = useLocation();
+  const previousPathRef = useRef<string>('/dashboard');
+
+  // Find which menu path matches the current location
+  const paths = ['/dashboard', '/assets', '/workers', '/delegations'];
+  if (demoFeaturesEnabled()) {
+    paths.push('/portals');
+  }
+  
+  const selectedPath = paths.find(path => location.pathname.startsWith(path));
+
+  // Track the last valid path for fallback
+  if (selectedPath) {
+    previousPathRef.current = selectedPath;
+  }
+
+  // Use current path or fallback to previous (or dashboard)
+  const activePath = selectedPath || previousPathRef.current;
 
   return (
     <MenuList>
@@ -142,24 +155,28 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
         label="Dashboard"
         onClick={onItemClick}
         path="/dashboard"
+        selected={activePath === '/dashboard'}
       />
       <Item
         LeftIcon={active => (active ? <Savings /> : <SavingsOutlined />)}
         label="Assets"
         onClick={onItemClick}
         path="/assets"
+        selected={activePath === '/assets'}
       />
       <Item
         LeftIcon={active => (active ? <Lan /> : <LanOutlined />)}
         label="Workers"
         onClick={onItemClick}
         path="/workers"
+        selected={activePath === '/workers'}
       />
       <Item
         LeftIcon={active => (active ? <BackHand /> : <BackHandOutlined />)}
         label="Delegations"
         onClick={onItemClick}
         path="/delegations"
+        selected={activePath === '/delegations'}
       />
       {demoFeaturesEnabled() && (
         <Item
@@ -167,6 +184,7 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
           label="Portals"
           onClick={onItemClick}
           path="/portals"
+          selected={activePath === '/portals'}
         />
       )}
       <MenuSpacer />
@@ -178,6 +196,7 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
           LeftIcon={<SmsOutlined />}
           RightIcon={<ArrowOutwardOutlined />}
           onClick={onItemClick}
+          selected={false}
         />
       )}
       <Item
@@ -187,6 +206,7 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
         LeftIcon={<SmsOutlined />}
         RightIcon={<ArrowOutwardOutlined />}
         onClick={onItemClick}
+        selected={false}
       />
     </MenuList>
   );
