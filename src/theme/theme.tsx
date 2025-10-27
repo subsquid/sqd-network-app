@@ -164,13 +164,6 @@ export const useCreateTheme = (mode: PaletteType) => {
                 //  color: '#0A3D8A',
                 //},
               },
-              '#cf-turnstile': {
-                width: 'auto !important',
-                margin: `${spacing}px 0 ${spacing * 2.5}px`,
-                iframe: {
-                  width: '100% !important',
-                },
-              },
               '*': {
                 fontVariantLigatures: 'none',
                 scrollBehavior: 'smooth',
@@ -194,16 +187,9 @@ export const useCreateTheme = (mode: PaletteType) => {
           MuiAppBar: {
             styleOverrides: {
               root: {
-                color: colors.text?.primary,
-                boxShadow: 'none',
-                borderStyle: 'solid',
-                borderWidth: '0px 0px 1px 0px',
-                borderColor: colors.divider,
-                background: colors.background.paper,
+                borderBottom: `1px solid ${colors.divider}`,
+                background: colors.background.default,
               },
-            },
-            defaultProps: {
-              elevation: 0,
             },
           },
           MuiButton: {
@@ -241,7 +227,6 @@ export const useCreateTheme = (mode: PaletteType) => {
               root: ({ theme }) => ({
                 border: 'none',
                 boxShadow: 'none',
-                borderRadius: radius.md, // 12px for papers/cards
                 backgroundColor: colors.background.paper,
               }),
               elevation1: {
@@ -279,6 +264,7 @@ export const useCreateTheme = (mode: PaletteType) => {
                 background: colors.background.default,
                 border: `1px solid ${colors.divider}`,
                 transition: 'all 200ms ease-out',
+                borderRadius: radius.md,
               },
             },
             variants: [
@@ -440,23 +426,44 @@ export const useCreateTheme = (mode: PaletteType) => {
           },
           MuiToggleButton: {
             styleOverrides: {
-              root: {
+              root: ({ theme }) => ({
                 color: colors.text.secondary,
                 backgroundColor: 'transparent',
                 textTransform: 'none',
                 fontSize: '14px',
                 letterSpacing: '0rem',
                 border: 'none',
-                transition: 'all 200ms ease-out',
                 '&.Mui-selected': {
                   backgroundColor: colors.divider,
-                  color: colors.text.secondary,
+                  color: theme.palette.text.primary,
                   '&:hover': {
                     backgroundColor: colors.divider,
                   },
                 },
                 minWidth: '64px',
-              },
+              }),
+            },
+          },
+          MuiListItemButton: {
+            styleOverrides: {
+              root: ({ theme }) => ({
+                '&.Mui-selected': {
+                  backgroundColor: colors.divider,
+                  color: colors.text.primary,
+                  '&:hover': {
+                    backgroundColor: colors.divider,
+                  },
+                },
+              }),
+            },
+          },
+          MuiListItemIcon: {
+            styleOverrides: {
+              root: ({ theme }) => ({
+                transition: theme.transitions.create('color', {
+                  duration: theme.transitions.duration.shorter,
+                }),
+              }),
             },
           },
           MuiTextField: {

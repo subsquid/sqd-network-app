@@ -1,4 +1,4 @@
-import React, { ForwardedRef, forwardRef } from 'react';
+import React from 'react';
 
 import {
   ArrowOutwardOutlined,
@@ -14,8 +14,16 @@ import {
   SensorDoorOutlined,
   SmsOutlined,
 } from '@mui/icons-material';
-import { Box, Button, styled } from '@mui/material';
-import { Link, useLocation } from 'react-router-dom';
+import {
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  styled,
+  ListItemButtonProps,
+} from '@mui/material';
+import { Link, LinkProps as RouterLinkProps, useLocation } from 'react-router-dom';
 
 import { useIsWorkerOperator } from '@api/subsquid-network-squid';
 import { demoFeaturesEnabled } from '@hooks/demoFeaturesEnabled';
@@ -25,91 +33,110 @@ interface NetworkMenuProps {
   onItemClick: () => void;
 }
 
-const MenuItem = styled(Button)(
-  ({ theme: { palette, spacing, breakpoints, typography, shape } }) => ({
-    ...typography.subtitle2,
+const MenuList = styled(List, {
+  name: 'MenuList',
+})(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  flexGrow: 1,
+  padding: 0,
+  gap: theme.spacing(0.25),
+}));
 
-    height: spacing(6),
-    display: 'flex',
-    justifyContent: 'flex-start',
+const MenuSpacer = styled('div', {
+  name: 'MenuSpacer',
+})(() => ({
+  flex: 1,
+}));
 
-    padding: spacing(0, 2),
-    borderRadius: shape.borderRadius,
-  }),
-);
+const MenuListItem = styled(ListItem, {
+  name: 'MenuListItem',
+})(() => ({
+  padding: 0,
+}));
 
-export const Item = forwardRef(
-  (
-    {
-      forceActive,
-      forceInactive,
-      path,
-      target,
-      label,
-      disabled,
-      LeftIcon,
-      RightIcon,
-      onClick,
-    }: {
-      forceActive?: boolean;
-      forceInactive?: boolean;
-      path: string;
-      target?: string;
-      disabled?: boolean;
-      LeftIcon: React.ReactNode | ((active: boolean) => React.ReactNode);
-      RightIcon?: React.ReactNode | ((active: boolean) => React.ReactNode);
-      label?: string;
-      onClick?: () => void;
-    },
-    ref: ForwardedRef<HTMLButtonElement>,
-  ) => {
-    const location = useLocation();
-    const active = forceActive || (!forceInactive && location.pathname.startsWith(path));
+const MenuListItemButton = styled(ListItemButton, {
+  name: 'MenuListItemButton',
+})<ListItemButtonProps<typeof Link, RouterLinkProps>>(({ theme }) => ({
+  paddingLeft: theme.spacing(1.5),
+  paddingRight: theme.spacing(1.5),
+  borderRadius: theme.shape.borderRadius,
+}));
 
-    // const theme = useTheme();
-    // const compact = useMediaQuery(theme.breakpoints.down('xl'));
-    // const mobile = useMediaQuery(theme.breakpoints.down('xs'));
+const MenuListItemIcon = styled(ListItemIcon, {
+  name: 'MenuListItemIcon',
+})(({ theme }) => ({
+  minWidth: 'auto',
+  marginRight: theme.spacing(1),
+  '& .MuiSvgIcon-root': {
+    fontSize: '1.5rem',
+  },
+}));
 
-    // LeftIcon.props.on = active;
+const MenuListItemSecondaryIcon = styled(ListItemIcon, {
+  name: 'MenuListItemSecondaryIcon',
+})(({ theme }) => ({
+  minWidth: 'auto',
+  justifyContent: 'flex-end',
+  '& .MuiSvgIcon-root': {
+    fontSize: '1.5rem',
+  },
+}));
 
-    const startIcon = typeof LeftIcon === 'function' ? LeftIcon(active) : LeftIcon;
-    const endIcon = typeof RightIcon === 'function' ? RightIcon(active) : RightIcon;
+interface ItemProps {
+  forceActive?: boolean;
+  forceInactive?: boolean;
+  path: string;
+  target?: string;
+  disabled?: boolean;
+  LeftIcon: React.ReactNode | ((active: boolean) => React.ReactNode);
+  RightIcon?: React.ReactNode | ((active: boolean) => React.ReactNode);
+  label?: string;
+  onClick?: () => void;
+}
 
-    return (
-      <MenuItem
-        startIcon={<span>{startIcon}</span>}
-        endIcon={<span>{endIcon}</span>}
-        ref={ref}
-        onClick={onClick}
-        className={active ? 'selected' : undefined}
-        disabled={disabled}
-        // @ts-expect-error: satisfy the compiler
+export const Item = ({
+  forceActive,
+  forceInactive,
+  path,
+  target,
+  label,
+  disabled,
+  LeftIcon,
+  RightIcon,
+  onClick,
+}: ItemProps) => {
+  const location = useLocation();
+  const active = forceActive || (!forceInactive && location.pathname.startsWith(path));
+
+  const startIcon = typeof LeftIcon === 'function' ? LeftIcon(active) : LeftIcon;
+  const endIcon = typeof RightIcon === 'function' ? RightIcon(active) : RightIcon;
+
+  return (
+    <MenuListItem disablePadding>
+      <MenuListItemButton
         component={Link}
         to={path}
+        onClick={onClick}
+        selected={active}
+        disabled={disabled}
         target={target}
         rel={target ? 'noreferrer' : undefined}
       >
-        {/* {!compact || mobile ? (
-      <>
-        
-        ) : null}
-      </>
-     */}
-        {label}
-      </MenuItem>
-    );
-  },
-  // <Link to={path} target={target} rel={target ? 'noreferrer' : undefined}>
-  // { button }
-  // </Link>
-);
+        <MenuListItemIcon>{startIcon}</MenuListItemIcon>
+        <ListItemText primary={label} />
+        {endIcon && <MenuListItemSecondaryIcon>{endIcon}</MenuListItemSecondaryIcon>}
+      </MenuListItemButton>
+    </MenuListItem>
+  );
+};
 
 export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
   const { isWorkerOperator } = useIsWorkerOperator();
   const workersChatUrl = useWorkersChatUrl();
 
   return (
-    <>
+    <MenuList>
       <Item
         LeftIcon={active => (active ? <Dashboard /> : <DashboardOutlined />)}
         label="Dashboard"
@@ -142,30 +169,25 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
           path="/portals"
         />
       )}
-      <Box flex={1} />
-      {/*<Item*/}
-      {/*  label="Documentation"*/}
-      {/*  path={process.env.DOCS_API_URL || ''}*/}
-      {/*  target="_blank"*/}
-      {/*  LeftIcon={DocumentIcon}*/}
-      {/*  RightIcon={OpenInNewIcon}*/}
-      {/*/>*/}
-      {isWorkerOperator ? (
+      <MenuSpacer />
+      {isWorkerOperator && (
         <Item
           label="Operators Chat"
           path={workersChatUrl || '/null'}
           target="_blank"
           LeftIcon={<SmsOutlined />}
           RightIcon={<ArrowOutwardOutlined />}
+          onClick={onItemClick}
         />
-      ) : null}
+      )}
       <Item
         label="Community Chat"
         path={process.env.DISCORD_API_URL || '/null'}
         target="_blank"
         LeftIcon={<SmsOutlined />}
         RightIcon={<ArrowOutwardOutlined />}
+        onClick={onItemClick}
       />
-    </>
+    </MenuList>
   );
 };
