@@ -23,10 +23,21 @@ export function bytesFormatter(val?: number | string, compact?: boolean) {
   // if (!val) return '0 MB';
 
   return prettyBytes(Number(val || 0), {
-    maximumFractionDigits: 1,
+    maximumFractionDigits: 2,
     locale: 'en-US',
     space: !compact,
   });
+}
+
+const formatterCompact = new Intl.NumberFormat('en-US', {
+  notation: 'compact',
+  maximumFractionDigits: 2,
+});
+
+export function numberCompactFormatter(val?: number | bigint | string) {
+  if (!val) return '0';
+
+  return formatterCompact.format(Number(val));
 }
 
 export function addressFormatter(val?: string, compact?: boolean) {
