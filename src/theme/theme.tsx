@@ -345,7 +345,7 @@ export const useCreateTheme = (mode: PaletteType) => {
                   opacity: 0.6,
                 },
                 '&.MuiInputBase-sizeSmall': {
-                  height: '32px',
+                  height: '36px',
                 },
               },
               input: {
@@ -423,7 +423,7 @@ export const useCreateTheme = (mode: PaletteType) => {
                 '& .MuiToggleButtonGroup-grouped': {
                   margin: 0,
                 },
-                height: 32
+                height: 36,
               },
             },
           },
@@ -593,7 +593,7 @@ export const useCreateTheme = (mode: PaletteType) => {
                   padding: 0,
                 },
                 '&.MuiInputBase-sizeSmall': {
-                  height: '32px',
+                  height: '36px',
                   '& input': {
                     padding: `${spacing * 0.5}px ${spacing * 1.5}px`,
                     fontSize: '14px',

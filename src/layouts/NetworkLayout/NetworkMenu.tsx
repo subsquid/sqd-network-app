@@ -61,6 +61,7 @@ const MenuListItemButton = styled(ListItemButton, {
   paddingLeft: theme.spacing(1.5),
   paddingRight: theme.spacing(1.5),
   borderRadius: theme.shape.borderRadius,
+  height: 42,
 }));
 
 const MenuListItemIcon = styled(ListItemIcon, {
