@@ -56,9 +56,9 @@ function OnlineInfo() {
     >
       <Box height={1} display="flex" alignItems="flex-end">
         <Typography variant="h1" display="flex" alignItems="flex-end">
-          <Box>{data?.onlineWorkersCount || 0}</Box>
-          <Box color="text.disabled">/{data?.workersCount || 0}</Box>
+          {data?.onlineWorkersCount || 0}
         </Typography>
+        <Typography variant="h2" display="flex" alignItems="flex-end" color="text.disabled">/{data?.workersCount || 0}</Typography>
       </Box>
     </Card>
   );
