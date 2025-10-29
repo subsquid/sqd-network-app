@@ -230,6 +230,6 @@ export function parseDateMathEnd(expression: string, anchor: Date = new Date()):
   return parseDateMath(expression, anchor);
 }
 
-export function parseTimeRange(start: string, end: string): { from: Date; to: Date } {
-  return { from: parseDateMath(start), to: parseDateMathEnd(end) };
+export function parseTimeRange(start?: string, end?: string): { from: Date; to: Date } {
+  return { from: start ? parseDateMath(start) : new Date(0), to: end ? parseDateMathEnd(end) : new Date() };
 }

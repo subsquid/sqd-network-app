@@ -1046,7 +1046,7 @@ const TIME_RANGE_PRESETS = [
   { label: '30 days', value: '30d', start: 'now-30d', end: 'now', step: '1d' },
   { label: '6 months', value: '6M', start: 'now-6M', end: 'now', step: '3d' },
   { label: '1 year', value: '1y', start: 'now-1y', end: 'now', step: '1w' },
-  { label: 'All time', value: 'all', start: '2024-05-20', end: 'now', step: '1w' },
+  { label: 'All time', value: 'all', start: undefined, end: 'now', step: '1w' },
 ];
 
 const DEFAULT_TIME_RANGE = '30d';
@@ -1070,11 +1070,6 @@ export function Analytics() {
 
   const range = useMemo(() => {
     const parsed = parseTimeRange(selectedPreset.start, selectedPreset.end);
-    // Ensure start date is never before May 20, 2024
-    const minStartDate = new Date('2024-05-20T00:00:00Z');
-    if (parsed.from.getTime() < minStartDate.getTime()) {
-      parsed.from = minStartDate;
-    }
     return parsed;
   }, [selectedPreset]);
 
