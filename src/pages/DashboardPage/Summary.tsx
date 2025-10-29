@@ -115,17 +115,7 @@ function Stats() {
       sx={{ height: 1 }}
       loading={isLoading}
       title="Other Data"
-      action={
-        <Button
-          component={Link}
-          to="/dashboard/analytics"
-          color="info"
-          variant="contained"
-          startIcon={<QueryStatsOutlined />}
-        >
-          MORE
-        </Button>
-      }
+      
     >
       <Box height={1} display="flex" alignItems="flex-end">
         <Stack divider={<Divider />} spacing={1} flex={1}>

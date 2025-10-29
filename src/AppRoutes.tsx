@@ -5,12 +5,13 @@ import { AssetsPage } from '@pages/AssetsPage/AssetsPage.tsx';
 import { Vesting } from '@pages/AssetsPage/Vesting.tsx';
 import { BuyBacksPage } from '@pages/BuyBackPage/BuyBackPage.tsx';
 import { DashboardPage } from '@pages/DashboardPage/DashboardPage.tsx';
+import { Workers } from '@pages/DashboardPage/Workers.tsx';
+import { Analytics } from '@pages/DashboardPage/Analytics.tsx';
 import { DelegationsPage } from '@pages/DelegationsPage/DelegationsPage.tsx';
 import { Gateway } from '@pages/GatewaysPage/Gateway.tsx';
 import { GatewaysPage } from '@pages/GatewaysPage/GatewaysPage.tsx';
 import { Worker } from '@pages/WorkersPage/Worker.tsx';
 import { WorkersPage } from '@pages/WorkersPage/WorkersPage.tsx';
-import { Analytics } from '@pages/DashboardPage/Analytics.tsx';
 
 import { hideLoader } from './index.tsx';
 
@@ -21,9 +22,10 @@ export const AppRoutes = () => {
     <Routes>
       <Route element={<NetworkLayout />} path="/">
         <Route element={<Navigate to="/dashboard" replace={true} />} index />
-        <Route path="/dashboard">
-          <Route element={<DashboardPage />} index />
-          <Route element={<Analytics />} path="analytics" />
+        <Route path="/dashboard" element={<DashboardPage />}>
+          <Route index element={<Navigate to="workers" replace={true} />} />
+          <Route path="workers" element={<Workers />} />
+          <Route path="analytics" element={<Analytics />} />
         </Route>
 
         <Route path="/assets">

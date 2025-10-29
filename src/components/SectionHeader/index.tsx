@@ -7,7 +7,7 @@ const CardHeader = styled(Box, {
   display: 'flex',
   flexWrap: 'wrap',
   justifyContent: 'space-between',
-  marginBottom: theme.spacing(1),
+  marginBottom: theme.spacing(2),
   gap: theme.spacing(1),
   alignItems: 'flex-start',
 }));

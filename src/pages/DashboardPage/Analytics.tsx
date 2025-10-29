@@ -29,7 +29,6 @@ import { AxisBottom, AxisLeft } from '@visx/axis';
 import { localPoint } from '@visx/event';
 import { bisector } from 'd3-array';
 import { Group } from '@visx/group';
-import { CenteredPageWrapper, PageTitle } from '@layouts/NetworkLayout';
 import { useLocationState, Location } from '@hooks/useLocationState';
 import { toDate } from '@lib/formatters/formatters';
 import { parseTimeRange } from '@lib/datemath';
@@ -1083,8 +1082,7 @@ export function Analytics() {
   }, [state.category]);
 
   return (
-    <CenteredPageWrapper className="wide">
-      <PageTitle title="Analytics" backPath="/dashboard" />
+    <>
       <Box
         sx={{
           mb: 2,
@@ -1130,6 +1128,6 @@ export function Analytics() {
           ))}
         </Grid>
       </SharedCursorProvider>
-    </CenteredPageWrapper>
+    </>
   );
 }

@@ -829,6 +829,47 @@ export const useCreateTheme = (mode: PaletteType) => {
               },
             },
           },
+          MuiTabs: {
+            styleOverrides: {
+              root: {
+                minHeight: 'auto',
+                borderBottom: `1px solid ${colors.divider}`,
+              },
+              indicator: {
+                height: 3,
+                borderRadius: '2px 2px 0 0',
+                backgroundColor: '#d6d8dc',
+              },
+              flexContainer: {
+                gap: spacing * 0.5,
+              },
+            },
+          },
+          MuiTab: {
+            styleOverrides: {
+              root: {
+                textTransform: 'none',
+                minWidth: 'auto',
+                minHeight: 'auto',
+                padding: `${spacing * 1.25}px ${spacing * 2.5}px`,
+                fontSize: '0.9375rem',
+                lineHeight: '1.5rem',
+                fontWeight: 400,
+                letterSpacing: '0rem',
+                color: colors.text.secondary,
+                borderRadius: `${radius.md}px ${radius.md}px 0 0`,
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  color: colors.text.primary,
+                  backgroundColor: colors.action.hover,
+                },
+                '&.Mui-selected': {
+                  color: colors.text.primary,
+                  fontWeight: 500,
+                },
+              },
+            },
+          },
         },
       }),
     [colors],
