@@ -1110,6 +1110,7 @@ export function Analytics() {
           onChange={e => setState.timeRange(e.target.value)}
           variant="filled"
           disableUnderline
+          size='small'
         >
           {TIME_RANGE_PRESETS.map(preset => (
             <MenuItem key={preset.value} value={preset.value}>

@@ -344,6 +344,9 @@ export const useCreateTheme = (mode: PaletteType) => {
                   backgroundColor: colors.background.paper,
                   opacity: 0.6,
                 },
+                '&.MuiInputBase-sizeSmall': {
+                  height: '32px',
+                },
               },
               input: {
                 backgroundColor: 'transparent',
@@ -420,13 +423,14 @@ export const useCreateTheme = (mode: PaletteType) => {
                 '& .MuiToggleButtonGroup-grouped': {
                   margin: 0,
                 },
+                height: 32
               },
             },
           },
           MuiToggleButton: {
             styleOverrides: {
               root: ({ theme }) => ({
-                ...theme.typography.subtitle2,
+                ...theme.typography.body2,
                 color: colors.text.secondary,
                 textTransform: 'none',
                 border: 'none',
@@ -587,6 +591,13 @@ export const useCreateTheme = (mode: PaletteType) => {
                 },
                 '&.MuiInputBase-multiline': {
                   padding: 0,
+                },
+                '&.MuiInputBase-sizeSmall': {
+                  height: '32px',
+                  '& input': {
+                    padding: `${spacing * 0.5}px ${spacing * 1.5}px`,
+                    fontSize: '14px',
+                  },
                 },
               },
               notchedOutline: {
@@ -832,33 +843,22 @@ export const useCreateTheme = (mode: PaletteType) => {
           MuiTabs: {
             styleOverrides: {
               root: {
-                minHeight: 'auto',
                 borderBottom: `1px solid ${colors.divider}`,
               },
               indicator: {
                 height: 3,
                 borderRadius: '2px 2px 0 0',
-                backgroundColor: '#d6d8dc',
-              },
-              flexContainer: {
-                gap: spacing * 0.5,
+                backgroundColor: colors.divider,
               },
             },
           },
           MuiTab: {
             styleOverrides: {
-              root: {
+              root: ({ theme }) => (  {
+                ...theme.typography.body1,
                 textTransform: 'none',
-                minWidth: 'auto',
-                minHeight: 'auto',
                 padding: `${spacing * 1.25}px ${spacing * 2.5}px`,
-                fontSize: '0.9375rem',
-                lineHeight: '1.5rem',
-                fontWeight: 400,
-                letterSpacing: '0rem',
-                color: colors.text.secondary,
                 borderRadius: `${radius.md}px ${radius.md}px 0 0`,
-                transition: 'all 0.2s ease',
                 '&:hover': {
                   color: colors.text.primary,
                   backgroundColor: colors.action.hover,
@@ -867,7 +867,7 @@ export const useCreateTheme = (mode: PaletteType) => {
                   color: colors.text.primary,
                   fontWeight: 500,
                 },
-              },
+              }),
             },
           },
         },

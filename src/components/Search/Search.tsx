@@ -8,20 +8,11 @@ import { SearchIcon } from '@icons/SearchIcon';
 
 export const Field = styled(TextField)(({ theme }) => ({
   // background: theme.palette.background.default,
-  [`& .MuiInputBase-root`]: {
-    padding: theme.spacing(0, 1),
-    borderRadius: 360,
-    border: 'none',
-  },
+
   // '& svg': {
   //   position: 'absolute',
   // },
-  '& input': {
-    paddingTop: 0,
-    paddingBottom: 0,
-    paddingLeft: theme.spacing(1),
-    minHeight: 32,
-  },
+
 }));
 
 interface SearchProps {
@@ -55,6 +46,7 @@ export const Search = ({ value, onChange, fullWidth, placeholder }: SearchProps)
         InputProps={{
           startAdornment: <SearchIcon />,
         }}
+        size='small'
       />
       {/*<CircularProgress*/}
       {/*  size={20}*/}
