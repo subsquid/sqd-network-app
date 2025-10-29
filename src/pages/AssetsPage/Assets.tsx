@@ -15,7 +15,8 @@ import {
   useTheme,
 } from '@mui/material';
 import BigNumber from 'bignumber.js';
-import { Cell, Pie, PieChart } from 'recharts';
+import { Pie } from '@visx/shape';
+import { Group } from '@visx/group';
 
 import {
   AccountType,
@@ -70,41 +71,27 @@ function TotalBalance({ balances, total }: { balances: TokenBalance[]; total: Bi
       alignItems="flex-end"
       flex={1}
     >
-      {/* <Box display="flex" pr={7} pb={3} alignItems="center">
-        <PieChart
-          series={[
-            {
-              data: balances.map(i => ({ id: i.name, value: i.value.toNumber(), color: i.color })),
-              outerRadius: 120,
-              innerRadius: 60,
-              valueFormatter: v => tokenFormatter(v.value, SQD_TOKEN, 3),
-              cx: 128,
-              cy: 128,
-            },
-          ]}
-          width={256}
-          height={256}
-          skipAnimation
-        />
-      </Box> */}
       <Box mb={4} mr={7}>
-        <PieChart width={240} height={240}>
-          <Pie
-            data={balances.map(i => ({ name: i.name, value: i.value.toNumber() }))}
-            animationDuration={0}
-            cx="50%"
-            cy="50%"
-            innerRadius={60}
-            outerRadius={120}
-            nameKey="name"
-            dataKey="value"
-            style={{ outline: 'none' }}
-          >
-            {balances.map(i => (
-              <Cell key={i.name} fill={i.color} strokeWidth={0} />
-            ))}
-          </Pie>
-        </PieChart>
+        <svg width={240} height={240}>
+          <Group top={120} left={120}>
+            <Pie
+              data={balances}
+              pieValue={d => d.value.toNumber()}
+              outerRadius={120}
+              innerRadius={60}
+            >
+              {pie => {
+                return pie.arcs.map((arc, i) => {
+                  return (
+                    <g key={`arc-${i}`}>
+                      <path d={pie.path(arc) || ''} fill={arc.data.color} />
+                    </g>
+                  );
+                });
+              }}
+            </Pie>
+          </Group>
+        </svg>
       </Box>
 
       <Box mb={1}>

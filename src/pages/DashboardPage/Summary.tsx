@@ -9,7 +9,6 @@ import {
 import { fromSqd } from '@lib/network';
 import { Box, Divider, Stack, Typography, useTheme, alpha, Button } from '@mui/material';
 import { Grid } from '@mui/material';
-import { AreaChart, Area, ResponsiveContainer, Tooltip, TooltipProps } from 'recharts';
 
 import { useNetworkStats } from '@api/subsquid-network-squid';
 import { useCurrentEpoch } from '@api/subsquid-network-squid';
@@ -156,84 +155,6 @@ function Stats() {
         </Stack>
       </Box>
     </Card>
-  );
-}
-
-function AprTooltip({ active, payload }: TooltipProps<number, string>) {
-  return active && payload?.length ? (
-    <SquaredChip
-      label={<Typography variant="subtitle1">{percentFormatter(payload[0]?.value)}</Typography>}
-      color="info"
-      sx={{ transform: 'translateX(-50%)' }}
-    />
-  ) : null;
-}
-
-function AprChart({ data }: { data: { date: string; value: number }[] }) {
-  const theme = useTheme();
-  const ANIMATION_DURATION = 100;
-  const ANIMATION_EASING = 'ease-out' as const;
-  const ANIMATION_TRANSITION = `all ${ANIMATION_EASING} ${ANIMATION_DURATION}ms`;
-
-  return (
-    <>
-      <style>{`
-        .recharts-tooltip-cursor { 
-          transition: all ease-out ${ANIMATION_DURATION}ms !important;
-          pointer-events: none;
-        }
-        .recharts-wrapper {
-          touch-action: none;
-        }
-      `}</style>
-      <Box sx={{ height: 180, width: 1, margin: theme.spacing(-1.5) }}>
-        <ResponsiveContainer>
-          <AreaChart
-            data={data}
-            defaultShowTooltip
-            margin={{ top: 16, right: 0, left: 0, bottom: 0 }}
-            style={{ cursor: 'pointer', WebkitTapHighlightColor: 'transparent' }}
-          >
-            <defs>
-              <linearGradient id="area-gradient" x2="0" y2="1">
-                <stop offset="0%" stopColor={theme.palette.info.main} />
-                <stop offset="100%" stopColor={alpha(theme.palette.info.main, 0.25)} />
-              </linearGradient>
-            </defs>
-            {data.length ? (
-              <Tooltip
-                content={<AprTooltip />}
-                animationDuration={0}
-                cursor={{
-                  stroke: theme.palette.text.secondary,
-                  strokeWidth: 2,
-                  strokeDasharray: 6,
-                }}
-                active
-                allowEscapeViewBox={{ x: true }}
-                position={{ y: -10 }}
-                wrapperStyle={{
-                  zIndex: 1,
-                  transition: ANIMATION_TRANSITION,
-                  WebkitTapHighlightColor: 'transparent',
-                }}
-                offset={0}
-                trigger="click"
-                filterNull
-              />
-            ) : null}
-            <Area
-              animationDuration={0}
-              dataKey="value"
-              stroke={theme.palette.info.main}
-              strokeWidth={theme.spacing(0.5)}
-              fill="url(#area-gradient)"
-              activeDot={{ strokeWidth: 0 }}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </Box>
-    </>
   );
 }
 

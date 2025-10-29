@@ -1,6 +1,6 @@
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import react from '@vitejs/plugin-react';
-import { defineConfig, splitVendorChunkPlugin } from 'vite';
+import { defineConfig } from 'vite';
 import { createHtmlPlugin } from 'vite-plugin-html';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { createRequire } from 'module';
@@ -49,7 +49,6 @@ export default defineConfig({
     tsconfigPaths(),
     react(),
     createHtmlPlugin({}),
-    process.env.NODE_ENV === 'production' ? splitVendorChunkPlugin() : undefined,
     sentryVitePlugin({
       org: 'subsquid-labs-gmbh',
       project: 'network-app',
