@@ -43,6 +43,8 @@ export type Account = {
   id: Scalars["String"]["output"];
   owned: Array<Account>;
   owner?: Maybe<Account>;
+  temporaryHolding?: Maybe<TemporaryHoldingData>;
+  temporaryHoldings: Array<TemporaryHoldingData>;
   transfers: Array<AccountTransfer>;
   transfersFrom: Array<Transfer>;
   transfersTo: Array<Transfer>;
@@ -84,6 +86,13 @@ export type AccountOwnedArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   orderBy?: InputMaybe<Array<AccountOrderByInput>>;
   where?: InputMaybe<AccountWhereInput>;
+};
+
+export type AccountTemporaryHoldingsArgs = {
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  orderBy?: InputMaybe<Array<TemporaryHoldingDataOrderByInput>>;
+  where?: InputMaybe<TemporaryHoldingDataWhereInput>;
 };
 
 export type AccountTransfersArgs = {
@@ -170,6 +179,24 @@ export enum AccountOrderByInput {
   OwnerTypeDesc = "owner_type_DESC",
   OwnerTypeDescNullsFirst = "owner_type_DESC_NULLS_FIRST",
   OwnerTypeDescNullsLast = "owner_type_DESC_NULLS_LAST",
+  TemporaryHoldingIdAsc = "temporaryHolding_id_ASC",
+  TemporaryHoldingIdAscNullsFirst = "temporaryHolding_id_ASC_NULLS_FIRST",
+  TemporaryHoldingIdAscNullsLast = "temporaryHolding_id_ASC_NULLS_LAST",
+  TemporaryHoldingIdDesc = "temporaryHolding_id_DESC",
+  TemporaryHoldingIdDescNullsFirst = "temporaryHolding_id_DESC_NULLS_FIRST",
+  TemporaryHoldingIdDescNullsLast = "temporaryHolding_id_DESC_NULLS_LAST",
+  TemporaryHoldingLockedAsc = "temporaryHolding_locked_ASC",
+  TemporaryHoldingLockedAscNullsFirst = "temporaryHolding_locked_ASC_NULLS_FIRST",
+  TemporaryHoldingLockedAscNullsLast = "temporaryHolding_locked_ASC_NULLS_LAST",
+  TemporaryHoldingLockedDesc = "temporaryHolding_locked_DESC",
+  TemporaryHoldingLockedDescNullsFirst = "temporaryHolding_locked_DESC_NULLS_FIRST",
+  TemporaryHoldingLockedDescNullsLast = "temporaryHolding_locked_DESC_NULLS_LAST",
+  TemporaryHoldingUnlockedAtAsc = "temporaryHolding_unlockedAt_ASC",
+  TemporaryHoldingUnlockedAtAscNullsFirst = "temporaryHolding_unlockedAt_ASC_NULLS_FIRST",
+  TemporaryHoldingUnlockedAtAscNullsLast = "temporaryHolding_unlockedAt_ASC_NULLS_LAST",
+  TemporaryHoldingUnlockedAtDesc = "temporaryHolding_unlockedAt_DESC",
+  TemporaryHoldingUnlockedAtDescNullsFirst = "temporaryHolding_unlockedAt_DESC_NULLS_FIRST",
+  TemporaryHoldingUnlockedAtDescNullsLast = "temporaryHolding_unlockedAt_DESC_NULLS_LAST",
   TypeAsc = "type_ASC",
   TypeAscNullsFirst = "type_ASC_NULLS_FIRST",
   TypeAscNullsLast = "type_ASC_NULLS_LAST",
@@ -382,6 +409,11 @@ export type AccountWhereInput = {
   owned_some?: InputMaybe<AccountWhereInput>;
   owner?: InputMaybe<AccountWhereInput>;
   owner_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  temporaryHolding?: InputMaybe<TemporaryHoldingDataWhereInput>;
+  temporaryHolding_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  temporaryHoldings_every?: InputMaybe<TemporaryHoldingDataWhereInput>;
+  temporaryHoldings_none?: InputMaybe<TemporaryHoldingDataWhereInput>;
+  temporaryHoldings_some?: InputMaybe<TemporaryHoldingDataWhereInput>;
   transfersFrom_every?: InputMaybe<TransferWhereInput>;
   transfersFrom_none?: InputMaybe<TransferWhereInput>;
   transfersFrom_some?: InputMaybe<TransferWhereInput>;
@@ -2654,6 +2686,9 @@ export type Query = {
   settingsConnection: SettingsConnection;
   squidStatus: SquidStatus;
   storedDataTimeseries: Array<StoredDataEntry>;
+  temporaryHoldingData: Array<TemporaryHoldingData>;
+  temporaryHoldingDataById?: Maybe<TemporaryHoldingData>;
+  temporaryHoldingDataConnection: TemporaryHoldingDataConnection;
   transferById?: Maybe<Transfer>;
   transfers: Array<Transfer>;
   transfersByTypeTimeseries: Array<TransferCountByType>;
@@ -2715,13 +2750,13 @@ export type QueryAccountsConnectionArgs = {
 };
 
 export type QueryActiveWorkersTimeseriesArgs = {
-  from: Scalars["DateTime"]["input"];
+  from?: InputMaybe<Scalars["DateTime"]["input"]>;
   step?: InputMaybe<Scalars["String"]["input"]>;
   to?: InputMaybe<Scalars["DateTime"]["input"]>;
 };
 
 export type QueryAprTimeseriesArgs = {
-  from: Scalars["DateTime"]["input"];
+  from?: InputMaybe<Scalars["DateTime"]["input"]>;
   step?: InputMaybe<Scalars["String"]["input"]>;
   to?: InputMaybe<Scalars["DateTime"]["input"]>;
 };
@@ -2817,13 +2852,13 @@ export type QueryDelegationsConnectionArgs = {
 };
 
 export type QueryDelegationsTimeseriesArgs = {
-  from: Scalars["DateTime"]["input"];
+  from?: InputMaybe<Scalars["DateTime"]["input"]>;
   step?: InputMaybe<Scalars["String"]["input"]>;
   to?: InputMaybe<Scalars["DateTime"]["input"]>;
 };
 
 export type QueryDelegatorsTimeseriesArgs = {
-  from: Scalars["DateTime"]["input"];
+  from?: InputMaybe<Scalars["DateTime"]["input"]>;
   step?: InputMaybe<Scalars["String"]["input"]>;
   to?: InputMaybe<Scalars["DateTime"]["input"]>;
 };
@@ -2901,31 +2936,31 @@ export type QueryGatewaysConnectionArgs = {
 };
 
 export type QueryHoldersCountTimeseriesArgs = {
-  from: Scalars["DateTime"]["input"];
+  from?: InputMaybe<Scalars["DateTime"]["input"]>;
   step?: InputMaybe<Scalars["String"]["input"]>;
   to?: InputMaybe<Scalars["DateTime"]["input"]>;
 };
 
 export type QueryLockedValueTimeseriesArgs = {
-  from: Scalars["DateTime"]["input"];
+  from?: InputMaybe<Scalars["DateTime"]["input"]>;
   step?: InputMaybe<Scalars["String"]["input"]>;
   to?: InputMaybe<Scalars["DateTime"]["input"]>;
 };
 
 export type QueryQueriesCountTimeseriesArgs = {
-  from: Scalars["DateTime"]["input"];
+  from?: InputMaybe<Scalars["DateTime"]["input"]>;
   step?: InputMaybe<Scalars["String"]["input"]>;
   to?: InputMaybe<Scalars["DateTime"]["input"]>;
 };
 
 export type QueryRewardTimeseriesArgs = {
-  from: Scalars["DateTime"]["input"];
+  from?: InputMaybe<Scalars["DateTime"]["input"]>;
   step?: InputMaybe<Scalars["String"]["input"]>;
   to?: InputMaybe<Scalars["DateTime"]["input"]>;
 };
 
 export type QueryServedDataTimeseriesArgs = {
-  from: Scalars["DateTime"]["input"];
+  from?: InputMaybe<Scalars["DateTime"]["input"]>;
   step?: InputMaybe<Scalars["String"]["input"]>;
   to?: InputMaybe<Scalars["DateTime"]["input"]>;
 };
@@ -2949,9 +2984,27 @@ export type QuerySettingsConnectionArgs = {
 };
 
 export type QueryStoredDataTimeseriesArgs = {
-  from: Scalars["DateTime"]["input"];
+  from?: InputMaybe<Scalars["DateTime"]["input"]>;
   step?: InputMaybe<Scalars["String"]["input"]>;
   to?: InputMaybe<Scalars["DateTime"]["input"]>;
+};
+
+export type QueryTemporaryHoldingDataArgs = {
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  orderBy?: InputMaybe<Array<TemporaryHoldingDataOrderByInput>>;
+  where?: InputMaybe<TemporaryHoldingDataWhereInput>;
+};
+
+export type QueryTemporaryHoldingDataByIdArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type QueryTemporaryHoldingDataConnectionArgs = {
+  after?: InputMaybe<Scalars["String"]["input"]>;
+  first?: InputMaybe<Scalars["Int"]["input"]>;
+  orderBy: Array<TemporaryHoldingDataOrderByInput>;
+  where?: InputMaybe<TemporaryHoldingDataWhereInput>;
 };
 
 export type QueryTransferByIdArgs = {
@@ -2966,7 +3019,7 @@ export type QueryTransfersArgs = {
 };
 
 export type QueryTransfersByTypeTimeseriesArgs = {
-  from: Scalars["DateTime"]["input"];
+  from?: InputMaybe<Scalars["DateTime"]["input"]>;
   step?: InputMaybe<Scalars["String"]["input"]>;
   to?: InputMaybe<Scalars["DateTime"]["input"]>;
 };
@@ -2979,13 +3032,13 @@ export type QueryTransfersConnectionArgs = {
 };
 
 export type QueryUniqueAccountsTimeseriesArgs = {
-  from: Scalars["DateTime"]["input"];
+  from?: InputMaybe<Scalars["DateTime"]["input"]>;
   step?: InputMaybe<Scalars["String"]["input"]>;
   to?: InputMaybe<Scalars["DateTime"]["input"]>;
 };
 
 export type QueryUniqueOperatorsTimeseriesArgs = {
-  from: Scalars["DateTime"]["input"];
+  from?: InputMaybe<Scalars["DateTime"]["input"]>;
   step?: InputMaybe<Scalars["String"]["input"]>;
   to?: InputMaybe<Scalars["DateTime"]["input"]>;
 };
@@ -3410,6 +3463,162 @@ export type StoredDataEntry = {
   __typename?: "StoredDataEntry";
   timestamp: Scalars["DateTime"]["output"];
   value?: Maybe<Scalars["Float"]["output"]>;
+};
+
+export type TemporaryHoldingData = {
+  __typename?: "TemporaryHoldingData";
+  account: Account;
+  admin: Account;
+  beneficiary: Account;
+  id: Scalars["String"]["output"];
+  locked: Scalars["Boolean"]["output"];
+  unlockedAt: Scalars["DateTime"]["output"];
+};
+
+export type TemporaryHoldingDataConnection = {
+  __typename?: "TemporaryHoldingDataConnection";
+  edges: Array<TemporaryHoldingDataEdge>;
+  pageInfo: PageInfo;
+  totalCount: Scalars["Int"]["output"];
+};
+
+export type TemporaryHoldingDataEdge = {
+  __typename?: "TemporaryHoldingDataEdge";
+  cursor: Scalars["String"]["output"];
+  node: TemporaryHoldingData;
+};
+
+export enum TemporaryHoldingDataOrderByInput {
+  AccountBalanceAsc = "account_balance_ASC",
+  AccountBalanceAscNullsFirst = "account_balance_ASC_NULLS_FIRST",
+  AccountBalanceAscNullsLast = "account_balance_ASC_NULLS_LAST",
+  AccountBalanceDesc = "account_balance_DESC",
+  AccountBalanceDescNullsFirst = "account_balance_DESC_NULLS_FIRST",
+  AccountBalanceDescNullsLast = "account_balance_DESC_NULLS_LAST",
+  AccountClaimableDelegationCountAsc = "account_claimableDelegationCount_ASC",
+  AccountClaimableDelegationCountAscNullsFirst = "account_claimableDelegationCount_ASC_NULLS_FIRST",
+  AccountClaimableDelegationCountAscNullsLast = "account_claimableDelegationCount_ASC_NULLS_LAST",
+  AccountClaimableDelegationCountDesc = "account_claimableDelegationCount_DESC",
+  AccountClaimableDelegationCountDescNullsFirst = "account_claimableDelegationCount_DESC_NULLS_FIRST",
+  AccountClaimableDelegationCountDescNullsLast = "account_claimableDelegationCount_DESC_NULLS_LAST",
+  AccountIdAsc = "account_id_ASC",
+  AccountIdAscNullsFirst = "account_id_ASC_NULLS_FIRST",
+  AccountIdAscNullsLast = "account_id_ASC_NULLS_LAST",
+  AccountIdDesc = "account_id_DESC",
+  AccountIdDescNullsFirst = "account_id_DESC_NULLS_FIRST",
+  AccountIdDescNullsLast = "account_id_DESC_NULLS_LAST",
+  AccountTypeAsc = "account_type_ASC",
+  AccountTypeAscNullsFirst = "account_type_ASC_NULLS_FIRST",
+  AccountTypeAscNullsLast = "account_type_ASC_NULLS_LAST",
+  AccountTypeDesc = "account_type_DESC",
+  AccountTypeDescNullsFirst = "account_type_DESC_NULLS_FIRST",
+  AccountTypeDescNullsLast = "account_type_DESC_NULLS_LAST",
+  AdminBalanceAsc = "admin_balance_ASC",
+  AdminBalanceAscNullsFirst = "admin_balance_ASC_NULLS_FIRST",
+  AdminBalanceAscNullsLast = "admin_balance_ASC_NULLS_LAST",
+  AdminBalanceDesc = "admin_balance_DESC",
+  AdminBalanceDescNullsFirst = "admin_balance_DESC_NULLS_FIRST",
+  AdminBalanceDescNullsLast = "admin_balance_DESC_NULLS_LAST",
+  AdminClaimableDelegationCountAsc = "admin_claimableDelegationCount_ASC",
+  AdminClaimableDelegationCountAscNullsFirst = "admin_claimableDelegationCount_ASC_NULLS_FIRST",
+  AdminClaimableDelegationCountAscNullsLast = "admin_claimableDelegationCount_ASC_NULLS_LAST",
+  AdminClaimableDelegationCountDesc = "admin_claimableDelegationCount_DESC",
+  AdminClaimableDelegationCountDescNullsFirst = "admin_claimableDelegationCount_DESC_NULLS_FIRST",
+  AdminClaimableDelegationCountDescNullsLast = "admin_claimableDelegationCount_DESC_NULLS_LAST",
+  AdminIdAsc = "admin_id_ASC",
+  AdminIdAscNullsFirst = "admin_id_ASC_NULLS_FIRST",
+  AdminIdAscNullsLast = "admin_id_ASC_NULLS_LAST",
+  AdminIdDesc = "admin_id_DESC",
+  AdminIdDescNullsFirst = "admin_id_DESC_NULLS_FIRST",
+  AdminIdDescNullsLast = "admin_id_DESC_NULLS_LAST",
+  AdminTypeAsc = "admin_type_ASC",
+  AdminTypeAscNullsFirst = "admin_type_ASC_NULLS_FIRST",
+  AdminTypeAscNullsLast = "admin_type_ASC_NULLS_LAST",
+  AdminTypeDesc = "admin_type_DESC",
+  AdminTypeDescNullsFirst = "admin_type_DESC_NULLS_FIRST",
+  AdminTypeDescNullsLast = "admin_type_DESC_NULLS_LAST",
+  BeneficiaryBalanceAsc = "beneficiary_balance_ASC",
+  BeneficiaryBalanceAscNullsFirst = "beneficiary_balance_ASC_NULLS_FIRST",
+  BeneficiaryBalanceAscNullsLast = "beneficiary_balance_ASC_NULLS_LAST",
+  BeneficiaryBalanceDesc = "beneficiary_balance_DESC",
+  BeneficiaryBalanceDescNullsFirst = "beneficiary_balance_DESC_NULLS_FIRST",
+  BeneficiaryBalanceDescNullsLast = "beneficiary_balance_DESC_NULLS_LAST",
+  BeneficiaryClaimableDelegationCountAsc = "beneficiary_claimableDelegationCount_ASC",
+  BeneficiaryClaimableDelegationCountAscNullsFirst = "beneficiary_claimableDelegationCount_ASC_NULLS_FIRST",
+  BeneficiaryClaimableDelegationCountAscNullsLast = "beneficiary_claimableDelegationCount_ASC_NULLS_LAST",
+  BeneficiaryClaimableDelegationCountDesc = "beneficiary_claimableDelegationCount_DESC",
+  BeneficiaryClaimableDelegationCountDescNullsFirst = "beneficiary_claimableDelegationCount_DESC_NULLS_FIRST",
+  BeneficiaryClaimableDelegationCountDescNullsLast = "beneficiary_claimableDelegationCount_DESC_NULLS_LAST",
+  BeneficiaryIdAsc = "beneficiary_id_ASC",
+  BeneficiaryIdAscNullsFirst = "beneficiary_id_ASC_NULLS_FIRST",
+  BeneficiaryIdAscNullsLast = "beneficiary_id_ASC_NULLS_LAST",
+  BeneficiaryIdDesc = "beneficiary_id_DESC",
+  BeneficiaryIdDescNullsFirst = "beneficiary_id_DESC_NULLS_FIRST",
+  BeneficiaryIdDescNullsLast = "beneficiary_id_DESC_NULLS_LAST",
+  BeneficiaryTypeAsc = "beneficiary_type_ASC",
+  BeneficiaryTypeAscNullsFirst = "beneficiary_type_ASC_NULLS_FIRST",
+  BeneficiaryTypeAscNullsLast = "beneficiary_type_ASC_NULLS_LAST",
+  BeneficiaryTypeDesc = "beneficiary_type_DESC",
+  BeneficiaryTypeDescNullsFirst = "beneficiary_type_DESC_NULLS_FIRST",
+  BeneficiaryTypeDescNullsLast = "beneficiary_type_DESC_NULLS_LAST",
+  IdAsc = "id_ASC",
+  IdAscNullsFirst = "id_ASC_NULLS_FIRST",
+  IdAscNullsLast = "id_ASC_NULLS_LAST",
+  IdDesc = "id_DESC",
+  IdDescNullsFirst = "id_DESC_NULLS_FIRST",
+  IdDescNullsLast = "id_DESC_NULLS_LAST",
+  LockedAsc = "locked_ASC",
+  LockedAscNullsFirst = "locked_ASC_NULLS_FIRST",
+  LockedAscNullsLast = "locked_ASC_NULLS_LAST",
+  LockedDesc = "locked_DESC",
+  LockedDescNullsFirst = "locked_DESC_NULLS_FIRST",
+  LockedDescNullsLast = "locked_DESC_NULLS_LAST",
+  UnlockedAtAsc = "unlockedAt_ASC",
+  UnlockedAtAscNullsFirst = "unlockedAt_ASC_NULLS_FIRST",
+  UnlockedAtAscNullsLast = "unlockedAt_ASC_NULLS_LAST",
+  UnlockedAtDesc = "unlockedAt_DESC",
+  UnlockedAtDescNullsFirst = "unlockedAt_DESC_NULLS_FIRST",
+  UnlockedAtDescNullsLast = "unlockedAt_DESC_NULLS_LAST",
+}
+
+export type TemporaryHoldingDataWhereInput = {
+  AND?: InputMaybe<Array<TemporaryHoldingDataWhereInput>>;
+  OR?: InputMaybe<Array<TemporaryHoldingDataWhereInput>>;
+  account?: InputMaybe<AccountWhereInput>;
+  account_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  admin?: InputMaybe<AccountWhereInput>;
+  admin_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  beneficiary?: InputMaybe<AccountWhereInput>;
+  beneficiary_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  id_contains?: InputMaybe<Scalars["String"]["input"]>;
+  id_containsInsensitive?: InputMaybe<Scalars["String"]["input"]>;
+  id_endsWith?: InputMaybe<Scalars["String"]["input"]>;
+  id_eq?: InputMaybe<Scalars["String"]["input"]>;
+  id_gt?: InputMaybe<Scalars["String"]["input"]>;
+  id_gte?: InputMaybe<Scalars["String"]["input"]>;
+  id_in?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  id_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  id_lt?: InputMaybe<Scalars["String"]["input"]>;
+  id_lte?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_contains?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_containsInsensitive?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_endsWith?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_eq?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_in?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  id_not_startsWith?: InputMaybe<Scalars["String"]["input"]>;
+  id_startsWith?: InputMaybe<Scalars["String"]["input"]>;
+  locked_eq?: InputMaybe<Scalars["Boolean"]["input"]>;
+  locked_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  locked_not_eq?: InputMaybe<Scalars["Boolean"]["input"]>;
+  unlockedAt_eq?: InputMaybe<Scalars["DateTime"]["input"]>;
+  unlockedAt_gt?: InputMaybe<Scalars["DateTime"]["input"]>;
+  unlockedAt_gte?: InputMaybe<Scalars["DateTime"]["input"]>;
+  unlockedAt_in?: InputMaybe<Array<Scalars["DateTime"]["input"]>>;
+  unlockedAt_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  unlockedAt_lt?: InputMaybe<Scalars["DateTime"]["input"]>;
+  unlockedAt_lte?: InputMaybe<Scalars["DateTime"]["input"]>;
+  unlockedAt_not_eq?: InputMaybe<Scalars["DateTime"]["input"]>;
+  unlockedAt_not_in?: InputMaybe<Array<Scalars["DateTime"]["input"]>>;
 };
 
 export type Transfer = {
@@ -7396,7 +7605,7 @@ export const useSourcesWithDelegationsQuery = <
 
 export const AllWorkersDocument = `
     query allWorkers {
-  workers(where: {status_eq: ACTIVE}, orderBy: totalDelegation_ASC) {
+  workers(where: {status_not_eq: WITHDRAWN}, orderBy: totalDelegation_ASC) {
     ...WorkerFragment
   }
 }

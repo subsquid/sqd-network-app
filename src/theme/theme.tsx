@@ -222,6 +222,19 @@ export const useCreateTheme = (mode: PaletteType) => {
               color: 'primary',
             },
           },
+          MuiIconButton: {
+            styleOverrides: {
+              root: {
+                color: colors.text.secondary,
+                '&:hover': {
+                  backgroundColor: colors.action.hover,
+                },
+              },
+            },
+            defaultProps: {
+              color: 'default',
+            },
+          },
           MuiPaper: {
             styleOverrides: {
               root: ({ theme }) => ({

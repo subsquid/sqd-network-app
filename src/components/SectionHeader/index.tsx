@@ -19,6 +19,7 @@ const CardTitle = styled(Box, {
   flexDirection: 'column',
   gap: theme.spacing(0.75),
   alignItems: 'start',
+  flex: 1,
 }));
 
 export interface SectionHeaderProps {
@@ -43,7 +44,7 @@ export function SectionHeader({
     <CardHeader sx={sx}>
       {hasTitle && (
         <CardTitle>
-          {title && <Box>{normalizedTitle}</Box>}
+          {title && <Box sx={{ width: '100%' }}>{normalizedTitle}</Box>}
           {subtitle && <Box>{normalizedSubtitle}</Box>}
         </CardTitle>
       )}

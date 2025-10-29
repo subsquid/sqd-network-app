@@ -2,7 +2,7 @@ import { isArray, isDate, mapValues, pickBy } from 'lodash-es';
 import qs from 'qs';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-// biome-ignore lint/style/noNamespace: <explanation>
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Location {
   export class Param {
     public initial?: unknown;
@@ -64,10 +64,29 @@ export namespace Location {
       return new Date(val);
     }
   }
+
+  export class Array<T extends Param> extends Param {
+    constructor(
+      private itemType: T,
+      public initial?: any[],
+    ) {
+      super();
+    }
+
+    parse(val: any): any[] {
+      if (isArray(val)) {
+        return val.map((v) => this.itemType.parse(v));
+      }
+      if (val === undefined || val === null) {
+        return this.initial ?? [];
+      }
+      return [this.itemType.parse(val)];
+    }
+  }
 }
 
-type TypeName<T> = T extends (infer U)[]
-  ? U
+type TypeName<T> = T extends Location.Array<infer U>
+  ? TypeName<U>[]
   : T extends Location.String
     ? string
     : T extends Location.Enum<infer U>
@@ -76,7 +95,9 @@ type TypeName<T> = T extends (infer U)[]
         ? number
         : T extends Location.Bool
           ? boolean
-          : never;
+          : T extends Location.IsoDate
+            ? Date
+            : never;
 
 export function useLocationState<
   Query extends Record<string | symbol, Location.Param>,
@@ -93,10 +114,7 @@ export function useLocationState<
     mapValues(qs.parse(location.search.substring(1)), (v, k) => {
       if (!params[k]) return null;
 
-      let val = params[k]?.parse(v);
-      if (isArray(initialState[k]) && val && !isArray(val)) {
-        val = [val];
-      }
+      const val = params[k]?.parse(v);
 
       return val;
     }),
@@ -133,7 +151,7 @@ export function useLocationState<
       const clearState = pickBy(state as Record<string, unknown>, (v, k) => {
         return v !== initialState[k];
       });
-      location.search = '?' + qs.stringify(clearState);
+      location.search = '?' + qs.stringify(clearState, { arrayFormat: 'repeat' });
       navigate(location);
     };
 

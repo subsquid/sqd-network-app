@@ -8,6 +8,35 @@ import capitalize from 'lodash-es/capitalize';
 import { WorkerStatus as Status, useCurrentEpoch } from '@api/subsquid-network-squid';
 import { useCountdown } from '@hooks/useCountdown';
 
+export type WorkerStatusLabel = 'online' | 'offline' | 'jailed' | 'registering' | 'deregistering' | 'deregistered';
+
+export function getWorkerStatus(worker?: {
+  status?: string;
+  jailReason?: string;
+  jailed?: boolean;
+  online?: boolean;
+}): { label: WorkerStatusLabel | string; color: 'error' | 'warning' | 'success' | 'primary'; tip?: string } {
+  if (!worker) return { label: 'unknown', color: 'primary' };
+
+  switch (worker.status) {
+    case Status.Active:
+      if (worker.jailed) {
+        return { label: 'jailed', color: 'warning', tip: worker.jailReason || 'Unknown' };
+      } else if (!worker.online) {
+        return { label: 'offline', color: 'error' };
+      }
+      return { label: 'online', color: 'success' };
+    case Status.Registering:
+      return { label: 'registering', color: 'primary' };
+    case Status.Deregistering:
+      return { label: 'deregistering', color: 'primary' };
+    case Status.Deregistered:
+      return { label: 'deregistered', color: 'primary' };
+  }
+
+  return { label: capitalize(worker.status), color: 'primary' };
+}
+
 export const Chip = styled(MaterialChip)(({ theme }) => ({
   // [`&.${chipClasses.colorSuccess}`]: {
   //   background: theme.palette.success.background,
@@ -30,8 +59,10 @@ function AppliesTooltip({ timestamp }: { timestamp?: number }) {
 }
 
 export function WorkerStatusChip({
+  status,
   worker,
 }: {
+  status?: WorkerStatusLabel | string;
   worker?: {
     status?: string;
     jailReason?: string;
@@ -48,27 +79,34 @@ export function WorkerStatusChip({
     color: 'error' | 'warning' | 'success' | 'primary';
     tip?: string;
   } => {
-    if (!worker) return { label: 'unknown', color: 'primary' };
-
-    switch (worker.status) {
-      case Status.Active:
-        if (worker.jailed) {
-          return { label: 'Jailed', color: 'warning', tip: worker.jailReason || 'Unknown' };
-        } else if (!worker.online) {
+    // If status string is provided directly, use it
+    if (status) {
+      switch (status) {
+        case 'online':
+          return { label: 'Online', color: 'success' };
+        case 'offline':
           return { label: 'Offline', color: 'error' };
-        }
-
-        return { label: 'Online', color: 'success' };
-      case Status.Registering:
-        return { label: 'Registering', color: 'primary' };
-      case Status.Deregistering:
-        return { label: 'Deregistering', color: 'primary' };
-      case Status.Deregistered:
-        return { label: 'Deregistered', color: 'primary' };
+        case 'jailed':
+          return { label: 'Jailed', color: 'warning' };
+        case 'registering':
+          return { label: 'Registering', color: 'primary' };
+        case 'deregistering':
+          return { label: 'Deregistering', color: 'primary' };
+        case 'deregistered':
+          return { label: 'Deregistered', color: 'primary' };
+        default:
+          return { label: capitalize(status), color: 'primary' };
+      }
     }
-
-    return { label: capitalize(worker.status), color: 'primary' };
-  }, [worker]);
+    
+    // Otherwise extract from worker object (backwards compatibility)
+    const statusInfo = getWorkerStatus(worker);
+    return {
+      label: capitalize(statusInfo.label),
+      color: statusInfo.color,
+      tip: statusInfo.tip,
+    };
+  }, [status, worker]);
 
   const { data: currentEpoch } = useCurrentEpoch();
   const applyTimestamp = useMemo(() => {

@@ -154,7 +154,7 @@ fragment WorkerFullFragment on Worker {
 }
 
 query allWorkers {
-  workers(where: { status_eq: ACTIVE }, orderBy: totalDelegation_ASC) {
+  workers(where: { status_not_eq: WITHDRAWN }, orderBy: totalDelegation_ASC) {
     ...WorkerFragment
   }
 }
