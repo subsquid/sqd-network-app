@@ -148,7 +148,7 @@ const MainContent = styled('main', {
   paddingLeft: theme.spacing(2),
   paddingRight: theme.spacing(2),
   paddingTop: theme.spacing(2),
-  paddingBottom: theme.spacing(6),
+  paddingBottom: theme.spacing(10),
   width: '100%',
   minHeight: '100vh',
 
@@ -156,7 +156,7 @@ const MainContent = styled('main', {
     paddingLeft: theme.spacing(3),
     paddingRight: theme.spacing(3),
     paddingTop: theme.spacing(3),
-    paddingBottom: theme.spacing(8),
+    paddingBottom: theme.spacing(10),
     width: `calc(100% - ${SIDEBAR_WIDTH}px)`,
   },
 }));

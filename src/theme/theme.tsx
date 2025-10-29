@@ -857,6 +857,7 @@ export const useCreateTheme = (mode: PaletteType) => {
             styleOverrides: {
               root: {
                 borderBottom: `1px solid ${colors.divider}`,
+                minHeight: 42,
               },
               indicator: {
                 height: 3,
@@ -880,6 +881,7 @@ export const useCreateTheme = (mode: PaletteType) => {
                   color: colors.text.primary,
                   fontWeight: 500,
                 },
+                minHeight: 42,
               }),
             },
           },
