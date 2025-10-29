@@ -124,10 +124,6 @@ const MenuButton = styled(IconButton, {
     duration: theme.transitions.duration.short,
   }),
 
-  [theme.breakpoints.down('lg')]: {
-    display: 'inline-flex',
-  },
-
   '&.open': {
     transform: 'rotateZ(90deg)',
   },

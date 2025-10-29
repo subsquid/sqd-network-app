@@ -20,7 +20,7 @@ export const Field = styled(TextField)(({ theme }) => ({
     paddingTop: 0,
     paddingBottom: 0,
     paddingLeft: theme.spacing(1),
-    minHeight: 28,
+    minHeight: 32,
   },
 }));
 
@@ -49,9 +49,7 @@ export const Search = ({ value, onChange, fullWidth, placeholder }: SearchProps)
         placeholder={placeholder}
         variant="filled"
         inputMode="search"
-        className="paper"
         value={realTimeValue}
-        size="small"
         fullWidth={fullWidth}
         onChange={handleInputChange}
         InputProps={{

@@ -418,7 +418,6 @@ export const useCreateTheme = (mode: PaletteType) => {
                 backgroundColor: colors.background.paper,
                 borderRadius: radius.md,
                 '& .MuiToggleButtonGroup-grouped': {
-                  border: 0,
                   margin: 0,
                 },
               },
@@ -427,11 +426,9 @@ export const useCreateTheme = (mode: PaletteType) => {
           MuiToggleButton: {
             styleOverrides: {
               root: ({ theme }) => ({
+                ...theme.typography.subtitle2,
                 color: colors.text.secondary,
-                backgroundColor: 'transparent',
                 textTransform: 'none',
-                fontSize: '14px',
-                letterSpacing: '0rem',
                 border: 'none',
                 '&.Mui-selected': {
                   backgroundColor: colors.divider,
