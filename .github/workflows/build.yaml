@@ -111,3 +111,23 @@ jobs:
           APP_ENV: ${{ steps.env.outputs.app_env }}
           NETWORK: ${{ matrix.network }}
           TAG: ${{ steps.env.outputs.tag }}
+
+      - name: Slack notification success
+        uses: 8398a7/action-slack@v3
+        with:
+          channel: ${ process.env.SLACK_CHANNEL }
+          status: custom
+          fields: message,workflow,job,commit,repo,ref,author,took
+          custom_payload: |
+            {
+              attachments: [{
+                title: `A new ${process.env.NETWORK} app (${process.env.APP_ENV}) version has been deployed`,
+                color: '${{ job.status }}' === 'success' ? 'good' : '${{ job.status }}' === 'failure' ? 'danger' : 'warning',
+                text: `${process.env.AS_MESSAGE}\n${process.env.AS_COMMIT} by ${process.env.AS_AUTHOR} in ${process.env.AS_TOOK}`,
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.slack_webhook_url }}
+          NETWORK: ${{ matrix.network }}
+          SLACK_CHANNEL:  ${{ steps.env.outputs.slack_channel }}
+          APP_ENV: ${{ steps.env.outputs.app_env }}
