@@ -29,7 +29,7 @@ export function OtcContracts() {
 
   return (
     <Box>
-      <SectionHeader title="Buyback" />
+      <SectionHeader title="Buyback" sx={{ mb: 2 }}/>
       <DashboardTable loading={isLoading} sx={{ mb: 2 }}>
         <TableHead>
           <TableRow>

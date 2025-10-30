@@ -133,43 +133,46 @@ export function Workers() {
   const isLoading = isSourcesLoading || isWorkersLoading;
 
   return (
-    <Box>
-      <SectionHeader
-        title={
-          <Search
-            placeholder="Search"
-            value={query.search}
-            onChange={setQuery.search}
-            fullWidth={isMobile}
-          />
-        }
-        action={
-          <IconButton
-            size="small"
-            onClick={() => setFiltersOpen(!filtersOpen)}
-            sx={{
-              backgroundColor: filtersOpen ? 'action.selected' : 'transparent',
-              '&:hover': {
-                backgroundColor: filtersOpen ? 'action.selected' : 'action.hover',
-              },
-            }}
-          >
-            <FilterList />
-          </IconButton>
-        }
-      />
-      <Collapse in={filtersOpen}>
-        <WorkersFilters
-          statusArray={query.status}
-          onStatusChange={setQuery.status}
-          minUptime={query.minUptime}
-          onMinUptimeChange={setQuery.minUptime}
-          minWorkerAPR={query.minWorkerAPR}
-          onMinWorkerAPRChange={setQuery.minWorkerAPR}
-          minDelegatorAPR={query.minDelegatorAPR}
-          onMinDelegatorAPRChange={setQuery.minDelegatorAPR}
+    <>
+      <Box mb={2}>
+        <SectionHeader
+          title={
+            <Search
+              placeholder="Search"
+              value={query.search}
+              onChange={setQuery.search}
+              fullWidth={isMobile}
+            />
+          }
+          action={
+            <IconButton
+              size="small"
+              onClick={() => setFiltersOpen(!filtersOpen)}
+              sx={{
+                backgroundColor: filtersOpen ? 'action.selected' : 'transparent',
+                '&:hover': {
+                  backgroundColor: filtersOpen ? 'action.selected' : 'action.hover',
+                },
+              }}
+            >
+              <FilterList />
+            </IconButton>
+          }
         />
-      </Collapse>
+        <Collapse in={filtersOpen}>
+          <WorkersFilters
+            sx={{ mt: 2 }}
+            statusArray={query.status}
+            onStatusChange={setQuery.status}
+            minUptime={query.minUptime}
+            onMinUptimeChange={setQuery.minUptime}
+            minWorkerAPR={query.minWorkerAPR}
+            onMinWorkerAPRChange={setQuery.minWorkerAPR}
+            minDelegatorAPR={query.minDelegatorAPR}
+            onMinDelegatorAPRChange={setQuery.minDelegatorAPR}
+          />
+        </Collapse>
+      </Box>
       <DashboardTable loading={isLoading} sx={{ mb: 2 }} minHeight={PER_PAGE * 73}>
         <TableHead>
           <TableRow>
@@ -248,6 +251,6 @@ export function Workers() {
       {!isWorkersLoading && (
         <TableNavigation page={page} totalPages={totalPages} setPage={setQuery.page} />
       )}
-    </Box>
+    </>
   );
 }

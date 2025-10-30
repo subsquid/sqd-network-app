@@ -1,5 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Box, Checkbox, Grid, MenuItem, Select, TextField, Typography } from '@mui/material';
+import {
+  Box,
+  Checkbox,
+  Grid,
+  MenuItem,
+  Select,
+  TextField,
+  Typography,
+  type SxProps,
+} from '@mui/material';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { WorkerStatusChip, WorkerStatusLabel } from '@pages/WorkersPage/WorkerStatus';
@@ -34,6 +43,7 @@ interface WorkersFiltersProps {
 }
 
 export function WorkersFilters({
+  sx,
   statusArray,
   onStatusChange,
   minUptime,
@@ -42,7 +52,7 @@ export function WorkersFilters({
   onMinWorkerAPRChange,
   minDelegatorAPR,
   onMinDelegatorAPRChange,
-}: WorkersFiltersProps) {
+}: WorkersFiltersProps & { sx?: SxProps }) {
   // Local state for immediate input updates
   const [localMinUptime, setLocalMinUptime] = useState(minUptime);
   const [localMinWorkerAPR, setLocalMinWorkerAPR] = useState(minWorkerAPR);
@@ -82,103 +92,97 @@ export function WorkersFilters({
   };
 
   return (
-    <Box sx={{ mb: 2 }}>
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Box>
-            <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 500 }}>
-              Status
-            </Typography>
-            <Select
-              fullWidth
-              size="small"
-              multiple
-              value={statusArray}
-              onChange={e => onStatusChange(e.target.value as string[])}
-              variant="filled"
-              displayEmpty
-              renderValue={selected => {
-                if (selected.length === 0) {
-                  return (
-                    <Typography variant="body2" color="text.disabled">
-                      All
-                    </Typography>
-                  );
-                }
+    <Grid container spacing={2} sx={sx}>
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Box>
+          <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 500 }}>
+            Status
+          </Typography>
+          <Select
+            fullWidth
+            size="small"
+            multiple
+            value={statusArray}
+            onChange={e => onStatusChange(e.target.value as string[])}
+            variant="filled"
+            displayEmpty
+            renderValue={selected => {
+              if (selected.length === 0) {
                 return (
-                  <Box sx={{ display: 'flex', flexWrap: 'nowrap', gap: 0.5, overflow: 'hidden' }}>
-                    {selected.map(value => (
-                      <WorkerStatusChip key={value} status={value as WorkerStatusLabel} />
-                    ))}
-                  </Box>
+                  <Typography variant="body2" color="text.disabled">
+                    All
+                  </Typography>
                 );
-              }}
-            >
-              {STATUS_OPTIONS.map(status => (
-                <MenuItem key={status} value={status} sx={menuItemSx}>
-                  <Checkbox
-                    checked={statusArray.indexOf(status) > -1}
-                    size="small"
-                    sx={checkboxSx}
-                  />
-                  <WorkerStatusChip status={status} />
-                </MenuItem>
-              ))}
-            </Select>
-          </Box>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Box>
-            <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 500 }}>
-              Min Uptime, %
-            </Typography>
-            <TextField
-              fullWidth
-              size="small"
-              type="number"
-              value={localMinUptime}
-              onChange={e => handleMinUptimeChange(e.target.value)}
-              inputProps={{ min: 0, max: 100, step: 1 }}
-              variant="filled"
-              placeholder="0"
-            />
-          </Box>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Box>
-            <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 500 }}>
-              Min Worker APR, %
-            </Typography>
-            <TextField
-              fullWidth
-              size="small"
-              type="number"
-              value={localMinWorkerAPR}
-              onChange={e => handleMinWorkerAPRChange(e.target.value)}
-              inputProps={{ min: 0, step: 0.1 }}
-              variant="filled"
-              placeholder="0"
-            />
-          </Box>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Box>
-            <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 500 }}>
-              Min Delegator APR, %
-            </Typography>
-            <TextField
-              fullWidth
-              size="small"
-              type="number"
-              value={localMinDelegatorAPR}
-              onChange={e => handleMinDelegatorAPRChange(e.target.value)}
-              inputProps={{ min: 0, step: 0.1 }}
-              variant="filled"
-              placeholder="0"
-            />
-          </Box>
-        </Grid>
+              }
+              return (
+                <Box sx={{ display: 'flex', flexWrap: 'nowrap', gap: 0.5, overflow: 'hidden' }}>
+                  {selected.map(value => (
+                    <WorkerStatusChip key={value} status={value as WorkerStatusLabel} />
+                  ))}
+                </Box>
+              );
+            }}
+          >
+            {STATUS_OPTIONS.map(status => (
+              <MenuItem key={status} value={status} sx={menuItemSx}>
+                <Checkbox checked={statusArray.indexOf(status) > -1} size="small" sx={checkboxSx} />
+                <WorkerStatusChip status={status} />
+              </MenuItem>
+            ))}
+          </Select>
+        </Box>
       </Grid>
-    </Box>
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Box>
+          <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 500 }}>
+            Min Uptime, %
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            type="number"
+            value={localMinUptime}
+            onChange={e => handleMinUptimeChange(e.target.value)}
+            inputProps={{ min: 0, max: 100, step: 1 }}
+            variant="filled"
+            placeholder="0"
+          />
+        </Box>
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Box>
+          <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 500 }}>
+            Min Worker APR, %
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            type="number"
+            value={localMinWorkerAPR}
+            onChange={e => handleMinWorkerAPRChange(e.target.value)}
+            inputProps={{ min: 0, step: 0.1 }}
+            variant="filled"
+            placeholder="0"
+          />
+        </Box>
+      </Grid>
+      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Box>
+          <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 500 }}>
+            Min Delegator APR, %
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            type="number"
+            value={localMinDelegatorAPR}
+            onChange={e => handleMinDelegatorAPRChange(e.target.value)}
+            inputProps={{ min: 0, step: 0.1 }}
+            variant="filled"
+            placeholder="0"
+          />
+        </Box>
+      </Grid>
+    </Grid>
   );
 }

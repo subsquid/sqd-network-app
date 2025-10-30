@@ -158,6 +158,7 @@ export function MyGateways() {
     <>
       <SectionHeader
         title="My Portals"
+        sx={{ mb: 2 }}
         action={
           <Stack direction="row" spacing={1}>
             <Button

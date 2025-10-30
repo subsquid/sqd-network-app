@@ -45,6 +45,7 @@ export function MyWorkers() {
   return (
     <Box>
       <SectionHeader
+        sx={{ mb: 2 }}
         title={<SquaredChip label="My Workers" color="primary" />}
         action={
           <Stack direction="row" spacing={1}>

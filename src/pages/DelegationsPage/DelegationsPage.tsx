@@ -34,7 +34,7 @@ export function MyDelegations() {
 
   return (
     <Box>
-      <SectionHeader title="My Delegations" />
+      <SectionHeader title="My Delegations" sx={{ mb: 2 }}/>
       <DashboardTable loading={isLoading} sx={{ mb: 2 }}>
         <TableHead>
           <TableRow>

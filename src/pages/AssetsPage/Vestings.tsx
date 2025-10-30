@@ -86,7 +86,7 @@ export function MyVestings() {
 
   return (
     <>
-      <SectionHeader title="My Vestings" />
+      <SectionHeader title="My Vestings" sx={{ mb: 2 }}/>
       <DashboardTable loading={isLoading || isVestingsLoading}>
         <TableHead>
           <TableRow>
