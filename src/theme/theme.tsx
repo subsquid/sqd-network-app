@@ -868,7 +868,7 @@ export const useCreateTheme = (mode: PaletteType) => {
           },
           MuiTab: {
             styleOverrides: {
-              root: ({ theme }) => (  {
+              root: ({ theme }) => ({
                 ...theme.typography.body1,
                 textTransform: 'none',
                 padding: `${spacing * 1.25}px ${spacing * 2.5}px`,

@@ -4,7 +4,6 @@ import { Box, Stack, TableBody, TableCell, TableHead, TableRow } from '@mui/mate
 import { Outlet } from 'react-router-dom';
 
 import { SortDir, useMyDelegations, useMySources, WorkerSortBy } from '@api/subsquid-network-squid';
-import { SquaredChip } from '@components/Chip';
 import { DashboardTable, NoItems, SortableHeaderCell } from '@components/Table';
 import { Location, useLocationState } from '@hooks/useLocationState';
 import { CenteredPageWrapper } from '@layouts/NetworkLayout';

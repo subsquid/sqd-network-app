@@ -231,5 +231,8 @@ export function parseDateMathEnd(expression: string, anchor: Date = new Date()):
 }
 
 export function parseTimeRange(start?: string, end?: string): { from: Date; to: Date } {
-  return { from: start ? parseDateMath(start) : new Date(0), to: end ? parseDateMathEnd(end) : new Date() };
+  return {
+    from: start ? parseDateMath(start) : new Date(0),
+    to: end ? parseDateMathEnd(end) : new Date(),
+  };
 }

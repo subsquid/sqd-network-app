@@ -7,7 +7,7 @@ import {
   tokenFormatter,
 } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
-import { Box, Divider, Stack, Typography, useTheme, alpha, Button } from '@mui/material';
+import { Box, Divider, Stack, Typography, useTheme } from '@mui/material';
 import { Grid } from '@mui/material';
 
 import { useNetworkStats } from '@api/subsquid-network-squid';
@@ -17,8 +17,6 @@ import { HelpTooltip } from '@components/HelpTooltip';
 import { useCountdown } from '@hooks/useCountdown';
 import { useContracts } from '@network/useContracts';
 import { Card } from '@components/Card/Card';
-import { Link } from 'react-router-dom';
-import { QueryStatsOutlined } from '@mui/icons-material';
 
 export function ColumnLabel({ children, color }: PropsWithChildren<{ color?: string }>) {
   return (
@@ -58,7 +56,9 @@ function OnlineInfo() {
         <Typography variant="h1" display="flex" alignItems="flex-end">
           {data?.onlineWorkersCount || 0}
         </Typography>
-        <Typography variant="h2" display="flex" alignItems="flex-end" color="text.disabled">/{data?.workersCount || 0}</Typography>
+        <Typography variant="h2" display="flex" alignItems="flex-end" color="text.disabled">
+          /{data?.workersCount || 0}
+        </Typography>
       </Box>
     </Card>
   );
@@ -111,12 +111,7 @@ function Stats() {
   const { SQD_TOKEN } = useContracts();
 
   return (
-    <Card
-      sx={{ height: 1 }}
-      loading={isLoading}
-      title="Other Data"
-      
-    >
+    <Card sx={{ height: 1 }} loading={isLoading} title="Other Data">
       <Box height={1} display="flex" alignItems="flex-end">
         <Stack divider={<Divider />} spacing={1} flex={1}>
           <Box>

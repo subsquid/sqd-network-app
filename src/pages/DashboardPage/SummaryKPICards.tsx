@@ -11,7 +11,7 @@ import {
   useQueriesCountTimeseriesQuery,
 } from '@api/subsquid-network-squid';
 import { fromSqd } from '@lib/network';
-import { toCompact, tokenFormatter, percentFormatter } from '@lib/formatters/formatters';
+import { tokenFormatter, percentFormatter } from '@lib/formatters/formatters';
 
 interface KPICardProps {
   title: string;
@@ -26,10 +26,10 @@ function KPICard({ title, icon, currentValue, isLoading, color }: KPICardProps) 
 
   if (isLoading) {
     return (
-      <Paper 
-        elevation={0} 
-        sx={{ 
-          p: 3, 
+      <Paper
+        elevation={0}
+        sx={{
+          p: 3,
           height: '100%',
           border: '1px solid',
           borderColor: 'divider',
@@ -102,10 +102,12 @@ export function SummaryKPICards({ range, step }: SummaryKPICardsProps) {
     [range, step],
   );
 
-  const { data: workersData, isLoading: workersLoading } = useActiveWorkersTimeseriesQuery(queryVars);
+  const { data: workersData, isLoading: workersLoading } =
+    useActiveWorkersTimeseriesQuery(queryVars);
   const { data: tvlData, isLoading: tvlLoading } = useLockedValueTimeseriesQuery(queryVars);
   const { data: aprData, isLoading: aprLoading } = useAprTimeseriesQuery(queryVars);
-  const { data: queriesData, isLoading: queriesLoading } = useQueriesCountTimeseriesQuery(queryVars);
+  const { data: queriesData, isLoading: queriesLoading } =
+    useQueriesCountTimeseriesQuery(queryVars);
 
   const workersKPI = useMemo(() => {
     const data = workersData?.activeWorkersTimeseries || [];
@@ -201,4 +203,3 @@ export function SummaryKPICards({ range, step }: SummaryKPICardsProps) {
     </Box>
   );
 }
-

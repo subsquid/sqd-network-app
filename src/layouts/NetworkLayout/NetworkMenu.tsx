@@ -138,7 +138,7 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
   if (demoFeaturesEnabled()) {
     paths.push('/portals');
   }
-  
+
   const selectedPath = paths.find(path => location.pathname.startsWith(path));
 
   // Track the last valid path for fallback

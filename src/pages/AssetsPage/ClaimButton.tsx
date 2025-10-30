@@ -12,11 +12,7 @@ import * as yup from 'yup';
 import { rewardTreasuryAbi, useReadRouterRewardTreasury } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
-import {
-  AccountType,
-  SourceWalletWithBalance,
-  Worker,
-} from '@api/subsquid-network-squid';
+import { AccountType, SourceWalletWithBalance, Worker } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { Form, FormikSelect, FormRow } from '@components/Form';
 import { Loader } from '@components/Loader';

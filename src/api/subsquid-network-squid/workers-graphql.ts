@@ -218,11 +218,11 @@ function escapeRegExp(string: string): string {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-export function useWorkers({ 
-  page, 
-  perPage, 
-  search, 
-  sortBy, 
+export function useWorkers({
+  page,
+  perPage,
+  search,
+  sortBy,
   sortDir,
   statusFilter = [],
   minUptime,
@@ -262,13 +262,13 @@ export function useWorkers({
         // Min worker APR filter
         if (minWorkerAPR != null && minWorkerAPR > 0) {
           const workerAPR = w.apr != null ? w.apr : 0;
-          if (workerAPR < minWorkerAPR) return false
+          if (workerAPR < minWorkerAPR) return false;
         }
 
         // Min delegator APR filter
         if (minDelegatorAPR != null && minDelegatorAPR > 0) {
           const delegatorAPR = w.stakerApr != null ? w.stakerApr : 0;
-          if (delegatorAPR < minDelegatorAPR) return false
+          if (delegatorAPR < minDelegatorAPR) return false;
         }
 
         return true;
@@ -292,7 +292,18 @@ export function useWorkers({
         normalizedPage * perPage,
       ),
     };
-  }, [data?.workers, search, sortBy, sortDir, page, perPage, statusFilter, minUptime, minWorkerAPR, minDelegatorAPR]);
+  }, [
+    data?.workers,
+    search,
+    sortBy,
+    sortDir,
+    page,
+    perPage,
+    statusFilter,
+    minUptime,
+    minWorkerAPR,
+    minDelegatorAPR,
+  ]);
 
   return {
     ...filteredData,
@@ -427,9 +438,9 @@ export function useMyDelegations({ sortBy, sortDir }: MyWorkersParams) {
   const { isPending: isSettingsLoading } = useNetworkSettings();
   const datasource = useSquid();
 
-  const { data: delegationsQuery, isLoading: isDelegationsQueryLoading } = useMyDelegationsQuery(
-    { address: address || '0x' },
-  );
+  const { data: delegationsQuery, isLoading: isDelegationsQueryLoading } = useMyDelegationsQuery({
+    address: address || '0x',
+  });
 
   const data = useMemo(() => {
     type WorkerWithDelegations = SimplifyDeep<

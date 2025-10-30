@@ -8,14 +8,24 @@ import capitalize from 'lodash-es/capitalize';
 import { WorkerStatus as Status, useCurrentEpoch } from '@api/subsquid-network-squid';
 import { useCountdown } from '@hooks/useCountdown';
 
-export type WorkerStatusLabel = 'online' | 'offline' | 'jailed' | 'registering' | 'deregistering' | 'deregistered';
+export type WorkerStatusLabel =
+  | 'online'
+  | 'offline'
+  | 'jailed'
+  | 'registering'
+  | 'deregistering'
+  | 'deregistered';
 
 export function getWorkerStatus(worker?: {
   status?: string;
   jailReason?: string;
   jailed?: boolean;
   online?: boolean;
-}): { label: WorkerStatusLabel | string; color: 'error' | 'warning' | 'success' | 'primary'; tip?: string } {
+}): {
+  label: WorkerStatusLabel | string;
+  color: 'error' | 'warning' | 'success' | 'primary';
+  tip?: string;
+} {
   if (!worker) return { label: 'unknown', color: 'primary' };
 
   switch (worker.status) {
@@ -98,7 +108,7 @@ export function WorkerStatusChip({
           return { label: capitalize(status), color: 'primary' };
       }
     }
-    
+
     // Otherwise extract from worker object (backwards compatibility)
     const statusInfo = getWorkerStatus(worker);
     return {

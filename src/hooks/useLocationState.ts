@@ -75,7 +75,7 @@ export namespace Location {
 
     parse(val: any): any[] {
       if (isArray(val)) {
-        return val.map((v) => this.itemType.parse(v));
+        return val.map(v => this.itemType.parse(v));
       }
       if (val === undefined || val === null) {
         return this.initial ?? [];

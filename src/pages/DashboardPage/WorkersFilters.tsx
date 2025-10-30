@@ -1,13 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  Box,
-  Checkbox,
-  Grid,
-  MenuItem,
-  Select,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Box, Checkbox, Grid, MenuItem, Select, TextField, Typography } from '@mui/material';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { WorkerStatusChip, WorkerStatusLabel } from '@pages/WorkersPage/WorkerStatus';
@@ -102,10 +94,10 @@ export function WorkersFilters({
               size="small"
               multiple
               value={statusArray}
-              onChange={(e) => onStatusChange(e.target.value as string[])}
+              onChange={e => onStatusChange(e.target.value as string[])}
               variant="filled"
               displayEmpty
-              renderValue={(selected) => {
+              renderValue={selected => {
                 if (selected.length === 0) {
                   return (
                     <Typography variant="body2" color="text.disabled">
@@ -115,14 +107,14 @@ export function WorkersFilters({
                 }
                 return (
                   <Box sx={{ display: 'flex', flexWrap: 'nowrap', gap: 0.5, overflow: 'hidden' }}>
-                    {selected.map((value) => (
+                    {selected.map(value => (
                       <WorkerStatusChip key={value} status={value as WorkerStatusLabel} />
                     ))}
                   </Box>
                 );
               }}
             >
-              {STATUS_OPTIONS.map((status) => (
+              {STATUS_OPTIONS.map(status => (
                 <MenuItem key={status} value={status} sx={menuItemSx}>
                   <Checkbox
                     checked={statusArray.indexOf(status) > -1}
@@ -145,7 +137,7 @@ export function WorkersFilters({
               size="small"
               type="number"
               value={localMinUptime}
-              onChange={(e) => handleMinUptimeChange(e.target.value)}
+              onChange={e => handleMinUptimeChange(e.target.value)}
               inputProps={{ min: 0, max: 100, step: 1 }}
               variant="filled"
               placeholder="0"
@@ -162,7 +154,7 @@ export function WorkersFilters({
               size="small"
               type="number"
               value={localMinWorkerAPR}
-              onChange={(e) => handleMinWorkerAPRChange(e.target.value)}
+              onChange={e => handleMinWorkerAPRChange(e.target.value)}
               inputProps={{ min: 0, step: 0.1 }}
               variant="filled"
               placeholder="0"
@@ -179,7 +171,7 @@ export function WorkersFilters({
               size="small"
               type="number"
               value={localMinDelegatorAPR}
-              onChange={(e) => handleMinDelegatorAPRChange(e.target.value)}
+              onChange={e => handleMinDelegatorAPRChange(e.target.value)}
               inputProps={{ min: 0, step: 0.1 }}
               variant="filled"
               placeholder="0"
@@ -190,4 +182,3 @@ export function WorkersFilters({
     </Box>
   );
 }
-

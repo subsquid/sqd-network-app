@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 
-import { Box, styled } from '@mui/material';
+import { Box } from '@mui/material';
 
 import { TextField } from '@components/Form';
 import { SearchIcon } from '@icons/SearchIcon';
@@ -37,7 +37,7 @@ export const Search = ({ value, onChange, fullWidth, placeholder }: SearchProps)
         InputProps={{
           startAdornment: <SearchIcon />,
         }}
-        size='small'
+        size="small"
       />
       {/*<CircularProgress*/}
       {/*  size={20}*/}

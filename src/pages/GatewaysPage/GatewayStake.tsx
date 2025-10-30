@@ -55,13 +55,7 @@ export const stakeSchema = yup.object({
     .required('Lock min blocks is required'),
 });
 
-export function GatewayStakeButton({
-  sx,
-  disabled,
-}: {
-  sx?: SxProps;
-  disabled?: boolean;
-}) {
+export function GatewayStakeButton({ sx, disabled }: { sx?: SxProps; disabled?: boolean }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -82,13 +76,7 @@ export function GatewayStakeButton({
   );
 }
 
-export function GatewayStakeDialog({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+export function GatewayStakeDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { setWaitHeight } = useSquidHeight();
   const { sources, selectedSource } = useSourceContext();
 

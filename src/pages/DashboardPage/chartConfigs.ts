@@ -367,13 +367,13 @@ export const CHART_CONFIGS = {
     queryHook: useRewardTimeseriesQuery,
     dataPath: data => data.rewardTimeseries,
     stacks: [
-      { 
-        key: 'Worker Reward', 
+      {
+        key: 'Worker Reward',
         valuePath: v => fromSqd(v?.workerReward).toNumber(),
         color: '#5B8FF9',
       },
-      { 
-        key: 'Staker Reward', 
+      {
+        key: 'Staker Reward',
         valuePath: v => fromSqd(v?.stakerReward).toNumber(),
         color: '#61CDBB',
       },
@@ -512,4 +512,3 @@ export const DEFAULT_GRID_SIZE = { xs: 12, md: 6 };
 
 /** Array of chart configurations for dynamic rendering */
 export const CHARTS = Object.entries(CHART_CONFIGS).map(([key, config]) => ({ key, config }));
-

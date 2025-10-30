@@ -814,7 +814,11 @@ function useSharedCursor({
   shared,
   width,
   height,
-}: { shared?: boolean; width: number; height: number }) {
+}: {
+  shared?: boolean;
+  width: number;
+  height: number;
+}) {
   const context = useContext(SharedCursorContext);
   if (shared && !context) {
     throw new Error('shared cursor must be used within a SharedCursorProvider');
@@ -993,13 +997,7 @@ function adjustColorBrightness(hex: string, percent: number): string {
 // Chart Legend Component
 // ============================================================================
 
-function ChartLegend({
-  series,
-  palette,
-}: {
-  series: LineChartSeries[];
-  palette: string[];
-}) {
+function ChartLegend({ series, palette }: { series: LineChartSeries[]; palette: string[] }) {
   const items = series.map((s, i) => ({
     name: s.name,
     color: s.color ?? palette[i % palette.length],
@@ -1110,7 +1108,7 @@ export function Analytics() {
           onChange={e => setState.timeRange(e.target.value)}
           variant="filled"
           disableUnderline
-          size='small'
+          size="small"
         >
           {TIME_RANGE_PRESETS.map(preset => (
             <MenuItem key={preset.value} value={preset.value}>
@@ -1124,7 +1122,7 @@ export function Analytics() {
         <Grid container spacing={2}>
           {filteredCharts.map(({ key, config }) => (
             <Grid key={key} size={config.gridSize || DEFAULT_GRID_SIZE}>
-              <AnalyticsChart range={range} {...config}  />
+              <AnalyticsChart range={range} {...config} />
             </Grid>
           ))}
         </Grid>

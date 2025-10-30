@@ -8,7 +8,7 @@ import { NetworkSummary } from './Summary';
 export function DashboardPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   // Determine active tab from path
   const path = location.pathname.split('/').pop() || '';
   const activeTab = path === 'analytics' ? 'analytics' : 'workers';

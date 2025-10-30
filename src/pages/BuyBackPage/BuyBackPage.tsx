@@ -3,7 +3,6 @@ import { Alert, Box, TableBody, TableCell, TableHead, TableRow, Typography } fro
 import { Outlet } from 'react-router-dom';
 
 import { useSourcesQuery, useSquid } from '@api/subsquid-network-squid';
-import { SquaredChip } from '@components/Chip';
 import { DashboardTable, NoItems } from '@components/Table';
 import { NameWithAvatar } from '@components/SourceWalletName';
 import { CenteredPageWrapper } from '@layouts/NetworkLayout';
