@@ -120,6 +120,11 @@ const MenuButton = styled(IconButton, {
   name: 'MenuButton',
 })(({ theme }) => ({
   display: 'none',
+
+  [theme.breakpoints.down('lg')]: {
+    display: 'inline-block',
+  },
+
   transition: theme.transitions.create('transform', {
     duration: theme.transitions.duration.short,
   }),
@@ -168,8 +173,8 @@ export const NetworkLayout = ({
   stretchContent?: boolean;
 }>) => {
   const theme = useTheme();
-  const ilgobile = useMediaQuery(theme.breakpoints.down('lg'));
-  const [ilgenuOpen, setIlgenuOpen] = useState(false);
+  const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
+  const [isMenuOpen, setisMenuOpen] = useState(false);
   const { isConnected, chain } = useAccount();
   const { disconnect } = useDisconnect();
   const network = getSubsquidNetwork();
@@ -183,17 +188,17 @@ export const NetworkLayout = ({
 
   // Close mobile menu when switching to desktop view
   useEffect(() => {
-    if (!ilgobile && ilgenuOpen) {
-      setIlgenuOpen(false);
+    if (!isMobile && isMenuOpen) {
+      setisMenuOpen(false);
     }
-  }, [ilgobile, ilgenuOpen]);
+  }, [isMobile, isMenuOpen]);
 
   const handleMenuToggle = () => {
-    setIlgenuOpen(prev => !prev);
+    setisMenuOpen(prev => !prev);
   };
 
   const handleMenuClose = () => {
-    setIlgenuOpen(false);
+    setisMenuOpen(false);
   };
 
   const drawer = (
@@ -210,7 +215,7 @@ export const NetworkLayout = ({
       <AppBar bannerHeight={bannerHeight} elevation={0}>
         <AppToolbar>
           <MenuButton
-            className={classnames({ open: ilgenuOpen })}
+            className={classnames({ open: isMenuOpen })}
             onClick={handleMenuToggle}
             aria-label="toggle menu"
           >
@@ -223,11 +228,11 @@ export const NetworkLayout = ({
       </AppBar>
 
       <NavContainer aria-label="navigation menu">
-        {ilgobile ? (
+        {isMobile ? (
           // Mobile drawer
           <Sidebar
             variant="temporary"
-            open={ilgenuOpen}
+            open={isMenuOpen}
             onClose={handleMenuClose}
             bannerHeight={bannerHeight}
             ModalProps={{
