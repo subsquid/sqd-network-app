@@ -1040,10 +1040,11 @@ function ChartLegend({ series, palette }: { series: LineChartSeries[]; palette: 
 // ============================================================================
 
 const TIME_RANGE_PRESETS = [
-  { label: '30 days', value: '30d', start: 'now-30d', end: 'now', step: '1d' },
-  { label: '6 months', value: '6M', start: 'now-6M', end: 'now', step: '3d' },
-  { label: '1 year', value: '1y', start: 'now-1y', end: 'now', step: '1w' },
-  { label: 'All time', value: 'all', start: undefined, end: 'now', step: '1w' },
+  { label: '30 days', value: '30d', start: 'now-30d', end: 'now' },
+  { label: '90 days', value: '90d', start: 'now-90d', end: 'now' },
+  { label: '6 months', value: '6M', start: 'now-6M', end: 'now' },
+  { label: '1 year', value: '1y', start: 'now-1y', end: 'now' },
+  { label: 'All time', value: 'all', start: undefined, end: 'now' },
 ];
 
 const DEFAULT_TIME_RANGE = '30d';
@@ -1069,8 +1070,6 @@ export function Analytics() {
     const parsed = parseTimeRange(selectedPreset.start, selectedPreset.end);
     return parsed;
   }, [selectedPreset]);
-
-  const step = selectedPreset.step;
 
   const filteredCharts = useMemo(() => {
     if (state.category === 'all') {
