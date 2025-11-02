@@ -24,8 +24,11 @@ import { WorkerVersion } from './WorkerVersion';
 import { WorkerWithdrawButton } from './WorkerWithdraw';
 import { SquaredChip } from '@components/Chip';
 import { SectionHeader } from '@components/SectionHeader';
+import { isOwned } from './Worker';
+import { useAccount } from '@network/useAccount';
 
 export function MyWorkers() {
+  const { address } = useAccount();
   const [query, setQuery] = useLocationState({
     sortBy: new Location.Enum<WorkerSortBy>(WorkerSortBy.WorkerReward),
     sortDir: new Location.Enum<SortDir>(SortDir.Desc),
@@ -126,12 +129,15 @@ export function MyWorkers() {
                               locked: !!worker.locked,
                               lockEnd: worker.lockEnd,
                             }}
+                            disabled={!isOwned(worker, address)}
                           />
                         ) : (
                           <WorkerUnregisterButton
                             worker={worker}
                             source={worker.owner}
-                            disabled={worker.status !== WorkerStatus.Active}
+                            disabled={
+                              !isOwned(worker, address) || worker.status !== WorkerStatus.Active
+                            }
                           />
                         )}
                       </Box>

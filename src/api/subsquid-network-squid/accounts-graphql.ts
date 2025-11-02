@@ -74,7 +74,6 @@ export class BlockchainApiVesting {
 }
 
 export function useVestingByAddress({ address }: { address?: string }) {
-  const datasource = useSquid();
   const account = useAccount();
 
   const { data, isPending } = useVestingByAddressQuery(
@@ -84,7 +83,7 @@ export function useVestingByAddress({ address }: { address?: string }) {
     {
       select: res => {
         if (!res.accountById) return undefined;
-        if (res.accountById.type !== AccountType.Vesting) return undefined;
+        if (res.accountById.type === AccountType.User) return undefined;
 
         return new BlockchainApiVesting(res.accountById, account.address);
       },

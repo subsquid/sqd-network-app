@@ -5,6 +5,7 @@ import { ConnectedWalletRequired } from '@network/ConnectedWalletRequired';
 
 import { MyAssets } from './Assets';
 import { MyVestings } from './Vestings';
+import { MyTemporaryHoldings } from './TemporaryHoldings';
 
 export function AssetsPage() {
   return (
@@ -12,6 +13,7 @@ export function AssetsPage() {
       <ConnectedWalletRequired>
         <MyAssets />
         <MyVestings />
+        <MyTemporaryHoldings />
       </ConnectedWalletRequired>
       <Outlet />
     </CenteredPageWrapper>

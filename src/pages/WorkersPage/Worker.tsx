@@ -125,7 +125,7 @@ export const Worker = ({ backPath }: { backPath: string }) => {
   const canEdit = useMemo(() => {
     if (!worker) return false;
     if (worker.status === ApiWorkerStatus.Withdrawn) return false;
-    if (worker.realOwner.id !== address) return false;
+    if (!isOwned(worker, address)) return false;
     return [ApiWorkerStatus.Active, ApiWorkerStatus.Registering].includes(worker.status);
   }, [worker, address]);
 
@@ -306,7 +306,7 @@ export const Worker = ({ backPath }: { backPath: string }) => {
         </Grid>
       </Grid>
 
-      {worker.realOwner.id === address && worker.status !== ApiWorkerStatus.Withdrawn ? (
+      {isOwned(worker, address) && worker.status !== ApiWorkerStatus.Withdrawn ? (
         <Box mt={3} display="flex" justifyContent="flex-end">
           {worker.status === WorkerStatus.Deregistered ||
           worker.status === WorkerStatus.Deregistering ? (
@@ -331,3 +331,12 @@ export const Worker = ({ backPath }: { backPath: string }) => {
     </CenteredPageWrapper>
   );
 };
+
+export function isOwned(
+  something: { owner: { id: string; owner?: { id: string } } },
+  address: string | undefined,
+) {
+  return (
+    address != null && (something.owner.id === address || something.owner.owner?.id === address)
+  );
+}

@@ -190,3 +190,20 @@ function simulateTenderly(opts: any) {
       .catch(() => {});
   }
 }
+
+const empty = {
+  blockNumber: 0n,
+  blockHash: '0x0',
+  contractAddress: '0x0',
+  gasUsed: 0n,
+  cumulativeGasUsed: 0n,
+  effectiveGasPrice: 0n,
+  logs: [],
+  logsBloom: '0x0',
+  status: 'success',
+  to: '0x0',
+  transactionHash: '0x0',
+  transactionIndex: 0,
+  type: '0x0',
+  from: '0x0',
+} satisfies TransactionReceipt;
