@@ -42,7 +42,7 @@ export function PageTitle({
     <PageTitleWrapper sx={sx}>
       <Typography variant="h4">
         <div className="title">
-          {backPath ? <BackButton path={backPath} /> : null}
+          <BackButton path={backPath} />
           <Box color="text.primary">{title}</Box>
         </div>
       </Typography>

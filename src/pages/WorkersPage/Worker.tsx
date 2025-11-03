@@ -139,7 +139,7 @@ export const Worker = ({ backPath }: { backPath: string }) => {
 
   return (
     <CenteredPageWrapper className="wide">
-      <PageTitle title={'Worker'} backPath={searchParams.get('backPath') || backPath} />
+      <PageTitle title={'Worker'} />
       <Grid container spacing={2}>
         <Grid size={{ xs: 12 }}>
           <Card

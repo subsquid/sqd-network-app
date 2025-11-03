@@ -32,7 +32,9 @@ export const AppRoutes = () => {
           <Route element={<AssetsPage />} index />
         </Route>
 
-        <Route element={<Vesting backPath="/assets" />} path="vesting/:address" />
+        <Route path="vesting/:address">
+          <Route element={<Vesting backPath="/assets" />} index />
+        </Route>
 
         <Route path="/workers">
           <Route element={<WorkersPage />} index />
