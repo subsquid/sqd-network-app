@@ -2612,6 +2612,7 @@ export type NetworkStats = {
   storedData: Scalars["BigInt"]["output"];
   totalBond: Scalars["BigInt"]["output"];
   totalDelegation: Scalars["BigInt"]["output"];
+  totalPortalLock: Scalars["BigInt"]["output"];
   workerApr: Scalars["Float"]["output"];
   workersCount: Scalars["Float"]["output"];
 };
@@ -7198,6 +7199,7 @@ export type NetworkSummaryQuery = {
     stakerApr: number;
     totalBond: string;
     totalDelegation: string;
+    totalPortalLock: string;
     storedData: string;
     workerApr: number;
     workersCount: number;
@@ -8329,6 +8331,7 @@ export const NetworkSummaryDocument = `
     stakerApr
     totalBond
     totalDelegation
+    totalPortalLock
     storedData
     workerApr
     workersCount

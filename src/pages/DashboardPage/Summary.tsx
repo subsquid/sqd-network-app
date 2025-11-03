@@ -118,7 +118,9 @@ function Stats() {
             <ColumnLabel>Total locked value</ColumnLabel>
             <ColumnValue>
               {tokenFormatter(
-                fromSqd(data?.totalBond).plus(fromSqd(data?.totalDelegation)),
+                fromSqd(data?.totalBond)
+                  .plus(fromSqd(data?.totalDelegation))
+                  .plus(fromSqd(data?.totalPortalLock)),
                 SQD_TOKEN,
                 0,
               )}

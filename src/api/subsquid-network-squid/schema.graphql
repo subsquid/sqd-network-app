@@ -467,6 +467,7 @@ query networkSummary {
     stakerApr
     totalBond
     totalDelegation
+    totalPortalLock
     storedData
     workerApr
     workersCount
