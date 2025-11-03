@@ -73,19 +73,6 @@ function TableNavigation({
   );
 }
 
-export const SummaryLabel = styled(Box, {
-  name: 'SummaryLabel',
-})(({ theme }) => ({
-  color: theme.palette.text.primary,
-  flex: 1,
-}));
-export const SummaryValue = styled(Box, {
-  name: 'SummaryValue',
-})(({ theme }) => ({
-  color: theme.palette.text.secondary,
-  flex: 1,
-}));
-
 const PER_PAGE = 15;
 
 export function Workers() {
@@ -102,6 +89,7 @@ export function Workers() {
     minUptime: new Location.String(''),
     minWorkerAPR: new Location.String(''),
     minDelegatorAPR: new Location.String(''),
+    maxDelegationCapacity: new Location.String(''),
   });
 
   const { data: sources, isLoading: isSourcesLoading } = useMySources();
@@ -128,6 +116,7 @@ export function Workers() {
     minUptime: parseFilterValue(query.minUptime),
     minWorkerAPR: parseFilterValue(query.minWorkerAPR),
     minDelegatorAPR: parseFilterValue(query.minDelegatorAPR),
+    maxDelegationCapacity: parseFilterValue(query.maxDelegationCapacity),
   });
 
   const isLoading = isSourcesLoading || isWorkersLoading;
@@ -170,6 +159,8 @@ export function Workers() {
             onMinWorkerAPRChange={setQuery.minWorkerAPR}
             minDelegatorAPR={query.minDelegatorAPR}
             onMinDelegatorAPRChange={setQuery.minDelegatorAPR}
+            maxDelegationCapacity={query.maxDelegationCapacity}
+            onMaxDelegationCapacityChange={setQuery.maxDelegationCapacity}
           />
         </Collapse>
       </Box>

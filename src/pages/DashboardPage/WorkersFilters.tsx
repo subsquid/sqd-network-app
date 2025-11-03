@@ -40,6 +40,8 @@ interface WorkersFiltersProps {
   onMinWorkerAPRChange: (value: string) => void;
   minDelegatorAPR: string;
   onMinDelegatorAPRChange: (value: string) => void;
+  maxDelegationCapacity: string;
+  onMaxDelegationCapacityChange: (value: string) => void;
 }
 
 export function WorkersFilters({
@@ -52,11 +54,15 @@ export function WorkersFilters({
   onMinWorkerAPRChange,
   minDelegatorAPR,
   onMinDelegatorAPRChange,
+  maxDelegationCapacity,
+  onMaxDelegationCapacityChange,
 }: WorkersFiltersProps & { sx?: SxProps }) {
   // Local state for immediate input updates
   const [localMinUptime, setLocalMinUptime] = useState(minUptime);
   const [localMinWorkerAPR, setLocalMinWorkerAPR] = useState(minWorkerAPR);
   const [localMinDelegatorAPR, setLocalMinDelegatorAPR] = useState(minDelegatorAPR);
+  const [localMaxDelegationCapacity, setLocalMaxDelegationCapacity] =
+    useState(maxDelegationCapacity);
 
   // Sync local state with props when they change externally (e.g., URL state restoration)
   useEffect(() => {
@@ -75,6 +81,10 @@ export function WorkersFilters({
   const debouncedOnMinUptimeChange = useDebouncedCallback(onMinUptimeChange, 500);
   const debouncedOnMinWorkerAPRChange = useDebouncedCallback(onMinWorkerAPRChange, 500);
   const debouncedOnMinDelegatorAPRChange = useDebouncedCallback(onMinDelegatorAPRChange, 500);
+  const debouncedOnMaxDelegationCapacityChange = useDebouncedCallback(
+    onMaxDelegationCapacityChange,
+    500,
+  );
 
   const handleMinUptimeChange = (value: string) => {
     setLocalMinUptime(value);
@@ -91,9 +101,14 @@ export function WorkersFilters({
     debouncedOnMinDelegatorAPRChange(value);
   };
 
+  const handleMaxDelegationCapacityChange = (value: string) => {
+    setLocalMaxDelegationCapacity(value);
+    debouncedOnMaxDelegationCapacityChange(value);
+  };
+
   return (
     <Grid container spacing={2} sx={sx}>
-      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+      <Grid size={{ xs: 12, sm: 4, md: 2.4 }}>
         <Box>
           <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 500 }}>
             Status
@@ -132,7 +147,7 @@ export function WorkersFilters({
           </Select>
         </Box>
       </Grid>
-      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+      <Grid size={{ xs: 12, sm: 4, md: 2.4 }}>
         <Box>
           <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 500 }}>
             Min Uptime, %
@@ -149,7 +164,7 @@ export function WorkersFilters({
           />
         </Box>
       </Grid>
-      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+      <Grid size={{ xs: 12, sm: 4, md: 2.4 }}>
         <Box>
           <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 500 }}>
             Min Worker APR, %
@@ -166,7 +181,7 @@ export function WorkersFilters({
           />
         </Box>
       </Grid>
-      <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+      <Grid size={{ xs: 12, sm: 4, md: 2.4 }}>
         <Box>
           <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 500 }}>
             Min Delegator APR, %
@@ -178,6 +193,23 @@ export function WorkersFilters({
             value={localMinDelegatorAPR}
             onChange={e => handleMinDelegatorAPRChange(e.target.value)}
             inputProps={{ min: 0, step: 0.1 }}
+            variant="filled"
+            placeholder="0"
+          />
+        </Box>
+      </Grid>
+      <Grid size={{ xs: 12, sm: 4, md: 2.4 }}>
+        <Box>
+          <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 500 }}>
+            Max Delegation Capacity, %
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            type="number"
+            value={localMaxDelegationCapacity}
+            onChange={e => handleMaxDelegationCapacityChange(e.target.value)}
+            inputProps={{ min: 0, step: 1 }}
             variant="filled"
             placeholder="0"
           />

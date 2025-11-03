@@ -212,6 +212,7 @@ interface WorkersQueryParams {
   minUptime?: number;
   minWorkerAPR?: number;
   minDelegatorAPR?: number;
+  maxDelegationCapacity?: number;
 }
 
 function escapeRegExp(string: string): string {
@@ -228,6 +229,7 @@ export function useWorkers({
   minUptime,
   minWorkerAPR,
   minDelegatorAPR,
+  maxDelegationCapacity,
 }: WorkersQueryParams) {
   const { isPending: isSettingsLoading } = useNetworkSettings();
   const { data, isPending } = useAllWorkersQuery({});
@@ -271,6 +273,15 @@ export function useWorkers({
           if (delegatorAPR < minDelegatorAPR) return false;
         }
 
+        // Max delegation capacity filter
+        if (maxDelegationCapacity != null && maxDelegationCapacity > 0) {
+          const delegationCapacity = calculateDelegationCapacity({
+            totalDelegation: w.totalDelegation,
+            capedDelegation: w.capedDelegation,
+          });
+          if (delegationCapacity > maxDelegationCapacity) return false;
+        }
+
         return true;
       })
       .map(w => ({
@@ -303,6 +314,7 @@ export function useWorkers({
     minUptime,
     minWorkerAPR,
     minDelegatorAPR,
+    maxDelegationCapacity,
   ]);
 
   return {
