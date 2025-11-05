@@ -606,7 +606,7 @@ function ChartSeries({
 
             if (s.stack) {
               const stackedSeries = s as StackedLineChartSeries;
-              const x0 = cursor ? xScale.invert(cursor.x * width) : 0;
+              const x0 = cursor ? xScale.invert(cursor.x) : 0;
               const index = bisectDate(stackedSeries.data, x0, 1);
               const d0 = stackedSeries.data[index - 1];
               const d1 = stackedSeries.data[index];
@@ -867,6 +867,11 @@ function useSharedCursor({
   };
 }
 
+// Helper to convert local date to UTC by removing timezone offset
+function toUTCDate(date: Date): Date {
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000);
+}
+
 function AnalyticsChart<T>({
   title,
   subtitle,
@@ -889,8 +894,8 @@ function AnalyticsChart<T>({
 } & ChartConfig<T>) {
   const queryVars = useMemo(
     () => ({
-      from: range.from.toISOString(),
-      to: range.to.toISOString(),
+      from: toUTCDate(range.from).toISOString(),
+      to: toUTCDate(range.to).toISOString(),
       step: !step || step === 'auto' ? undefined : step,
     }),
     [range, step],
@@ -1039,7 +1044,6 @@ function ChartLegend({ series, palette }: { series: LineChartSeries[]; palette: 
 // Analytics Component
 // ============================================================================
 
-// FIXME: bad decision, should end on now, not from previous day
 const TIME_RANGE_PRESETS = [
   { label: '30 days', value: '30d', start: 'now/d-30d', end: 'now/d-1d' },
   { label: '90 days', value: '90d', start: 'now/d-90d', end: 'now/d-1d' },
