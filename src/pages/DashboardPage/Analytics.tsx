@@ -1066,6 +1066,7 @@ export function Analytics() {
   const [state, setState] = useLocationState({
     timeRange: new Location.String(DEFAULT_TIME_RANGE),
     category: new Location.String('all'),
+    step: new Location.String('auto'),
   });
 
   const selectedPreset = useMemo(() => {
@@ -1127,7 +1128,7 @@ export function Analytics() {
         <Grid container spacing={2}>
           {filteredCharts.map(({ key, config }) => (
             <Grid key={key} size={config.gridSize || DEFAULT_GRID_SIZE}>
-              <AnalyticsChart range={range} {...config} />
+              <AnalyticsChart range={range} {...config} step={state.step}/>
             </Grid>
           ))}
         </Grid>
