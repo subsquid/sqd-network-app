@@ -1039,15 +1039,17 @@ function ChartLegend({ series, palette }: { series: LineChartSeries[]; palette: 
 // Analytics Component
 // ============================================================================
 
+// FIXME: bad decision, should end on now, not from previous day
 const TIME_RANGE_PRESETS = [
-  { label: '30 days', value: '30d', start: 'now-30d', end: 'now' },
-  { label: '90 days', value: '90d', start: 'now-90d', end: 'now' },
-  { label: '6 months', value: '6M', start: 'now-6M', end: 'now' },
-  { label: '1 year', value: '1y', start: 'now-1y', end: 'now' },
-  { label: 'All time', value: 'all', start: undefined, end: 'now' },
+  { label: '30 days', value: '30d', start: 'now/d-30d', end: 'now/d-1d' },
+  { label: '90 days', value: '90d', start: 'now/d-90d', end: 'now/d-1d' },
+  { label: '6 months', value: '6M', start: 'now/d-6M', end: 'now/d-1d' },
+  { label: '1 year', value: '1y', start: 'now/d-1y', end: 'now/d-1d' },
+  { label: 'All time', value: 'all', start: undefined, end: 'now/d-1d' },
 ];
 
-const DEFAULT_TIME_RANGE = '30d';
+// FIXME: probably bad for performance
+const DEFAULT_TIME_RANGE = 'all';
 
 const CATEGORY_TABS = [
   { label: 'All', value: 'all' as const },
