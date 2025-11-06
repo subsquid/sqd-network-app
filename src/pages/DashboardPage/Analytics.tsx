@@ -30,10 +30,11 @@ import { localPoint } from '@visx/event';
 import { bisector } from 'd3-array';
 import { Group } from '@visx/group';
 import { useLocationState, Location } from '@hooks/useLocationState';
-import { toDate } from '@lib/formatters/formatters';
+import { toDateSeconds, toDateDay } from '@lib/formatters/formatters';
 import { parseTimeRange } from '@lib/datemath';
 import { partition } from 'lodash-es';
 import { CHARTS, DEFAULT_GRID_SIZE, type ChartConfig } from './chartConfigs';
+import { addMilliseconds } from 'date-fns';
 
 const CHART_CONFIG = {
   height: 240,
@@ -268,7 +269,7 @@ function ChartTooltip({
       {firstDatum && (
         <>
           <Typography variant="body2">
-            {tooltipFormat?.x ? tooltipFormat.x(firstDatum.x) : toDate.format(firstDatum.x)}
+            {tooltipFormat?.x ? tooltipFormat.x(firstDatum.x) : toDateSeconds.format(firstDatum.x)}
           </Typography>
           <Divider sx={{ my: 0.5 }} />
         </>
@@ -872,6 +873,19 @@ function toUTCDate(date: Date): Date {
   return new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000);
 }
 
+function toTimeRange(date: Date, stepMs?: number) {
+  if (!stepMs) return toDateSeconds.format(date);
+
+  const from = date;
+  const to = addMilliseconds(date, stepMs - 1);
+
+  if (stepMs >= 24 * 60 * 60 * 1000) {
+    return (toDateDay as any).formatRange(from, to);
+  }
+
+  return (toDateSeconds as any).formatRange(from, to);
+}
+
 function AnalyticsChart<T>({
   title,
   subtitle,
@@ -921,14 +935,17 @@ function AnalyticsChart<T>({
 
   const palette = createGenerator(chartPalette);
 
-  const series: LineChartSeries[] = useMemo(() => {
-    const timeseriesData = data ? dataSelector(data) : null;
-    if (!timeseriesData) return [];
+  const { series, step: stepMs }: { series: LineChartSeries[]; step?: number } = useMemo(() => {
+    const result = data ? dataSelector(data) : null;
 
-    return timeseriesData.map(s => ({
-      ...s,
-      color: s.color || palette.next(), // Use explicit color if provided, otherwise generate one
-    }));
+    return {
+      series:
+        result?.series.map(s => ({
+          ...s,
+          color: s.color || palette.next(),
+        })) || [],
+      step: result?.step,
+    };
   }, [data, dataSelector, palette]);
 
   const hasData = series.some(s => s.data.length > 0);
@@ -944,7 +961,7 @@ function AnalyticsChart<T>({
             <LineChart
               series={series}
               tooltipFormat={{
-                x: (d: Date) => toDate.format(d),
+                x: (d: Date) => toTimeRange(d, stepMs),
                 ...tooltipFormat,
               }}
               axisFormat={axisFormat}
@@ -1045,11 +1062,11 @@ function ChartLegend({ series, palette }: { series: LineChartSeries[]; palette: 
 // ============================================================================
 
 const TIME_RANGE_PRESETS = [
-  { label: '30 days', value: '30d', start: 'now/d-30d', end: 'now/d-1d' },
-  { label: '90 days', value: '90d', start: 'now/d-90d', end: 'now/d-1d' },
-  { label: '6 months', value: '6M', start: 'now/d-6M', end: 'now/d-1d' },
-  { label: '1 year', value: '1y', start: 'now/d-1y', end: 'now/d-1d' },
-  { label: 'All time', value: 'all', start: undefined, end: 'now/d-1d' },
+  { label: '30 days', value: '30d', start: 'now/d-30d', end: 'now/d' },
+  { label: '90 days', value: '90d', start: 'now/d-90d', end: 'now/d' },
+  { label: '6 months', value: '6M', start: 'now/d-6M', end: 'now/d' },
+  { label: '1 year', value: '1y', start: 'now/d-1y', end: 'now/d' },
+  { label: 'All time', value: 'all', start: undefined, end: 'now/d' },
 ];
 
 // FIXME: probably bad for performance
@@ -1128,7 +1145,7 @@ export function Analytics() {
         <Grid container spacing={2}>
           {filteredCharts.map(({ key, config }) => (
             <Grid key={key} size={config.gridSize || DEFAULT_GRID_SIZE}>
-              <AnalyticsChart range={range} {...config} step={state.step}/>
+              <AnalyticsChart range={range} {...config} step={state.step} />
             </Grid>
           ))}
         </Grid>

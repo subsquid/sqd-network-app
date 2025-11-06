@@ -78,11 +78,19 @@ export const toCompact = new Intl.NumberFormat('en-US', {
 });
 export const toNumber = new Intl.NumberFormat('en-US');
 
-export const toDate = new Intl.DateTimeFormat('en-US', {
+export const toDateSeconds = new Intl.DateTimeFormat('en-US', {
   year: 'numeric',
   month: 'short',
   day: 'numeric',
   hour: 'numeric',
   minute: 'numeric',
   second: 'numeric',
+  timeZone: 'UTC',
+});
+
+export const toDateDay = new Intl.DateTimeFormat('en-US', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+  timeZone: 'UTC',
 });

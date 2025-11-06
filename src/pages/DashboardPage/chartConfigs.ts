@@ -42,8 +42,11 @@ export interface ChartConfig<T> {
   subtitle?: string;
   primaryColor?: string;
   category: ChartCategory;
-  queryHook: (vars: { from: string; to: string }) => { data: T | undefined; isLoading: boolean };
-  dataSelector: (data: T) => LineChartSeries[] | null | undefined;
+  queryHook: (vars: { from: string; to: string; step?: string }) => {
+    data: T | undefined;
+    isLoading: boolean;
+  };
+  dataSelector: (data: T) => { series: LineChartSeries[]; step?: number } | null | undefined;
   tooltipFormat?: LineChartProps['tooltipFormat'];
   axisFormat?: LineChartProps['axisFormat'];
   yAxisScale?: 'linear' | 'log';
@@ -102,8 +105,8 @@ export function createSimpleChart<T extends Record<string, any>>(config: {
   subtitle?: string;
   primaryColor?: string;
   category: ChartCategory;
-  queryHook: (vars: { from: string; to: string }) => { data: T | undefined; isLoading: boolean };
-  dataPath: (data: T) => Array<{ timestamp: string; value: number | null | undefined }>;
+  queryHook: (vars: { from: string; to: string; step?: string }) => { data: T | undefined; isLoading: boolean };
+  dataPath: (data: T) => { data: Array<{ timestamp: string; value: number | null | undefined }>; step?: number };
   seriesName?: string;
   type?: 'line' | 'bar';
   formatter?: FormatterPreset;
@@ -140,18 +143,24 @@ export function createSimpleChart<T extends Record<string, any>>(config: {
     primaryColor,
     category,
     queryHook,
-    dataSelector: (data: T) => [
-      {
-        name: seriesName,
-        data: dataPath(data)
-          .filter(d => d.value != null)
-          .map(d => ({
-            x: new Date(d.timestamp),
-            y: d.value != null ? valueTransform(d.value) : null,
-          })),
-        type,
-      },
-    ],
+    dataSelector: (data: T) => {
+      const timeseries = dataPath(data);
+      return {
+        series: [
+          {
+            name: seriesName,
+            data: timeseries.data
+              .filter(d => d.value != null)
+              .map(d => ({
+                x: new Date(d.timestamp),
+                y: d.value != null ? valueTransform(d.value) : null,
+              })),
+            type,
+          },
+        ],
+        step: timeseries.step,
+      };
+    },
     tooltipFormat: { y: FORMATTERS[formatter].tooltip },
     axisFormat: { y: FORMATTERS[formatter].axis },
     height,
@@ -171,8 +180,8 @@ export function createMultiSeriesChart<T extends Record<string, any>, V = any>(c
   subtitle?: string;
   primaryColor?: string;
   category: ChartCategory;
-  queryHook: (vars: { from: string; to: string }) => { data: T | undefined; isLoading: boolean };
-  dataPath: (data: T) => Array<{ timestamp: string; value: V }>;
+  queryHook: (vars: { from: string; to: string; step?: string }) => { data: T | undefined; isLoading: boolean };
+  dataPath: (data: T) => { data: Array<{ timestamp: string; value: V }>; step?: number };
   series: Array<{
     name: string;
     valuePath: (value: V) => number | null | undefined;
@@ -213,16 +222,21 @@ export function createMultiSeriesChart<T extends Record<string, any>, V = any>(c
     primaryColor,
     category,
     queryHook,
-    dataSelector: (data: T) =>
-      series.map(s => ({
-        name: s.name,
-        color: s.color,
-        data: dataPath(data).map(d => ({
-          x: new Date(d.timestamp),
-          y: s.valuePath(d.value) ?? null,
+    dataSelector: (data: T) => {
+      const timeseries = dataPath(data);
+      return {
+        series: series.map(s => ({
+          name: s.name,
+          color: s.color,
+          data: timeseries.data.map(d => ({
+            x: new Date(d.timestamp),
+            y: s.valuePath(d.value) ?? null,
+          })),
+          type,
         })),
-        type,
-      })),
+        step: timeseries.step,
+      };
+    },
     tooltipFormat: { y: FORMATTERS[formatter].tooltip },
     axisFormat: { y: FORMATTERS[formatter].axis },
     height,
@@ -243,8 +257,8 @@ export function createStackedChart<T extends Record<string, any>, V = any>(confi
   subtitle?: string;
   primaryColor?: string;
   category: ChartCategory;
-  queryHook: (vars: { from: string; to: string }) => { data: T | undefined; isLoading: boolean };
-  dataPath: (data: T) => Array<{ timestamp: string; value: V }>;
+  queryHook: (vars: { from: string; to: string; step?: string }) => { data: T | undefined; isLoading: boolean };
+  dataPath: (data: T) => { data: Array<{ timestamp: string; value: V }>; step?: number };
   stacks: Array<{
     key: string;
     valuePath: (value: V) => number;
@@ -277,21 +291,27 @@ export function createStackedChart<T extends Record<string, any>, V = any>(confi
     primaryColor,
     category,
     queryHook,
-    dataSelector: (data: T) => [
-      {
-        name: title,
-        data: dataPath(data).map(d => ({
-          x: new Date(d.timestamp),
-          y: stacks.map(s => ({
-            key: s.key,
-            value: s.valuePath(d.value),
-            color: s.color,
-          })),
-        })),
-        type: 'bar' as const,
-        stack: true as const,
-      },
-    ],
+    dataSelector: (data: T) => {
+      const timeseries = dataPath(data);
+      return {
+        series: [
+          {
+            name: title,
+            data: timeseries.data.map(d => ({
+              x: new Date(d.timestamp),
+              y: stacks.map(s => ({
+                key: s.key,
+                value: s.valuePath(d.value),
+                color: s.color,
+              })),
+            })),
+            type: 'bar' as const,
+            stack: true as const,
+          },
+        ],
+        step: timeseries.step,
+      };
+    },
     tooltipFormat: { y: FORMATTERS[formatter].tooltip },
     axisFormat: { y: FORMATTERS[formatter].axis },
     yAxisScale,

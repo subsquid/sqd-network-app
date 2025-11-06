@@ -449,6 +449,12 @@ export type ActiveWorkersEntry = {
   value?: Maybe<Scalars["Float"]["output"]>;
 };
 
+export type ActiveWorkersTimeseries = {
+  __typename?: "ActiveWorkersTimeseries";
+  data: Array<ActiveWorkersEntry>;
+  step: Scalars["Float"]["output"];
+};
+
 export type AprEntry = {
   __typename?: "AprEntry";
   timestamp: Scalars["DateTime"]["output"];
@@ -460,6 +466,12 @@ export type AprSnapshot = {
   stakerApr: Scalars["Float"]["output"];
   timestamp: Scalars["DateTime"]["output"];
   workerApr: Scalars["Float"]["output"];
+};
+
+export type AprTimeseries = {
+  __typename?: "AprTimeseries";
+  data: Array<AprEntry>;
+  step: Scalars["Float"]["output"];
 };
 
 export type AprValue = {
@@ -1751,10 +1763,22 @@ export type DelegationsEntry = {
   value?: Maybe<Scalars["Float"]["output"]>;
 };
 
+export type DelegationsTimeseries = {
+  __typename?: "DelegationsTimeseries";
+  data: Array<DelegationsEntry>;
+  step: Scalars["Float"]["output"];
+};
+
 export type DelegatorsEntry = {
   __typename?: "DelegatorsEntry";
   timestamp: Scalars["DateTime"]["output"];
   value?: Maybe<Scalars["Float"]["output"]>;
+};
+
+export type DelegatorsTimeseries = {
+  __typename?: "DelegatorsTimeseries";
+  data: Array<DelegatorsEntry>;
+  step: Scalars["Float"]["output"];
 };
 
 export type Epoch = {
@@ -2594,6 +2618,18 @@ export type HoldersCountEntry = {
   value?: Maybe<Scalars["Float"]["output"]>;
 };
 
+export type HoldersCountTimeseries = {
+  __typename?: "HoldersCountTimeseries";
+  data: Array<HoldersCountEntry>;
+  step: Scalars["Float"]["output"];
+};
+
+export type LockedValueTimeseries = {
+  __typename?: "LockedValueTimeseries";
+  data: Array<TvlEntry>;
+  step: Scalars["Float"]["output"];
+};
+
 export type NetworkStats = {
   __typename?: "NetworkStats";
   aprs: Array<AprSnapshot>;
@@ -2637,6 +2673,12 @@ export type QueriesCountEntry = {
   value?: Maybe<Scalars["Float"]["output"]>;
 };
 
+export type QueriesCountTimeseries = {
+  __typename?: "QueriesCountTimeseries";
+  data: Array<QueriesCountEntry>;
+  step: Scalars["Float"]["output"];
+};
+
 export type Query = {
   __typename?: "Query";
   accountById?: Maybe<Account>;
@@ -2645,8 +2687,8 @@ export type Query = {
   accountTransfersConnection: AccountTransfersConnection;
   accounts: Array<Account>;
   accountsConnection: AccountsConnection;
-  activeWorkersTimeseries: Array<ActiveWorkersEntry>;
-  aprTimeseries: Array<AprEntry>;
+  activeWorkersTimeseries: ActiveWorkersTimeseries;
+  aprTimeseries: AprTimeseries;
   blockById?: Maybe<Block>;
   blocks: Array<Block>;
   blocksConnection: BlocksConnection;
@@ -2662,8 +2704,8 @@ export type Query = {
   delegationStatusChangesConnection: DelegationStatusChangesConnection;
   delegations: Array<Delegation>;
   delegationsConnection: DelegationsConnection;
-  delegationsTimeseries: Array<DelegationsEntry>;
-  delegatorsTimeseries: Array<DelegatorsEntry>;
+  delegationsTimeseries: DelegationsTimeseries;
+  delegatorsTimeseries: DelegatorsTimeseries;
   epochById?: Maybe<Epoch>;
   epoches: Array<Epoch>;
   epochesConnection: EpochesConnection;
@@ -2676,26 +2718,26 @@ export type Query = {
   gatewayStatusChangesConnection: GatewayStatusChangesConnection;
   gateways: Array<Gateway>;
   gatewaysConnection: GatewaysConnection;
-  holdersCountTimeseries: Array<HoldersCountEntry>;
-  lockedValueTimeseries: Array<TvlEntry>;
+  holdersCountTimeseries: HoldersCountTimeseries;
+  lockedValueTimeseries: LockedValueTimeseries;
   networkStats: NetworkStats;
-  queriesCountTimeseries: Array<QueriesCountEntry>;
-  rewardTimeseries: Array<RewardEntry>;
-  servedDataTimeseries: Array<ServedDataEntry>;
+  queriesCountTimeseries: QueriesCountTimeseries;
+  rewardTimeseries: RewardTimeseries;
+  servedDataTimeseries: ServedDataTimeseries;
   settings: Array<Settings>;
   settingsById?: Maybe<Settings>;
   settingsConnection: SettingsConnection;
   squidStatus: SquidStatus;
-  storedDataTimeseries: Array<StoredDataEntry>;
+  storedDataTimeseries: StoredDataTimeseries;
   temporaryHoldingData: Array<TemporaryHoldingData>;
   temporaryHoldingDataById?: Maybe<TemporaryHoldingData>;
   temporaryHoldingDataConnection: TemporaryHoldingDataConnection;
   transferById?: Maybe<Transfer>;
   transfers: Array<Transfer>;
-  transfersByTypeTimeseries: Array<TransferCountByType>;
+  transfersByTypeTimeseries: TransfersByTypeTimeseries;
   transfersConnection: TransfersConnection;
-  uniqueAccountsTimeseries: Array<UniqueAccountsEntry>;
-  uniqueOperatorsTimeseries: Array<OperatorsEntry>;
+  uniqueAccountsTimeseries: UniqueAccountsTimeseries;
+  uniqueOperatorsTimeseries: UniqueOperatorsTimeseries;
   workerById?: Maybe<Worker>;
   workerMetrics: Array<WorkerMetrics>;
   workerMetricsById?: Maybe<WorkerMetrics>;
@@ -3146,6 +3188,12 @@ export type RewardEntry = {
   value?: Maybe<RewardValue>;
 };
 
+export type RewardTimeseries = {
+  __typename?: "RewardTimeseries";
+  data: Array<RewardEntry>;
+  step: Scalars["Float"]["output"];
+};
+
 export type RewardValue = {
   __typename?: "RewardValue";
   stakerReward: Scalars["BigInt"]["output"];
@@ -3156,6 +3204,12 @@ export type ServedDataEntry = {
   __typename?: "ServedDataEntry";
   timestamp: Scalars["DateTime"]["output"];
   value?: Maybe<Scalars["Float"]["output"]>;
+};
+
+export type ServedDataTimeseries = {
+  __typename?: "ServedDataTimeseries";
+  data: Array<ServedDataEntry>;
+  step: Scalars["Float"]["output"];
 };
 
 export type Settings = {
@@ -3464,6 +3518,12 @@ export type StoredDataEntry = {
   __typename?: "StoredDataEntry";
   timestamp: Scalars["DateTime"]["output"];
   value?: Maybe<Scalars["Float"]["output"]>;
+};
+
+export type StoredDataTimeseries = {
+  __typename?: "StoredDataTimeseries";
+  data: Array<StoredDataEntry>;
+  step: Scalars["Float"]["output"];
 };
 
 export type TemporaryHoldingData = {
@@ -4184,6 +4244,12 @@ export type TransferWhereInput = {
   worker_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
 };
 
+export type TransfersByTypeTimeseries = {
+  __typename?: "TransfersByTypeTimeseries";
+  data: Array<TransferCountByType>;
+  step: Scalars["Float"]["output"];
+};
+
 export type TransfersConnection = {
   __typename?: "TransfersConnection";
   edges: Array<TransferEdge>;
@@ -4201,6 +4267,18 @@ export type UniqueAccountsEntry = {
   __typename?: "UniqueAccountsEntry";
   timestamp: Scalars["DateTime"]["output"];
   value?: Maybe<Scalars["Float"]["output"]>;
+};
+
+export type UniqueAccountsTimeseries = {
+  __typename?: "UniqueAccountsTimeseries";
+  data: Array<UniqueAccountsEntry>;
+  step: Scalars["Float"]["output"];
+};
+
+export type UniqueOperatorsTimeseries = {
+  __typename?: "UniqueOperatorsTimeseries";
+  data: Array<OperatorsEntry>;
+  step: Scalars["Float"]["output"];
 };
 
 export type Worker = {
@@ -7238,11 +7316,15 @@ export type HoldersCountTimeseriesQueryVariables = Exact<{
 
 export type HoldersCountTimeseriesQuery = {
   __typename?: "Query";
-  holdersCountTimeseries: Array<{
-    __typename?: "HoldersCountEntry";
-    timestamp: string;
-    value?: number;
-  }>;
+  holdersCountTimeseries: {
+    __typename?: "HoldersCountTimeseries";
+    step: number;
+    data: Array<{
+      __typename?: "HoldersCountEntry";
+      timestamp: string;
+      value?: number;
+    }>;
+  };
 };
 
 export type LockedValueTimeseriesQueryVariables = Exact<{
@@ -7253,11 +7335,11 @@ export type LockedValueTimeseriesQueryVariables = Exact<{
 
 export type LockedValueTimeseriesQuery = {
   __typename?: "Query";
-  lockedValueTimeseries: Array<{
-    __typename?: "TvlEntry";
-    timestamp: string;
-    value?: string;
-  }>;
+  lockedValueTimeseries: {
+    __typename?: "LockedValueTimeseries";
+    step: number;
+    data: Array<{ __typename?: "TvlEntry"; timestamp: string; value?: string }>;
+  };
 };
 
 export type ActiveWorkersTimeseriesQueryVariables = Exact<{
@@ -7268,11 +7350,15 @@ export type ActiveWorkersTimeseriesQueryVariables = Exact<{
 
 export type ActiveWorkersTimeseriesQuery = {
   __typename?: "Query";
-  activeWorkersTimeseries: Array<{
-    __typename?: "ActiveWorkersEntry";
-    timestamp: string;
-    value?: number;
-  }>;
+  activeWorkersTimeseries: {
+    __typename?: "ActiveWorkersTimeseries";
+    step: number;
+    data: Array<{
+      __typename?: "ActiveWorkersEntry";
+      timestamp: string;
+      value?: number;
+    }>;
+  };
 };
 
 export type UniqueOperatorsTimeseriesQueryVariables = Exact<{
@@ -7283,11 +7369,15 @@ export type UniqueOperatorsTimeseriesQueryVariables = Exact<{
 
 export type UniqueOperatorsTimeseriesQuery = {
   __typename?: "Query";
-  uniqueOperatorsTimeseries: Array<{
-    __typename?: "OperatorsEntry";
-    timestamp: string;
-    value?: number;
-  }>;
+  uniqueOperatorsTimeseries: {
+    __typename?: "UniqueOperatorsTimeseries";
+    step: number;
+    data: Array<{
+      __typename?: "OperatorsEntry";
+      timestamp: string;
+      value?: number;
+    }>;
+  };
 };
 
 export type DelegationsTimeseriesQueryVariables = Exact<{
@@ -7298,11 +7388,15 @@ export type DelegationsTimeseriesQueryVariables = Exact<{
 
 export type DelegationsTimeseriesQuery = {
   __typename?: "Query";
-  delegationsTimeseries: Array<{
-    __typename?: "DelegationsEntry";
-    timestamp: string;
-    value?: number;
-  }>;
+  delegationsTimeseries: {
+    __typename?: "DelegationsTimeseries";
+    step: number;
+    data: Array<{
+      __typename?: "DelegationsEntry";
+      timestamp: string;
+      value?: number;
+    }>;
+  };
 };
 
 export type DelegatorsTimeseriesQueryVariables = Exact<{
@@ -7313,11 +7407,15 @@ export type DelegatorsTimeseriesQueryVariables = Exact<{
 
 export type DelegatorsTimeseriesQuery = {
   __typename?: "Query";
-  delegatorsTimeseries: Array<{
-    __typename?: "DelegatorsEntry";
-    timestamp: string;
-    value?: number;
-  }>;
+  delegatorsTimeseries: {
+    __typename?: "DelegatorsTimeseries";
+    step: number;
+    data: Array<{
+      __typename?: "DelegatorsEntry";
+      timestamp: string;
+      value?: number;
+    }>;
+  };
 };
 
 export type TransfersByTypeTimeseriesQueryVariables = Exact<{
@@ -7328,18 +7426,22 @@ export type TransfersByTypeTimeseriesQueryVariables = Exact<{
 
 export type TransfersByTypeTimeseriesQuery = {
   __typename?: "Query";
-  transfersByTypeTimeseries: Array<{
-    __typename?: "TransferCountByType";
-    timestamp: string;
-    value?: {
-      __typename?: "TransferCountByTypeValue";
-      deposit: number;
-      withdraw: number;
-      transfer: number;
-      reward: number;
-      release: number;
-    };
-  }>;
+  transfersByTypeTimeseries: {
+    __typename?: "TransfersByTypeTimeseries";
+    step: number;
+    data: Array<{
+      __typename?: "TransferCountByType";
+      timestamp: string;
+      value?: {
+        __typename?: "TransferCountByTypeValue";
+        deposit: number;
+        withdraw: number;
+        transfer: number;
+        reward: number;
+        release: number;
+      };
+    }>;
+  };
 };
 
 export type UniqueAccountsTimeseriesQueryVariables = Exact<{
@@ -7350,11 +7452,15 @@ export type UniqueAccountsTimeseriesQueryVariables = Exact<{
 
 export type UniqueAccountsTimeseriesQuery = {
   __typename?: "Query";
-  uniqueAccountsTimeseries: Array<{
-    __typename?: "UniqueAccountsEntry";
-    timestamp: string;
-    value?: number;
-  }>;
+  uniqueAccountsTimeseries: {
+    __typename?: "UniqueAccountsTimeseries";
+    step: number;
+    data: Array<{
+      __typename?: "UniqueAccountsEntry";
+      timestamp: string;
+      value?: number;
+    }>;
+  };
 };
 
 export type QueriesCountTimeseriesQueryVariables = Exact<{
@@ -7365,11 +7471,15 @@ export type QueriesCountTimeseriesQueryVariables = Exact<{
 
 export type QueriesCountTimeseriesQuery = {
   __typename?: "Query";
-  queriesCountTimeseries: Array<{
-    __typename?: "QueriesCountEntry";
-    timestamp: string;
-    value?: number;
-  }>;
+  queriesCountTimeseries: {
+    __typename?: "QueriesCountTimeseries";
+    step: number;
+    data: Array<{
+      __typename?: "QueriesCountEntry";
+      timestamp: string;
+      value?: number;
+    }>;
+  };
 };
 
 export type ServedDataTimeseriesQueryVariables = Exact<{
@@ -7380,11 +7490,15 @@ export type ServedDataTimeseriesQueryVariables = Exact<{
 
 export type ServedDataTimeseriesQuery = {
   __typename?: "Query";
-  servedDataTimeseries: Array<{
-    __typename?: "ServedDataEntry";
-    timestamp: string;
-    value?: number;
-  }>;
+  servedDataTimeseries: {
+    __typename?: "ServedDataTimeseries";
+    step: number;
+    data: Array<{
+      __typename?: "ServedDataEntry";
+      timestamp: string;
+      value?: number;
+    }>;
+  };
 };
 
 export type StoredDataTimeseriesQueryVariables = Exact<{
@@ -7395,11 +7509,15 @@ export type StoredDataTimeseriesQueryVariables = Exact<{
 
 export type StoredDataTimeseriesQuery = {
   __typename?: "Query";
-  storedDataTimeseries: Array<{
-    __typename?: "StoredDataEntry";
-    timestamp: string;
-    value?: number;
-  }>;
+  storedDataTimeseries: {
+    __typename?: "StoredDataTimeseries";
+    step: number;
+    data: Array<{
+      __typename?: "StoredDataEntry";
+      timestamp: string;
+      value?: number;
+    }>;
+  };
 };
 
 export type RewardTimeseriesQueryVariables = Exact<{
@@ -7410,15 +7528,19 @@ export type RewardTimeseriesQueryVariables = Exact<{
 
 export type RewardTimeseriesQuery = {
   __typename?: "Query";
-  rewardTimeseries: Array<{
-    __typename?: "RewardEntry";
-    timestamp: string;
-    value?: {
-      __typename?: "RewardValue";
-      workerReward: string;
-      stakerReward: string;
-    };
-  }>;
+  rewardTimeseries: {
+    __typename?: "RewardTimeseries";
+    step: number;
+    data: Array<{
+      __typename?: "RewardEntry";
+      timestamp: string;
+      value?: {
+        __typename?: "RewardValue";
+        workerReward: string;
+        stakerReward: string;
+      };
+    }>;
+  };
 };
 
 export type AprTimeseriesQueryVariables = Exact<{
@@ -7429,11 +7551,15 @@ export type AprTimeseriesQueryVariables = Exact<{
 
 export type AprTimeseriesQuery = {
   __typename?: "Query";
-  aprTimeseries: Array<{
-    __typename?: "AprEntry";
-    timestamp: string;
-    value?: { __typename?: "AprValue"; workerApr: number; stakerApr: number };
-  }>;
+  aprTimeseries: {
+    __typename?: "AprTimeseries";
+    step: number;
+    data: Array<{
+      __typename?: "AprEntry";
+      timestamp: string;
+      value?: { __typename?: "AprValue"; workerApr: number; stakerApr: number };
+    }>;
+  };
 };
 
 export const AccountFragmentFragmentDoc = `
@@ -8410,8 +8536,11 @@ export const useCurrentEpochQuery = <
 export const HoldersCountTimeseriesDocument = `
     query HoldersCountTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   holdersCountTimeseries(from: $from, to: $to, step: $step) {
-    timestamp
-    value
+    data {
+      timestamp
+      value
+    }
+    step
   }
 }
     `;
@@ -8445,8 +8574,11 @@ export const useHoldersCountTimeseriesQuery = <
 export const LockedValueTimeseriesDocument = `
     query LockedValueTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   lockedValueTimeseries(from: $from, to: $to, step: $step) {
-    timestamp
-    value
+    data {
+      timestamp
+      value
+    }
+    step
   }
 }
     `;
@@ -8480,8 +8612,11 @@ export const useLockedValueTimeseriesQuery = <
 export const ActiveWorkersTimeseriesDocument = `
     query ActiveWorkersTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   activeWorkersTimeseries(from: $from, to: $to, step: $step) {
-    timestamp
-    value
+    data {
+      timestamp
+      value
+    }
+    step
   }
 }
     `;
@@ -8515,8 +8650,11 @@ export const useActiveWorkersTimeseriesQuery = <
 export const UniqueOperatorsTimeseriesDocument = `
     query UniqueOperatorsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   uniqueOperatorsTimeseries(from: $from, to: $to, step: $step) {
-    timestamp
-    value
+    data {
+      timestamp
+      value
+    }
+    step
   }
 }
     `;
@@ -8550,8 +8688,11 @@ export const useUniqueOperatorsTimeseriesQuery = <
 export const DelegationsTimeseriesDocument = `
     query DelegationsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   delegationsTimeseries(from: $from, to: $to, step: $step) {
-    timestamp
-    value
+    data {
+      timestamp
+      value
+    }
+    step
   }
 }
     `;
@@ -8585,8 +8726,11 @@ export const useDelegationsTimeseriesQuery = <
 export const DelegatorsTimeseriesDocument = `
     query DelegatorsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   delegatorsTimeseries(from: $from, to: $to, step: $step) {
-    timestamp
-    value
+    data {
+      timestamp
+      value
+    }
+    step
   }
 }
     `;
@@ -8620,14 +8764,17 @@ export const useDelegatorsTimeseriesQuery = <
 export const TransfersByTypeTimeseriesDocument = `
     query TransfersByTypeTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   transfersByTypeTimeseries(from: $from, to: $to, step: $step) {
-    timestamp
-    value {
-      deposit
-      withdraw
-      transfer
-      reward
-      release
+    data {
+      timestamp
+      value {
+        deposit
+        withdraw
+        transfer
+        reward
+        release
+      }
     }
+    step
   }
 }
     `;
@@ -8661,8 +8808,11 @@ export const useTransfersByTypeTimeseriesQuery = <
 export const UniqueAccountsTimeseriesDocument = `
     query UniqueAccountsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   uniqueAccountsTimeseries(from: $from, to: $to, step: $step) {
-    timestamp
-    value
+    data {
+      timestamp
+      value
+    }
+    step
   }
 }
     `;
@@ -8696,8 +8846,11 @@ export const useUniqueAccountsTimeseriesQuery = <
 export const QueriesCountTimeseriesDocument = `
     query QueriesCountTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   queriesCountTimeseries(from: $from, to: $to, step: $step) {
-    timestamp
-    value
+    data {
+      timestamp
+      value
+    }
+    step
   }
 }
     `;
@@ -8731,8 +8884,11 @@ export const useQueriesCountTimeseriesQuery = <
 export const ServedDataTimeseriesDocument = `
     query ServedDataTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   servedDataTimeseries(from: $from, to: $to, step: $step) {
-    timestamp
-    value
+    data {
+      timestamp
+      value
+    }
+    step
   }
 }
     `;
@@ -8766,8 +8922,11 @@ export const useServedDataTimeseriesQuery = <
 export const StoredDataTimeseriesDocument = `
     query StoredDataTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   storedDataTimeseries(from: $from, to: $to, step: $step) {
-    timestamp
-    value
+    data {
+      timestamp
+      value
+    }
+    step
   }
 }
     `;
@@ -8801,11 +8960,14 @@ export const useStoredDataTimeseriesQuery = <
 export const RewardTimeseriesDocument = `
     query RewardTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   rewardTimeseries(from: $from, to: $to, step: $step) {
-    timestamp
-    value {
-      workerReward
-      stakerReward
+    data {
+      timestamp
+      value {
+        workerReward
+        stakerReward
+      }
     }
+    step
   }
 }
     `;
@@ -8839,11 +9001,14 @@ export const useRewardTimeseriesQuery = <
 export const AprTimeseriesDocument = `
     query AprTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   aprTimeseries(from: $from, to: $to, step: $step) {
-    timestamp
-    value {
-      workerApr
-      stakerApr
+    data {
+      timestamp
+      value {
+        workerApr
+        stakerApr
+      }
     }
+    step
   }
 }
     `;
