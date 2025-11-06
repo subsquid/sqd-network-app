@@ -4331,6 +4331,7 @@ __metadata:
     "@types/react-syntax-highlighter": "npm:^15.5.13"
     "@types/semver": "npm:^7.7.1"
     "@visx/axis": "npm:^3.12.0"
+    "@visx/curve": "npm:^3.12.0"
     "@visx/event": "npm:^3.12.0"
     "@visx/glyph": "npm:^3.12.0"
     "@visx/grid": "npm:^3.12.0"
@@ -4914,7 +4915,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@visx/curve@npm:3.12.0":
+"@visx/curve@npm:3.12.0, @visx/curve@npm:^3.12.0":
   version: 3.12.0
   resolution: "@visx/curve@npm:3.12.0"
   dependencies:

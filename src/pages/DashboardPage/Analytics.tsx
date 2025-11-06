@@ -1,7 +1,9 @@
-import React, { useCallback, useMemo, useState, createContext, useContext, useEffect } from 'react';
-
-// Components
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Card } from '@components/Card';
+import { Location, useLocationState } from '@hooks/useLocationState';
+import { parseTimeRange } from '@lib/datemath';
+import { toDateDay, toDateSeconds } from '@lib/formatters/formatters';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
 import {
   Box,
   Divider,
@@ -15,26 +17,23 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import ShowChartIcon from '@mui/icons-material/ShowChart';
-import { ParentSize } from '@visx/responsive';
-import { scaleLinear, scaleTime } from '@visx/scale';
-import { Line, LinePath, Bar, AreaClosed } from '@visx/shape';
-import { GlyphCircle } from '@visx/glyph';
-import {
-  useTooltip,
-  useTooltipInPortal,
-  defaultStyles as tooltipDefaultStyles,
-} from '@visx/tooltip';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import { localPoint } from '@visx/event';
-import { bisector } from 'd3-array';
+import { GlyphCircle } from '@visx/glyph';
 import { Group } from '@visx/group';
-import { useLocationState, Location } from '@hooks/useLocationState';
-import { toDateSeconds, toDateDay } from '@lib/formatters/formatters';
-import { parseTimeRange } from '@lib/datemath';
+import { ParentSize } from '@visx/responsive';
+import { scaleLinear, scaleTime } from '@visx/scale';
+import { AreaClosed, Bar, Line, LinePath } from '@visx/shape';
+import {
+  defaultStyles as tooltipDefaultStyles,
+  useTooltip,
+  useTooltipInPortal,
+} from '@visx/tooltip';
+import { curveMonotoneX } from '@visx/curve';
+import { bisector } from 'd3-array';
+import { addMilliseconds } from 'date-fns';
 import { partition } from 'lodash-es';
 import { CHARTS, DEFAULT_GRID_SIZE, type ChartConfig } from './chartConfigs';
-import { addMilliseconds } from 'date-fns';
 
 const CHART_CONFIG = {
   height: 240,
@@ -539,6 +538,7 @@ function ChartSeries({
                       y={d => yScale(d.y)}
                       yScale={yScale}
                       fill={`url(#${gradientId})`}
+                      curve={curveMonotoneX}
                     />
                     <LinePath<SingleLineChartDatum>
                       data={data}
@@ -546,6 +546,7 @@ function ChartSeries({
                       y={d => yScale(d.y)}
                       stroke={color}
                       strokeWidth={strokeWidth}
+                      curve={curveMonotoneX}
                     />
                   </g>
                 );
