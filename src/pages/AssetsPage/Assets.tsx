@@ -252,7 +252,7 @@ export function MyAssets() {
         title="My Assets"
         action={
           <Stack direction="row" spacing={1}>
-            <ClaimButton disabled={isLoading || !hasAvailableClaims} />
+            <ClaimButton disabled={isLoading || !hasAvailableClaims} sources={claimableSources} />
           </Stack>
         }
         loading={isLoading}
