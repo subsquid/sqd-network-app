@@ -63,6 +63,8 @@ function TokenBalance({ sx, balance }: { sx?: SxProps<Theme>; balance?: TokenBal
 function TotalBalance({ balances, total }: { balances: TokenBalance[]; total: BigNumber }) {
   const { SQD_TOKEN } = useContracts();
 
+  const filteredBalances = useMemo(() => balances.filter(b => !b.value.isZero()), [balances]);
+
   return (
     <Box
       display="flex"
@@ -75,10 +77,12 @@ function TotalBalance({ balances, total }: { balances: TokenBalance[]; total: Bi
         <svg width={240} height={240}>
           <Group top={120} left={120}>
             <Pie
-              data={balances}
+              data={filteredBalances}
               pieValue={d => d.value.toNumber()}
               outerRadius={120}
               innerRadius={60}
+              padAngle={0.02}
+              cornerRadius={4}
             >
               {pie => {
                 return pie.arcs.map((arc, i) => {
