@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { dateFormat } from '@i18n';
 import { percentFormatter } from '@lib/formatters/formatters';
-import { ArrowBackIosNew, ArrowForwardIos } from '@mui/icons-material';
+import { ArrowBackIosNew, ArrowForwardIos, FilterList } from '@mui/icons-material';
 import {
   IconButton,
   styled,
@@ -11,6 +12,7 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
+  Collapse,
 } from '@mui/material';
 import { Box } from '@mui/system';
 
@@ -23,6 +25,8 @@ import { WorkerDelegate } from '@pages/WorkersPage/WorkerDelegate';
 import { WorkerName } from '@pages/WorkersPage/WorkerName';
 import { WorkerStatusChip } from '@pages/WorkersPage/WorkerStatus';
 import { WorkerVersion } from '@pages/WorkersPage/WorkerVersion';
+import { SectionHeader } from '@components/SectionHeader';
+import { WorkersFilters } from './WorkersFilters';
 
 function TableNavigation({
   totalPages,
@@ -69,31 +73,33 @@ function TableNavigation({
   );
 }
 
-export const SummaryLabel = styled(Box, {
-  name: 'SummaryLabel',
-})(({ theme }) => ({
-  color: theme.palette.text.primary,
-  flex: 1,
-}));
-export const SummaryValue = styled(Box, {
-  name: 'SummaryValue',
-})(({ theme }) => ({
-  color: theme.palette.text.secondary,
-  flex: 1,
-}));
+const PER_PAGE = 15;
 
 export function Workers() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('xs'));
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const [query, setQuery] = useLocationState({
     page: new Location.Number(1),
     search: new Location.String(''),
     sortBy: new Location.Enum<WorkerSortBy>(WorkerSortBy.StakerAPR),
     sortDir: new Location.Enum<SortDir>(SortDir.Desc),
+    status: new Location.Array(new Location.String(), []),
+    minUptime: new Location.String(''),
+    minWorkerAPR: new Location.String(''),
+    minDelegatorAPR: new Location.String(''),
+    maxDelegationCapacity: new Location.String(''),
   });
 
   const { data: sources, isLoading: isSourcesLoading } = useMySources();
+
+  // Helper to parse numeric filter values
+  const parseFilterValue = (value: string): number | undefined => {
+    if (!value || value.trim() === '') return undefined;
+    const parsed = parseFloat(value);
+    return isNaN(parsed) || parsed <= 0 ? undefined : parsed;
+  };
 
   const {
     workers,
@@ -103,27 +109,62 @@ export function Workers() {
   } = useWorkers({
     search: query.search,
     page: query.page,
-    perPage: 15,
+    perPage: PER_PAGE,
     sortBy: query.sortBy as WorkerSortBy,
     sortDir: query.sortDir as SortDir,
+    statusFilter: query.status,
+    minUptime: parseFilterValue(query.minUptime),
+    minWorkerAPR: parseFilterValue(query.minWorkerAPR),
+    minDelegatorAPR: parseFilterValue(query.minDelegatorAPR),
+    maxDelegationCapacity: parseFilterValue(query.maxDelegationCapacity),
   });
 
   const isLoading = isSourcesLoading || isWorkersLoading;
 
   return (
-    <Box>
-      <DashboardTable
-        title={
-          <Search
-            placeholder="Search"
-            value={query.search}
-            onChange={setQuery.search}
-            fullWidth={isMobile}
+    <>
+      <Box mb={2}>
+        <SectionHeader
+          title={
+            <Search
+              placeholder="Search"
+              value={query.search}
+              onChange={setQuery.search}
+              fullWidth={isMobile}
+            />
+          }
+          action={
+            <IconButton
+              size="small"
+              onClick={() => setFiltersOpen(!filtersOpen)}
+              sx={{
+                backgroundColor: filtersOpen ? 'action.selected' : 'transparent',
+                '&:hover': {
+                  backgroundColor: filtersOpen ? 'action.selected' : 'action.hover',
+                },
+              }}
+            >
+              <FilterList />
+            </IconButton>
+          }
+        />
+        <Collapse in={filtersOpen}>
+          <WorkersFilters
+            sx={{ mt: 2 }}
+            statusArray={query.status}
+            onStatusChange={setQuery.status}
+            minUptime={query.minUptime}
+            onMinUptimeChange={setQuery.minUptime}
+            minWorkerAPR={query.minWorkerAPR}
+            onMinWorkerAPRChange={setQuery.minWorkerAPR}
+            minDelegatorAPR={query.minDelegatorAPR}
+            onMinDelegatorAPRChange={setQuery.minDelegatorAPR}
+            maxDelegationCapacity={query.maxDelegationCapacity}
+            onMaxDelegationCapacityChange={setQuery.maxDelegationCapacity}
           />
-        }
-        loading={isLoading}
-        sx={{ mb: 2 }}
-      >
+        </Collapse>
+      </Box>
+      <DashboardTable loading={isLoading} sx={{ mb: 2 }} minHeight={PER_PAGE * 73}>
         <TableHead>
           <TableRow>
             <SortableHeaderCell sort={WorkerSortBy.Name} query={query} setQuery={setQuery}>
@@ -201,6 +242,6 @@ export function Workers() {
       {!isWorkersLoading && (
         <TableNavigation page={page} totalPages={totalPages} setPage={setQuery.page} />
       )}
-    </Box>
+    </>
   );
 }

@@ -4,7 +4,6 @@ import { Box, Stack, TableBody, TableCell, TableHead, TableRow } from '@mui/mate
 import { Outlet } from 'react-router-dom';
 
 import { SortDir, useMyDelegations, useMySources, WorkerSortBy } from '@api/subsquid-network-squid';
-import { SquaredChip } from '@components/Chip';
 import { DashboardTable, NoItems, SortableHeaderCell } from '@components/Table';
 import { Location, useLocationState } from '@hooks/useLocationState';
 import { CenteredPageWrapper } from '@layouts/NetworkLayout';
@@ -15,6 +14,7 @@ import { WorkerDelegate } from '@pages/WorkersPage/WorkerDelegate';
 import { WorkerName } from '@pages/WorkersPage/WorkerName';
 import { WorkerStatusChip } from '@pages/WorkersPage/WorkerStatus';
 import { WorkerUndelegate } from '@pages/WorkersPage/WorkerUndelegate';
+import { SectionHeader } from '@components/SectionHeader';
 
 export function MyDelegations() {
   const [query, setQuery] = useLocationState({
@@ -34,11 +34,8 @@ export function MyDelegations() {
 
   return (
     <Box>
-      <DashboardTable
-        loading={isLoading}
-        title={<SquaredChip label="My Delegations" color="primary" />}
-        sx={{ mb: 2 }}
-      >
+      <SectionHeader title="My Delegations" sx={{ mb: 2 }}/>
+      <DashboardTable loading={isLoading} sx={{ mb: 2 }}>
         <TableHead>
           <TableRow>
             <SortableHeaderCell

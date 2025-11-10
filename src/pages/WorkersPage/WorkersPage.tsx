@@ -10,7 +10,6 @@ import {
   WorkerSortBy,
   WorkerStatus,
 } from '@api/subsquid-network-squid';
-import { SquaredChip } from '@components/Chip';
 import { DashboardTable, SortableHeaderCell, NoItems } from '@components/Table';
 import { Location, useLocationState } from '@hooks/useLocationState';
 import { CenteredPageWrapper } from '@layouts/NetworkLayout';
@@ -23,6 +22,8 @@ import { AddWorkerButton } from './AddNewWorker';
 import { WorkerUnregisterButton } from './WorkerUnregister';
 import { WorkerVersion } from './WorkerVersion';
 import { WorkerWithdrawButton } from './WorkerWithdraw';
+import { SquaredChip } from '@components/Chip';
+import { SectionHeader } from '@components/SectionHeader';
 import { isOwned } from './Worker';
 import { useAccount } from '@network/useAccount';
 
@@ -46,26 +47,25 @@ export function MyWorkers() {
 
   return (
     <Box>
-      <DashboardTable
-        loading={isLoading}
-        title={
-          <>
-            <SquaredChip label="My Workers" color="primary" />
-            <Stack direction="row" spacing={1}>
-              <Button
-                color="secondary"
-                variant="outlined"
-                component={Link}
-                target="_blank"
-                to="https://docs.sqd.dev/subsquid-network/participate/worker/"
-              >
-                LEARN MORE
-              </Button>
-              <AddWorkerButton sources={sources} disabled={isLoading} />
-            </Stack>
-          </>
+      <SectionHeader
+        sx={{ mb: 2 }}
+        title={<SquaredChip label="My Workers" color="primary" />}
+        action={
+          <Stack direction="row" spacing={1}>
+            <Button
+              color="secondary"
+              variant="outlined"
+              component={Link}
+              target="_blank"
+              to="https://docs.sqd.dev/subsquid-network/participate/worker/"
+            >
+              LEARN MORE
+            </Button>
+            <AddWorkerButton sources={sources} disabled={isLoading} />
+          </Stack>
         }
-      >
+      />
+      <DashboardTable loading={isLoading}>
         <>
           <TableHead>
             <TableRow>

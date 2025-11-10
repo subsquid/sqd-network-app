@@ -3,10 +3,10 @@ import prettyBytes from 'pretty-bytes';
 import { zeroAddress } from 'viem';
 import { getAddress } from 'viem/utils';
 
-export function percentFormatter(value?: number | string | BigNumber) {
+export function percentFormatter(value?: number | string | BigNumber, decimals = 2) {
   value = BigNumber(value || 0);
 
-  return `${value.lt(0.01) && value.gt(0) ? '<0.01' : value.toFixed(2)}%`;
+  return `${value.lt(0.01) && value.gt(0) ? '<0.01%' : value.toFixed(decimals)}%`;
 }
 
 const formatter8 = new Intl.NumberFormat('en-US', {
@@ -19,10 +19,25 @@ export function numberWithCommasFormatter(val?: number | bigint | string) {
   return formatter8.format(typeof val === 'string' ? Number(val) : val);
 }
 
-export function bytesFormatter(val?: number | string) {
+export function bytesFormatter(val?: number | string, compact?: boolean) {
   // if (!val) return '0 MB';
 
-  return prettyBytes(Number(val || 0), { maximumFractionDigits: 1, locale: 'en-US' });
+  return prettyBytes(Number(val || 0), {
+    maximumFractionDigits: 2,
+    locale: 'en-US',
+    space: !compact,
+  });
+}
+
+const formatterCompact = new Intl.NumberFormat('en-US', {
+  notation: 'compact',
+  maximumFractionDigits: 2,
+});
+
+export function numberCompactFormatter(val?: number | bigint | string) {
+  if (!val) return '0';
+
+  return formatterCompact.format(Number(val));
 }
 
 export function addressFormatter(val?: string, compact?: boolean) {
@@ -56,3 +71,26 @@ export function tokenFormatter(val: number | BigNumber, currency: string, decima
 
   return res + ` ${currency}`;
 }
+
+export const toCompact = new Intl.NumberFormat('en-US', {
+  notation: 'compact',
+  maximumFractionDigits: 1,
+});
+export const toNumber = new Intl.NumberFormat('en-US');
+
+export const toDateSeconds = new Intl.DateTimeFormat('en-US', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: 'numeric',
+  second: 'numeric',
+  timeZone: 'UTC',
+});
+
+export const toDateDay = new Intl.DateTimeFormat('en-US', {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+  timeZone: 'UTC',
+});

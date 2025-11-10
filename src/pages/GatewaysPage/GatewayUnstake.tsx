@@ -33,13 +33,7 @@ function UnlocksTooltip({ timestamp }: { timestamp?: Date | string | number | un
   return `Unlocks in ${timeLeft} (${dateFormat(timestamp, 'dateTime')})`;
 }
 
-export function GatewayUnstakeButton({
-  sx,
-  disabled,
-}: {
-  sx?: SxProps;
-  disabled?: boolean;
-}) {
+export function GatewayUnstakeButton({ sx, disabled }: { sx?: SxProps; disabled?: boolean }) {
   const [open, setOpen] = useState(false);
   const { selectedSource } = useSourceContext();
   const selectedSourceAddress = (selectedSource?.id || '0x') as `0x${string}`;

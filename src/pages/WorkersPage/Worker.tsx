@@ -7,7 +7,7 @@ import {
   urlFormatter,
 } from '@lib/formatters/formatters.ts';
 import { fromSqd } from '@lib/network';
-import { Box, Divider, Stack, styled } from '@mui/material';
+import { Box, Divider, Grid, Stack, styled, Typography, useTheme } from '@mui/material';
 import { useParams, useSearchParams } from 'react-router-dom';
 
 import {
@@ -16,22 +16,27 @@ import {
   WorkerStatus,
   useMySources,
   useMyWorkerDelegations,
+  Worker as ApiWorker,
+  type Account,
 } from '@api/subsquid-network-squid';
 import { Card } from '@components/Card';
-import { SquaredChip } from '@components/Chip';
 import { Loader } from '@components/Loader';
 import { NotFound } from '@components/NotFound';
-import { CenteredPageWrapper, NetworkPageTitle } from '@layouts/NetworkLayout';
+import { CenteredPageWrapper, PageTitle } from '@layouts/NetworkLayout';
 import { useAccount } from '@network/useAccount';
 import { useContracts } from '@network/useContracts';
 import { WorkerUnregisterButton } from '@pages/WorkersPage/WorkerUnregister';
 
 import { DelegationCapacity } from './DelegationCapacity';
-import { WorkerCard } from './WorkerCard';
 import { WorkerDelegate } from './WorkerDelegate';
 import { WorkerUndelegate } from './WorkerUndelegate';
 import { WorkerVersion } from './WorkerVersion';
 import { WorkerWithdrawButton } from './WorkerWithdraw';
+import { Avatar } from '@components/Avatar';
+import { CopyToClipboard } from '@components/CopyToClipboard';
+import { WorkerEdit } from './WorkerEdit';
+import { WorkerStatusChip } from './WorkerStatus';
+import { useMemo } from 'react';
 
 // const sx = {
 //   background: '#000',
@@ -43,47 +48,66 @@ import { WorkerWithdrawButton } from './WorkerWithdraw';
 //   },
 // };
 
-export const WorkerDescLabel = styled(Box, {
-  name: 'WorkerDescLabel',
+const InfoRow = styled(Box, {
+  name: 'InfoRow',
 })(({ theme }) => ({
-  flex: 0.5,
+  display: 'grid',
+  gridTemplateColumns: `minmax(auto, ${theme.spacing(25)}) 1fr`,
+  gap: theme.spacing(2),
+  alignItems: 'start',
+  [theme.breakpoints.down('sm')]: {
+    gridTemplateColumns: '1fr',
+    gap: theme.spacing(0.5),
+  },
+}));
+
+const InfoLabel = styled(Box, {
+  name: 'InfoLabel',
+})(({ theme }) => ({
   color: theme.palette.text.secondary,
-  whiteSpace: 'balance',
-  maxWidth: theme.spacing(25),
+  wordBreak: 'break-word',
 }));
 
-export const WorkerColumn = styled(Box, {
-  name: 'WorkerDescLabel',
+const InfoValue = styled(Box, {
+  name: 'InfoValue',
 })(() => ({
-  flex: 1,
-}));
-
-export const WorkerDescTable = styled(Box, {
-  name: 'WorkerDescTable',
-})(() => ({
-  flex: 1,
-}));
-
-export const WorkerDescRow = styled(Box, {
-  name: 'WorkerDescRow',
-})(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'flex-start',
-  margin: theme.spacing(5, 0),
-  lineHeight: 1.4,
-}));
-
-export const WorkerDescValue = styled(Box, {
-  name: 'WorkerDescValue',
-})(({ theme }) => ({
-  flex: 1,
-  marginLeft: theme.spacing(2),
   overflowWrap: 'anywhere',
 }));
 
-export const Title = styled(SquaredChip)(({ theme }) => ({
-  marginBottom: theme.spacing(3),
+const CardContentStack = styled(Stack)(({ theme }) => ({
+  flex: 1,
+  width: '100%',
 }));
+
+function WorkerTitle({
+  worker,
+  owner,
+  canEdit,
+}: {
+  worker: Pick<ApiWorker, 'id' | 'status' | 'peerId' | 'name'>;
+  owner: Pick<Account, 'id' | 'type'>;
+  canEdit: boolean;
+}) {
+  const theme = useTheme();
+
+  return (
+    <Stack spacing={0.5}>
+      <Stack direction="row" alignItems="center" spacing={0.5}>
+        <Typography variant="h4" sx={{ overflowWrap: 'anywhere' }}>
+          {worker.name || worker.peerId}
+        </Typography>
+        {canEdit ? <WorkerEdit worker={worker} owner={owner} disabled={!canEdit} /> : null}
+      </Stack>
+      <Typography
+        variant="body2"
+        component="span"
+        sx={{ overflowWrap: 'anywhere', color: theme.palette.text.secondary }}
+      >
+        <CopyToClipboard text={worker.peerId} content={<span>{worker.peerId}</span>} />
+      </Typography>
+    </Stack>
+  );
+}
 
 export const Worker = ({ backPath }: { backPath: string }) => {
   const { peerId } = useParams<{ peerId: string }>();
@@ -98,6 +122,13 @@ export const Worker = ({ backPath }: { backPath: string }) => {
 
   const isLoading = isPending || isSourcesLoading || isDelegationsLoading;
 
+  const canEdit = useMemo(() => {
+    if (!worker) return false;
+    if (worker.status === ApiWorkerStatus.Withdrawn) return false;
+    if (!isOwned(worker, address)) return false;
+    return [ApiWorkerStatus.Active, ApiWorkerStatus.Registering].includes(worker.status);
+  }, [worker, address]);
+
   if (isLoading) {
     return <Loader />;
   }
@@ -108,57 +139,68 @@ export const Worker = ({ backPath }: { backPath: string }) => {
 
   return (
     <CenteredPageWrapper className="wide">
-      <NetworkPageTitle
-        backPath={searchParams.get('backPath') || backPath}
-        endAdornment={
-          <Stack direction="row" spacing={2}>
-            <WorkerDelegate
-              worker={worker}
-              variant="outlined"
-              sources={sources}
-              disabled={isLoading}
-            />
-            <WorkerUndelegate
-              worker={worker}
-              sources={delegations?.map(d => ({
-                id: d.owner.id,
-                type: d.owner.type,
-                balance: d.deposit,
-                locked: d.locked || false,
-                lockEnd: d.lockEnd,
-              }))}
-              disabled={isLoading}
-            />
-          </Stack>
-        }
-      />
-
-      <Card outlined>
-        <Stack spacing={3} divider={<Divider orientation="horizontal" flexItem />}>
-          <WorkerCard
-            worker={worker}
-            owner={worker.owner}
-            canEdit={
-              isOwned(worker, address) &&
-              [ApiWorkerStatus.Active, ApiWorkerStatus.Registering].includes(worker.status)
+      <PageTitle title={'Worker'} />
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12 }}>
+          <Card
+            title={
+              <Stack spacing={2} direction="row" alignItems="center">
+                <Avatar
+                  variant="circular"
+                  name={worker.name || worker.peerId}
+                  colorDiscriminator={worker.peerId}
+                  size={56}
+                />
+                <WorkerTitle worker={worker} owner={worker.owner} canEdit={canEdit} />
+              </Stack>
             }
-          />
-          <Box>
-            <Title label="Info" />
-            <Stack spacing={2} direction="column">
-              <Stack direction="row">
-                <WorkerDescLabel>Created</WorkerDescLabel>
-                <WorkerDescValue>{dateFormat(worker.createdAt, 'dateTime')}</WorkerDescValue>
+            action={
+              <Stack direction="row" spacing={1}>
+                <WorkerDelegate
+                  worker={worker}
+                  variant="outlined"
+                  sources={sources}
+                  disabled={isLoading}
+                />
+                <WorkerUndelegate
+                  worker={worker}
+                  sources={delegations?.map(d => ({
+                    id: d.owner.id,
+                    type: d.owner.type,
+                    balance: d.deposit,
+                    locked: d.locked || false,
+                    lockEnd: d.lockEnd,
+                  }))}
+                  disabled={isLoading}
+                />
               </Stack>
-              <Stack direction="row">
-                <WorkerDescLabel>Version</WorkerDescLabel>
-                <WorkerDescValue>
+            }
+          >
+            <CardContentStack spacing={2}>
+              <Divider />
+
+              <InfoRow>
+                <InfoLabel>Status</InfoLabel>
+                <InfoValue>
+                  <WorkerStatusChip worker={worker} />
+                </InfoValue>
+              </InfoRow>
+
+              <InfoRow>
+                <InfoLabel>Created</InfoLabel>
+                <InfoValue>{dateFormat(worker.createdAt, 'dateTime')}</InfoValue>
+              </InfoRow>
+
+              <InfoRow>
+                <InfoLabel>Version</InfoLabel>
+                <InfoValue>
                   <WorkerVersion worker={worker} />
-                </WorkerDescValue>
-              </Stack>
-              <Stack direction="row">
-                <WorkerDescLabel>Website</WorkerDescLabel>
-                <WorkerDescValue>
+                </InfoValue>
+              </InfoRow>
+
+              <InfoRow>
+                <InfoLabel>Website</InfoLabel>
+                <InfoValue>
                   {worker.website ? (
                     <a href={urlFormatter(worker.website)} target="_blank" rel="noreferrer">
                       {urlFormatter(worker.website)}
@@ -166,105 +208,103 @@ export const Worker = ({ backPath }: { backPath: string }) => {
                   ) : (
                     '-'
                   )}
-                </WorkerDescValue>
-              </Stack>
-              <Stack direction="row">
-                <WorkerDescLabel>Description</WorkerDescLabel>
-                <WorkerDescValue>{worker.description || '-'}</WorkerDescValue>
-              </Stack>
-            </Stack>
-          </Box>
-          <Box>
-            <Title label="Bond" />
-            <Stack spacing={2}>
-              <Stack direction="row">
-                <WorkerDescLabel>Bonded</WorkerDescLabel>
-                <WorkerDescValue>{tokenFormatter(fromSqd(worker.bond), SQD_TOKEN)}</WorkerDescValue>
-              </Stack>
-              <Stack direction="row">
-                <WorkerDescLabel>Worker APR</WorkerDescLabel>
-                <WorkerDescValue>
-                  {worker.apr != null ? percentFormatter(worker.apr) : '-'}
-                </WorkerDescValue>
-              </Stack>
-              <Stack direction="row">
-                <WorkerDescLabel>Total reward</WorkerDescLabel>
-                <WorkerDescValue>
+                </InfoValue>
+              </InfoRow>
+
+              <InfoRow>
+                <InfoLabel>Description</InfoLabel>
+                <InfoValue>{worker.description || '-'}</InfoValue>
+              </InfoRow>
+            </CardContentStack>
+          </Card>
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Card title="Bond">
+            <CardContentStack spacing={2}>
+              <InfoRow>
+                <InfoLabel>Bonded</InfoLabel>
+                <InfoValue>{tokenFormatter(fromSqd(worker.bond), SQD_TOKEN)}</InfoValue>
+              </InfoRow>
+
+              <InfoRow>
+                <InfoLabel>Worker APR</InfoLabel>
+                <InfoValue>{worker.apr != null ? percentFormatter(worker.apr) : '-'}</InfoValue>
+              </InfoRow>
+
+              <InfoRow>
+                <InfoLabel>Total reward</InfoLabel>
+                <InfoValue>
                   {tokenFormatter(
                     fromSqd(worker.claimableReward).plus(fromSqd(worker.claimedReward)),
                     SQD_TOKEN,
                   )}
-                </WorkerDescValue>
-              </Stack>
-            </Stack>
-          </Box>
+                </InfoValue>
+              </InfoRow>
+            </CardContentStack>
+          </Card>
+        </Grid>
 
-          <Box>
-            <Title label="Delegation" />
-            <Stack spacing={2}>
-              <Stack direction="row">
-                <WorkerDescLabel>Delegators</WorkerDescLabel>
-                <WorkerDescValue>{worker.delegationCount}</WorkerDescValue>
-              </Stack>
-              <Stack direction="row">
-                <WorkerDescLabel>Total delegation</WorkerDescLabel>
-                <WorkerDescValue>
-                  {tokenFormatter(fromSqd(worker.totalDelegation), SQD_TOKEN)}
-                </WorkerDescValue>
-              </Stack>
-              <Stack direction="row">
-                <WorkerDescLabel>Delegation capacity</WorkerDescLabel>
-                <WorkerDescValue>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Card title="Delegation">
+            <CardContentStack spacing={2}>
+              <InfoRow>
+                <InfoLabel>Delegation capacity</InfoLabel>
+                <InfoValue>
                   <DelegationCapacity worker={worker} />
-                </WorkerDescValue>
-              </Stack>
-              <Stack direction="row">
-                <WorkerDescLabel>Delegator APR</WorkerDescLabel>
-                <WorkerDescValue>
-                  {worker.stakerApr != null ? percentFormatter(worker.stakerApr) : '-'}
-                </WorkerDescValue>
-              </Stack>
-              <Stack direction="row">
-                <WorkerDescLabel>Total reward</WorkerDescLabel>
-                <WorkerDescValue>
-                  {tokenFormatter(fromSqd(worker.totalDelegationRewards), SQD_TOKEN)}
-                </WorkerDescValue>
-              </Stack>
-            </Stack>
-          </Box>
+                </InfoValue>
+              </InfoRow>
 
-          <Box>
-            <Title label="Statistics" />
-            <Stack spacing={2}>
-              <Stack direction="row">
-                <WorkerDescLabel>Uptime, 24h / 90d</WorkerDescLabel>
-                <WorkerDescValue>
+              <InfoRow>
+                <InfoLabel>Delegator APR</InfoLabel>
+                <InfoValue>
+                  {worker.stakerApr != null ? percentFormatter(worker.stakerApr) : '-'}
+                </InfoValue>
+              </InfoRow>
+
+              <InfoRow>
+                <InfoLabel>Total reward</InfoLabel>
+                <InfoValue>
+                  {tokenFormatter(fromSqd(worker.totalDelegationRewards), SQD_TOKEN)}
+                </InfoValue>
+              </InfoRow>
+            </CardContentStack>
+          </Card>
+        </Grid>
+
+        <Grid size={{ xs: 12 }}>
+          <Card title="Health">
+            <CardContentStack spacing={2}>
+              <InfoRow>
+                <InfoLabel>Uptime, 24h / 90d</InfoLabel>
+                <InfoValue>
                   {percentFormatter(worker.uptime24Hours)} / {percentFormatter(worker.uptime90Days)}
-                </WorkerDescValue>
-              </Stack>
-              <Stack direction="row">
-                <WorkerDescLabel>Queries, 24h / 90d</WorkerDescLabel>
-                <WorkerDescValue>
+                </InfoValue>
+              </InfoRow>
+
+              <InfoRow>
+                <InfoLabel>Queries, 24h / 90d</InfoLabel>
+                <InfoValue>
                   {numberWithCommasFormatter(worker.queries24Hours)} /{' '}
                   {numberWithCommasFormatter(worker.queries90Days)}
-                </WorkerDescValue>
-              </Stack>
-              <Stack direction="row">
-                <WorkerDescLabel>Data served, 24h / 90d</WorkerDescLabel>
-                <WorkerDescValue>
+                </InfoValue>
+              </InfoRow>
+
+              <InfoRow>
+                <InfoLabel>Data served, 24h / 90d</InfoLabel>
+                <InfoValue>
                   {bytesFormatter(worker.servedData24Hours)} /{' '}
                   {bytesFormatter(worker.servedData90Days)}
-                </WorkerDescValue>
-              </Stack>
-              <Stack direction="row">
-                <WorkerDescLabel>Data stored</WorkerDescLabel>
-                <WorkerDescValue>{bytesFormatter(worker.storedData)}</WorkerDescValue>
-              </Stack>
-            </Stack>
-            {/* <UptimeGraph worker={worker} /> */}
-          </Box>
-        </Stack>
-      </Card>
+                </InfoValue>
+              </InfoRow>
+
+              <InfoRow>
+                <InfoLabel>Data stored</InfoLabel>
+                <InfoValue>{bytesFormatter(worker.storedData)}</InfoValue>
+              </InfoRow>
+            </CardContentStack>
+          </Card>
+        </Grid>
+      </Grid>
 
       {isOwned(worker, address) && worker.status !== ApiWorkerStatus.Withdrawn ? (
         <Box mt={3} display="flex" justifyContent="flex-end">

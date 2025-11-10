@@ -3,7 +3,7 @@ import { alpha } from '@mui/system/colorManipulator';
 
 export const NetworkLightTheme = {
   primary: {
-    main: '#d5d8dd',
+    main: '#f0f2f5',
     contrastText: '#3E4A5C',
   },
   secondary: {
@@ -32,17 +32,17 @@ export const NetworkLightTheme = {
     disabled: '#c2cad6',
   },
   background: {
-    default: '#ffffff',
     paper: '#f0f2f5',
+    default: '#ffffff',
   },
-  divider: '#C2CAD6',
+  divider: '#d6d8dc',
   action: {
-    active: alpha('#404a5a', 1),
-    activatedOpacity: 0.2,
+    active: alpha('#404a5a', 0.15),
+    activatedOpacity: 0.15,
     hover: alpha('#3e4a5c', 0.1),
     hoverOpacity: 0.08,
-    selected: alpha('#3e4a5c', 0.54),
-    selectedOpacity: 0.7,
+    selected: alpha('#3e4a5c', 0.1),
+    selectedOpacity: 0.1,
     disabled: alpha('#3e4a5c', 0.26),
     disabledBackground: alpha('#3e4a5c', 0.12),
     disabledOpacity: 0.38,

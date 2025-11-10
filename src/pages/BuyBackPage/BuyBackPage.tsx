@@ -3,7 +3,6 @@ import { Alert, Box, TableBody, TableCell, TableHead, TableRow, Typography } fro
 import { Outlet } from 'react-router-dom';
 
 import { useSourcesQuery, useSquid } from '@api/subsquid-network-squid';
-import { SquaredChip } from '@components/Chip';
 import { DashboardTable, NoItems } from '@components/Table';
 import { NameWithAvatar } from '@components/SourceWalletName';
 import { CenteredPageWrapper } from '@layouts/NetworkLayout';
@@ -12,6 +11,7 @@ import { useAccount } from '@network/useAccount';
 import { useContracts } from '@network/useContracts';
 
 import { DepositButton } from './DepositButton';
+import { SectionHeader } from '@components/SectionHeader';
 
 export function OtcContracts() {
   const account = useAccount();
@@ -29,11 +29,8 @@ export function OtcContracts() {
 
   return (
     <Box>
-      <DashboardTable
-        loading={isLoading}
-        title={<SquaredChip label="Buyback" color="primary" />}
-        sx={{ mb: 2 }}
-      >
+      <SectionHeader title="Buyback" sx={{ mb: 2 }}/>
+      <DashboardTable loading={isLoading} sx={{ mb: 2 }}>
         <TableHead>
           <TableRow>
             <TableCell>Contract</TableCell>

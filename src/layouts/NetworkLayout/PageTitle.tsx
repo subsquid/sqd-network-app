@@ -8,20 +8,16 @@ import { BackButton } from '@components/BackButton';
 const PageTitleWrapper = styled('div', {
   name: 'PageTitleWrapper',
 })(({ theme }) => ({
-  marginBottom: theme.spacing(5),
+  marginBottom: theme.spacing(3),
 
   '& .title': {
     display: 'flex',
     alignItems: 'center',
-    gap: theme.spacing(3.5),
-
-    [theme.breakpoints.down('xs')]: {
-      gap: theme.spacing(2),
-    },
+    gap: theme.spacing(2),
   },
 
   [theme.breakpoints.down('xs')]: {
-    marginBottom: theme.spacing(4),
+    marginBottom: theme.spacing(2),
   },
 }));
 
@@ -44,15 +40,9 @@ export function PageTitle({
 }>) {
   return (
     <PageTitleWrapper sx={sx}>
-      <Typography
-        variant="h1"
-        sx={{
-          lineHeight: 1,
-          mb: 3,
-        }}
-      >
+      <Typography variant="h4">
         <div className="title">
-          {backPath ? <BackButton path={backPath} /> : null}
+          <BackButton path={backPath} />
           <Box color="text.primary">{title}</Box>
         </div>
       </Typography>

@@ -5,8 +5,6 @@ import { Box, styled, SxProps, Table, TableBody, TableProps } from '@mui/materia
 import { Loader } from '@components/Loader';
 
 interface DashboardTableProps {
-  /** Optional title to display above the table */
-  title?: React.ReactNode;
   /** Optional custom styles */
   sx?: SxProps;
   /** Loading state of the table */
@@ -98,7 +96,6 @@ const TitleSection = ({ title }: TitleSectionProps) =>
 
 export const DashboardTable = ({
   children,
-  title,
   sx,
   loading,
   className,
@@ -116,7 +113,6 @@ export const DashboardTable = ({
 
   return (
     <Box sx={sx} className={className}>
-      <TitleSection title={title} />
       <Box
         position="relative"
         sx={{

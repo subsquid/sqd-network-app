@@ -1,0 +1,238 @@
+import {
+  add,
+  endOfDay,
+  endOfHour,
+  endOfMinute,
+  endOfMonth,
+  endOfSecond,
+  endOfWeek,
+  endOfYear,
+  isValid,
+  parseISO,
+  startOfDay,
+  startOfHour,
+  startOfMinute,
+  startOfMonth,
+  startOfSecond,
+  startOfWeek,
+  startOfYear,
+  sub,
+} from 'date-fns';
+
+type Unit = 'y' | 'M' | 'w' | 'd' | 'h' | 'm' | 's';
+
+interface MathOperation {
+  operator: '+' | '-';
+  amount: number;
+  unit: Unit;
+}
+
+interface RoundOperation {
+  unit: Unit;
+}
+
+type Operation = MathOperation | RoundOperation;
+
+interface ParsedExpression {
+  anchor: Date;
+  operations: Operation[];
+}
+
+// Unit mappings for date-fns
+const UNIT_MAP: Record<Unit, any> = {
+  y: 'years',
+  M: 'months',
+  w: 'weeks',
+  d: 'days',
+  h: 'hours',
+  m: 'minutes',
+  s: 'seconds',
+};
+
+export function parseDateMath(expression: string, anchor: Date = new Date()): Date {
+  if (!expression) return anchor;
+
+  // Handle "now" or relative expressions
+  if (expression === 'now') {
+    return anchor;
+  }
+
+  // Handle plain ISO date strings (e.g., "2024-05-20", "2024-05-20T00:00:00Z")
+  if (/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?)?$/.test(expression)) {
+    const parsedDate = parseISO(expression);
+    if (isValid(parsedDate)) {
+      return parsedDate;
+    }
+  }
+
+  // Handle anchor||expression format (e.g., "2024-01-01||+1M")
+  if (expression.includes('||')) {
+    const [anchorStr, mathStr] = expression.split('||');
+    const parsedAnchor = parseISO(anchorStr);
+    if (!isValid(parsedAnchor)) {
+      throw new Error(`Invalid anchor date: ${anchorStr}`);
+    }
+    return parseDateMath(mathStr, parsedAnchor);
+  }
+
+  // Parse relative expression (now+1h, now-5m/d, etc.)
+  const parsed = parseExpression(expression, anchor);
+  return applyExpression(parsed);
+}
+
+/**
+ * Check if a string is a valid date math expression
+ */
+export function isDateMathExpression(expression: string): boolean {
+  try {
+    if (!expression) return false;
+
+    const patterns = [
+      /^now([+-]\d+[yMwdhms]|\/[yMwdhms])*$/,
+      /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?)?$/, // Plain ISO date strings
+      /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z?)?\|\|([+-]\d+[yMwdhms]|\/[yMwdhms])*$/,
+      /^now.*to.*now.*$/,
+    ];
+
+    return patterns.some(pattern => pattern.test(expression));
+  } catch {
+    return false;
+  }
+}
+
+function parseExpression(expression: string, anchor: Date): ParsedExpression {
+  let current = expression;
+  const operations: Operation[] = [];
+
+  // Remove "now" prefix
+  if (current.startsWith('now')) {
+    current = current.substring(3);
+  }
+
+  // Parse operations left-to-right: math operations (+1h, -5m) and rounding (/d, /h)
+  // Combined regex to match both types of operations in order
+  const operationRegex = /([+-]\d+[yMwdhms]|\/[yMwdhms])/g;
+  let match;
+
+  while ((match = operationRegex.exec(current)) !== null) {
+    const op = match[1];
+
+    if (op.startsWith('/')) {
+      operations.push({
+        unit: op.substring(1) as Unit,
+      });
+    } else {
+      const mathMatch = op.match(/([+-])(\d+)([yMwdhms])/);
+      if (mathMatch) {
+        const [, operator, amountStr, unit] = mathMatch;
+        operations.push({
+          operator: operator as '+' | '-',
+          amount: parseInt(amountStr, 10),
+          unit: unit as Unit,
+        });
+      }
+    }
+  }
+
+  return {
+    anchor,
+    operations,
+  };
+}
+
+function applyExpression({ anchor, operations }: ParsedExpression): Date {
+  let result = new Date(anchor);
+
+  for (const op of operations) {
+    if ('operator' in op) {
+      const duration = { [UNIT_MAP[op.unit]]: op.amount };
+      if (op.operator === '+') {
+        result = add(result, duration);
+      } else {
+        result = sub(result, duration);
+      }
+    } else {
+      result = roundToStartOfUnit(result, op.unit);
+    }
+  }
+
+  return result;
+}
+
+function roundToStartOfUnit(date: Date, unit: Unit): Date {
+  switch (unit) {
+    case 's':
+      return startOfSecond(date);
+    case 'm':
+      return startOfMinute(date);
+    case 'h':
+      return startOfHour(date);
+    case 'd':
+      return startOfDay(date);
+    case 'w':
+      return startOfWeek(date);
+    case 'M':
+      return startOfMonth(date);
+    case 'y':
+      return startOfYear(date);
+    default:
+      return date;
+  }
+}
+
+export function roundToEndOfUnit(date: Date, unit: Unit): Date {
+  switch (unit) {
+    case 's':
+      return endOfSecond(date);
+    case 'm':
+      return endOfMinute(date);
+    case 'h':
+      return endOfHour(date);
+    case 'd':
+      return endOfDay(date);
+    case 'w':
+      return endOfWeek(date);
+    case 'M':
+      return endOfMonth(date);
+    case 'y':
+      return endOfYear(date);
+    default:
+      return date;
+  }
+}
+
+export function parseDateMathEnd(expression: string, anchor: Date = new Date()): Date {
+  if (!expression) return anchor;
+
+  const hasRounding = /\/[yMwdhms]/.test(expression);
+
+  if (hasRounding) {
+    const parsed = parseExpression(expression, anchor);
+    let result = new Date(anchor);
+
+    // Apply operations left-to-right, but use roundToEndOfUnit instead of roundToStartOfUnit
+    for (const op of parsed.operations) {
+      if ('operator' in op) {
+        const duration = { [UNIT_MAP[op.unit]]: op.amount };
+        if (op.operator === '+') {
+          result = add(result, duration);
+        } else {
+          result = sub(result, duration);
+        }
+      } else {
+        result = roundToEndOfUnit(result, op.unit);
+      }
+    }
+
+    return result;
+  }
+
+  return parseDateMath(expression, anchor);
+}
+
+export function parseTimeRange(start?: string, end?: string): { from: Date; to: Date } {
+  return {
+    from: start ? parseDateMath(start) : new Date(0),
+    to: end ? parseDateMathEnd(end) : new Date(),
+  };
+}

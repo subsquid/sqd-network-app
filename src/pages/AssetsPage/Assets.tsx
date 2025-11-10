@@ -15,11 +15,11 @@ import {
   useTheme,
 } from '@mui/material';
 import BigNumber from 'bignumber.js';
-import { Cell, Pie, PieChart } from 'recharts';
+import { Pie } from '@visx/shape';
+import { Group } from '@visx/group';
 
 import {
   AccountType,
-  ClaimType,
   useSourcesWithAssetsQuery,
   useSquid,
   Worker,
@@ -29,7 +29,8 @@ import { HelpTooltip } from '@components/HelpTooltip';
 import { demoFeaturesEnabled } from '@hooks/demoFeaturesEnabled';
 import { useAccount } from '@network/useAccount';
 import { useContracts } from '@network/useContracts';
-import { ColumnLabel, ColumnValue, SummarySection } from '@pages/DashboardPage/Summary';
+import { ColumnLabel, ColumnValue } from '@pages/DashboardPage/Summary';
+import { Card } from '@components/Card/Card';
 
 import { ClaimButton } from './ClaimButton';
 
@@ -62,6 +63,8 @@ function TokenBalance({ sx, balance }: { sx?: SxProps<Theme>; balance?: TokenBal
 function TotalBalance({ balances, total }: { balances: TokenBalance[]; total: BigNumber }) {
   const { SQD_TOKEN } = useContracts();
 
+  const filteredBalances = useMemo(() => balances.filter(b => !b.value.isZero()), [balances]);
+
   return (
     <Box
       display="flex"
@@ -70,41 +73,29 @@ function TotalBalance({ balances, total }: { balances: TokenBalance[]; total: Bi
       alignItems="flex-end"
       flex={1}
     >
-      {/* <Box display="flex" pr={7} pb={3} alignItems="center">
-        <PieChart
-          series={[
-            {
-              data: balances.map(i => ({ id: i.name, value: i.value.toNumber(), color: i.color })),
-              outerRadius: 120,
-              innerRadius: 60,
-              valueFormatter: v => tokenFormatter(v.value, SQD_TOKEN, 3),
-              cx: 128,
-              cy: 128,
-            },
-          ]}
-          width={256}
-          height={256}
-          skipAnimation
-        />
-      </Box> */}
       <Box mb={4} mr={7}>
-        <PieChart width={240} height={240}>
-          <Pie
-            data={balances.map(i => ({ name: i.name, value: i.value.toNumber() }))}
-            animationDuration={0}
-            cx="50%"
-            cy="50%"
-            innerRadius={60}
-            outerRadius={120}
-            nameKey="name"
-            dataKey="value"
-            style={{ outline: 'none' }}
-          >
-            {balances.map(i => (
-              <Cell key={i.name} fill={i.color} strokeWidth={0} />
-            ))}
-          </Pie>
-        </PieChart>
+        <svg width={240} height={240}>
+          <Group top={120} left={120}>
+            <Pie
+              data={filteredBalances}
+              pieValue={d => d.value.toNumber()}
+              outerRadius={120}
+              innerRadius={60}
+              padAngle={0.02}
+              cornerRadius={4}
+            >
+              {pie => {
+                return pie.arcs.map((arc, i) => {
+                  return (
+                    <g key={`arc-${i}`}>
+                      <path d={pie.path(arc) || ''} fill={arc.data.color} />
+                    </g>
+                  );
+                });
+              }}
+            </Pie>
+          </Group>
+        </svg>
       </Box>
 
       <Box mb={1}>
@@ -209,7 +200,7 @@ export function MyAssets() {
 
     return sourcesQuery.accounts.map(s => {
       const claims: (Pick<Worker, 'id' | 'peerId' | 'name'> & {
-        type: ClaimType;
+        type: 'worker' | 'delegation';
         claimableReward: string;
       })[] = [];
 
@@ -221,7 +212,7 @@ export function MyAssets() {
           peerId: d.worker.peerId,
           name: d.worker.name,
           claimableReward: d.claimableReward,
-          type: ClaimType.Delegation,
+          type: 'delegation',
         });
       });
 
@@ -233,7 +224,7 @@ export function MyAssets() {
           peerId: w.peerId,
           name: w.name,
           claimableReward: w.claimableReward,
-          type: ClaimType.Worker,
+          type: 'worker',
         });
       });
 
@@ -260,45 +251,49 @@ export function MyAssets() {
 
   return (
     <Box minHeight={448} mb={2} display="flex">
-      <SummarySection
-        loading={isLoading}
+      <Card
         sx={{ width: 1 }}
-        title={<SquaredChip label="My Assets" color="primary" />}
+        title="My Assets"
         action={
-          <ClaimButton sources={claimableSources} disabled={isLoading || !hasAvailableClaims} />
+          <Stack direction="row" spacing={1}>
+            <ClaimButton disabled={isLoading || !hasAvailableClaims} sources={claimableSources} />
+          </Stack>
         }
+        loading={isLoading}
       >
-        <Grid container spacing={2} flex={1}>
-          <Grid size={{ xs: 12, sm: 8 }}>
-            <Stack
-              divider={<Divider flexItem />}
-              spacing={1}
-              direction={narrowXs ? 'column' : 'row'}
-              alignItems={narrowXs ? 'stretch' : 'flex-end'}
-              height={1}
-              justifyContent="stretch"
-            >
-              <Stack divider={<Divider flexItem />} spacing={1} flex={1}>
-                <TokenBalance balance={balances[0]} />
-                <TokenBalance balance={balances[1]} />
-                <TokenBalance balance={balances[2]} />
+        <Box height={1} display="flex" flexDirection="column">
+          <Grid container spacing={2} flex={1}>
+            <Grid size={{ xs: 12, sm: 8 }}>
+              <Stack
+                divider={<Divider flexItem />}
+                spacing={1}
+                direction={narrowXs ? 'column' : 'row'}
+                alignItems={narrowXs ? 'stretch' : 'flex-end'}
+                height={1}
+                justifyContent="stretch"
+              >
+                <Stack divider={<Divider flexItem />} spacing={1} flex={1}>
+                  <TokenBalance balance={balances[0]} />
+                  <TokenBalance balance={balances[1]} />
+                  <TokenBalance balance={balances[2]} />
+                </Stack>
+                <Stack divider={<Divider flexItem />} spacing={1} flex={1}>
+                  <TokenBalance balance={balances[3]} />
+                  <TokenBalance balance={balances[4]} />
+                  {demoFeaturesEnabled() && <TokenBalance balance={balances[5]} />}
+                </Stack>
               </Stack>
-              <Stack divider={<Divider flexItem />} spacing={1} flex={1}>
-                <TokenBalance balance={balances[3]} />
-                <TokenBalance balance={balances[4]} />
-                {demoFeaturesEnabled() && <TokenBalance balance={balances[5]} />}
-              </Stack>
-            </Stack>
-          </Grid>
-          {narrowSm ? null : (
-            <Grid size={{ xs: 0, sm: 4 }}>
-              <Box display="flex" alignItems="flex-end" height={1}>
-                <TotalBalance balances={balances} total={fromSqd(totalBalance)} />
-              </Box>
             </Grid>
-          )}
-        </Grid>
-      </SummarySection>
+            {narrowSm ? null : (
+              <Grid size={{ xs: 0, sm: 4 }}>
+                <Box display="flex" alignItems="flex-end" height={1}>
+                  <TotalBalance balances={balances} total={fromSqd(totalBalance)} />
+                </Box>
+              </Grid>
+            )}
+          </Grid>
+        </Box>
+      </Card>
     </Box>
   );
 }

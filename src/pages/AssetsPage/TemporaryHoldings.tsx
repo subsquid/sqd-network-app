@@ -17,6 +17,7 @@ import { useContracts } from '@network/useContracts';
 import { useMemo } from 'react';
 import { CopyToClipboard } from '@components/CopyToClipboard';
 import { Link } from 'react-router-dom';
+import { SectionHeader } from '@components/SectionHeader';
 
 export function MyTemporaryHoldings() {
   const account = useAccount();
@@ -79,11 +80,9 @@ export function MyTemporaryHoldings() {
   );
 
   return (
-    <Box mb={2}>
-      <DashboardTable
-        loading={isLoading}
-        title={<SquaredChip label="My Temporary Holdings" color="primary" />}
-      >
+    <>
+      <SectionHeader title="My Temporary Holdings" sx={{ mb: 2 }} />
+      <DashboardTable loading={isLoading}>
         <TableHead>
           <TableRow>
             <TableCell>Contract</TableCell>
@@ -141,6 +140,6 @@ export function MyTemporaryHoldings() {
           )}
         </TableBody>
       </DashboardTable>
-    </Box>
+    </>
   );
 }

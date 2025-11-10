@@ -7,8 +7,6 @@ import { erc20Abi } from 'viem';
 import { useReadContracts } from 'wagmi';
 
 import { vestingAbi } from '@api/contracts';
-import { useVestingsByAccountQuery } from '@api/subsquid-network-squid';
-import { SquaredChip } from '@components/Chip';
 import { DashboardTable, NoItems } from '@components/Table';
 import { NameWithAvatar } from '@components/SourceWalletName';
 import { useAccount } from '@network/useAccount';
@@ -18,6 +16,8 @@ import { ReleaseButton } from './ReleaseButton';
 import { useMemo } from 'react';
 import { CopyToClipboard } from '@components/CopyToClipboard';
 import { Link } from 'react-router-dom';
+import { SectionHeader } from '@components/SectionHeader';
+import { useVestingsByAccountQuery } from '@api/subsquid-network-squid';
 
 export function MyVestings() {
   const account = useAccount();
@@ -80,11 +80,9 @@ export function MyVestings() {
   );
 
   return (
-    <Box mb={2}>
-      <DashboardTable
-        loading={isLoading || isVestingsLoading}
-        title={<SquaredChip label="My Vestings" color="primary" />}
-      >
+    <>
+      <SectionHeader title="My Vestings" sx={{ mb: 2 }} />
+      <DashboardTable loading={isLoading || isVestingsLoading} sx={{ mb: 2 }}>
         <TableHead>
           <TableRow>
             <TableCell>Contract</TableCell>
@@ -109,7 +107,7 @@ export function MyVestings() {
                         <CopyToClipboard
                           text={vesting.id}
                           content={
-                            <Link to={`/assets/vestings/${vesting.id}`}>
+                            <Link to={`/vesting/${vesting.id}`}>
                               {addressFormatter(vesting.id, true)}
                             </Link>
                           }
@@ -137,6 +135,6 @@ export function MyVestings() {
           )}
         </TableBody>
       </DashboardTable>
-    </Box>
+    </>
   );
 }

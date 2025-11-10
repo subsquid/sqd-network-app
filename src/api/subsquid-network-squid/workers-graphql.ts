@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 
 import { calculateDelegationCapacity } from '@lib/network';
+import { getWorkerStatus } from '@pages/WorkersPage/WorkerStatus';
 import BigNumber from 'bignumber.js';
 import { compare as compareSemver } from 'semver';
 import { PartialDeep, SimplifyDeep } from 'type-fest';
@@ -207,18 +208,81 @@ interface WorkersQueryParams {
   search: string;
   sortBy: WorkerSortBy;
   sortDir: SortDir;
+  statusFilter?: string[];
+  minUptime?: number;
+  minWorkerAPR?: number;
+  minDelegatorAPR?: number;
+  maxDelegationCapacity?: number;
 }
 
-export function useWorkers({ page, perPage, search, sortBy, sortDir }: WorkersQueryParams) {
+function escapeRegExp(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export function useWorkers({
+  page,
+  perPage,
+  search,
+  sortBy,
+  sortDir,
+  statusFilter = [],
+  minUptime,
+  minWorkerAPR,
+  minDelegatorAPR,
+  maxDelegationCapacity,
+}: WorkersQueryParams) {
   const { isPending: isSettingsLoading } = useNetworkSettings();
   const { data, isPending } = useAllWorkersQuery({});
 
   const filteredData = useMemo(() => {
     const filtered = (data?.workers || [])
       .filter(w => {
-        if (!search) return true;
-        const regex = new RegExp(search, 'i');
-        return w.peerId.match(regex) || w.name?.match(regex);
+        // Search filter
+        if (search) {
+          const regex = new RegExp(escapeRegExp(search), 'i');
+          if (!w.peerId.match(regex) && !w.name?.match(regex)) {
+            return false;
+          }
+        }
+
+        // Status filter
+        if (statusFilter.length > 0) {
+          const workerStatus = getWorkerStatus(w);
+          if (!statusFilter.includes(workerStatus.label)) {
+            return false;
+          }
+        }
+
+        // Min uptime filter
+        if (minUptime != null && minUptime > 0) {
+          const uptime = w.uptime90Days != null ? w.uptime90Days : 0;
+          if (uptime < minUptime) {
+            return false;
+          }
+        }
+
+        // Min worker APR filter
+        if (minWorkerAPR != null && minWorkerAPR > 0) {
+          const workerAPR = w.apr != null ? w.apr : 0;
+          if (workerAPR < minWorkerAPR) return false;
+        }
+
+        // Min delegator APR filter
+        if (minDelegatorAPR != null && minDelegatorAPR > 0) {
+          const delegatorAPR = w.stakerApr != null ? w.stakerApr : 0;
+          if (delegatorAPR < minDelegatorAPR) return false;
+        }
+
+        // Max delegation capacity filter
+        if (maxDelegationCapacity != null && maxDelegationCapacity > 0) {
+          const delegationCapacity = calculateDelegationCapacity({
+            totalDelegation: w.totalDelegation,
+            capedDelegation: w.capedDelegation,
+          });
+          if (delegationCapacity > maxDelegationCapacity) return false;
+        }
+
+        return true;
       })
       .map(w => ({
         ...w,
@@ -239,7 +303,19 @@ export function useWorkers({ page, perPage, search, sortBy, sortDir }: WorkersQu
         normalizedPage * perPage,
       ),
     };
-  }, [data?.workers, search, sortBy, sortDir, page, perPage]);
+  }, [
+    data?.workers,
+    search,
+    sortBy,
+    sortDir,
+    page,
+    perPage,
+    statusFilter,
+    minUptime,
+    minWorkerAPR,
+    minDelegatorAPR,
+    maxDelegationCapacity,
+  ]);
 
   return {
     ...filteredData,
@@ -374,9 +450,9 @@ export function useMyDelegations({ sortBy, sortDir }: MyWorkersParams) {
   const { isPending: isSettingsLoading } = useNetworkSettings();
   const datasource = useSquid();
 
-  const { data: delegationsQuery, isLoading: isDelegationsQueryLoading } = useMyDelegationsQuery(
-    { address: address || '0x' },
-  );
+  const { data: delegationsQuery, isLoading: isDelegationsQueryLoading } = useMyDelegationsQuery({
+    address: address || '0x',
+  });
 
   const data = useMemo(() => {
     type WorkerWithDelegations = SimplifyDeep<

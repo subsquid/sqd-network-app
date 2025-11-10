@@ -30,6 +30,7 @@ export function BackButton({
   ariaLabel = 'Go back',
   replace = true,
   state,
+  path,
 }: BackButtonProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -40,11 +41,15 @@ export function BackButton({
       return;
     }
 
-    if (location.key !== 'default') {
-      navigate(-1);
-    } else {
-      navigate('/', { replace, state });
+    if (path) {
+      return navigate(path, { replace, state });
     }
+
+    if (location.key !== 'default') {
+      return navigate(-1);
+    }
+
+    return navigate('/', { replace, state });
   };
 
   return (

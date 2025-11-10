@@ -15,7 +15,6 @@ import {
 
 import { AccountType, SourceWalletWithBalance } from '@api/subsquid-network-squid';
 import { useContracts } from '@network/useContracts';
-import { capitalize, toUpper, upperFirst } from 'lodash-es';
 
 export interface SourceWalletOptionProps {
   /** The source wallet data */

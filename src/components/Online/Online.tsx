@@ -24,11 +24,11 @@ export interface OnlineCircleProps {
 export const OnlineCircle = styled(Box, {
   name: 'OnlineCircle',
 })<OnlineCircleProps>(
-  ({ theme, size = 8, showOutline = true, onlineColor, offlineColor, outlineColor = '#fff' }) => ({
+  ({ theme, size = 8, showOutline = true, onlineColor, offlineColor, outlineColor }) => ({
     width: size,
     height: size,
     borderRadius: '100%',
-    outline: showOutline ? `1px solid ${outlineColor}` : 'none',
+    outline: showOutline ? `1px solid ${outlineColor || theme.palette.background.paper}` : 'none',
     transition: 'background-color 0.2s ease-in-out',
 
     '&.online': {

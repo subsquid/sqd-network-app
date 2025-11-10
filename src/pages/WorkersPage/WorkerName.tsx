@@ -24,7 +24,7 @@ export const WorkerName = ({
         <CopyToClipboard
           text={worker?.peerId || ''}
           content={
-            <Link to={`/workers/${worker?.peerId}`}>{shortPeerId(worker?.peerId || '')}</Link>
+            <Link to={`/worker/${worker?.peerId}`}>{shortPeerId(worker?.peerId || '')}</Link>
           }
         />
       }

@@ -92,13 +92,7 @@ if (process.env.SENTRY_DSN) {
   });
 }
 
-export function useAppReload({
-  delay = 500,
-  to,
-}: {
-  delay?: number;
-  to?: string;
-} = {}) {
+export function useAppReload({ delay = 500, to }: { delay?: number; to?: string } = {}) {
   const navigate = useNavigate();
   const { disconnectAsync } = useDisconnect();
 

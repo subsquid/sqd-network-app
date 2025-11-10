@@ -6,8 +6,6 @@ import { Box } from '@mui/system';
 import { SortDir } from '@api/subsquid-network-squid';
 import { SortIcon } from '@components/SortIcon';
 
-const borderRadius = 8;
-
 interface BorderedTableProps extends TableProps {
   className?: string;
   borderColor?: string;
@@ -25,7 +23,7 @@ export const BorderedTable = styled(Table, {
     borderColor,
     hoverColor,
     cellPadding = 2.5,
-    borderRadius: customBorderRadius = borderRadius,
+    borderRadius: customBorderRadius = theme.shape.borderRadius,
   }) => ({
     borderRadius: customBorderRadius,
     borderSpacing: 0,

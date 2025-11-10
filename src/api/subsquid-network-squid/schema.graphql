@@ -23,41 +23,6 @@ query settings {
   }
 }
 
-query networkSummary {
-  networkStats {
-    onlineWorkersCount
-    queries90Days
-    queries24Hours
-    servedData90Days
-    servedData24Hours
-    stakerApr
-    totalBond
-    totalDelegation
-    storedData
-    workerApr
-    workersCount
-    aprs {
-      stakerApr
-      timestamp
-      workerApr
-    }
-  }
-}
-
-query currentEpoch {
-  networkStats {
-    blockTimeL1
-    lastBlockL1
-    lastBlockTimestampL1
-  }
-
-  epoches(limit: 1, orderBy: id_DESC) {
-    number
-    start
-    end
-  }
-}
-
 ### FRAGMENTS ###
 
 # Base fragments
@@ -70,6 +35,15 @@ fragment AccountFragment on Account {
 fragment OwnerFragment on Account {
   id
   type
+}
+
+fragment VestingFragment on Account {
+  id
+  type
+  balance
+  owner {
+    id
+  }
 }
 
 fragment DelegationFragment on Delegation {
@@ -90,15 +64,6 @@ fragment DelegationFragment on Delegation {
 fragment GatewayStakeBaseFragment on GatewayStake {
   id
   amount
-}
-
-fragment VestingFragment on Account {
-  id
-  type
-  balance
-  owner {
-    id
-  }
 }
 
 ### ACCOUNT QUERIES ###
@@ -489,3 +454,186 @@ query myGatewayStakes($address: String!) {
     lastBlockTimestampL1
   }
 }
+
+### NETWORK QUERIES ###
+
+query networkSummary {
+  networkStats {
+    onlineWorkersCount
+    queries90Days
+    queries24Hours
+    servedData90Days
+    servedData24Hours
+    stakerApr
+    totalBond
+    totalDelegation
+    totalPortalLock
+    storedData
+    workerApr
+    workersCount
+    aprs {
+      stakerApr
+      timestamp
+      workerApr
+    }
+  }
+}
+
+query currentEpoch {
+  networkStats {
+    blockTimeL1
+    lastBlockL1
+    lastBlockTimestampL1
+  }
+
+  epoches(limit: 1, orderBy: id_DESC) {
+    number
+    start
+    end
+  }
+}
+
+### TIMESERIES QUERIES ###
+
+query HoldersCountTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  holdersCountTimeseries(from: $from, to: $to, step: $step) {
+    data {
+      timestamp
+      value
+    }
+    step
+  }
+}
+
+query LockedValueTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  lockedValueTimeseries(from: $from, to: $to, step: $step) {
+    data {
+      timestamp
+      value
+    }
+    step
+  }
+}
+
+query ActiveWorkersTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  activeWorkersTimeseries(from: $from, to: $to, step: $step) {
+    data {
+      timestamp
+      value
+    }
+    step
+  }
+}
+
+query UniqueOperatorsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  uniqueOperatorsTimeseries(from: $from, to: $to, step: $step) {
+    data {
+      timestamp
+      value
+    }
+    step
+  }
+}
+
+query DelegationsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  delegationsTimeseries(from: $from, to: $to, step: $step) {
+    data {
+      timestamp
+      value
+    }
+    step
+  }
+}
+
+query DelegatorsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  delegatorsTimeseries(from: $from, to: $to, step: $step) {
+    data {
+      timestamp
+      value
+    }
+    step
+  }
+}
+
+query TransfersByTypeTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  transfersByTypeTimeseries(from: $from, to: $to, step: $step) {
+    data {
+      timestamp
+      value {
+        deposit
+        withdraw
+        transfer
+        reward
+        release
+      }
+    }
+    step
+  }
+}
+
+query UniqueAccountsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  uniqueAccountsTimeseries(from: $from, to: $to, step: $step) {
+    data {
+      timestamp
+      value
+    }
+    step
+  }
+}
+
+query QueriesCountTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  queriesCountTimeseries(from: $from, to: $to, step: $step) {
+    data {
+      timestamp
+      value
+    }
+    step
+  }
+}
+
+query ServedDataTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  servedDataTimeseries(from: $from, to: $to, step: $step) {
+    data {
+      timestamp
+      value
+    }
+    step
+  }
+}
+
+query StoredDataTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  storedDataTimeseries(from: $from, to: $to, step: $step) {
+    data {
+      timestamp
+      value
+    }
+    step
+  }
+}
+
+query RewardTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  rewardTimeseries(from: $from, to: $to, step: $step) {
+    data {
+      timestamp
+      value {
+        workerReward
+        stakerReward
+      }
+    }
+    step
+  }
+}
+
+query AprTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  aprTimeseries(from: $from, to: $to, step: $step) {
+    data {
+      timestamp
+      value {
+        workerApr
+        stakerApr
+      }
+    }
+    step
+  }
+}
+

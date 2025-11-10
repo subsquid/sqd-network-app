@@ -52,7 +52,7 @@ export const Wrapper = styled(Stack)(({ theme }) => ({
     display: 'inline-block',
     background: alpha(theme.palette.info.main, 0.2),
     border: `1px solid ${alpha(theme.palette.text.primary, 0.1)}`,
-    borderRadius: 4,
+    borderRadius: theme.shape.borderRadius,
     marginTop: theme.spacing(1.5),
     padding: theme.spacing(1, '45px', 1, 1.5),
     wordBreak: 'break-word',

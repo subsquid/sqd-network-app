@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { fromSqd, toSqd } from '@lib/network/utils';
 import { Button, Chip } from '@mui/material';
@@ -76,7 +76,10 @@ export function DepositDialog({
 
   const { setWaitHeight } = useSquidHeight();
 
-  const isSourceDisabled = (source: SourceWalletWithBalance) => source.balance === '0';
+  const isSourceDisabled = useCallback(
+    (source: SourceWalletWithBalance) => source.balance === '0',
+    [],
+  );
 
   const initialValues = useMemo(() => {
     const source = sources?.find(c => !isSourceDisabled(c)) || sources?.[0];
@@ -86,7 +89,7 @@ export function DepositDialog({
       amount: '0',
       max: fromSqd(source?.balance).toString(),
     };
-  }, [sources]);
+  }, [sources, isSourceDisabled]);
 
   const formik = useFormik({
     initialValues,

@@ -24,13 +24,7 @@ import { useContracts } from '@network/useContracts';
 
 import { addGatewaySchema } from './gateway-schema';
 
-export function AddGatewayButton({
-  sx,
-  disabled,
-}: {
-  sx?: SxProps;
-  disabled?: boolean;
-}) {
+export function AddGatewayButton({ sx, disabled }: { sx?: SxProps; disabled?: boolean }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -51,13 +45,7 @@ export function AddGatewayButton({
   );
 }
 
-export function AddGatewayDialog({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+export function AddGatewayDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const client = useClient();
   const { sources, selectedSource } = useSourceContext();
 
