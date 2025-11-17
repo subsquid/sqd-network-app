@@ -39,8 +39,16 @@ export function Card({
   return (
     <MuiCard className={className} sx={sx} {...props}>
       <CardContent>
-        {hasHeader && <SectionHeader title={title} subtitle={subtitle} action={action} sx={{ mb: 2 }}/>}
-        <Box height={1} width={1}>{loading ? <Loader /> : children}</Box>
+        {hasHeader && (
+          <SectionHeader title={title} subtitle={subtitle} action={action} sx={{ mb: 2 }} />
+        )}
+        {loading ? (
+          <Box height={1} width={1}>
+            <Loader />
+          </Box>
+        ) : (
+          children
+        )}
       </CardContent>
     </MuiCard>
   );

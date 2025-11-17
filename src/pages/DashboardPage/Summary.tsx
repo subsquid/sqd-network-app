@@ -52,11 +52,9 @@ function OnlineInfo() {
         )
       }
     >
-      <Box height={1} display="flex" alignItems="flex-end">
-        <Typography variant="h1" display="flex" alignItems="flex-end">
-          {data?.onlineWorkersCount || 0}
-        </Typography>
-        <Typography variant="h2" display="flex" alignItems="flex-end" color="text.disabled">
+      <Box display="flex" alignItems="baseline">
+        <Typography variant="h1">{data?.onlineWorkersCount || 0}</Typography>
+        <Typography variant="h2" color="text.disabled">
           /{data?.workersCount || 0}
         </Typography>
       </Box>
@@ -99,7 +97,7 @@ function CurrentEpoch() {
       title="Current epoch"
       action={!isLoading && <CurrentEpochEstimation epochEnd={epochEnd} />}
     >
-      <Box height={1} display="flex" alignItems="flex-end">
+      <Box display="flex">
         <Typography variant="h1">{data?.epoch?.number || 0}</Typography>
       </Box>
     </Card>
@@ -176,7 +174,7 @@ function WorkersApr({ length }: { length?: number }) {
         )
       }
     >
-      <Box height={1} display="flex" alignItems="flex-end">
+      <Box display="flex">
         <Typography variant="h1">{percentFormatter(aprs)}</Typography>
       </Box>
     </Card>
@@ -215,7 +213,7 @@ function DelegatorsApr({ length }: { length?: number }) {
         )
       }
     >
-      <Box height={1} display="flex" alignItems="flex-end">
+      <Box display="flex">
         <Typography variant="h1">{percentFormatter(aprs)}</Typography>
       </Box>
     </Card>
