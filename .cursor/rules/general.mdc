@@ -1,0 +1,138 @@
+---
+description: work with UI components
+alwaysApply: false
+---
+# Material-UI/MUI Best Practices and Coding Standards
+
+This document outlines best practices and coding standards for developing React applications using Material-UI (MUI). Following these guidelines will help you create maintainable, scalable, performant, and secure applications.
+
+## 1. Code Organization and Structure
+
+### 1.1 Directory Structure Best Practices
+
+Adopt a clear and consistent directory structure to improve code maintainability and collaboration. A common approach is to organize code by feature or domain.
+
+
+src/
+  components/
+    [ComponentName]/
+      [ComponentName].tsx  # Component implementation
+      [ComponentName].module.css # Component-specific styles (CSS Modules)
+      [ComponentName].test.tsx # Unit tests
+      index.ts           # (Optional) Export the component
+  pages/
+    [PageName]/
+      [PageName].tsx      # Page component
+      index.ts           # (Optional) Export the page component
+  styles/
+    theme.ts           # MUI theme configuration
+    global.css        # Global styles
+  utils/
+    api.ts             # API client
+    helpers.ts         # Utility functions
+  App.tsx              # Main application component
+  index.tsx            # Entry point
+
+
+### 1.2 File Naming Conventions
+
+-   **Components:** Use PascalCase for component file names (e.g., `MyButton.tsx`).
+-   **Styles:** Use camelCase or kebab-case for style file names (e.g., `myButton.module.css` or `my-button.module.css`).  Prefer CSS modules.
+-   **Utilities:** Use camelCase for utility file names (e.g., `api.ts`, `helpers.ts`).
+-   **Tests:** Use the `.test.tsx` or `.spec.tsx` suffix for test files (e.g., `MyComponent.test.tsx`).
+-   **Indexes**: `index.ts` should export the main entity contained within its parent folder.
+
+### 1.3 Module Organization
+
+-   **Component-Specific Modules:** Encapsulate styles, logic, and tests within a component's directory to promote modularity and reusability.
+-   **Theme Module:** Centralize MUI theme customization in a dedicated module (`theme.ts`).
+-   **Utility Modules:** Group related utility functions into separate modules (e.g., `api.ts` for API calls, `helpers.ts` for data manipulation). Import selectively only the parts you need from larger modules.
+
+### 1.4 Component Architecture
+
+-   **Presentational and Container Components:** Separate concerns by creating presentational (UI-focused) and container (data-fetching and state management) components.  Consider using hooks for simpler components.
+-   **Composition over Inheritance:** Favor component composition over inheritance to create flexible and reusable UI elements.
+-   **Controlled Components:** Use controlled components with explicit state management for better control and predictability.
+-   **Small Components:**  Create smaller, focused components that do one thing well.  This promotes reuse and testability.
+
+### 1.5 Code Splitting Strategies
+
+-   **Route-Based Splitting:** Use React.lazy and Suspense to split your application into smaller chunks that are loaded on demand based on the current route.
+-   **Component-Based Splitting:**  Lazy-load less critical components to reduce the initial bundle size. Useful for complex dialogs, or infrequently used features.
+-   **Library Splitting:** If certain libraries are used only in specific parts of your application, consider splitting them into separate chunks.
+
+## 2. Common Patterns and Anti-patterns
+
+### 2.1 Design Patterns Specific to Material-UI/MUI
+
+-   **Theming:** Use the `ThemeProvider` to customize the MUI theme globally. Define your color palette, typography, and other theme values in `theme.ts`. Use `createTheme` function to extend the default theme.
+-   **Styling with `sx` prop:** Employ the `sx` prop for simple, one-off style customizations.
+-   **Styling with `styled` API:** Use the `styled` API for creating reusable, theme-aware components.  This is the recommended approach for component styling in MUI v5 and above.
+-   **Grid System:** Leverage the `Grid` component for creating responsive layouts.
+-   **Hooks**: Use React hooks extensively for state management and side effects.  MUI components work seamlessly with hooks.
+
+### 2.2 Recommended Approaches for Common Tasks
+
+-   **Form Handling:** Use `TextField` components with proper validation and state management libraries like Formik or React Hook Form.
+-   **Data Display:** Use `Table`, `List`, and `Card` components to display data in a structured and visually appealing manner.
+-   **Navigation:** Use `AppBar`, `Drawer`, and `BottomNavigation` components for application navigation.
+-   **Notifications:** Implement notifications using the `Snackbar` component.
+-   **Dialogs/Modals**: Use the `Dialog` component to display modal content.
+
+### 2.3 Anti-patterns and Code Smells to Avoid
+
+-   **Inline Styles:** Avoid inline styles as they are difficult to maintain and do not support theming. Use the `sx` prop or `styled` API instead. While the `sx` prop is quick, prefer `styled` components for reusability.
+-   **Direct DOM Manipulation:** Avoid directly manipulating the DOM. Use React's state management and component lifecycle methods to update the UI.
+-   **Over-nesting Components:** Avoid deeply nested component structures as they can impact performance and readability.  Refactor into smaller, more focused components.
+-   **Mutating Theme Directly**:  Don't directly mutate the theme object. Use `createTheme` and `ThemeProvider` to apply changes.
+-   **Ignoring Accessibility:** Ensure your components are accessible by providing proper ARIA attributes and keyboard navigation support.
+
+### 2.4 State Management Best Practices
+
+-   **Local Component State:** Use `useState` and `useReducer` for managing component-specific state.
+-   **Global Application State:**  Use Context API, Redux, Zustand, or Jotai for managing global application state.
+-   **Lifting State Up:** Lift state up to the nearest common ancestor component when multiple components need to share state.
+-   **Immutable Data:** Treat state as immutable and use immutable data structures to prevent unexpected side effects.  Libraries like Immer can help.
+
+### 2.5 Error Handling Patterns
+
+-   **Error Boundaries:** Use error boundaries to catch JavaScript errors in components and prevent the entire application from crashing.
+-   **Centralized Error Handling:** Implement a centralized error handling mechanism to log errors and display user-friendly error messages.
+-   **Try-Catch Blocks:** Use try-catch blocks to handle potential errors in asynchronous operations or API calls.
+-   **Defensive Programming**: Validate props, check for null/undefined values, and handle potential edge cases.
+
+## 3. Performance Considerations
+
+### 3.1 Optimization Techniques
+
+-   **Memoization:** Use `React.memo` to memoize functional components and prevent unnecessary re-renders.  Use `useMemo` and `useCallback` hooks to memoize expensive computations and function references.
+-   **Virtualization:** Use virtualization libraries like `react-window` or `react-virtualized` to efficiently render large lists or tables.
+-   **Debouncing and Throttling:** Use debouncing and throttling to limit the frequency of expensive operations like API calls or event handlers.
+-   **Code Splitting:** Implement code splitting to reduce the initial bundle size and improve load times.
+-   **Image Optimization:** Optimize images by compressing them and using appropriate formats (e.g., WebP).  Use lazy loading for images below the fold.
+-   **CDN**: Host static assets on a CDN.
+
+### 3.2 Memory Management
+
+-   **Avoid Memory Leaks:** Be mindful of memory leaks, especially in event listeners and subscriptions.  Clean up resources in the `useEffect` hook's cleanup function.
+-   **Garbage Collection:** Understand how JavaScript's garbage collection works and avoid creating unnecessary objects or closures that can lead to memory leaks.
+
+### 3.3 Rendering Optimization
+
+-   **ShouldComponentUpdate (Class Components):** Implement `shouldComponentUpdate` (or `React.memo` in functional components) to prevent unnecessary re-renders when the props or state have not changed.
+-   **PureComponent (Class Components):**  Extend `PureComponent` for components that rely solely on props for rendering, as it provides a shallow prop comparison.
+-   **Key Prop:**  Always provide a unique `key` prop when rendering lists of components. This helps React efficiently update the DOM.
+-   **Minimize DOM Updates:** Reduce the number of DOM updates by batching state updates and using techniques like requestAnimationFrame.
+
+### 3.4 Bundle Size Optimization
+
+-   **Tree Shaking:** Ensure your build process supports tree shaking to remove unused code from your bundle.
+-   **Minification:** Minify your code to reduce the bundle size.
+-   **Compression:** Use gzip or Brotli compression to reduce the size of your assets during transmission.
+-   **Dependency Analysis:** Analyze your dependencies to identify and remove unnecessary libraries.
+
+### 3.5 Lazy Loading Strategies
+
+-   **React.lazy and Suspense:** Use `React.lazy` and `Suspense` to lazy load components and improve initial load times.
+-   **Intersection Observer API:**  Use the Intersection Observer API to lazy load components when they become visible in the viewport.
+
