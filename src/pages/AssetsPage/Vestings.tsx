@@ -18,6 +18,7 @@ import { CopyToClipboard } from '@components/CopyToClipboard';
 import { Link } from 'react-router-dom';
 import { SectionHeader } from '@components/SectionHeader';
 import { useVestingsByAccountQuery } from '@api/subsquid-network-squid';
+import BigNumber from 'bignumber.js';
 
 export function MyVestings() {
   const account = useAccount();
@@ -37,8 +38,13 @@ export function MyVestings() {
         },
         {
           ...vestingContract,
-          functionName: 'releasable',
+          functionName: 'released',
           args: [SQD],
+        },
+        {
+          ...vestingContract,
+          functionName: 'vestedAmount',
+          args: [SQD, Math.floor(Date.now() / 1000)],
         },
         {
           abi: erc20Abi,
@@ -54,10 +60,11 @@ export function MyVestings() {
       placeholderData: keepPreviousData,
       select: res => {
         if (res?.some(r => r.status === 'success')) {
-          return chunk(res, 3).map(ch => ({
+          return chunk(res, 4).map(ch => ({
             deposited: unwrapMulticallResult(ch[0]),
-            releasable: unwrapMulticallResult(ch[1]),
-            balance: unwrapMulticallResult(ch[2]),
+            released: unwrapMulticallResult(ch[1]),
+            vestedAmount: unwrapMulticallResult(ch[2]),
+            balance: unwrapMulticallResult(ch[3]),
           }));
         } else if (res?.length === 0) {
           return [];
@@ -94,40 +101,54 @@ export function MyVestings() {
         </TableHead>
         <TableBody>
           {data?.length ? (
-            data.map(vesting => (
-              <TableRow key={vesting.id}>
-                <TableCell>
-                  <NameWithAvatar
-                    title={`${vesting.type
-                      .split('_')
-                      .map(word => word[0]?.toUpperCase() + word.slice(1).toLowerCase())
-                      .join(' ')} contract`}
-                    subtitle={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <CopyToClipboard
-                          text={vesting.id}
-                          content={
-                            <Link to={`/vesting/${vesting.id}`}>
-                              {addressFormatter(vesting.id, true)}
-                            </Link>
-                          }
-                        />
-                      </Box>
-                    }
-                    avatarValue={vesting.id}
-                    sx={{ width: { xs: 200, sm: 240 } }}
-                  />
-                </TableCell>
-                <TableCell>{tokenFormatter(fromSqd(vesting?.balance), SQD_TOKEN)}</TableCell>
-                <TableCell>{tokenFormatter(fromSqd(vesting?.deposited), SQD_TOKEN)}</TableCell>
-                <TableCell>{tokenFormatter(fromSqd(vesting?.releasable), SQD_TOKEN)}</TableCell>
-                <TableCell>
-                  <Box display="flex" justifyContent="flex-end">
-                    <ReleaseButton vesting={vesting} disabled={!vesting?.releasable} />
-                  </Box>
-                </TableCell>
-              </TableRow>
-            ))
+            data.map(vesting => {
+              const vestedAmount = fromSqd(vesting?.vestedAmount);
+              const released = fromSqd(vesting?.released);
+              const balance = fromSqd(vesting?.balance);
+              
+              const totalVestedMinusReleased = vestedAmount.minus(released);
+              const releasableAmount = BigNumber.min(totalVestedMinusReleased, balance);
+
+              return (
+                <TableRow key={vesting.id}>
+                  <TableCell>
+                    <NameWithAvatar
+                      title={`${vesting.type
+                        .split('_')
+                        .map(word => word[0]?.toUpperCase() + word.slice(1).toLowerCase())
+                        .join(' ')} contract`}
+                      subtitle={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <CopyToClipboard
+                            text={vesting.id}
+                            content={
+                              <Link to={`/vesting/${vesting.id}`}>
+                                {addressFormatter(vesting.id, true)}
+                              </Link>
+                            }
+                          />
+                        </Box>
+                      }
+                      avatarValue={vesting.id}
+                      sx={{ width: { xs: 200, sm: 240 } }}
+                    />
+                  </TableCell>
+                  <TableCell>{tokenFormatter(balance, SQD_TOKEN)}</TableCell>
+                  <TableCell>{tokenFormatter(fromSqd(vesting?.deposited), SQD_TOKEN)}</TableCell>
+                  <TableCell>
+                    {tokenFormatter(releasableAmount, SQD_TOKEN)}{' '}
+                    <Box display="inline" title="Including deposited">
+                      ({tokenFormatter(totalVestedMinusReleased, SQD_TOKEN, 3)})
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Box display="flex" justifyContent="flex-end">
+                      <ReleaseButton vesting={vesting} disabled={releasableAmount.isZero()}/>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              );
+            })
           ) : (
             <NoItems>
               <span>No vesting was found</span>
