@@ -37,42 +37,7 @@ import { CopyToClipboard } from '@components/CopyToClipboard';
 import { WorkerEdit } from './WorkerEdit';
 import { WorkerStatusChip } from './WorkerStatus';
 import { useMemo } from 'react';
-
-// const sx = {
-//   background: '#000',
-//   color: '#fff',
-
-//   '&:hover': {
-//     background: '#333',
-//     color: '#fff',
-//   },
-// };
-
-const InfoRow = styled(Box, {
-  name: 'InfoRow',
-})(({ theme }) => ({
-  display: 'grid',
-  gridTemplateColumns: `minmax(auto, ${theme.spacing(25)}) 1fr`,
-  gap: theme.spacing(2),
-  alignItems: 'start',
-  [theme.breakpoints.down('sm')]: {
-    gridTemplateColumns: '1fr',
-    gap: theme.spacing(0.5),
-  },
-}));
-
-const InfoLabel = styled(Box, {
-  name: 'InfoLabel',
-})(({ theme }) => ({
-  color: theme.palette.text.secondary,
-  wordBreak: 'break-word',
-}));
-
-const InfoValue = styled(Box, {
-  name: 'InfoValue',
-})(() => ({
-  overflowWrap: 'anywhere',
-}));
+import { Property, PropertyList } from '@components/Property';
 
 const CardContentStack = styled(Stack)(({ theme }) => ({
   flex: 1,
@@ -179,67 +144,44 @@ export const Worker = ({ backPath }: { backPath: string }) => {
             <CardContentStack spacing={2}>
               <Divider />
 
-              <InfoRow>
-                <InfoLabel>Status</InfoLabel>
-                <InfoValue>
-                  <WorkerStatusChip worker={worker} />
-                </InfoValue>
-              </InfoRow>
-
-              <InfoRow>
-                <InfoLabel>Created</InfoLabel>
-                <InfoValue>{dateFormat(worker.createdAt, 'dateTime')}</InfoValue>
-              </InfoRow>
-
-              <InfoRow>
-                <InfoLabel>Version</InfoLabel>
-                <InfoValue>
-                  <WorkerVersion worker={worker} />
-                </InfoValue>
-              </InfoRow>
-
-              <InfoRow>
-                <InfoLabel>Website</InfoLabel>
-                <InfoValue>
-                  {worker.website ? (
-                    <a href={urlFormatter(worker.website)} target="_blank" rel="noreferrer">
-                      {urlFormatter(worker.website)}
-                    </a>
-                  ) : (
-                    '-'
-                  )}
-                </InfoValue>
-              </InfoRow>
-
-              <InfoRow>
-                <InfoLabel>Description</InfoLabel>
-                <InfoValue>{worker.description || '-'}</InfoValue>
-              </InfoRow>
+              <PropertyList>
+                <Property label="Status" value={<WorkerStatusChip worker={worker} />} />
+                <Property label="Created" value={dateFormat(worker.createdAt, 'dateTime')} />
+                <Property label="Version" value={<WorkerVersion worker={worker} />} />
+                <Property
+                  label="Website"
+                  value={
+                    worker.website ? (
+                      <a href={urlFormatter(worker.website)} target="_blank" rel="noreferrer">
+                        {urlFormatter(worker.website)}
+                      </a>
+                    ) : (
+                      '-'
+                    )
+                  }
+                />
+                <Property label="Description" value={worker.description || '-'} />
+              </PropertyList>
             </CardContentStack>
           </Card>
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <Card title="Bond">
             <CardContentStack spacing={2}>
-              <InfoRow>
-                <InfoLabel>Bonded</InfoLabel>
-                <InfoValue>{tokenFormatter(fromSqd(worker.bond), SQD_TOKEN)}</InfoValue>
-              </InfoRow>
-
-              <InfoRow>
-                <InfoLabel>Worker APR</InfoLabel>
-                <InfoValue>{worker.apr != null ? percentFormatter(worker.apr) : '-'}</InfoValue>
-              </InfoRow>
-
-              <InfoRow>
-                <InfoLabel>Total reward</InfoLabel>
-                <InfoValue>
-                  {tokenFormatter(
+              <PropertyList>
+                <Property label="Bonded" value={tokenFormatter(fromSqd(worker.bond), SQD_TOKEN)} />
+                <Property
+                  label="Worker APR"
+                  value={worker.apr != null ? percentFormatter(worker.apr) : '-'}
+                />
+                <Property
+                  label="Total reward"
+                  value={tokenFormatter(
                     fromSqd(worker.claimableReward).plus(fromSqd(worker.claimedReward)),
                     SQD_TOKEN,
                   )}
-                </InfoValue>
-              </InfoRow>
+                />
+              </PropertyList>
             </CardContentStack>
           </Card>
         </Grid>
@@ -247,26 +189,20 @@ export const Worker = ({ backPath }: { backPath: string }) => {
         <Grid size={{ xs: 12, md: 6 }}>
           <Card title="Delegation">
             <CardContentStack spacing={2}>
-              <InfoRow>
-                <InfoLabel>Delegation capacity</InfoLabel>
-                <InfoValue>
-                  <DelegationCapacity worker={worker} />
-                </InfoValue>
-              </InfoRow>
-
-              <InfoRow>
-                <InfoLabel>Delegator APR</InfoLabel>
-                <InfoValue>
-                  {worker.stakerApr != null ? percentFormatter(worker.stakerApr) : '-'}
-                </InfoValue>
-              </InfoRow>
-
-              <InfoRow>
-                <InfoLabel>Total reward</InfoLabel>
-                <InfoValue>
-                  {tokenFormatter(fromSqd(worker.totalDelegationRewards), SQD_TOKEN)}
-                </InfoValue>
-              </InfoRow>
+              <PropertyList>
+                <Property
+                  label="Delegation capacity"
+                  value={<DelegationCapacity worker={worker} />}
+                />
+                <Property
+                  label="Delegator APR"
+                  value={worker.stakerApr != null ? percentFormatter(worker.stakerApr) : '-'}
+                />
+                <Property
+                  label="Total reward"
+                  value={tokenFormatter(fromSqd(worker.totalDelegationRewards), SQD_TOKEN)}
+                />
+              </PropertyList>
             </CardContentStack>
           </Card>
         </Grid>
@@ -274,33 +210,21 @@ export const Worker = ({ backPath }: { backPath: string }) => {
         <Grid size={{ xs: 12 }}>
           <Card title="Health">
             <CardContentStack spacing={2}>
-              <InfoRow>
-                <InfoLabel>Uptime, 24h / 90d</InfoLabel>
-                <InfoValue>
-                  {percentFormatter(worker.uptime24Hours)} / {percentFormatter(worker.uptime90Days)}
-                </InfoValue>
-              </InfoRow>
-
-              <InfoRow>
-                <InfoLabel>Queries, 24h / 90d</InfoLabel>
-                <InfoValue>
-                  {numberWithCommasFormatter(worker.queries24Hours)} /{' '}
-                  {numberWithCommasFormatter(worker.queries90Days)}
-                </InfoValue>
-              </InfoRow>
-
-              <InfoRow>
-                <InfoLabel>Data served, 24h / 90d</InfoLabel>
-                <InfoValue>
-                  {bytesFormatter(worker.servedData24Hours)} /{' '}
-                  {bytesFormatter(worker.servedData90Days)}
-                </InfoValue>
-              </InfoRow>
-
-              <InfoRow>
-                <InfoLabel>Data stored</InfoLabel>
-                <InfoValue>{bytesFormatter(worker.storedData)}</InfoValue>
-              </InfoRow>
+              <PropertyList>
+                <Property
+                  label="Uptime, 24h / 90d"
+                  value={`${percentFormatter(worker.uptime24Hours)} / ${percentFormatter(worker.uptime90Days)}`}
+                />
+                <Property
+                  label="Queries, 24h / 90d"
+                  value={`${numberWithCommasFormatter(worker.queries24Hours)} / ${numberWithCommasFormatter(worker.queries90Days)}`}
+                />
+                <Property
+                  label="Data served, 24h / 90d"
+                  value={`${bytesFormatter(worker.servedData24Hours)} / ${bytesFormatter(worker.servedData90Days)}`}
+                />
+                <Property label="Data stored" value={bytesFormatter(worker.storedData)} />
+              </PropertyList>
             </CardContentStack>
           </Card>
         </Grid>

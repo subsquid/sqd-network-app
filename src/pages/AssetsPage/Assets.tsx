@@ -3,36 +3,26 @@ import { useMemo } from 'react';
 import { tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network/utils';
 import { CircleRounded } from '@mui/icons-material';
-import {
-  Box,
-  Divider,
-  Grid,
-  Stack,
-  SxProps,
-  Theme,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
+import { Box, Grid, Stack, Typography, useTheme } from '@mui/material';
 import BigNumber from 'bignumber.js';
 import { Pie } from '@visx/shape';
 import { Group } from '@visx/group';
 
 import {
   AccountType,
+  SourcesWithAssetsQuery,
   useSourcesWithAssetsQuery,
-  useSquid,
   Worker,
 } from '@api/subsquid-network-squid';
-import { SquaredChip } from '@components/Chip';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { demoFeaturesEnabled } from '@hooks/demoFeaturesEnabled';
 import { useAccount } from '@network/useAccount';
 import { useContracts } from '@network/useContracts';
-import { ColumnLabel, ColumnValue } from '@pages/DashboardPage/Summary';
 import { Card } from '@components/Card/Card';
+import { Property, PropertyList } from '@components/Property';
 
 import { ClaimButton } from './ClaimButton';
+import { useTokenPrice } from '@api/price';
 
 type TokenBalance = {
   name: string;
@@ -42,258 +32,304 @@ type TokenBalance = {
   tip?: string;
 };
 
-function TokenBalance({ sx, balance }: { sx?: SxProps<Theme>; balance?: TokenBalance }) {
+function TokenBalance({ balance }: { balance?: TokenBalance }) {
   const { SQD_TOKEN } = useContracts();
 
-  return (
-    <Box sx={sx}>
-      <ColumnLabel color={balance?.color}>
-        <HelpTooltip title={balance?.tip}>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <CircleRounded sx={{ fontSize: 11 }} />
-            <span>{balance?.name}</span>
-          </Stack>
-        </HelpTooltip>
-      </ColumnLabel>
-      <ColumnValue>{tokenFormatter(fromSqd(balance?.value), SQD_TOKEN, 3)}</ColumnValue>
+  const label = (
+    <Box display="flex" alignItems="center" gap={0.5}>
+      <CircleRounded sx={{ fontSize: 11, color: balance?.color }} />
+      <Typography>{balance?.name}</Typography>
+      <HelpTooltip title={balance?.tip} />
     </Box>
   );
+
+  const value = <Typography>{tokenFormatter(fromSqd(balance?.value), SQD_TOKEN, 3)}</Typography>;
+
+  return <Property label={label} value={value} />;
 }
 
-function TotalBalance({ balances, total }: { balances: TokenBalance[]; total: BigNumber }) {
-  const { SQD_TOKEN } = useContracts();
-
+function PieChart({ balances }: { balances: TokenBalance[] }) {
   const filteredBalances = useMemo(() => balances.filter(b => !b.value.isZero()), [balances]);
 
   return (
-    <Box
-      display="flex"
-      flexDirection="column"
-      justifyContent="flex-end"
-      alignItems="flex-end"
-      flex={1}
-    >
-      <Box mb={4} mr={7}>
-        <svg width={240} height={240}>
-          <Group top={120} left={120}>
-            <Pie
-              data={filteredBalances}
-              pieValue={d => d.value.toNumber()}
-              outerRadius={120}
-              innerRadius={60}
-              padAngle={0.02}
-              cornerRadius={4}
-            >
-              {pie => {
-                return pie.arcs.map((arc, i) => {
-                  return (
-                    <g key={`arc-${i}`}>
-                      <path d={pie.path(arc) || ''} fill={arc.data.color} />
-                    </g>
-                  );
-                });
-              }}
-            </Pie>
-          </Group>
-        </svg>
-      </Box>
-
-      <Box mb={1}>
-        <SquaredChip label="Total" color="primary" />
-      </Box>
-      <Typography variant="h2" textAlign="end">
-        {tokenFormatter(total, SQD_TOKEN, 3)}
-      </Typography>
+    <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" flex={1}>
+      <svg width={192} height={192}>
+        <Group top={96} left={96}>
+          <Pie
+            data={filteredBalances}
+            pieValue={d => d.value.toNumber()}
+            outerRadius={96}
+            innerRadius={48}
+            padAngle={0.02}
+            cornerRadius={4}
+          >
+            {pie => {
+              return pie.arcs.map((arc, i) => {
+                return (
+                  <g key={`arc-${i}`}>
+                    <path d={pie.path(arc) || ''} fill={arc.data.color} />
+                  </g>
+                );
+              });
+            }}
+          </Pie>
+        </Group>
+      </svg>
     </Box>
   );
 }
 
-export function MyAssets() {
+// Helper function to create a token balance object
+function createTokenBalance(
+  name: string,
+  color: string,
+  background: string,
+  tip: string,
+): TokenBalance {
+  return {
+    name,
+    value: BigNumber(0),
+    color,
+    background,
+    tip,
+  };
+}
+
+// Custom hook to compute token balances from source accounts
+function useTokenBalances(accounts: SourcesWithAssetsQuery['accounts'] | undefined) {
   const theme = useTheme();
-  const narrowXs = useMediaQuery(theme.breakpoints.down('sm'));
-  const narrowSm = useMediaQuery(theme.breakpoints.down('md'));
 
-  const account = useAccount();
-  const squid = useSquid();
-
-  const { data: sourcesQuery, isLoading: isSourcesLoading } = useSourcesWithAssetsQuery({
-    address: account.address || '0x',
-  });
-
-  const isLoading = isSourcesLoading;
-
-  const balances = useMemo((): TokenBalance[] => {
-    const transferable: TokenBalance = {
-      name: 'Transferable',
-      value: BigNumber(0),
-      color: theme.palette.success.main,
-      background: theme.palette.success.main,
-      tip: 'Liquid tokens, can be freely transferred to external addresses',
-    };
-    const vesting: TokenBalance = {
-      name: 'Vesting',
-      value: BigNumber(0),
-      color: theme.palette.warning.main,
-      background: theme.palette.warning.main,
-      tip: 'Tokens locked in the vesting contracts owned by the wallet. Can be used for bonding (running a worker) and/or delegation',
-    };
-    const claimable: TokenBalance = {
-      name: 'Claimable',
-      value: BigNumber(0),
-      color: theme.palette.info.main,
-      background: theme.palette.info.main,
-      tip: 'Earned but not yet claimed token rewards, aggregated across all workers and delegations',
-    };
-    const bonded: TokenBalance = {
-      name: 'Bonded',
-      value: BigNumber(0),
-      color: theme.palette.primary.contrastText,
-      background: theme.palette.primary.main,
-      tip: 'Tokens bonded in the worker registry contract',
-    };
-    const delegated: TokenBalance = {
-      name: 'Delegated',
-      value: BigNumber(0),
-      color: theme.palette.secondary.contrastText,
-      background: theme.palette.secondary.main,
-      tip: 'Tokens delegated to workers',
-    };
-    const lockedPortal: TokenBalance = {
-      name: 'Locked in Portal',
-      value: BigNumber(0),
-      color: theme.palette.text.primary,
-      background: theme.palette.text.primary,
-      tip: 'Tokens locked in Portal stake',
+  return useMemo((): TokenBalance[] => {
+    const balances = {
+      transferable: createTokenBalance(
+        'Transferable',
+        theme.palette.success.main,
+        theme.palette.success.main,
+        'Liquid tokens, can be freely transferred to external addresses',
+      ),
+      vesting: createTokenBalance(
+        'Vesting',
+        theme.palette.warning.main,
+        theme.palette.warning.main,
+        'Tokens locked in the vesting contracts owned by the wallet. Can be used for bonding (running a worker) and/or delegation',
+      ),
+      claimable: createTokenBalance(
+        'Claimable',
+        theme.palette.info.main,
+        theme.palette.info.main,
+        'Earned but not yet claimed token rewards, aggregated across all workers and delegations',
+      ),
+      bonded: createTokenBalance(
+        'Workers',
+        theme.palette.primary.contrastText,
+        theme.palette.primary.main,
+        'Tokens bonded in the worker registry contract',
+      ),
+      delegated: createTokenBalance(
+        'Delegations',
+        theme.palette.secondary.contrastText,
+        theme.palette.secondary.main,
+        'Tokens delegated to workers',
+      ),
+      lockedPortal: createTokenBalance(
+        'Portals',
+        theme.palette.text.primary,
+        theme.palette.text.primary,
+        'Tokens locked in Portal stake',
+      ),
     };
 
-    sourcesQuery?.accounts.forEach(s => {
-      if (s.type === AccountType.User) {
-        transferable.value = transferable.value.plus(s.balance);
-      } else if (s.type === AccountType.Vesting) {
-        vesting.value = vesting.value.plus(s.balance);
+    accounts?.forEach(account => {
+      // Account balance
+      if (account.type === AccountType.User) {
+        balances.transferable.value = balances.transferable.value.plus(account.balance);
+      } else if (account.type === AccountType.Vesting) {
+        balances.vesting.value = balances.vesting.value.plus(account.balance);
       }
 
-      s.delegations2.forEach(d => {
-        delegated.value = delegated.value.plus(d.deposit);
-        claimable.value = claimable.value.plus(d.claimableReward);
+      // Delegations
+      account.delegations2.forEach(delegation => {
+        balances.delegated.value = balances.delegated.value.plus(delegation.deposit);
+        balances.claimable.value = balances.claimable.value.plus(delegation.claimableReward);
       });
 
-      s.workers2.forEach(w => {
-        bonded.value = bonded.value.plus(w.bond);
-        claimable.value = claimable.value.plus(w.claimableReward);
+      // Workers
+      account.workers2.forEach(worker => {
+        balances.bonded.value = balances.bonded.value.plus(worker.bond);
+        balances.claimable.value = balances.claimable.value.plus(worker.claimableReward);
       });
 
-      s.gatewayStakes.forEach(gs => {
-        lockedPortal.value = bonded.value.plus(gs.amount);
+      // Gateway stakes
+      account.gatewayStakes.forEach(stake => {
+        balances.lockedPortal.value = balances.lockedPortal.value.plus(stake.amount);
       });
     });
 
-    return [transferable, vesting, claimable, bonded, delegated, lockedPortal];
-  }, [sourcesQuery?.accounts, theme.palette]);
+    return Object.values(balances);
+  }, [accounts, theme.palette]);
+}
 
-  const totalBalance = useMemo(() => {
-    return balances.reduce((a, b) => a.plus(b.value), BigNumber(0));
-  }, [balances]);
+// Custom hook to compute claimable sources
+function useClaimableSources(accounts: SourcesWithAssetsQuery['accounts'] | undefined) {
+  return useMemo(() => {
+    if (!accounts) return;
 
-  const claimableSources = useMemo(() => {
-    if (!sourcesQuery?.accounts) return;
-
-    return sourcesQuery.accounts.map(s => {
+    return accounts.map(account => {
       const claims: (Pick<Worker, 'id' | 'peerId' | 'name'> & {
         type: 'worker' | 'delegation';
         claimableReward: string;
       })[] = [];
 
-      s.delegations2.forEach(d => {
-        if (d.claimableReward === '0') return;
+      // Add delegation claims
+      account.delegations2.forEach(delegation => {
+        if (delegation.claimableReward === '0') return;
 
         claims.push({
-          id: d.worker.id,
-          peerId: d.worker.peerId,
-          name: d.worker.name,
-          claimableReward: d.claimableReward,
+          id: delegation.worker.id,
+          peerId: delegation.worker.peerId,
+          name: delegation.worker.name,
+          claimableReward: delegation.claimableReward,
           type: 'delegation',
         });
       });
 
-      s.workers2.forEach(w => {
-        if (w.claimableReward === '0') return;
+      // Add worker claims
+      account.workers2.forEach(worker => {
+        if (worker.claimableReward === '0') return;
 
         claims.push({
-          id: w.id,
-          peerId: w.peerId,
-          name: w.name,
-          claimableReward: w.claimableReward,
+          id: worker.id,
+          peerId: worker.peerId,
+          name: worker.name,
+          claimableReward: worker.claimableReward,
           type: 'worker',
         });
       });
 
+      // Sort claims by reward amount (descending)
+      const sortedClaims = claims.sort(
+        (a, b) => BigNumber(b.claimableReward).comparedTo(a.claimableReward)!,
+      );
+
       const totalClaimableBalance = claims.reduce(
-        (t, i) => t.plus(i.claimableReward),
+        (total, claim) => total.plus(claim.claimableReward),
         BigNumber(0),
       );
 
       return {
-        id: s.id,
-        type: s.type,
+        id: account.id,
+        type: account.type,
         balance: totalClaimableBalance.toString(),
-        claims: claims.sort(
-          (a, b) => BigNumber(a.claimableReward).comparedTo(b.claimableReward)! * -1,
-        ),
+        claims: sortedClaims,
       };
     });
-  }, [sourcesQuery?.accounts]);
+  }, [accounts]);
+}
 
-  const hasAvailableClaims = useMemo(
-    () => !!claimableSources?.some(s => s.balance !== '0'),
-    [claimableSources],
-  );
+// Custom hook to calculate total balance (excluding claimable)
+function useTotalBalance(balances: TokenBalance[]) {
+  return useMemo(() => {
+    return balances.reduce((total, balance, index) => {
+      // Skip claimable (index 2)
+      if (index === 2) return total;
+      return total.plus(balance.value);
+    }, BigNumber(0));
+  }, [balances]);
+}
+
+export function MyAssets() {
+  const { SQD_TOKEN, SQD } = useContracts();
+  const account = useAccount();
+
+  // Data fetching
+  const { data: sourcesQuery, isLoading: isSourcesLoading } = useSourcesWithAssetsQuery({
+    address: account.address || '0x',
+  });
+  const { data: price, isLoading: isPriceLoading } = useTokenPrice({ address: SQD });
+
+  // Computed data
+  const balances = useTokenBalances(sourcesQuery?.accounts);
+  const totalBalance = useTotalBalance(balances);
+  const rewardsBalance = balances[2]?.value || BigNumber(0);
+  const claimableSources = useClaimableSources(sourcesQuery?.accounts);
+  const hasAvailableClaims = !!claimableSources?.some(source => source.balance !== '0');
+
+  const isLoading = isSourcesLoading || isPriceLoading;
 
   return (
-    <Box minHeight={448} mb={2} display="flex">
-      <Card
-        sx={{ width: 1 }}
-        title="My Assets"
-        action={
-          <Stack direction="row" spacing={1}>
-            <ClaimButton disabled={isLoading || !hasAvailableClaims} sources={claimableSources} />
-          </Stack>
-        }
-        loading={isLoading}
-      >
-        <Box height={1} display="flex" flexDirection="column">
-          <Grid container spacing={2} flex={1}>
-            <Grid size={{ xs: 12, sm: 8 }}>
-              <Stack
-                divider={<Divider flexItem />}
-                spacing={1}
-                direction={narrowXs ? 'column' : 'row'}
-                alignItems={narrowXs ? 'stretch' : 'flex-end'}
-                height={1}
-                justifyContent="stretch"
-              >
-                <Stack divider={<Divider flexItem />} spacing={1} flex={1}>
-                  <TokenBalance balance={balances[0]} />
-                  <TokenBalance balance={balances[1]} />
-                  <TokenBalance balance={balances[2]} />
-                </Stack>
-                <Stack divider={<Divider flexItem />} spacing={1} flex={1}>
-                  <TokenBalance balance={balances[3]} />
-                  <TokenBalance balance={balances[4]} />
-                  {demoFeaturesEnabled() && <TokenBalance balance={balances[5]} />}
-                </Stack>
-              </Stack>
-            </Grid>
-            {narrowSm ? null : (
-              <Grid size={{ xs: 0, sm: 4 }}>
-                <Box display="flex" alignItems="flex-end" height={1}>
-                  <TotalBalance balances={balances} total={fromSqd(totalBalance)} />
-                </Box>
-              </Grid>
-            )}
+    <Box display="flex" flexDirection="column" gap={2} mb={2}>
+      <Grid container spacing={2}>
+        <Grid container spacing={2} size={{ xs: 12, xl: 4.5 }}>
+          <Grid size={{ xs: 12, sm: 7.5, xl: 12 }} sx={{ display: 'flex' }}>
+            <Card sx={{ width: 1, height: 1 }} title="Total balance" loading={isLoading}>
+              <Box display="flex" flexDirection="column" gap={0.5}>
+                <Typography variant="h2">
+                  {tokenFormatter(fromSqd(totalBalance), SQD_TOKEN, 3)}
+                </Typography>
+                <Typography variant="h4" color="text.disabled">
+                  ~{tokenFormatter(fromSqd(totalBalance).multipliedBy(price || 0), 'USD', 2)}
+                </Typography>
+              </Box>
+            </Card>
           </Grid>
-        </Box>
-      </Card>
+          <Grid size={{ xs: 12, sm: 4.5, xl: 12 }} sx={{ display: 'flex' }}>
+            <Card
+              sx={{ width: 1, height: 1 }}
+              title="Rewards"
+              loading={isLoading}
+              action={
+                <Stack direction="row" spacing={1}>
+                  <ClaimButton
+                    disabled={isLoading || !hasAvailableClaims}
+                    sources={claimableSources}
+                  />
+                </Stack>
+              }
+            >
+              <Box display="flex" flexDirection="column" gap={0.5}>
+                <Typography variant="h2">
+                  {tokenFormatter(fromSqd(rewardsBalance), SQD_TOKEN, 3)}
+                </Typography>
+                <Typography variant="h4" color="text.disabled">
+                  ~{tokenFormatter(fromSqd(rewardsBalance).multipliedBy(price || 0), 'USD', 2)}
+                </Typography>
+              </Box>
+            </Card>
+          </Grid>
+        </Grid>
+        <Grid size={{ xs: 12, xl: 7.5 }} sx={{ display: 'flex' }}>
+          <Card sx={{ width: 1, height: 1 }} title="Breakdown" loading={isLoading}>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 2,
+                flex: 1,
+                justifyContent: 'space-between',
+                alignItems: 'flex-end',
+              }}
+            >
+              <PropertyList>
+                <TokenBalance balance={balances[0]} />
+                <TokenBalance balance={balances[1]} />
+                <TokenBalance balance={balances[3]} />
+                <TokenBalance balance={balances[4]} />
+                {demoFeaturesEnabled() && <TokenBalance balance={balances[5]} />}
+              </PropertyList>
+              {/* Only render PieChart on md screens and up (1000px+) */}
+              <Box
+                sx={theme => ({
+                  display: 'none',
+                  [theme.breakpoints.up('sm')]: {
+                    display: 'block',
+                  },
+                })}
+              >
+                <PieChart balances={balances} />
+              </Box>
+            </Box>
+          </Card>
+        </Grid>
+      </Grid>
     </Box>
   );
 }
