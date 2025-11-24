@@ -41,11 +41,6 @@ import { Property, PropertyList } from '@components/Property';
 import { useMemo } from 'react';
 import { WorkerEdit } from './WorkerEdit';
 
-const CardContentStack = styled(Stack)(({ theme }) => ({
-  flex: 1,
-  width: '100%',
-}));
-
 function WorkerTitle({
   worker,
   owner,
@@ -105,7 +100,7 @@ export const Worker = ({ backPath }: { backPath: string }) => {
   }
 
   return (
-    <CenteredPageWrapper >
+    <CenteredPageWrapper>
       <PageTitle title={'Worker'} />
       <Grid container spacing={2}>
         <Grid size={{ xs: 12 }}>
@@ -143,9 +138,8 @@ export const Worker = ({ backPath }: { backPath: string }) => {
               </Stack>
             }
           >
-            <CardContentStack spacing={2}>
+            <Stack spacing={2}>
               <Divider />
-
               <PropertyList>
                 <Property label="Status" value={<WorkerStatusChip worker={worker} />} />
                 <Property label="Created" value={dateFormat(worker.createdAt, 'dateTime')} />
@@ -164,96 +158,92 @@ export const Worker = ({ backPath }: { backPath: string }) => {
                 />
                 <Property label="Description" value={worker.description || '-'} />
               </PropertyList>
-            </CardContentStack>
+              {isOwned(worker, address) && worker.status !== ApiWorkerStatus.Withdrawn ? (
+                <>
+                  <Divider orientation="horizontal" flexItem />
+                  <Box display="flex" justifyContent="flex-end">
+                    {worker.status === WorkerStatus.Deregistered ||
+                    worker.status === WorkerStatus.Deregistering ? (
+                      <WorkerWithdrawButton
+                        worker={worker}
+                        source={{
+                          ...worker.owner,
+                          locked: !!worker.locked,
+                          lockEnd: worker.lockEnd,
+                        }}
+                        disabled={worker.status !== WorkerStatus.Deregistered}
+                      />
+                    ) : (
+                      <WorkerUnregisterButton
+                        worker={worker}
+                        source={worker.owner}
+                        disabled={worker.status !== WorkerStatus.Active}
+                      />
+                    )}
+                  </Box>
+                </>
+              ) : null}
+            </Stack>
           </Card>
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <Card title="Bond">
-            <CardContentStack spacing={2}>
-              <PropertyList>
-                <Property label="Bonded" value={tokenFormatter(fromSqd(worker.bond), SQD_TOKEN)} />
-                <Property
-                  label="Worker APR"
-                  value={worker.apr != null ? percentFormatter(worker.apr) : '-'}
-                />
-                <Property
-                  label="Total reward"
-                  value={tokenFormatter(
-                    fromSqd(worker.claimableReward).plus(fromSqd(worker.claimedReward)),
-                    SQD_TOKEN,
-                  )}
-                />
-              </PropertyList>
-            </CardContentStack>
+            <PropertyList>
+              <Property label="Bonded" value={tokenFormatter(fromSqd(worker.bond), SQD_TOKEN)} />
+              <Property
+                label="Worker APR"
+                value={worker.apr != null ? percentFormatter(worker.apr) : '-'}
+              />
+              <Property
+                label="Total reward"
+                value={tokenFormatter(
+                  fromSqd(worker.claimableReward).plus(fromSqd(worker.claimedReward)),
+                  SQD_TOKEN,
+                )}
+              />
+            </PropertyList>
           </Card>
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
           <Card title="Delegation">
-            <CardContentStack spacing={2}>
-              <PropertyList>
-                <Property
-                  label="Delegation capacity"
-                  value={<DelegationCapacity worker={worker} />}
-                />
-                <Property
-                  label="Delegator APR"
-                  value={worker.stakerApr != null ? percentFormatter(worker.stakerApr) : '-'}
-                />
-                <Property
-                  label="Total reward"
-                  value={tokenFormatter(fromSqd(worker.totalDelegationRewards), SQD_TOKEN)}
-                />
-              </PropertyList>
-            </CardContentStack>
+            <PropertyList>
+              <Property
+                label="Delegation capacity"
+                value={<DelegationCapacity worker={worker} />}
+              />
+              <Property
+                label="Delegator APR"
+                value={worker.stakerApr != null ? percentFormatter(worker.stakerApr) : '-'}
+              />
+              <Property
+                label="Total reward"
+                value={tokenFormatter(fromSqd(worker.totalDelegationRewards), SQD_TOKEN)}
+              />
+            </PropertyList>
           </Card>
         </Grid>
 
         <Grid size={{ xs: 12 }}>
           <Card title="Health">
-            <CardContentStack spacing={2}>
-              <PropertyList>
-                <Property
-                  label="Uptime, 24h / 90d"
-                  value={`${percentFormatter(worker.uptime24Hours)} / ${percentFormatter(worker.uptime90Days)}`}
-                />
-                <Property
-                  label="Queries, 24h / 90d"
-                  value={`${numberWithCommasFormatter(worker.queries24Hours)} / ${numberWithCommasFormatter(worker.queries90Days)}`}
-                />
-                <Property
-                  label="Data served, 24h / 90d"
-                  value={`${bytesFormatter(worker.servedData24Hours)} / ${bytesFormatter(worker.servedData90Days)}`}
-                />
-                <Property label="Data stored" value={bytesFormatter(worker.storedData)} />
-              </PropertyList>
-            </CardContentStack>
+            <PropertyList>
+              <Property
+                label="Uptime, 24h / 90d"
+                value={`${percentFormatter(worker.uptime24Hours)} / ${percentFormatter(worker.uptime90Days)}`}
+              />
+              <Property
+                label="Queries, 24h / 90d"
+                value={`${numberWithCommasFormatter(worker.queries24Hours)} / ${numberWithCommasFormatter(worker.queries90Days)}`}
+              />
+              <Property
+                label="Data served, 24h / 90d"
+                value={`${bytesFormatter(worker.servedData24Hours)} / ${bytesFormatter(worker.servedData90Days)}`}
+              />
+              <Property label="Data stored" value={bytesFormatter(worker.storedData)} />
+            </PropertyList>
           </Card>
         </Grid>
       </Grid>
-
-      {isOwned(worker, address) && worker.status !== ApiWorkerStatus.Withdrawn ? (
-        <Box mt={3} display="flex" justifyContent="flex-end">
-          {worker.status === WorkerStatus.Deregistered ||
-          worker.status === WorkerStatus.Deregistering ? (
-            <WorkerWithdrawButton
-              worker={worker}
-              source={{
-                ...worker.owner,
-                locked: !!worker.locked,
-                lockEnd: worker.lockEnd,
-              }}
-              disabled={worker.status !== WorkerStatus.Deregistered}
-            />
-          ) : (
-            <WorkerUnregisterButton
-              worker={worker}
-              source={worker.owner}
-              disabled={worker.status !== WorkerStatus.Active}
-            />
-          )}
-        </Box>
-      ) : null}
     </CenteredPageWrapper>
   );
 };
