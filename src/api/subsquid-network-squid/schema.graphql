@@ -581,8 +581,8 @@ query UniqueAccountsTimeseries($from: DateTime!, $to: DateTime!, $step: String) 
   }
 }
 
-query QueriesCountTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
-  queriesCountTimeseries(from: $from, to: $to, step: $step) {
+query QueriesCountTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
+  queriesCountTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
     data {
       timestamp
       value
@@ -591,8 +591,8 @@ query QueriesCountTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   }
 }
 
-query ServedDataTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
-  servedDataTimeseries(from: $from, to: $to, step: $step) {
+query ServedDataTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
+  servedDataTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
     data {
       timestamp
       value
@@ -601,8 +601,8 @@ query ServedDataTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   }
 }
 
-query StoredDataTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
-  storedDataTimeseries(from: $from, to: $to, step: $step) {
+query StoredDataTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
+  storedDataTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
     data {
       timestamp
       value
@@ -611,8 +611,8 @@ query StoredDataTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   }
 }
 
-query RewardTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
-  rewardTimeseries(from: $from, to: $to, step: $step) {
+query RewardTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
+  rewardTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
     data {
       timestamp
       value {
@@ -624,14 +624,24 @@ query RewardTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   }
 }
 
-query AprTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
-  aprTimeseries(from: $from, to: $to, step: $step) {
+query AprTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
+  aprTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
     data {
       timestamp
       value {
         workerApr
         stakerApr
       }
+    }
+    step
+  }
+}
+
+query UptimeTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
+  uptimeTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
+    data {
+      timestamp
+      value
     }
     step
   }

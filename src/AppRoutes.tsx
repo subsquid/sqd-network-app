@@ -14,6 +14,8 @@ import { Worker } from '@pages/WorkerPage/Worker.tsx';
 import { WorkersPage } from '@pages/WorkersPage/WorkersPage.tsx';
 
 import { hideLoader } from './index.tsx';
+import { WorkerGeneral } from '@pages/WorkerPage/General.tsx';
+import { WorkerAnalytics } from '@pages/WorkerPage/Analytics.tsx';
 
 export const AppRoutes = () => {
   hideLoader(0);
@@ -41,8 +43,10 @@ export const AppRoutes = () => {
           {/* <Route element={<AddNewWorker />} path="add" /> */}
         </Route>
 
-        <Route path="worker">
-          <Route element={<Worker backPath="/dashboard" />} path=":peerId" />
+        <Route path="worker/:peerId" element={<Worker backPath="/dashboard" />}>
+          <Route index element={<Navigate to="general" replace={true} />} />
+          <Route element={<WorkerGeneral />} path="general" />
+          <Route element={<WorkerAnalytics />} path="analytics" />
         </Route>
         <Route path="/delegations">
           <Route element={<DelegationsPage />} index />

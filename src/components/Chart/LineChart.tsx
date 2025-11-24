@@ -89,9 +89,8 @@ function useChartScales(
       CHART_CONFIG.padding.y,
     );
 
-    if (series.some(s => s.type === 'bar')) {
-      minY = Math.min(minY, 0);
-    }
+    // Ensure Y-axis never goes below 0
+    minY = Math.max(minY, 0);
 
     return scaleLinear<number>({
       domain: [minY, maxY],

@@ -63,6 +63,7 @@ export interface AnalyticsChartProps<
   };
   tooltipFormat?: LineChartProps['tooltipFormat'];
   axisFormat?: LineChartProps['axisFormat'];
+  yAxis?: { min?: number; max?: number };
   yAxisScale?: 'linear' | 'log';
   height?: number;
   strokeWidth?: number;
@@ -252,6 +253,7 @@ export function AnalyticsChart<
     queryHook,
     tooltipFormat,
     axisFormat,
+    yAxis,
     step,
     height = CHART_CONFIG.height,
     strokeWidth,
@@ -316,6 +318,7 @@ export function AnalyticsChart<
                 ...tooltipFormat,
               }}
               axisFormat={axisFormat}
+              yAxis={yAxis}
               strokeWidth={strokeWidth}
               fillOpacity={fillOpacity}
               pointSize={0}

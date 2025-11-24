@@ -2738,6 +2738,7 @@ export type Query = {
   transfersConnection: TransfersConnection;
   uniqueAccountsTimeseries: UniqueAccountsTimeseries;
   uniqueOperatorsTimeseries: UniqueOperatorsTimeseries;
+  uptimeTimeseries: UptimeTimeseries;
   workerById?: Maybe<Worker>;
   workerMetrics: Array<WorkerMetrics>;
   workerMetricsById?: Maybe<WorkerMetrics>;
@@ -2802,6 +2803,7 @@ export type QueryAprTimeseriesArgs = {
   from?: InputMaybe<Scalars["DateTime"]["input"]>;
   step?: InputMaybe<Scalars["String"]["input"]>;
   to?: InputMaybe<Scalars["DateTime"]["input"]>;
+  workerId?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type QueryBlockByIdArgs = {
@@ -2994,18 +2996,21 @@ export type QueryQueriesCountTimeseriesArgs = {
   from?: InputMaybe<Scalars["DateTime"]["input"]>;
   step?: InputMaybe<Scalars["String"]["input"]>;
   to?: InputMaybe<Scalars["DateTime"]["input"]>;
+  workerId?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type QueryRewardTimeseriesArgs = {
   from?: InputMaybe<Scalars["DateTime"]["input"]>;
   step?: InputMaybe<Scalars["String"]["input"]>;
   to?: InputMaybe<Scalars["DateTime"]["input"]>;
+  workerId?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type QueryServedDataTimeseriesArgs = {
   from?: InputMaybe<Scalars["DateTime"]["input"]>;
   step?: InputMaybe<Scalars["String"]["input"]>;
   to?: InputMaybe<Scalars["DateTime"]["input"]>;
+  workerId?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type QuerySettingsArgs = {
@@ -3030,6 +3035,7 @@ export type QueryStoredDataTimeseriesArgs = {
   from?: InputMaybe<Scalars["DateTime"]["input"]>;
   step?: InputMaybe<Scalars["String"]["input"]>;
   to?: InputMaybe<Scalars["DateTime"]["input"]>;
+  workerId?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type QueryTemporaryHoldingDataArgs = {
@@ -3084,6 +3090,13 @@ export type QueryUniqueOperatorsTimeseriesArgs = {
   from?: InputMaybe<Scalars["DateTime"]["input"]>;
   step?: InputMaybe<Scalars["String"]["input"]>;
   to?: InputMaybe<Scalars["DateTime"]["input"]>;
+};
+
+export type QueryUptimeTimeseriesArgs = {
+  from?: InputMaybe<Scalars["DateTime"]["input"]>;
+  step?: InputMaybe<Scalars["String"]["input"]>;
+  to?: InputMaybe<Scalars["DateTime"]["input"]>;
+  workerId?: InputMaybe<Scalars["String"]["input"]>;
 };
 
 export type QueryWorkerByIdArgs = {
@@ -4278,6 +4291,18 @@ export type UniqueAccountsTimeseries = {
 export type UniqueOperatorsTimeseries = {
   __typename?: "UniqueOperatorsTimeseries";
   data: Array<OperatorsEntry>;
+  step: Scalars["Float"]["output"];
+};
+
+export type UptimeEntry = {
+  __typename?: "UptimeEntry";
+  timestamp: Scalars["DateTime"]["output"];
+  value?: Maybe<Scalars["Float"]["output"]>;
+};
+
+export type UptimeTimeseries = {
+  __typename?: "UptimeTimeseries";
+  data: Array<UptimeEntry>;
   step: Scalars["Float"]["output"];
 };
 
@@ -7467,6 +7492,7 @@ export type QueriesCountTimeseriesQueryVariables = Exact<{
   from: Scalars["DateTime"]["input"];
   to: Scalars["DateTime"]["input"];
   step?: InputMaybe<Scalars["String"]["input"]>;
+  workerId?: InputMaybe<Scalars["String"]["input"]>;
 }>;
 
 export type QueriesCountTimeseriesQuery = {
@@ -7486,6 +7512,7 @@ export type ServedDataTimeseriesQueryVariables = Exact<{
   from: Scalars["DateTime"]["input"];
   to: Scalars["DateTime"]["input"];
   step?: InputMaybe<Scalars["String"]["input"]>;
+  workerId?: InputMaybe<Scalars["String"]["input"]>;
 }>;
 
 export type ServedDataTimeseriesQuery = {
@@ -7505,6 +7532,7 @@ export type StoredDataTimeseriesQueryVariables = Exact<{
   from: Scalars["DateTime"]["input"];
   to: Scalars["DateTime"]["input"];
   step?: InputMaybe<Scalars["String"]["input"]>;
+  workerId?: InputMaybe<Scalars["String"]["input"]>;
 }>;
 
 export type StoredDataTimeseriesQuery = {
@@ -7524,6 +7552,7 @@ export type RewardTimeseriesQueryVariables = Exact<{
   from: Scalars["DateTime"]["input"];
   to: Scalars["DateTime"]["input"];
   step?: InputMaybe<Scalars["String"]["input"]>;
+  workerId?: InputMaybe<Scalars["String"]["input"]>;
 }>;
 
 export type RewardTimeseriesQuery = {
@@ -7547,6 +7576,7 @@ export type AprTimeseriesQueryVariables = Exact<{
   from: Scalars["DateTime"]["input"];
   to: Scalars["DateTime"]["input"];
   step?: InputMaybe<Scalars["String"]["input"]>;
+  workerId?: InputMaybe<Scalars["String"]["input"]>;
 }>;
 
 export type AprTimeseriesQuery = {
@@ -7558,6 +7588,26 @@ export type AprTimeseriesQuery = {
       __typename?: "AprEntry";
       timestamp: string;
       value?: { __typename?: "AprValue"; workerApr: number; stakerApr: number };
+    }>;
+  };
+};
+
+export type UptimeTimeseriesQueryVariables = Exact<{
+  from: Scalars["DateTime"]["input"];
+  to: Scalars["DateTime"]["input"];
+  step?: InputMaybe<Scalars["String"]["input"]>;
+  workerId?: InputMaybe<Scalars["String"]["input"]>;
+}>;
+
+export type UptimeTimeseriesQuery = {
+  __typename?: "Query";
+  uptimeTimeseries: {
+    __typename?: "UptimeTimeseries";
+    step: number;
+    data: Array<{
+      __typename?: "UptimeEntry";
+      timestamp: string;
+      value?: number;
     }>;
   };
 };
@@ -8844,8 +8894,8 @@ export const useUniqueAccountsTimeseriesQuery = <
 };
 
 export const QueriesCountTimeseriesDocument = `
-    query QueriesCountTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
-  queriesCountTimeseries(from: $from, to: $to, step: $step) {
+    query QueriesCountTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
+  queriesCountTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
     data {
       timestamp
       value
@@ -8882,8 +8932,8 @@ export const useQueriesCountTimeseriesQuery = <
 };
 
 export const ServedDataTimeseriesDocument = `
-    query ServedDataTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
-  servedDataTimeseries(from: $from, to: $to, step: $step) {
+    query ServedDataTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
+  servedDataTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
     data {
       timestamp
       value
@@ -8920,8 +8970,8 @@ export const useServedDataTimeseriesQuery = <
 };
 
 export const StoredDataTimeseriesDocument = `
-    query StoredDataTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
-  storedDataTimeseries(from: $from, to: $to, step: $step) {
+    query StoredDataTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
+  storedDataTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
     data {
       timestamp
       value
@@ -8958,8 +9008,8 @@ export const useStoredDataTimeseriesQuery = <
 };
 
 export const RewardTimeseriesDocument = `
-    query RewardTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
-  rewardTimeseries(from: $from, to: $to, step: $step) {
+    query RewardTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
+  rewardTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
     data {
       timestamp
       value {
@@ -8999,8 +9049,8 @@ export const useRewardTimeseriesQuery = <
 };
 
 export const AprTimeseriesDocument = `
-    query AprTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
-  aprTimeseries(from: $from, to: $to, step: $step) {
+    query AprTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
+  aprTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
     data {
       timestamp
       value {
@@ -9029,6 +9079,44 @@ export const useAprTimeseriesQuery = <
     queryKey: ["AprTimeseries", variables],
     queryFn: fetcher<AprTimeseriesQuery, AprTimeseriesQueryVariables>(
       AprTimeseriesDocument,
+      variables,
+    ),
+    ...options,
+  });
+};
+
+export const UptimeTimeseriesDocument = `
+    query UptimeTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
+  uptimeTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
+    data {
+      timestamp
+      value
+    }
+    step
+  }
+}
+    `;
+
+export const useUptimeTimeseriesQuery = <
+  TData = UptimeTimeseriesQuery,
+  TError = unknown,
+>(
+  variables: UptimeTimeseriesQueryVariables,
+  options?: Omit<
+    UseQueryOptions<UptimeTimeseriesQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<
+      UptimeTimeseriesQuery,
+      TError,
+      TData
+    >["queryKey"];
+  },
+) => {
+  return useQuery<UptimeTimeseriesQuery, TError, TData>({
+    queryKey: ["UptimeTimeseries", variables],
+    queryFn: fetcher<UptimeTimeseriesQuery, UptimeTimeseriesQueryVariables>(
+      UptimeTimeseriesDocument,
       variables,
     ),
     ...options,

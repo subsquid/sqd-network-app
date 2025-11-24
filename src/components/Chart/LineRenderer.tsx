@@ -45,7 +45,7 @@ export function LineRenderer({
       <AreaClosed<SingleLineChartDatum>
         data={data}
         x={d => xScale(d.x)}
-        y={d => yScale(d.y)}
+        y={d => yScale(d.y ?? 0)}
         yScale={yScale}
         fill={`url(#${gradientId})`}
         curve={curveMonotoneX}
@@ -53,7 +53,7 @@ export function LineRenderer({
       <LinePath<SingleLineChartDatum>
         data={data}
         x={d => xScale(d.x)}
-        y={d => yScale(d.y)}
+        y={d => yScale(d.y ?? 0)}
         stroke={color}
         strokeWidth={strokeWidth}
         curve={curveMonotoneX}
