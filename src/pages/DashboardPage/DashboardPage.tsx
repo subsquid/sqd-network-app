@@ -1,5 +1,5 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Box, Tab, Tabs } from '@mui/material';
+import { Tab, Tabs } from '@mui/material';
 
 import { CenteredPageWrapper } from '@layouts/NetworkLayout';
 
@@ -18,14 +18,12 @@ export function DashboardPage() {
   };
 
   return (
-    <CenteredPageWrapper className="wide">
+    <CenteredPageWrapper>
       <NetworkSummary />
-      <Box sx={{ mb: 2 }}>
-        <Tabs value={activeTab} onChange={handleTabChange}>
-          <Tab label="Workers" value="workers" />
-          <Tab label="Analytics" value="analytics" />
-        </Tabs>
-      </Box>
+      <Tabs value={activeTab} onChange={handleTabChange}>
+        <Tab label="Workers" value="workers" />
+        <Tab label="Analytics" value="analytics" />
+      </Tabs>
       <Outlet />
     </CenteredPageWrapper>
   );

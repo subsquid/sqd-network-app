@@ -6,38 +6,40 @@ import {
   tokenFormatter,
   urlFormatter,
 } from '@lib/formatters/formatters.ts';
-import { fromSqd } from '@lib/network';
+import { fromSqd, isOwned } from '@lib/network';
 import { Box, Divider, Grid, Stack, styled, Typography, useTheme } from '@mui/material';
 import { useParams, useSearchParams } from 'react-router-dom';
 
 import {
-  useWorkerByPeerId,
+  Worker as ApiWorker,
   WorkerStatus as ApiWorkerStatus,
-  WorkerStatus,
   useMySources,
   useMyWorkerDelegations,
-  Worker as ApiWorker,
+  useWorkerByPeerId,
+  WorkerStatus,
   type Account,
 } from '@api/subsquid-network-squid';
 import { Card } from '@components/Card';
 import { Loader } from '@components/Loader';
 import { NotFound } from '@components/NotFound';
+import {
+  DelegationCapacity,
+  WorkerDelegate,
+  WorkerStatusChip,
+  WorkerUndelegate,
+  WorkerUnregisterButton,
+  WorkerVersion,
+  WorkerWithdrawButton,
+} from '@components/Worker';
 import { CenteredPageWrapper, PageTitle } from '@layouts/NetworkLayout';
 import { useAccount } from '@network/useAccount';
 import { useContracts } from '@network/useContracts';
-import { WorkerUnregisterButton } from '@pages/WorkersPage/WorkerUnregister';
 
-import { DelegationCapacity } from './DelegationCapacity';
-import { WorkerDelegate } from './WorkerDelegate';
-import { WorkerUndelegate } from './WorkerUndelegate';
-import { WorkerVersion } from './WorkerVersion';
-import { WorkerWithdrawButton } from './WorkerWithdraw';
 import { Avatar } from '@components/Avatar';
 import { CopyToClipboard } from '@components/CopyToClipboard';
-import { WorkerEdit } from './WorkerEdit';
-import { WorkerStatusChip } from './WorkerStatus';
-import { useMemo } from 'react';
 import { Property, PropertyList } from '@components/Property';
+import { useMemo } from 'react';
+import { WorkerEdit } from './WorkerEdit';
 
 const CardContentStack = styled(Stack)(({ theme }) => ({
   flex: 1,
@@ -103,7 +105,7 @@ export const Worker = ({ backPath }: { backPath: string }) => {
   }
 
   return (
-    <CenteredPageWrapper className="wide">
+    <CenteredPageWrapper >
       <PageTitle title={'Worker'} />
       <Grid container spacing={2}>
         <Grid size={{ xs: 12 }}>
@@ -255,12 +257,3 @@ export const Worker = ({ backPath }: { backPath: string }) => {
     </CenteredPageWrapper>
   );
 };
-
-export function isOwned(
-  something: { owner: { id: string; owner?: { id: string } } },
-  address: string | undefined,
-) {
-  return (
-    address != null && (something.owner.id === address || something.owner.owner?.id === address)
-  );
-}

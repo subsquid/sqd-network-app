@@ -1,5 +1,5 @@
 import { percentFormatter, tokenFormatter } from '@lib/formatters/formatters.ts';
-import { fromSqd } from '@lib/network';
+import { fromSqd, isOwned } from '@lib/network';
 import { Box, Button, Stack, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import { Link, Outlet } from 'react-router-dom';
 
@@ -15,16 +15,17 @@ import { Location, useLocationState } from '@hooks/useLocationState';
 import { CenteredPageWrapper } from '@layouts/NetworkLayout';
 import { ConnectedWalletRequired } from '@network/ConnectedWalletRequired';
 import { useContracts } from '@network/useContracts';
-import { WorkerName } from '@pages/WorkersPage/WorkerName';
-import { WorkerStatusChip } from '@pages/WorkersPage/WorkerStatus';
+import {
+  WorkerName,
+  WorkerStatusChip,
+  WorkerVersion,
+  WorkerUnregisterButton,
+  WorkerWithdrawButton,
+} from '@components/Worker';
 
 import { AddWorkerButton } from './AddNewWorker';
-import { WorkerUnregisterButton } from './WorkerUnregister';
-import { WorkerVersion } from './WorkerVersion';
-import { WorkerWithdrawButton } from './WorkerWithdraw';
 import { SquaredChip } from '@components/Chip';
 import { SectionHeader } from '@components/SectionHeader';
-import { isOwned } from './Worker';
 import { useAccount } from '@network/useAccount';
 
 export function MyWorkers() {
@@ -159,7 +160,7 @@ export function MyWorkers() {
 
 export function WorkersPage() {
   return (
-    <CenteredPageWrapper className="wide">
+    <CenteredPageWrapper >
       <ConnectedWalletRequired>
         <MyWorkers />
       </ConnectedWalletRequired>

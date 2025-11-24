@@ -226,7 +226,7 @@ export function NetworkSummary() {
   const size = { minHeight: 128, height: { xs: 'auto', md: 0.5 } };
 
   return (
-    <Box minHeight={360} mb={2} display="flex">
+    <Box minHeight={360} display="flex">
       <Grid container spacing={2} flex={1}>
         {/* FIXME: some wtf hack with mb */}
         <Grid container size={{ xs: 12, sm: 12, md: 8 }} mb={{ xs: 0, md: 2 }}>

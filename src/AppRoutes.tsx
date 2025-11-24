@@ -10,7 +10,7 @@ import { Analytics } from '@pages/DashboardPage/Analytics.tsx';
 import { DelegationsPage } from '@pages/DelegationsPage/DelegationsPage.tsx';
 import { Gateway } from '@pages/GatewaysPage/Gateway.tsx';
 import { GatewaysPage } from '@pages/GatewaysPage/GatewaysPage.tsx';
-import { Worker } from '@pages/WorkersPage/Worker.tsx';
+import { Worker } from '@pages/WorkerPage/Worker.tsx';
 import { WorkersPage } from '@pages/WorkersPage/WorkersPage.tsx';
 
 import { hideLoader } from './index.tsx';

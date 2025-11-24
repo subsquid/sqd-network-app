@@ -60,7 +60,7 @@
         "noCommentText": "error",
         "noConsole": "warn",
         "noDuplicateJsxProps": "error",
-        "noExplicitAny": "warn",
+        "noExplicitAny": "off",
         "noExtraNonNullAssertion": "error",
         "noMisleadingInstantiator": "error",
         "noUnsafeDeclarationMerging": "off"

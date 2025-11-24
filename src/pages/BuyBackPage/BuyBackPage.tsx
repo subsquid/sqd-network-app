@@ -62,7 +62,7 @@ export function OtcContracts() {
 
 export function BuyBacksPage() {
   return (
-    <CenteredPageWrapper className="wide">
+    <CenteredPageWrapper >
       <ConnectedWalletRequired>
         <Alert sx={{ mb: 2 }} color="warning" icon={<Warning color="warning" />}>
           <Typography>

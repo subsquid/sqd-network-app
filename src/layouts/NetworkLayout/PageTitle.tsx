@@ -8,7 +8,7 @@ import { BackButton } from '@components/BackButton';
 const PageTitleWrapper = styled('div', {
   name: 'PageTitleWrapper',
 })(({ theme }) => ({
-  marginBottom: theme.spacing(3),
+  marginBottom: theme.spacing(1),
 
   '& .title': {
     display: 'flex',
@@ -16,9 +16,6 @@ const PageTitleWrapper = styled('div', {
     gap: theme.spacing(2),
   },
 
-  [theme.breakpoints.down('xs')]: {
-    marginBottom: theme.spacing(2),
-  },
 }));
 
 const PageDescription = styled(Typography)(({ theme }) => ({

@@ -123,7 +123,7 @@ export function Vesting({ backPath }: { backPath: string }) {
   }
 
   return (
-    <CenteredPageWrapper className="wide">
+    <CenteredPageWrapper>
       <NetworkPageTitle
         backPath={searchParams.get('backPath') || backPath}
         endAdornment={

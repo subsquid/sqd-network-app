@@ -21,7 +21,7 @@ import { TableList } from '@components/Table/TableList.tsx';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { useAccount } from '@network/useAccount';
 import { useContracts } from '@network/useContracts';
-import { WorkerName } from '@pages/WorkersPage/WorkerName';
+import { WorkerName } from '@components/Worker';
 
 export const claimSchema = yup.object({
   source: yup.string().label('Source').trim().required('Source is required'),

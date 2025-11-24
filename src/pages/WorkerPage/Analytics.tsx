@@ -304,6 +304,7 @@ export function Analytics() {
     <>
       <Box
         sx={{
+          mb: 2,
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',

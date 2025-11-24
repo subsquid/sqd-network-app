@@ -19,6 +19,7 @@ import { Link } from 'react-router-dom';
 import { SectionHeader } from '@components/SectionHeader';
 import { useVestingsByAccountQuery } from '@api/subsquid-network-squid';
 import BigNumber from 'bignumber.js';
+import { CenteredPageWrapper } from '@layouts/NetworkLayout';
 
 export function MyVestings() {
   const account = useAccount();
@@ -87,9 +88,9 @@ export function MyVestings() {
   );
 
   return (
-    <>
-      <SectionHeader title="My Vestings" sx={{ mb: 2 }} />
-      <DashboardTable loading={isLoading || isVestingsLoading} sx={{ mb: 2 }}>
+    <CenteredPageWrapper>
+      <SectionHeader title="My Vestings" />
+      <DashboardTable loading={isLoading || isVestingsLoading}>
         <TableHead>
           <TableRow>
             <TableCell>Contract</TableCell>
@@ -105,7 +106,6 @@ export function MyVestings() {
               const vestedAmount = fromSqd(vesting?.vestedAmount);
               const released = fromSqd(vesting?.released);
               const balance = fromSqd(vesting?.balance);
-              
               const totalVestedMinusReleased = vestedAmount.minus(released);
               const releasableAmount = BigNumber.min(totalVestedMinusReleased, balance);
 
@@ -143,7 +143,7 @@ export function MyVestings() {
                   </TableCell>
                   <TableCell>
                     <Box display="flex" justifyContent="flex-end">
-                      <ReleaseButton vesting={vesting} disabled={releasableAmount.isZero()}/>
+                      <ReleaseButton vesting={vesting} disabled={releasableAmount.isZero()} />
                     </Box>
                   </TableCell>
                 </TableRow>
@@ -156,6 +156,6 @@ export function MyVestings() {
           )}
         </TableBody>
       </DashboardTable>
-    </>
+    </CenteredPageWrapper>
   );
 }

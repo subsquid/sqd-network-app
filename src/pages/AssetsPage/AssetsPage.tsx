@@ -9,7 +9,7 @@ import { MyTemporaryHoldings } from './TemporaryHoldings';
 
 export function AssetsPage() {
   return (
-    <CenteredPageWrapper className="wide">
+    <CenteredPageWrapper>
       <ConnectedWalletRequired>
         <MyAssets />
         <MyVestings />

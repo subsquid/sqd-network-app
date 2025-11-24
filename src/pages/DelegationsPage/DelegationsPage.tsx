@@ -9,11 +9,13 @@ import { Location, useLocationState } from '@hooks/useLocationState';
 import { CenteredPageWrapper } from '@layouts/NetworkLayout';
 import { ConnectedWalletRequired } from '@network/ConnectedWalletRequired';
 import { useContracts } from '@network/useContracts';
-import { DelegationCapacity } from '@pages/WorkersPage/DelegationCapacity';
-import { WorkerDelegate } from '@pages/WorkersPage/WorkerDelegate';
-import { WorkerName } from '@pages/WorkersPage/WorkerName';
-import { WorkerStatusChip } from '@pages/WorkersPage/WorkerStatus';
-import { WorkerUndelegate } from '@pages/WorkersPage/WorkerUndelegate';
+import {
+  DelegationCapacity,
+  WorkerName,
+  WorkerStatusChip,
+  WorkerDelegate,
+  WorkerUndelegate,
+} from '@components/Worker';
 import { SectionHeader } from '@components/SectionHeader';
 
 export function MyDelegations() {
@@ -119,7 +121,7 @@ export function MyDelegations() {
 
 export function DelegationsPage() {
   return (
-    <CenteredPageWrapper className="wide">
+    <CenteredPageWrapper >
       <ConnectedWalletRequired>
         <MyDelegations />
       </ConnectedWalletRequired>
