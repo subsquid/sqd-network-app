@@ -1,14 +1,14 @@
 import { percentFormatter } from '@lib/formatters/formatters';
-import { Box, Stack, styled } from '@mui/material';
+import { Box, styled } from '@mui/material';
 import classNames from 'classnames';
 
 import { StyledBar } from './StatusBar';
 
 export const BarWrapper = styled(Box)(({ theme }) => ({
   display: 'inline-flex',
-  '& :not(:last-child)': {
-    marginRight: theme.spacing(0.5),
-  },
+  verticalAlign: '-25%', // Adjust vertical position to align better with text center
+  gap: theme.spacing(0.5),
+  marginRight: theme.spacing(1),
 }));
 
 const BARS_COUNT = 5;
@@ -20,7 +20,7 @@ export function DelegationCapacity({ worker }: { worker: { delegationCapacity: n
     delegationCapacity >= 80 ? 'error' : delegationCapacity >= 40 ? 'warning' : 'success';
 
   return (
-    <Stack direction="row" spacing={1} alignItems="center">
+    <>
       <BarWrapper>
         {RANGES.map((v, i) => (
           <StyledBar
@@ -29,7 +29,7 @@ export function DelegationCapacity({ worker }: { worker: { delegationCapacity: n
           />
         ))}
       </BarWrapper>
-      <Box display="flex">{percentFormatter(delegationCapacity)}</Box>
-    </Stack>
+      {percentFormatter(delegationCapacity)}
+    </>
   );
 }
