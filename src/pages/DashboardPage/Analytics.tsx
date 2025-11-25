@@ -77,7 +77,7 @@ const CHART_CONFIGS: Record<string, AnalyticsChartProps<any, any>> = {
   reward: {
     ...createStackedChart({
       title: 'Rewards',
-      subtitle: 'Rewards distributed to workers and stakers',
+      subtitle: 'Rewards distributed to workers and delegators',
       primaryColor: '#10B981',
       queryHook: opts =>
         useRewardTimeseriesQuery({ from: opts.from, to: opts.to, step: opts.step }),
@@ -105,13 +105,13 @@ const CHART_CONFIGS: Record<string, AnalyticsChartProps<any, any>> = {
   apr: {
     ...createMultiSeriesChart({
       title: 'APR',
-      subtitle: 'Annual percentage rate for workers and stakers',
+      subtitle: 'Annual percentage rate for workers and delegators',
       primaryColor: '#6B7280',
       queryHook: useAprTimeseriesQuery,
       dataPath: (data: any) => data.aprTimeseries,
       series: [
         { name: 'Worker APR', valuePath: (v: any) => v?.workerApr, color: '#5B8FF9' },
-        { name: 'Staker APR', valuePath: (v: any) => v?.stakerApr, color: '#61CDBB' },
+        { name: 'Delegator APR', valuePath: (v: any) => v?.stakerApr, color: '#61CDBB' },
       ],
       tooltipFormat: { y: CHART_FORMATTERS.percent.tooltip },
       axisFormat: { y: CHART_FORMATTERS.percent.axis },
