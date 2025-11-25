@@ -119,6 +119,10 @@ export function WorkerGeneral() {
           <Card title="Delegation" sx={{ width: 1, height: 1 }}>
             <PropertyList>
               <Property
+                label="Total delegation"
+                value={tokenFormatter(fromSqd(worker.totalDelegation), SQD_TOKEN)}
+              />
+              <Property
                 label="Delegation capacity"
                 value={<DelegationCapacity worker={worker} />}
               />
