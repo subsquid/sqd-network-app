@@ -2,6 +2,8 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { NetworkLayout } from '@layouts/NetworkLayout';
 import { AssetsPage } from '@pages/AssetsPage/AssetsPage.tsx';
+import { MyVestings } from '@pages/AssetsPage/Vestings.tsx';
+import { MyTemporaryHoldings } from '@pages/AssetsPage/TemporaryHoldings.tsx';
 import { Vesting } from '@pages/AssetsPage/Vesting.tsx';
 import { BuyBacksPage } from '@pages/BuyBackPage/BuyBackPage.tsx';
 import { DashboardPage } from '@pages/DashboardPage/DashboardPage.tsx';
@@ -30,8 +32,10 @@ export const AppRoutes = () => {
           <Route path="analytics" element={<Analytics />} />
         </Route>
 
-        <Route path="/assets">
-          <Route element={<AssetsPage />} index />
+        <Route path="/assets" element={<AssetsPage />}>
+          <Route index element={<Navigate to="vestings" replace={true} />} />
+          <Route path="vestings" element={<MyVestings />} />
+          <Route path="temporary-holdings" element={<MyTemporaryHoldings />} />
         </Route>
 
         <Route path="vesting/:address">

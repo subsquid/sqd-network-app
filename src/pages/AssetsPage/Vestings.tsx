@@ -16,10 +16,8 @@ import { ReleaseButton } from './ReleaseButton';
 import { useMemo } from 'react';
 import { CopyToClipboard } from '@components/CopyToClipboard';
 import { Link } from 'react-router-dom';
-import { SectionHeader } from '@components/SectionHeader';
 import { useVestingsByAccountQuery } from '@api/subsquid-network-squid';
 import BigNumber from 'bignumber.js';
-import { CenteredPageWrapper } from '@layouts/NetworkLayout';
 
 export function MyVestings() {
   const account = useAccount();
@@ -88,8 +86,7 @@ export function MyVestings() {
   );
 
   return (
-    <CenteredPageWrapper>
-      <SectionHeader title="My Vestings" />
+    <>
       <DashboardTable loading={isLoading || isVestingsLoading}>
         <TableHead>
           <TableRow>
@@ -156,6 +153,6 @@ export function MyVestings() {
           )}
         </TableBody>
       </DashboardTable>
-    </CenteredPageWrapper>
+    </>
   );
 }
