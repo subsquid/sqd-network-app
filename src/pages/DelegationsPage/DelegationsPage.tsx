@@ -36,7 +36,7 @@ export function MyDelegations() {
 
   return (
     <Box>
-      <SectionHeader title="My Delegations" sx={{ mb: 2 }}/>
+      <SectionHeader title="My Delegations" sx={{ mb: 2 }} />
       <DashboardTable loading={isLoading} sx={{ mb: 2 }}>
         <TableHead>
           <TableRow>
@@ -121,7 +121,7 @@ export function MyDelegations() {
 
 export function DelegationsPage() {
   return (
-    <CenteredPageWrapper >
+    <CenteredPageWrapper>
       <ConnectedWalletRequired>
         <MyDelegations />
       </ConnectedWalletRequired>

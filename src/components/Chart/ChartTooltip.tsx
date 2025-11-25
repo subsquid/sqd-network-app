@@ -13,12 +13,7 @@ interface ChartTooltipProps {
   tooltipFormat?: LineChartProps['tooltipFormat'];
 }
 
-export function ChartTooltip({
-  tooltipData,
-  series,
-  palette,
-  tooltipFormat,
-}: ChartTooltipProps) {
+export function ChartTooltip({ tooltipData, series, palette, tooltipFormat }: ChartTooltipProps) {
   const firstDatum = Object.values(tooltipData)[0];
 
   // Create a map of series names to colors for quick lookup
@@ -74,4 +69,3 @@ export function ChartTooltip({
     </Paper>
   );
 }
-

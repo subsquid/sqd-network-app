@@ -27,7 +27,6 @@ import {
   WorkerWithdrawButton,
 } from '@components/Worker';
 import { Property, PropertyList } from '@components/Property';
-import { dateFormat } from '@i18n';
 
 export const Worker = ({ backPath }: { backPath: string }) => {
   const location = useLocation();

@@ -21,7 +21,12 @@ export {
 export { ChartTooltip } from './ChartTooltip';
 export { CursorLines, CursorPoints } from './ChartCursor';
 export { LineRenderer } from './LineRenderer';
-export { BarRenderer, StackedBarRenderer, GroupedBarRenderer, calculateOptimalBarWidth } from './BarRenderer';
+export {
+  BarRenderer,
+  StackedBarRenderer,
+  GroupedBarRenderer,
+  calculateOptimalBarWidth,
+} from './BarRenderer';
 export { useTooltipHandler } from './useTooltipHandler';
 
 // Types and utilities

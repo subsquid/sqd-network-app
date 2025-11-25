@@ -365,7 +365,7 @@ function GatewaysPageContent() {
 
 export function GatewaysPage() {
   return (
-    <CenteredPageWrapper >
+    <CenteredPageWrapper>
       <ConnectedWalletRequired>
         <SourceProvider>
           <GatewaysPageContent />

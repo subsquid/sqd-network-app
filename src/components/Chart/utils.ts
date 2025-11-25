@@ -21,11 +21,13 @@ export function toTimeRange(date: Date, stepMs?: number): string {
 
   // formatRange is available but not in all TypeScript lib versions
   const formatRange = (formatter: Intl.DateTimeFormat) =>
-    (formatter as Intl.DateTimeFormat & { formatRange: (start: Date, end: Date) => string }).formatRange(from, to);
+    (
+      formatter as Intl.DateTimeFormat & { formatRange: (start: Date, end: Date) => string }
+    ).formatRange(from, to);
 
   if (stepMs >= 24 * 60 * 60 * 1000) {
     return formatRange(toDateDay);
-}
+  }
 
   return formatRange(toDateSeconds);
 }

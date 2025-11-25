@@ -20,7 +20,12 @@ import {
 } from './types';
 import { useSharedCursor } from './SharedCursorContext';
 import { LineRenderer } from './LineRenderer';
-import { BarRenderer, GroupedBarRenderer, StackedBarRenderer, calculateOptimalBarWidth } from './BarRenderer';
+import {
+  BarRenderer,
+  GroupedBarRenderer,
+  StackedBarRenderer,
+  calculateOptimalBarWidth,
+} from './BarRenderer';
 import { ChartTooltip } from './ChartTooltip';
 import { CursorLines, CursorPoints } from './ChartCursor';
 import { useTooltipHandler } from './useTooltipHandler';
@@ -215,7 +220,7 @@ function ChartSeries({
       {/* Render stacked bars */}
       {stackedSeries.map(s => {
         if (s.type !== 'bar') return null;
-            return (
+        return (
           <StackedBarRenderer
             key={s.name}
             series={s}
@@ -224,8 +229,8 @@ function ChartSeries({
             palette={palette}
             barWidth={barWidth}
             barBorderRadius={barBorderRadius}
-              />
-            );
+          />
+        );
       })}
 
       {/* Render grouped or individual unstacked series */}
@@ -237,27 +242,27 @@ function ChartSeries({
           palette={palette}
           barWidth={barWidth}
           barBorderRadius={barBorderRadius}
-                      />
+        />
       ) : (
         unstackedSeries.map((s, i) => {
-            const color = s.color ?? palette[i % palette.length];
+          const color = s.color ?? palette[i % palette.length];
 
           if (s.type === 'line') {
-                return (
+            return (
               <LineRenderer
                 key={s.name}
                 series={s}
                 xScale={xScale}
-                      yScale={yScale}
+                yScale={yScale}
                 color={color}
-                      strokeWidth={strokeWidth}
+                strokeWidth={strokeWidth}
                 fillOpacity={fillOpacity}
-                    />
-                );
+              />
+            );
           }
 
           if (s.type === 'bar') {
-                return (
+            return (
               <BarRenderer
                 key={s.name}
                 series={s}
@@ -266,11 +271,11 @@ function ChartSeries({
                 color={color}
                 barWidth={barWidth}
                 barBorderRadius={barBorderRadius}
-                        />
-                      );
+              />
+            );
           }
 
-                return null;
+          return null;
         })
       )}
 

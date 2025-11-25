@@ -1,37 +1,23 @@
 import { dateFormat } from '@i18n';
 
 import { fromSqd, isOwned } from '@lib/network';
-import { Box, Divider, Grid, Stack, Typography, useTheme } from '@mui/material';
+import { Grid } from '@mui/material';
 
 import {
   WorkerStatus as ApiWorkerStatus,
   useMySources,
   useMyWorkerDelegations,
   useWorkerByPeerId,
-  WorkerStatus,
-  type Account,
-  type Worker as ApiWorker,
 } from '@api/subsquid-network-squid';
 import { Card } from '@components/Card';
 import { Loader } from '@components/Loader';
 import { NotFound } from '@components/NotFound';
-import {
-  DelegationCapacity,
-  WorkerDelegate,
-  WorkerStatusChip,
-  WorkerUndelegate,
-  WorkerUnregisterButton,
-  WorkerVersion,
-  WorkerWithdrawButton,
-} from '@components/Worker';
+import { DelegationCapacity } from '@components/Worker';
 import { useAccount } from '@network/useAccount';
 import { useContracts } from '@network/useContracts';
 
-import { Avatar } from '@components/Avatar';
 import { Property, PropertyList } from '@components/Property';
 import { useMemo } from 'react';
-import { CopyToClipboard } from '@components/CopyToClipboard';
-import { WorkerEdit } from './WorkerEdit';
 import {
   bytesFormatter,
   numberWithCommasFormatter,

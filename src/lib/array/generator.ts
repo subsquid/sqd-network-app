@@ -11,4 +11,3 @@ export function createGenerator<T>(v: T[]) {
     },
   };
 }
-

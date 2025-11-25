@@ -1,8 +1,8 @@
-import { useCallback, useMemo } from "react";
-import { localPoint } from "@visx/event";
-import { bisector } from "d3-array";
-import type { ScaleTime } from "d3-scale";
-import type { LineChartSeries, SingleLineChartDatum } from "./types";
+import { useCallback, useMemo } from 'react';
+import { localPoint } from '@visx/event';
+import { bisector } from 'd3-array';
+import type { ScaleTime } from 'd3-scale';
+import type { LineChartSeries, SingleLineChartDatum } from './types';
 
 // ============================================================================
 // Types
@@ -33,17 +33,10 @@ export function useTooltipHandler({
   showTooltip,
   setCursor,
 }: UseTooltipHandlerProps) {
-  const bisectDate = useMemo(
-    () => bisector<{ x: Date }, Date>((d) => d.x).left,
-    [],
-  );
+  const bisectDate = useMemo(() => bisector<{ x: Date }, Date>(d => d.x).left, []);
 
   const handleTooltip = useCallback(
-    (
-      event:
-        | React.TouchEvent<SVGRectElement>
-        | React.MouseEvent<SVGRectElement>,
-    ) => {
+    (event: React.TouchEvent<SVGRectElement> | React.MouseEvent<SVGRectElement>) => {
       const point = localPoint(event);
       if (!point) return;
 
@@ -65,10 +58,7 @@ export function useTooltipHandler({
           const d1 = s.data[index];
           let d = d0;
           if (d1) {
-            d =
-              x0.valueOf() - d0.x.valueOf() > d1.x.valueOf() - x0.valueOf()
-                ? d1
-                : d0;
+            d = x0.valueOf() - d0.x.valueOf() > d1.x.valueOf() - x0.valueOf() ? d1 : d0;
           }
 
           for (const y of d.y) {
@@ -82,10 +72,7 @@ export function useTooltipHandler({
           const d1 = s.data[index];
           let d = d0;
           if (d1) {
-            d =
-              x0.valueOf() - d0.x.valueOf() > d1.x.valueOf() - x0.valueOf()
-                ? d1
-                : d0;
+            d = x0.valueOf() - d0.x.valueOf() > d1.x.valueOf() - x0.valueOf() ? d1 : d0;
           }
           if (d.y == null) continue;
           tooltipData[s.name] = { x: d.x, y: d.y };

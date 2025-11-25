@@ -46,7 +46,7 @@ export const Gateway = ({ backPath }: { backPath: string }) => {
   }
 
   return (
-    <CenteredPageWrapper >
+    <CenteredPageWrapper>
       <Box sx={{ mb: 3 }}>
         <BackButton path={searchParams.get('backPath') || backPath} />
       </Box>

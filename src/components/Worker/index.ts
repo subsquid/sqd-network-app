@@ -7,4 +7,3 @@ export { WorkerWithdrawButton } from './WorkerWithdraw';
 export { DelegationCapacity } from './DelegationCapacity';
 export { WorkerDelegate } from './WorkerDelegate';
 export { WorkerUndelegate } from './WorkerUndelegate';
-

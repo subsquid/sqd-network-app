@@ -64,4 +64,3 @@ export const CHART_CONFIG = {
     x: 0.02, // 2% padding for x-axis - ensures proper spacing
   },
 } as const;
-

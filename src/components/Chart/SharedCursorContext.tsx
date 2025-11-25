@@ -34,7 +34,7 @@ interface UseSharedCursorProps {
 
 export function useSharedCursor({ shared, width, height }: UseSharedCursorProps) {
   const context = useContext(SharedCursorContext);
-  
+
   if (shared && !context) {
     throw new Error('useSharedCursor with shared=true must be used within a SharedCursorProvider');
   }
@@ -42,22 +42,28 @@ export function useSharedCursor({ shared, width, height }: UseSharedCursorProps)
   const [localCursor, setLocalCursor] = useState<CursorState | null>(null);
 
   // Normalize cursor position to relative coordinates (0-1)
-  const normalizeCursor = useCallback((cursor: CursorState | null) => {
-    if (!cursor || width <= 0 || height <= 0) return null;
-    return {
-      x: cursor.x / width,
-      y: cursor.y / height,
-    };
-  }, [width, height]);
+  const normalizeCursor = useCallback(
+    (cursor: CursorState | null) => {
+      if (!cursor || width <= 0 || height <= 0) return null;
+      return {
+        x: cursor.x / width,
+        y: cursor.y / height,
+      };
+    },
+    [width, height],
+  );
 
   // Denormalize cursor position back to pixel coordinates
-  const denormalizeCursor = useCallback((cursor: CursorState | null) => {
-    if (!cursor) return null;
-    return {
-      x: cursor.x * width,
-      y: cursor.y * height,
-    };
-  }, [width, height]);
+  const denormalizeCursor = useCallback(
+    (cursor: CursorState | null) => {
+      if (!cursor) return null;
+      return {
+        x: cursor.x * width,
+        y: cursor.y * height,
+      };
+    },
+    [width, height],
+  );
 
   const setCursor = useCallback(
     (cursor: CursorState | null) => {

@@ -646,4 +646,3 @@ query UptimeTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerI
     step
   }
 }
-

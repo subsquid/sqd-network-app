@@ -267,7 +267,7 @@ export function AnalyticsChart<
     // If no range provided, use a very wide range to fetch all data
     const from = range?.from ? toUTCDate(range.from) : new Date(0);
     const to = range?.to ? toUTCDate(range.to) : new Date();
-    
+
     return {
       from: from.toISOString(),
       to: to.toISOString(),

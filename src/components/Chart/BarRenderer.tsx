@@ -180,4 +180,3 @@ export function calculateOptimalBarWidth(
 
   return (width / expectedDataPoints) * 0.5;
 }
-

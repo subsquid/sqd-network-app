@@ -15,7 +15,6 @@ const PageTitleWrapper = styled('div', {
     alignItems: 'center',
     gap: theme.spacing(2),
   },
-
 }));
 
 const PageDescription = styled(Typography)(({ theme }) => ({

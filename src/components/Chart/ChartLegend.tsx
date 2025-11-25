@@ -42,4 +42,3 @@ export function ChartLegend({ series, palette }: { series: LineChartSeries[]; pa
     </Box>
   );
 }
-

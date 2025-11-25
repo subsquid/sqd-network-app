@@ -160,7 +160,7 @@ export function MyWorkers() {
 
 export function WorkersPage() {
   return (
-    <CenteredPageWrapper >
+    <CenteredPageWrapper>
       <ConnectedWalletRequired>
         <MyWorkers />
       </ConnectedWalletRequired>
