@@ -20,7 +20,6 @@ const CardContent = styled(Box, {
   display: 'flex',
   flexDirection: 'column',
   flex: 1,
-  justifyContent: 'space-between',
   height: '100%',
 }));
 

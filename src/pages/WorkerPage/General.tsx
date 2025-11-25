@@ -41,36 +41,6 @@ import {
 } from '@lib/formatters/formatters';
 import { useParams } from 'react-router-dom';
 
-function WorkerTitle({
-  worker,
-  owner,
-  canEdit,
-}: {
-  worker: Pick<ApiWorker, 'id' | 'status' | 'peerId' | 'name'>;
-  owner: Pick<Account, 'id' | 'type'>;
-  canEdit: boolean;
-}) {
-  const theme = useTheme();
-
-  return (
-    <Stack spacing={0.5}>
-      <Stack direction="row" alignItems="center" spacing={0.5}>
-        <Typography variant="h4" sx={{ overflowWrap: 'anywhere' }}>
-          {worker.name || worker.peerId}
-        </Typography>
-        {canEdit ? <WorkerEdit worker={worker} owner={owner} disabled={!canEdit} /> : null}
-      </Stack>
-      <Typography
-        variant="body2"
-        component="span"
-        sx={{ overflowWrap: 'anywhere', color: theme.palette.text.secondary }}
-      >
-        <CopyToClipboard text={worker.peerId} content={<span>{worker.peerId}</span>} />
-      </Typography>
-    </Stack>
-  );
-}
-
 export function WorkerGeneral() {
   const { peerId } = useParams<{ peerId: string }>();
 
@@ -100,90 +70,48 @@ export function WorkerGeneral() {
 
   return (
     <>
-      <Card
-        title={
-          <Stack spacing={2} direction="row" alignItems="center">
-            <Avatar
-              variant="circular"
-              name={worker.name || worker.peerId}
-              colorDiscriminator={worker.peerId}
-              size={56}
-            />
-            <WorkerTitle worker={worker} owner={worker.owner} canEdit={canEdit} />
-          </Stack>
-        }
-        action={
-          <Stack direction="row" spacing={1}>
-            <WorkerDelegate
-              worker={worker}
-              variant="outlined"
-              sources={sources}
-              disabled={isLoading}
-            />
-            <WorkerUndelegate
-              worker={worker}
-              sources={delegations?.map(d => ({
-                id: d.owner.id,
-                type: d.owner.type,
-                balance: d.deposit,
-                locked: d.locked || false,
-                lockEnd: d.lockEnd,
-              }))}
-              disabled={isLoading}
-            />
-          </Stack>
-        }
-      >
-        <Stack spacing={2}>
-          <Divider />
-          <PropertyList>
-            <Property label="Status" value={<WorkerStatusChip worker={worker} />} />
-            <Property label="Created" value={dateFormat(worker.createdAt, 'dateTime')} />
-            <Property label="Version" value={<WorkerVersion worker={worker} />} />
-            <Property
-              label="Website"
-              value={
-                worker.website ? (
-                  <a href={urlFormatter(worker.website)} target="_blank" rel="noreferrer">
-                    {urlFormatter(worker.website)}
-                  </a>
-                ) : (
-                  '-'
-                )
-              }
-            />
-            <Property label="Description" value={worker.description || '-'} />
-          </PropertyList>
-          {isOwned(worker, address) && worker.status !== ApiWorkerStatus.Withdrawn ? (
-            <>
-              <Divider orientation="horizontal" flexItem />
-              <Box display="flex" justifyContent="flex-end">
-                {worker.status === WorkerStatus.Deregistered ||
-                worker.status === WorkerStatus.Deregistering ? (
-                  <WorkerWithdrawButton
-                    worker={worker}
-                    source={{
-                      ...worker.owner,
-                      locked: !!worker.locked,
-                      lockEnd: worker.lockEnd,
-                    }}
-                    disabled={worker.status !== WorkerStatus.Deregistered}
-                  />
-                ) : (
-                  <WorkerUnregisterButton
-                    worker={worker}
-                    source={worker.owner}
-                    disabled={worker.status !== WorkerStatus.Active}
-                  />
-                )}
-              </Box>
-            </>
-          ) : null}
-        </Stack>
-      </Card>
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card title="Bond">
+          <Card title={'Info'} sx={{ width: 1, height: 1 }}>
+            <PropertyList>
+              <Property label="Created" value={dateFormat(worker.createdAt, 'dateTime')} />
+              <Property
+                label="Website"
+                value={
+                  worker.website ? (
+                    <a href={urlFormatter(worker.website)} target="_blank" rel="noreferrer">
+                      {urlFormatter(worker.website)}
+                    </a>
+                  ) : (
+                    '-'
+                  )
+                }
+              />
+              <Property label="Description" value={worker.description || '-'} />
+            </PropertyList>
+          </Card>
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Card title="Health" sx={{ width: 1, height: 1 }}>
+            <PropertyList>
+              <Property
+                label="Uptime, 24h / 90d"
+                value={`${percentFormatter(worker.uptime24Hours)} / ${percentFormatter(worker.uptime90Days)}`}
+              />
+              <Property
+                label="Queries, 24h / 90d"
+                value={`${numberWithCommasFormatter(worker.queries24Hours)} / ${numberWithCommasFormatter(worker.queries90Days)}`}
+              />
+              <Property
+                label="Data served, 24h / 90d"
+                value={`${bytesFormatter(worker.servedData24Hours)} / ${bytesFormatter(worker.servedData90Days)}`}
+              />
+              <Property label="Data stored" value={bytesFormatter(worker.storedData)} />
+            </PropertyList>
+          </Card>
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Card title="Bond" sx={{ width: 1, height: 1 }}>
             <PropertyList>
               <Property label="Bonded" value={tokenFormatter(fromSqd(worker.bond), SQD_TOKEN)} />
               <Property
@@ -202,7 +130,7 @@ export function WorkerGeneral() {
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card title="Delegation">
+          <Card title="Delegation" sx={{ width: 1, height: 1 }}>
             <PropertyList>
               <Property
                 label="Delegation capacity"
@@ -216,26 +144,6 @@ export function WorkerGeneral() {
                 label="Total reward"
                 value={tokenFormatter(fromSqd(worker.totalDelegationRewards), SQD_TOKEN)}
               />
-            </PropertyList>
-          </Card>
-        </Grid>
-
-        <Grid size={{ xs: 12 }}>
-          <Card title="Health">
-            <PropertyList>
-              <Property
-                label="Uptime, 24h / 90d"
-                value={`${percentFormatter(worker.uptime24Hours)} / ${percentFormatter(worker.uptime90Days)}`}
-              />
-              <Property
-                label="Queries, 24h / 90d"
-                value={`${numberWithCommasFormatter(worker.queries24Hours)} / ${numberWithCommasFormatter(worker.queries90Days)}`}
-              />
-              <Property
-                label="Data served, 24h / 90d"
-                value={`${bytesFormatter(worker.servedData24Hours)} / ${bytesFormatter(worker.servedData90Days)}`}
-              />
-              <Property label="Data stored" value={bytesFormatter(worker.storedData)} />
             </PropertyList>
           </Card>
         </Grid>

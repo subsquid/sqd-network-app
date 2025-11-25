@@ -261,7 +261,7 @@ export function MyAssets() {
       <Grid container spacing={2} size={{ xs: 12, xl: 4.5 }}>
         <Grid size={{ xs: 12, sm: 7.5, xl: 12 }} sx={{ display: 'flex' }}>
           <Card sx={{ width: 1, height: 1 }} title="Total balance" loading={isLoading}>
-            <Box display="flex" flexDirection="column" gap={0.5}>
+            <Box display="flex" flexDirection="column" gap={0.5} mt="auto">
               <Typography variant="h2">
                 {tokenFormatter(fromSqd(totalBalance), SQD_TOKEN, 3)}
               </Typography>
@@ -285,7 +285,7 @@ export function MyAssets() {
               </Stack>
             }
           >
-            <Box display="flex" flexDirection="column" gap={0.5}>
+            <Box display="flex" flexDirection="column" gap={0.5} mt="auto">
               <Typography variant="h2">
                 {tokenFormatter(fromSqd(rewardsBalance), SQD_TOKEN, 3)}
               </Typography>
@@ -306,6 +306,7 @@ export function MyAssets() {
               justifyContent: 'space-between',
               alignItems: 'flex-end',
             }}
+            mt="auto"
           >
             <PropertyList>
               <TokenBalance balance={balances[0]} />
