@@ -18,6 +18,7 @@ import { CenteredPageWrapper, NetworkPageTitle } from '@layouts/NetworkLayout';
 import { useContracts } from '@network/useContracts';
 
 import { ReleaseButton } from './ReleaseButton';
+import BigNumber from 'bignumber.js';
 
 export const DescLabel = styled(Box, {
   name: 'DescLabel',
@@ -68,8 +69,8 @@ export function Vesting({ backPath }: { backPath: string }) {
       },
       {
         ...vestingContract,
-        functionName: 'releasable',
-        args: [SQD],
+        functionName: 'vestedAmount',
+        args: [SQD, BigInt(Math.floor(Date.now() / 1000))],
       },
       {
         ...vestingContract,
@@ -99,7 +100,7 @@ export function Vesting({ backPath }: { backPath: string }) {
             start: Number(unwrapMulticallResult(res[0])) * 1000,
             end: Number(unwrapMulticallResult(res[1])) * 1000,
             deposited: unwrapMulticallResult(res[2]),
-            releasable: unwrapMulticallResult(res[3]),
+            vestedAmount: unwrapMulticallResult(res[3]),
             released: unwrapMulticallResult(res[4]),
             balance: unwrapMulticallResult(res[5]),
             initialRelease: Number(unwrapMulticallResult(res[6]) || 0) / 100,
@@ -121,6 +122,13 @@ export function Vesting({ backPath }: { backPath: string }) {
   else if (!vesting || !address) {
     return <NotFound item="vesting" id={address} />;
   }
+
+  const vestedAmount = fromSqd(vestingInfo?.vestedAmount);
+  const released = fromSqd(vestingInfo?.released);
+  const balance = fromSqd(vestingInfo?.balance);
+
+  const totalVestedMinusReleased = vestedAmount.minus(released);
+  const releasableAmount = BigNumber.min(totalVestedMinusReleased, balance);
 
   return (
     <CenteredPageWrapper className="wide">
@@ -160,7 +168,10 @@ export function Vesting({ backPath }: { backPath: string }) {
               <Stack direction="row">
                 <DescLabel>Releasable</DescLabel>
                 <DescValue>
-                  {tokenFormatter(fromSqd(vestingInfo?.releasable), SQD_TOKEN, 8)}
+                  {tokenFormatter(releasableAmount, SQD_TOKEN, 8)}{' '}
+                  <Box display="inline" title="Including deposited">
+                    ({tokenFormatter(totalVestedMinusReleased, SQD_TOKEN, 3)})
+                  </Box>
                 </DescValue>
               </Stack>
               <Stack direction="row">
