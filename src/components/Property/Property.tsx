@@ -78,11 +78,11 @@ const PropertyListBase = styled(Box, {
 })<{ grouped?: boolean }>(({ theme, grouped }) => ({
   display: grouped ? 'contents' : 'grid',
   gridTemplateColumns: grouped ? undefined : `minmax(auto, ${theme.spacing(25)}) 1fr`,
-  gap: grouped ? undefined : theme.spacing(2),
+  columnGap: grouped ? undefined : theme.spacing(1),
   rowGap: grouped ? undefined : theme.spacing(2),
   [theme.breakpoints.down('sm')]: {
     gridTemplateColumns: grouped ? undefined : '1fr',
-    gap: grouped ? undefined : theme.spacing(1),
+    rowGap: grouped ? undefined : theme.spacing(0.5),
   },
 }));
 
@@ -118,8 +118,11 @@ export const PropertyLabel = styled(Box, {
 
 export const PropertyValue = styled(Box, {
   name: 'PropertyValue',
-})(() => ({
+})(({ theme }) => ({
   overflowWrap: 'anywhere',
+  [theme.breakpoints.down('sm')]: {
+    marginBottom: theme.spacing(1),
+  },
 }));
 
 // Component for a single property (label-value pair)
