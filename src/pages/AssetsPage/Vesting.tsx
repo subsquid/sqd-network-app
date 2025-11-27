@@ -1,7 +1,7 @@
 import { dateFormat } from '@i18n';
 import { addressFormatter, percentFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, unwrapMulticallResult } from '@lib/network/utils';
-import { Divider, Stack, Typography, useTheme } from '@mui/material';
+import { Box, Divider, Stack, Typography, useTheme } from '@mui/material';
 import { keepPreviousData } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { useReadContracts } from 'wagmi';
@@ -18,6 +18,7 @@ import { CenteredPageWrapper, PageTitle } from '@layouts/NetworkLayout';
 import { useContracts } from '@network/useContracts';
 
 import { ReleaseButton } from './ReleaseButton';
+import BigNumber from 'bignumber.js';
 
 function VestingTitle({ address }: { address: `0x${string}` }) {
   const theme = useTheme();
@@ -60,8 +61,8 @@ export function Vesting({ backPath }: { backPath: string }) {
       },
       {
         ...vestingContract,
-        functionName: 'releasable',
-        args: [SQD],
+        functionName: 'vestedAmount',
+        args: [SQD, BigInt(Math.floor(Date.now() / 1000))],
       },
       {
         ...vestingContract,
@@ -91,7 +92,7 @@ export function Vesting({ backPath }: { backPath: string }) {
             start: Number(unwrapMulticallResult(res[0])) * 1000,
             end: Number(unwrapMulticallResult(res[1])) * 1000,
             deposited: unwrapMulticallResult(res[2]),
-            releasable: unwrapMulticallResult(res[3]),
+            vestedAmount: unwrapMulticallResult(res[3]),
             released: unwrapMulticallResult(res[4]),
             balance: unwrapMulticallResult(res[5]),
             initialRelease: Number(unwrapMulticallResult(res[6]) || 0) / 100,
@@ -112,18 +113,20 @@ export function Vesting({ backPath }: { backPath: string }) {
     return <NotFound item="vesting" id={address} />;
   }
 
+  const vestedAmount = fromSqd(vestingInfo?.vestedAmount);
+  const released = fromSqd(vestingInfo?.released);
+  const balance = fromSqd(vestingInfo?.balance);
+
+  const totalVestedMinusReleased = vestedAmount.minus(released);
+  const releasableAmount = BigNumber.min(totalVestedMinusReleased, balance);
+
   return (
     <CenteredPageWrapper>
       <PageTitle title="Vesting" />
       <Card
         title={
           <Stack spacing={2} direction="row" alignItems="center">
-            <Avatar
-              variant="circular"
-              name={address}
-              colorDiscriminator={address}
-              size={56}
-            />
+            <Avatar variant="circular" name={address} colorDiscriminator={address} size={56} />
             <VestingTitle address={address} />
           </Stack>
         }
@@ -138,23 +141,36 @@ export function Vesting({ backPath }: { backPath: string }) {
         <Stack spacing={2}>
           <Divider orientation="horizontal" flexItem />
           <PropertyList>
-            <Property label="Balance" value={tokenFormatter(fromSqd(vestingInfo?.balance), SQD_TOKEN, 8)} />
-            <Property label="Deposited" value={tokenFormatter(fromSqd(vestingInfo?.deposited), SQD_TOKEN, 8)} />
-            <Property label="Releasable" value={tokenFormatter(fromSqd(vestingInfo?.releasable), SQD_TOKEN, 8)} />
-            <Property label="Released" value={tokenFormatter(fromSqd(vestingInfo?.released), SQD_TOKEN, 8)} />
+            <Property label="Balance" value={tokenFormatter(balance, SQD_TOKEN, 8)} />
+            <Property
+              label="Deposited"
+              value={tokenFormatter(fromSqd(vestingInfo?.deposited), SQD_TOKEN, 8)}
+            />
+            <Property
+              label="Releasable"
+              value={
+                <>
+                  {tokenFormatter(releasableAmount, SQD_TOKEN, 8)}{' '}
+                  <Box display="inline" title="Including deposited">
+                    ({tokenFormatter(totalVestedMinusReleased, SQD_TOKEN, 3)})
+                  </Box>
+                </>
+              }
+            />
+            <Property label="Released" value={tokenFormatter(released, SQD_TOKEN, 8)} />
           </PropertyList>
           <Divider orientation="horizontal" flexItem />
           <PropertyList>
-            <Property 
-              label="Start" 
-              value={vestingInfo?.start ? dateFormat(vestingInfo?.start, 'dateTime') : '-'} 
+            <Property
+              label="Start"
+              value={vestingInfo?.start ? dateFormat(vestingInfo?.start, 'dateTime') : '-'}
             />
-            <Property 
-              label="End" 
-              value={vestingInfo?.end ? dateFormat(vestingInfo?.end, 'dateTime') : '-'} 
+            <Property
+              label="End"
+              value={vestingInfo?.end ? dateFormat(vestingInfo?.end, 'dateTime') : '-'}
             />
-            <Property 
-              label="Initial release" 
+            <Property
+              label="Initial release"
               value={`${tokenFormatter(
                 fromSqd(vestingInfo?.expectedTotal)
                   .times(vestingInfo?.initialRelease ?? 0)
