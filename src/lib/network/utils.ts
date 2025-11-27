@@ -31,3 +31,12 @@ export function unwrapMulticallResult<T>(result?: MulticallResponse<T>): T | und
 export function getBlockTime(blocksCount: number | bigint) {
   return Number(blocksCount) * 12_000;
 }
+
+export function isOwned(
+  something: { owner: { id: string; owner?: { id: string } } },
+  address: string | undefined,
+) {
+  return (
+    address != null && (something.owner.id === address || something.owner.owner?.id === address)
+  );
+}

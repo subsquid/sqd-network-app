@@ -17,7 +17,15 @@ import { Form, FormikTextInput, FormRow } from '@components/Form';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { useAccount } from '@network/useAccount';
 import { useContracts } from '@network/useContracts';
-import { editWorkerSchema } from '@pages/WorkersPage/worker-schema';
+
+import * as yup from '@schema';
+
+export const editWorkerSchema = yup.object({
+  name: yup.string().label('Name').max(255).trim().required('Worker name is required'),
+  description: yup.string().label('Description').max(2000).trim(),
+  email: yup.string().label('Email address').trim(),
+  website: yup.string().label('Website').trim(),
+});
 
 export function WorkerEdit({
   sx,

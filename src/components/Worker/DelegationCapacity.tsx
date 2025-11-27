@@ -2,7 +2,24 @@ import { percentFormatter } from '@lib/formatters/formatters';
 import { Box, styled } from '@mui/material';
 import classNames from 'classnames';
 
-import { StyledBar } from './StatusBar';
+export const StyledBar = styled(Box)(({ theme }) => ({
+  width: theme.spacing(0.75),
+  height: theme.spacing(3),
+  borderRadius: 360,
+  background: theme.palette.background.paper,
+
+  '&.error': {
+    background: theme.palette.error.main,
+  },
+
+  '&.warning': {
+    background: theme.palette.warning.main,
+  },
+
+  '&.success': {
+    background: theme.palette.success.main,
+  },
+}));
 
 export const BarWrapper = styled(Box)(({ theme }) => ({
   display: 'inline-flex',

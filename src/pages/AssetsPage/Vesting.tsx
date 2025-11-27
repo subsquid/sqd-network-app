@@ -1,51 +1,43 @@
 import { dateFormat } from '@i18n';
 import { addressFormatter, percentFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, unwrapMulticallResult } from '@lib/network/utils';
-import { Divider, Stack, styled } from '@mui/material';
-import { Box } from '@mui/system';
+import { Box, Divider, Stack, Typography, useTheme } from '@mui/material';
 import { keepPreviousData } from '@tanstack/react-query';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useReadContracts } from 'wagmi';
 
 import { sqdAbi, vestingAbi } from '@api/contracts';
 import { useVestingByAddress } from '@api/subsquid-network-squid';
+import { Avatar } from '@components/Avatar';
 import { Card } from '@components/Card';
-import { SquaredChip } from '@components/Chip';
 import { CopyToClipboard } from '@components/CopyToClipboard';
 import { Loader } from '@components/Loader';
 import { NotFound } from '@components/NotFound';
-import { CenteredPageWrapper, NetworkPageTitle } from '@layouts/NetworkLayout';
+import { Property, PropertyList } from '@components/Property';
+import { CenteredPageWrapper, PageTitle } from '@layouts/NetworkLayout';
 import { useContracts } from '@network/useContracts';
 
 import { ReleaseButton } from './ReleaseButton';
 import BigNumber from 'bignumber.js';
 
-export const DescLabel = styled(Box, {
-  name: 'DescLabel',
-})(({ theme }) => ({
-  flex: 0.5,
-  color: theme.palette.text.secondary,
-  whiteSpace: 'balance',
-  maxWidth: theme.spacing(25),
-}));
+function VestingTitle({ address }: { address: `0x${string}` }) {
+  const theme = useTheme();
 
-export const DescValue = styled(Box, {
-  name: 'DescValue',
-})(({ theme }) => ({
-  flex: 1,
-  marginLeft: theme.spacing(2),
-  overflowWrap: 'anywhere',
-}));
-
-export const VestingAddress = styled(Box, {
-  name: 'VestingAddress',
-})(({}) => ({
-  overflowWrap: 'anywhere',
-}));
-
-export const Title = styled(SquaredChip)(({ theme }) => ({
-  marginBottom: theme.spacing(3),
-}));
+  return (
+    <Stack spacing={0.5}>
+      <Typography variant="h4" sx={{ overflowWrap: 'anywhere' }}>
+        Vesting
+      </Typography>
+      <Typography
+        variant="body2"
+        component="span"
+        sx={{ overflowWrap: 'anywhere', color: theme.palette.text.secondary }}
+      >
+        <CopyToClipboard text={address} content={addressFormatter(address)} />
+      </Typography>
+    </Stack>
+  );
+}
 
 export function Vesting({ backPath }: { backPath: string }) {
   const { SQD_TOKEN, SQD } = useContracts();
@@ -114,8 +106,6 @@ export function Vesting({ backPath }: { backPath: string }) {
   });
   const { data: vesting, isPending: isVestingLoading } = useVestingByAddress({ address });
 
-  const [searchParams] = useSearchParams();
-
   const isLoading = isVestingLoading || isVestingInfoLoading;
 
   if (isLoading) return <Loader />;
@@ -131,84 +121,65 @@ export function Vesting({ backPath }: { backPath: string }) {
   const releasableAmount = BigNumber.min(totalVestedMinusReleased, balance);
 
   return (
-    <CenteredPageWrapper className="wide">
-      <NetworkPageTitle
-        backPath={searchParams.get('backPath') || backPath}
-        endAdornment={
+    <CenteredPageWrapper>
+      <PageTitle title="Vesting" />
+      <Card
+        title={
+          <Stack spacing={2} direction="row" alignItems="center">
+            <Avatar variant="circular" name={address} colorDiscriminator={address} size={56} />
+            <VestingTitle address={address} />
+          </Stack>
+        }
+        action={
           vesting?.isOwn() ? (
-            <Stack>
+            <Stack direction="row" spacing={1}>
               <ReleaseButton vesting={vesting} />
             </Stack>
           ) : null
         }
-      />
-      <Card variant="outlined">
-        <Stack spacing={3} divider={<Divider orientation="horizontal" flexItem />}>
-          <Box>
-            <Title label="Info" />
-            <Stack spacing={2} direction="column">
-              <Stack direction="row">
-                <DescLabel>Contract</DescLabel>
-                <DescValue>
-                  <VestingAddress>
-                    <CopyToClipboard text={address} content={addressFormatter(address)} />
-                  </VestingAddress>
-                </DescValue>
-              </Stack>
-              <Stack direction="row">
-                <DescLabel>Balance</DescLabel>
-                <DescValue>{tokenFormatter(fromSqd(vestingInfo?.balance), SQD_TOKEN, 8)}</DescValue>
-              </Stack>
-              <Stack direction="row">
-                <DescLabel>Deposited</DescLabel>
-                <DescValue>
-                  {tokenFormatter(fromSqd(vestingInfo?.deposited), SQD_TOKEN, 8)}
-                </DescValue>
-              </Stack>
-              <Stack direction="row">
-                <DescLabel>Releasable</DescLabel>
-                <DescValue>
+      >
+        <Stack spacing={2}>
+          <Divider orientation="horizontal" flexItem />
+          <PropertyList>
+            <Property label="Balance" value={tokenFormatter(balance, SQD_TOKEN, 8)} />
+            <Property
+              label="Deposited"
+              value={tokenFormatter(fromSqd(vestingInfo?.deposited), SQD_TOKEN, 8)}
+            />
+            <Property
+              label="Releasable"
+              value={
+                <>
                   {tokenFormatter(releasableAmount, SQD_TOKEN, 8)}{' '}
                   <Box display="inline" title="Including deposited">
                     ({tokenFormatter(totalVestedMinusReleased, SQD_TOKEN, 3)})
                   </Box>
-                </DescValue>
-              </Stack>
-              <Stack direction="row">
-                <DescLabel>Released</DescLabel>
-                <DescValue>
-                  {tokenFormatter(fromSqd(vestingInfo?.released), SQD_TOKEN, 8)}
-                </DescValue>
-              </Stack>
-            </Stack>
-          </Box>
-          <Box>
-            <Title label="Lock Period" />
-            <Stack spacing={2} direction="column">
-              <Stack direction="row">
-                <DescLabel>Start</DescLabel>
-                <DescValue>
-                  {vestingInfo?.start ? dateFormat(vestingInfo?.start, 'dateTime') : '-'}
-                </DescValue>
-              </Stack>
-              <Stack direction="row">
-                <DescLabel>End</DescLabel>
-                <DescValue>
-                  {vestingInfo?.end ? dateFormat(vestingInfo?.end, 'dateTime') : '-'}
-                </DescValue>
-              </Stack>
-              <Stack direction="row">
-                <DescLabel>Initial release</DescLabel>
-                <DescValue>{`${tokenFormatter(
-                  fromSqd(vestingInfo?.expectedTotal)
-                    .times(vestingInfo?.initialRelease ?? 0)
-                    .div(100),
-                  SQD_TOKEN,
-                  8,
-                )} (${percentFormatter(vestingInfo?.initialRelease)})`}</DescValue>
-              </Stack>
-            </Stack>
-          </Box>
+                </>
+              }
+            />
+            <Property label="Released" value={tokenFormatter(released, SQD_TOKEN, 8)} />
+          </PropertyList>
+          <Divider orientation="horizontal" flexItem />
+          <PropertyList>
+            <Property
+              label="Start"
+              value={vestingInfo?.start ? dateFormat(vestingInfo?.start, 'dateTime') : '-'}
+            />
+            <Property
+              label="End"
+              value={vestingInfo?.end ? dateFormat(vestingInfo?.end, 'dateTime') : '-'}
+            />
+            <Property
+              label="Initial release"
+              value={`${tokenFormatter(
+                fromSqd(vestingInfo?.expectedTotal)
+                  .times(vestingInfo?.initialRelease ?? 0)
+                  .div(100),
+                SQD_TOKEN,
+                8,
+              )} (${percentFormatter(vestingInfo?.initialRelease)})`}
+            />
+          </PropertyList>
         </Stack>
       </Card>
     </CenteredPageWrapper>

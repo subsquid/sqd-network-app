@@ -52,7 +52,7 @@ function OnlineInfo() {
         )
       }
     >
-      <Box display="flex" alignItems="baseline">
+      <Box display="flex" alignItems="baseline" mt="auto">
         <Typography variant="h1">{data?.onlineWorkersCount || 0}</Typography>
         <Typography variant="h2" color="text.disabled">
           /{data?.workersCount || 0}
@@ -97,7 +97,7 @@ function CurrentEpoch() {
       title="Current epoch"
       action={!isLoading && <CurrentEpochEstimation epochEnd={epochEnd} />}
     >
-      <Box display="flex">
+      <Box display="flex" mt="auto">
         <Typography variant="h1">{data?.epoch?.number || 0}</Typography>
       </Box>
     </Card>
@@ -110,7 +110,7 @@ function Stats() {
 
   return (
     <Card sx={{ height: 1 }} loading={isLoading} title="Other Data">
-      <Box height={1} display="flex" alignItems="flex-end">
+      <Box display="flex" mt="auto">
         <Stack divider={<Divider />} spacing={1} flex={1}>
           <Box>
             <ColumnLabel>Total locked value</ColumnLabel>
@@ -174,7 +174,7 @@ function WorkersApr({ length }: { length?: number }) {
         )
       }
     >
-      <Box display="flex">
+      <Box display="flex" mt="auto">
         <Typography variant="h1">{percentFormatter(aprs)}</Typography>
       </Box>
     </Card>
@@ -213,7 +213,7 @@ function DelegatorsApr({ length }: { length?: number }) {
         )
       }
     >
-      <Box display="flex">
+      <Box display="flex" mt="auto">
         <Typography variant="h1">{percentFormatter(aprs)}</Typography>
       </Box>
     </Card>
@@ -226,7 +226,7 @@ export function NetworkSummary() {
   const size = { minHeight: 128, height: { xs: 'auto', md: 0.5 } };
 
   return (
-    <Box minHeight={360} mb={2} display="flex">
+    <Box minHeight={360} display="flex">
       <Grid container spacing={2} flex={1}>
         {/* FIXME: some wtf hack with mb */}
         <Grid container size={{ xs: 12, sm: 12, md: 8 }} mb={{ xs: 0, md: 2 }}>

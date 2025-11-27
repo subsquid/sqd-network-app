@@ -6,4 +6,3 @@ export {
   PropertyValue,
 } from './Property';
 export type { PropertyProps } from './Property';
-

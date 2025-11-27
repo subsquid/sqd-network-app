@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import { calculateDelegationCapacity } from '@lib/network';
-import { getWorkerStatus } from '@pages/WorkersPage/WorkerStatus';
+import { getWorkerStatus } from '@components/Worker';
 import BigNumber from 'bignumber.js';
 import { compare as compareSemver } from 'semver';
 import { PartialDeep, SimplifyDeep } from 'type-fest';

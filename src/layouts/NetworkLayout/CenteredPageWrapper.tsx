@@ -2,15 +2,11 @@ import { styled } from '@mui/material';
 
 export const CenteredPageWrapper = styled('div', {
   name: 'CenteredPageWrapper',
-})(({ theme: { breakpoints } }) => ({
-  maxWidth: 1336,
+})(({ theme: { breakpoints, spacing } }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: spacing(2),
+  width: '100%',
+  maxWidth: '1336px',
   margin: '0 auto',
-
-  // '&.wide': {
-  //   maxWidth: 1200,
-
-  //   [breakpoints.down('lg')]: {
-  //     maxWidth: 800,
-  //   },
-  // },
 }));

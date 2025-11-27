@@ -16,7 +16,6 @@ import { ReleaseButton } from './ReleaseButton';
 import { useMemo } from 'react';
 import { CopyToClipboard } from '@components/CopyToClipboard';
 import { Link } from 'react-router-dom';
-import { SectionHeader } from '@components/SectionHeader';
 import { useVestingsByAccountQuery } from '@api/subsquid-network-squid';
 import BigNumber from 'bignumber.js';
 
@@ -88,8 +87,7 @@ export function MyVestings() {
 
   return (
     <>
-      <SectionHeader title="My Vestings" sx={{ mb: 2 }} />
-      <DashboardTable loading={isLoading || isVestingsLoading} sx={{ mb: 2 }}>
+      <DashboardTable loading={isLoading || isVestingsLoading}>
         <TableHead>
           <TableRow>
             <TableCell>Contract</TableCell>
@@ -105,7 +103,6 @@ export function MyVestings() {
               const vestedAmount = fromSqd(vesting?.vestedAmount);
               const released = fromSqd(vesting?.released);
               const balance = fromSqd(vesting?.balance);
-              
               const totalVestedMinusReleased = vestedAmount.minus(released);
               const releasableAmount = BigNumber.min(totalVestedMinusReleased, balance);
 
@@ -143,7 +140,7 @@ export function MyVestings() {
                   </TableCell>
                   <TableCell>
                     <Box display="flex" justifyContent="flex-end">
-                      <ReleaseButton vesting={vesting} disabled={releasableAmount.isZero()}/>
+                      <ReleaseButton vesting={vesting} disabled={releasableAmount.isZero()} />
                     </Box>
                   </TableCell>
                 </TableRow>

@@ -1,10 +1,9 @@
-import { useState } from 'react';
 import { dateFormat } from '@i18n';
 import { percentFormatter } from '@lib/formatters/formatters';
 import { ArrowBackIosNew, ArrowForwardIos, FilterList } from '@mui/icons-material';
 import {
+  Collapse,
   IconButton,
-  styled,
   TableBody,
   TableCell,
   TableHead,
@@ -12,20 +11,22 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
-  Collapse,
 } from '@mui/material';
 import { Box } from '@mui/system';
+import { useState } from 'react';
 
 import { SortDir, useMySources, useWorkers, WorkerSortBy } from '@api/subsquid-network-squid';
 import { Search } from '@components/Search/Search';
-import { DashboardTable, SortableHeaderCell, NoItems } from '@components/Table';
-import { Location, useLocationState } from '@hooks/useLocationState';
-import { DelegationCapacity } from '@pages/WorkersPage/DelegationCapacity';
-import { WorkerDelegate } from '@pages/WorkersPage/WorkerDelegate';
-import { WorkerName } from '@pages/WorkersPage/WorkerName';
-import { WorkerStatusChip } from '@pages/WorkersPage/WorkerStatus';
-import { WorkerVersion } from '@pages/WorkersPage/WorkerVersion';
 import { SectionHeader } from '@components/SectionHeader';
+import { DashboardTable, NoItems, SortableHeaderCell } from '@components/Table';
+import {
+  DelegationCapacity,
+  WorkerDelegate,
+  WorkerName,
+  WorkerStatusChip,
+  WorkerVersion,
+} from '@components/Worker';
+import { Location, useLocationState } from '@hooks/useLocationState';
 import { WorkersFilters } from './WorkersFilters';
 
 function TableNavigation({
@@ -42,7 +43,7 @@ function TableNavigation({
 
   return (
     <Box
-      sx={{ textAlign: 'right', mt: 1 }}
+      sx={{ textAlign: 'right' }}
       display="flex"
       alignItems="center"
       flex={1}
@@ -123,7 +124,7 @@ export function Workers() {
 
   return (
     <>
-      <Box mb={2}>
+      <Box>
         <SectionHeader
           title={
             <Search
@@ -164,7 +165,7 @@ export function Workers() {
           />
         </Collapse>
       </Box>
-      <DashboardTable loading={isLoading} sx={{ mb: 2 }} minHeight={PER_PAGE * 73}>
+      <DashboardTable loading={isLoading} minHeight={PER_PAGE * 73}>
         <TableHead>
           <TableRow>
             <SortableHeaderCell sort={WorkerSortBy.Name} query={query} setQuery={setQuery}>

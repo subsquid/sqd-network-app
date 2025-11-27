@@ -29,7 +29,7 @@ export function OtcContracts() {
 
   return (
     <Box>
-      <SectionHeader title="Buyback" sx={{ mb: 2 }}/>
+      <SectionHeader title="Buyback" sx={{ mb: 2 }} />
       <DashboardTable loading={isLoading} sx={{ mb: 2 }}>
         <TableHead>
           <TableRow>
@@ -62,7 +62,7 @@ export function OtcContracts() {
 
 export function BuyBacksPage() {
   return (
-    <CenteredPageWrapper className="wide">
+    <CenteredPageWrapper>
       <ConnectedWalletRequired>
         <Alert sx={{ mb: 2 }} color="warning" icon={<Warning color="warning" />}>
           <Typography>

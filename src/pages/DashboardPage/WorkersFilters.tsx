@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import { useDebouncedCallback } from 'use-debounce';
 
-import { WorkerStatusChip, WorkerStatusLabel } from '@pages/WorkersPage/WorkerStatus';
+import { WorkerStatusChip, WorkerStatusLabel } from '@components/Worker';
 
 const STATUS_OPTIONS: WorkerStatusLabel[] = [
   'online',

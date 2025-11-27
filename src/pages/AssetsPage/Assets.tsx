@@ -257,79 +257,78 @@ export function MyAssets() {
   const isLoading = isSourcesLoading || isPriceLoading;
 
   return (
-    <Box display="flex" flexDirection="column" gap={2} mb={2}>
-      <Grid container spacing={2}>
-        <Grid container spacing={2} size={{ xs: 12, xl: 4.5 }}>
-          <Grid size={{ xs: 12, sm: 7.5, xl: 12 }} sx={{ display: 'flex' }}>
-            <Card sx={{ width: 1, height: 1 }} title="Total balance" loading={isLoading}>
-              <Box display="flex" flexDirection="column" gap={0.5}>
-                <Typography variant="h2">
-                  {tokenFormatter(fromSqd(totalBalance), SQD_TOKEN, 3)}
-                </Typography>
-                <Typography variant="h4" color="text.disabled">
-                  ~{tokenFormatter(fromSqd(totalBalance).multipliedBy(price || 0), 'USD', 2)}
-                </Typography>
-              </Box>
-            </Card>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 4.5, xl: 12 }} sx={{ display: 'flex' }}>
-            <Card
-              sx={{ width: 1, height: 1 }}
-              title="Rewards"
-              loading={isLoading}
-              action={
-                <Stack direction="row" spacing={1}>
-                  <ClaimButton
-                    disabled={isLoading || !hasAvailableClaims}
-                    sources={claimableSources}
-                  />
-                </Stack>
-              }
-            >
-              <Box display="flex" flexDirection="column" gap={0.5}>
-                <Typography variant="h2">
-                  {tokenFormatter(fromSqd(rewardsBalance), SQD_TOKEN, 3)}
-                </Typography>
-                <Typography variant="h4" color="text.disabled">
-                  ~{tokenFormatter(fromSqd(rewardsBalance).multipliedBy(price || 0), 'USD', 2)}
-                </Typography>
-              </Box>
-            </Card>
-          </Grid>
+    <Grid container spacing={2}>
+      <Grid container spacing={2} size={{ xs: 12, xl: 4.5 }}>
+        <Grid size={{ xs: 12, sm: 7.5, xl: 12 }} sx={{ display: 'flex' }}>
+          <Card sx={{ width: 1, height: 1 }} title="Total balance" loading={isLoading}>
+            <Box display="flex" flexDirection="column" gap={0.5} mt="auto">
+              <Typography variant="h2">
+                {tokenFormatter(fromSqd(totalBalance), SQD_TOKEN, 3)}
+              </Typography>
+              <Typography variant="h4" color="text.disabled">
+                ~{tokenFormatter(fromSqd(totalBalance).multipliedBy(price || 0), 'USD', 2)}
+              </Typography>
+            </Box>
+          </Card>
         </Grid>
-        <Grid size={{ xs: 12, xl: 7.5 }} sx={{ display: 'flex' }}>
-          <Card sx={{ width: 1, height: 1 }} title="Breakdown" loading={isLoading}>
-            <Box
-              sx={{
-                display: 'flex',
-                gap: 2,
-                flex: 1,
-                justifyContent: 'space-between',
-                alignItems: 'flex-end',
-              }}
-            >
-              <PropertyList>
-                <TokenBalance balance={balances[0]} />
-                <TokenBalance balance={balances[1]} />
-                <TokenBalance balance={balances[3]} />
-                <TokenBalance balance={balances[4]} />
-                {demoFeaturesEnabled() && <TokenBalance balance={balances[5]} />}
-              </PropertyList>
-              {/* Only render PieChart on md screens and up (1000px+) */}
-              <Box
-                sx={theme => ({
-                  display: 'none',
-                  [theme.breakpoints.up('sm')]: {
-                    display: 'block',
-                  },
-                })}
-              >
-                <PieChart balances={balances} />
-              </Box>
+        <Grid size={{ xs: 12, sm: 4.5, xl: 12 }} sx={{ display: 'flex' }}>
+          <Card
+            sx={{ width: 1, height: 1 }}
+            title="Rewards"
+            loading={isLoading}
+            action={
+              <Stack direction="row" spacing={1}>
+                <ClaimButton
+                  disabled={isLoading || !hasAvailableClaims}
+                  sources={claimableSources}
+                />
+              </Stack>
+            }
+          >
+            <Box display="flex" flexDirection="column" gap={0.5} mt="auto">
+              <Typography variant="h2">
+                {tokenFormatter(fromSqd(rewardsBalance), SQD_TOKEN, 3)}
+              </Typography>
+              <Typography variant="h4" color="text.disabled">
+                ~{tokenFormatter(fromSqd(rewardsBalance).multipliedBy(price || 0), 'USD', 2)}
+              </Typography>
             </Box>
           </Card>
         </Grid>
       </Grid>
-    </Box>
+      <Grid size={{ xs: 12, xl: 7.5 }} sx={{ display: 'flex' }}>
+        <Card sx={{ width: 1, height: 1 }} title="Breakdown" loading={isLoading}>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 2,
+              flex: 1,
+              justifyContent: 'space-between',
+              alignItems: 'flex-end',
+            }}
+            mt="auto"
+          >
+            <PropertyList>
+              <TokenBalance balance={balances[0]} />
+              <TokenBalance balance={balances[1]} />
+              <TokenBalance balance={balances[3]} />
+              <TokenBalance balance={balances[4]} />
+              {demoFeaturesEnabled() && <TokenBalance balance={balances[5]} />}
+            </PropertyList>
+            {/* Only render PieChart on md screens and up (1000px+) */}
+            <Box
+              sx={theme => ({
+                display: 'none',
+                [theme.breakpoints.up('sm')]: {
+                  display: 'block',
+                },
+              })}
+            >
+              <PieChart balances={balances} />
+            </Box>
+          </Box>
+        </Card>
+      </Grid>
+    </Grid>
   );
 }

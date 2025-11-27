@@ -2,6 +2,8 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { NetworkLayout } from '@layouts/NetworkLayout';
 import { AssetsPage } from '@pages/AssetsPage/AssetsPage.tsx';
+import { MyVestings } from '@pages/AssetsPage/Vestings.tsx';
+import { MyTemporaryHoldings } from '@pages/AssetsPage/TemporaryHoldings.tsx';
 import { Vesting } from '@pages/AssetsPage/Vesting.tsx';
 import { BuyBacksPage } from '@pages/BuyBackPage/BuyBackPage.tsx';
 import { DashboardPage } from '@pages/DashboardPage/DashboardPage.tsx';
@@ -10,10 +12,12 @@ import { Analytics } from '@pages/DashboardPage/Analytics.tsx';
 import { DelegationsPage } from '@pages/DelegationsPage/DelegationsPage.tsx';
 import { Gateway } from '@pages/GatewaysPage/Gateway.tsx';
 import { GatewaysPage } from '@pages/GatewaysPage/GatewaysPage.tsx';
-import { Worker } from '@pages/WorkersPage/Worker.tsx';
+import { Worker } from '@pages/WorkerPage/Worker.tsx';
 import { WorkersPage } from '@pages/WorkersPage/WorkersPage.tsx';
 
 import { hideLoader } from './index.tsx';
+import { WorkerGeneral } from '@pages/WorkerPage/General.tsx';
+import { WorkerAnalytics } from '@pages/WorkerPage/Analytics.tsx';
 
 export const AppRoutes = () => {
   hideLoader(0);
@@ -28,8 +32,10 @@ export const AppRoutes = () => {
           <Route path="analytics" element={<Analytics />} />
         </Route>
 
-        <Route path="/assets">
-          <Route element={<AssetsPage />} index />
+        <Route path="/assets" element={<AssetsPage />}>
+          <Route index element={<Navigate to="vestings" replace={true} />} />
+          <Route path="vestings" element={<MyVestings />} />
+          <Route path="temporary-holdings" element={<MyTemporaryHoldings />} />
         </Route>
 
         <Route path="vesting/:address">
@@ -41,8 +47,10 @@ export const AppRoutes = () => {
           {/* <Route element={<AddNewWorker />} path="add" /> */}
         </Route>
 
-        <Route path="worker">
-          <Route element={<Worker backPath="/dashboard" />} path=":peerId" />
+        <Route path="worker/:peerId" element={<Worker backPath="/dashboard" />}>
+          <Route index element={<Navigate to="general" replace={true} />} />
+          <Route element={<WorkerGeneral />} path="general" />
+          <Route element={<WorkerAnalytics />} path="analytics" />
         </Route>
         <Route path="/delegations">
           <Route element={<DelegationsPage />} index />

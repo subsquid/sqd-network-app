@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { fromSqd, peerIdToHex } from '@lib/network/utils';
 import { Add } from '@mui/icons-material';
@@ -28,7 +28,31 @@ import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { useContracts } from '@network/useContracts';
 import { useWorkersChatUrl } from '@network/useWorkersChat';
 
-import { addWorkerSchema } from './worker-schema';
+import * as yup from '@schema';
+
+export const addWorkerSchema = yup.object({
+  name: yup.string().label('Name').max(255).trim().required('Worker name is required'),
+  description: yup.string().label('Description').max(2000).trim(),
+  email: yup.string().label('Email address').trim(),
+  website: yup.string().label('Website').trim(),
+  peerId: yup
+    .string()
+    .matches(/^[a-z1-9]+$/i, 'Peer ID must contains only base 58 symbols')
+    .max(52)
+    .min(52)
+    .label('Peer ID')
+    .trim()
+    .required('Peer ID is required'),
+  source: yup.string().label('Source address').trim().required('Source address is required'),
+  amount: yup
+    .decimal()
+    .label('Amount')
+    .required()
+    .positive()
+    .max(yup.ref('max'), 'Insufficient balance')
+    .typeError('${path} is invalid'),
+  max: yup.string().label('Max').required().typeError('${path} is invalid'),
+});
 
 export function AddWorkerButton({
   sx,

@@ -236,3 +236,10 @@ export function parseTimeRange(start?: string, end?: string): { from: Date; to: 
     to: end ? parseDateMathEnd(end) : new Date(),
   };
 }
+
+/**
+ * Helper to convert local date to UTC by removing timezone offset
+ */
+export function toUTCDate(date: Date): Date {
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000);
+}
