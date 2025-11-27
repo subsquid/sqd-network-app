@@ -152,7 +152,7 @@ export function useLocationState<
         return v !== initialState[k];
       });
       location.search = '?' + qs.stringify(clearState, { arrayFormat: 'repeat' });
-      navigate(location);
+      navigate(location, { replace: true });
     };
 
     return t;
