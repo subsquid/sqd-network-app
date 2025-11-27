@@ -4,6 +4,7 @@ import { ArrowBackIosNew, ArrowForwardIos, FilterList } from '@mui/icons-materia
 import {
   Collapse,
   IconButton,
+  Pagination,
   TableBody,
   TableCell,
   TableHead,
@@ -240,9 +241,15 @@ export function Workers() {
           )}
         </TableBody>
       </DashboardTable>
-      {!isWorkersLoading && (
-        <TableNavigation page={page} totalPages={totalPages} setPage={setQuery.page} />
-      )}
+      <Box display="flex" justifyContent="flex-end">
+        {!isWorkersLoading && (
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={(_, value) => setQuery.page(value)}
+          />
+        )}
+      </Box>
     </>
   );
 }
