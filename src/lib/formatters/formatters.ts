@@ -60,6 +60,8 @@ const tokenFormatOptions = {
   groupSize: 3,
 };
 
+
+
 export function tokenFormatter(val: number | BigNumber, currency: string, decimals = 3) {
   const bn = BigNumber(val);
   const rounded = bn.decimalPlaces(decimals, BigNumber.ROUND_FLOOR);
@@ -70,6 +72,15 @@ export function tokenFormatter(val: number | BigNumber, currency: string, decima
       : rounded.toFormat(tokenFormatOptions);
 
   return res + ` ${currency}`;
+}
+
+const toDollar = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+});
+
+export function dollarFormatter(val: number | BigNumber) {
+  return toDollar.format(Number(val));
 }
 
 export const toCompact = new Intl.NumberFormat('en-US', {

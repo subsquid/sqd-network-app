@@ -7,6 +7,8 @@ import {
   Drawer,
   useMediaQuery,
   useTheme,
+  Typography,
+  Box,
 } from '@mui/material';
 import classnames from 'classnames';
 import { Outlet } from 'react-router-dom';
@@ -20,6 +22,9 @@ import { getChain, getSubsquidNetwork } from '@network/useSubsquidNetwork';
 
 import { NetworkMenu } from './NetworkMenu';
 import { UserMenu } from './UserMenu';
+import { useTokenPrice } from '@api/price';
+import { useContracts } from '@network/useContracts';
+import { dollarFormatter, tokenFormatter } from '@lib/formatters/formatters';
 
 const APP_BAR_HEIGHT = 60;
 const SIDEBAR_WIDTH = 232;
@@ -65,8 +70,11 @@ const AppToolbar = styled('div', {
 
 const UserMenuContainer = styled('div', {
   name: 'UserMenuContainer',
-})(() => ({
+})(({ theme }) => ({
   marginLeft: 'auto',
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(1),
 }));
 
 const NavContainer = styled('nav', {
@@ -179,6 +187,8 @@ export const NetworkLayout = ({
   const { disconnect } = useDisconnect();
   const network = getSubsquidNetwork();
   const bannerHeight = useBannerHeight();
+  const { SQD, SQD_TOKEN } = useContracts();
+  const price = useTokenPrice({ address: SQD });
 
   useEffect(() => {
     if (!isConnected) return;
@@ -222,6 +232,9 @@ export const NetworkLayout = ({
             <MenuIcon />
           </MenuButton>
           <UserMenuContainer>
+            <Typography variant="body2">
+              {SQD_TOKEN}: {dollarFormatter(price.data || 0)}
+            </Typography>
             <UserMenu />
           </UserMenuContainer>
         </AppToolbar>

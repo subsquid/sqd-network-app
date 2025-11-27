@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { tokenFormatter } from '@lib/formatters/formatters';
+import { dollarFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network/utils';
 import { CircleRounded } from '@mui/icons-material';
 import { Box, Grid, Stack, Typography, useTheme } from '@mui/material';
@@ -266,7 +266,7 @@ export function MyAssets() {
                 {tokenFormatter(fromSqd(totalBalance), SQD_TOKEN, 3)}
               </Typography>
               <Typography variant="h4" color="text.disabled">
-                ~{tokenFormatter(fromSqd(totalBalance).multipliedBy(price || 0), 'USD', 2)}
+                ~{dollarFormatter(fromSqd(totalBalance).multipliedBy(price || 0))}
               </Typography>
             </Box>
           </Card>
@@ -290,7 +290,7 @@ export function MyAssets() {
                 {tokenFormatter(fromSqd(rewardsBalance), SQD_TOKEN, 3)}
               </Typography>
               <Typography variant="h4" color="text.disabled">
-                ~{tokenFormatter(fromSqd(rewardsBalance).multipliedBy(price || 0), 'USD', 2)}
+                ~{dollarFormatter(fromSqd(rewardsBalance).multipliedBy(price || 0))}
               </Typography>
             </Box>
           </Card>
