@@ -14,7 +14,7 @@ export function DashboardPage() {
   const activeTab = path === 'analytics' ? 'analytics' : 'workers';
 
   const handleTabChange = (_: React.SyntheticEvent, value: string) => {
-    navigate(`/dashboard/${value}`);
+    navigate(`/dashboard/${value}`, { replace: true });
   };
 
   return (

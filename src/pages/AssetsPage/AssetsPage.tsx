@@ -15,7 +15,7 @@ export function AssetsPage() {
   const activeTab = path === 'temporary-holdings' ? 'temporary-holdings' : 'vestings';
 
   const handleTabChange = (_: React.SyntheticEvent, value: string) => {
-    navigate(`/assets/${value}`);
+    navigate(`/assets/${value}`, { replace: true });
   };
 
   return (

@@ -37,7 +37,7 @@ export const Worker = ({ backPath }: { backPath: string }) => {
   const activeTab = path === 'general' ? 'general' : 'analytics';
 
   const handleTabChange = (_: React.SyntheticEvent, value: string) => {
-    navigate(`/worker/${peerId}/${value}`);
+    navigate(`/worker/${peerId}/${value}`, { replace: true });
   };
 
   const { peerId } = useParams<{ peerId: string }>();
