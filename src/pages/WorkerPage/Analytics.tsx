@@ -77,6 +77,7 @@ const createWorkerChartConfigs = (
       axisFormat: { y: CHART_FORMATTERS.percent.axis },
       strokeWidth: 2,
       fillOpacity: 0.25,
+      yAxis: { min: 0 },
     }),
   },
   uptime: {
@@ -111,6 +112,7 @@ const createWorkerChartConfigs = (
       axisFormat: { y: CHART_FORMATTERS.number.axis },
       strokeWidth: 2,
       fillOpacity: 0.3,
+      yAxis: { min: 0 },
     }),
   },
 
@@ -127,6 +129,7 @@ const createWorkerChartConfigs = (
       axisFormat: { y: CHART_FORMATTERS.bytes.axis },
       strokeWidth: 2,
       fillOpacity: 0.3,
+      yAxis: { min: 0 },
     }),
   },
 
@@ -142,6 +145,7 @@ const createWorkerChartConfigs = (
       axisFormat: { y: CHART_FORMATTERS.bytes.axis },
       strokeWidth: 2,
       fillOpacity: 0.25,
+      yAxis: { min: 0 },
     }),
   },
 });
