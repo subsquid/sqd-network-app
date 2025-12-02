@@ -502,6 +502,8 @@ query HoldersCountTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
       value
     }
     step
+    from
+    to
   }
 }
 
@@ -512,6 +514,8 @@ query LockedValueTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
       value
     }
     step
+    from
+    to
   }
 }
 
@@ -522,6 +526,8 @@ query ActiveWorkersTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
       value
     }
     step
+    from
+    to
   }
 }
 
@@ -532,6 +538,8 @@ query UniqueOperatorsTimeseries($from: DateTime!, $to: DateTime!, $step: String)
       value
     }
     step
+    from
+    to
   }
 }
 
@@ -542,6 +550,8 @@ query DelegationsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
       value
     }
     step
+    from
+    to
   }
 }
 
@@ -552,6 +562,8 @@ query DelegatorsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
       value
     }
     step
+    from
+    to
   }
 }
 
@@ -568,6 +580,8 @@ query TransfersByTypeTimeseries($from: DateTime!, $to: DateTime!, $step: String)
       }
     }
     step
+    from
+    to
   }
 }
 
@@ -578,6 +592,8 @@ query UniqueAccountsTimeseries($from: DateTime!, $to: DateTime!, $step: String) 
       value
     }
     step
+    from
+    to
   }
 }
 
@@ -588,6 +604,8 @@ query QueriesCountTimeseries($from: DateTime!, $to: DateTime!, $step: String, $w
       value
     }
     step
+    from
+    to
   }
 }
 
@@ -598,6 +616,8 @@ query ServedDataTimeseries($from: DateTime!, $to: DateTime!, $step: String, $wor
       value
     }
     step
+    from
+    to
   }
 }
 
@@ -608,6 +628,8 @@ query StoredDataTimeseries($from: DateTime!, $to: DateTime!, $step: String, $wor
       value
     }
     step
+    from
+    to
   }
 }
 
@@ -621,6 +643,8 @@ query RewardTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerI
       }
     }
     step
+    from
+    to
   }
 }
 
@@ -634,6 +658,8 @@ query AprTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: 
       }
     }
     step
+    from
+    to
   }
 }
 
@@ -644,5 +670,7 @@ query UptimeTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerI
       value
     }
     step
+    from
+    to
   }
 }

@@ -60,6 +60,8 @@ export interface AnalyticsChartProps<
   dataPath: (data: T) => {
     data: Array<{ timestamp: string; value: number | V | null | undefined }>;
     step?: number;
+    from?: string;
+    to?: string;
   };
   tooltipFormat?: LineChartProps['tooltipFormat'];
   axisFormat?: LineChartProps['axisFormat'];
@@ -115,6 +117,8 @@ function createSeries<T extends Record<string, unknown> = Record<string, unknown
 ): {
   series: LineChartSeries[];
   step?: number;
+  from?: string;
+  to?: string;
 } {
   const timeseries = props.dataPath(data);
 
@@ -137,6 +141,8 @@ function createSeries<T extends Record<string, unknown> = Record<string, unknown
         },
       ],
       step: timeseries.step,
+      from: timeseries.from,
+      to: timeseries.to,
     };
   }
 
@@ -154,6 +160,8 @@ function createSeries<T extends Record<string, unknown> = Record<string, unknown
         type,
       })),
       step: timeseries.step,
+      from: timeseries.from,
+      to: timeseries.to,
     };
   }
 
@@ -176,6 +184,8 @@ function createSeries<T extends Record<string, unknown> = Record<string, unknown
       },
     ],
     step: timeseries.step,
+    from: timeseries.from,
+    to: timeseries.to,
   };
 }
 
@@ -283,7 +293,7 @@ export function AnalyticsChart<
     [primaryColor, defaultPalette],
   );
 
-  const { series, stepMs } = useMemo(() => {
+  const { series, stepMs, from, to } = useMemo(() => {
     if (!data) return { series: [], stepMs: undefined };
 
     const result = createSeries(props, data, title);
@@ -298,6 +308,8 @@ export function AnalyticsChart<
     return {
       series: seriesWithColors,
       stepMs: result.step,
+      from: new Date(result.from ?? 0),
+      to: new Date(result.to ?? 0),
     };
   }, [data, props, chartPalette, title]);
 
@@ -318,6 +330,7 @@ export function AnalyticsChart<
                 ...tooltipFormat,
               }}
               axisFormat={axisFormat}
+              xAxis={{ min: from, max: to }}
               yAxis={yAxis}
               strokeWidth={strokeWidth}
               fillOpacity={fillOpacity}
