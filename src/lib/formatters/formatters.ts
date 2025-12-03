@@ -77,6 +77,7 @@ export function tokenFormatter(val: number | BigNumber, currency: string, decima
 const toDollar = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'USD',
+  maximumFractionDigits: 4,
 });
 
 export function dollarFormatter(val: number | BigNumber) {
