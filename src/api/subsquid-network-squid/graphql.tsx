@@ -130,6 +130,20 @@ export type AccountWorkers2Args = {
   where?: InputMaybe<WorkerWhereInput>;
 };
 
+export type AccountBalanceEntry = {
+  __typename?: "AccountBalanceEntry";
+  timestamp: Scalars["DateTime"]["output"];
+  value?: Maybe<Scalars["BigInt"]["output"]>;
+};
+
+export type AccountBalanceTimeseries = {
+  __typename?: "AccountBalanceTimeseries";
+  data: Array<AccountBalanceEntry>;
+  from: Scalars["DateTime"]["output"];
+  step: Scalars["Float"]["output"];
+  to: Scalars["DateTime"]["output"];
+};
+
 export type AccountEdge = {
   __typename?: "AccountEdge";
   cursor: Scalars["String"]["output"];
@@ -452,7 +466,9 @@ export type ActiveWorkersEntry = {
 export type ActiveWorkersTimeseries = {
   __typename?: "ActiveWorkersTimeseries";
   data: Array<ActiveWorkersEntry>;
+  from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
+  to: Scalars["DateTime"]["output"];
 };
 
 export type AprEntry = {
@@ -471,7 +487,9 @@ export type AprSnapshot = {
 export type AprTimeseries = {
   __typename?: "AprTimeseries";
   data: Array<AprEntry>;
+  from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
+  to: Scalars["DateTime"]["output"];
 };
 
 export type AprValue = {
@@ -978,6 +996,24 @@ export type ContractsWhereInput = {
   workerRegistration_not_in?: InputMaybe<Array<Scalars["String"]["input"]>>;
   workerRegistration_not_startsWith?: InputMaybe<Scalars["String"]["input"]>;
   workerRegistration_startsWith?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+export type CumulativeRewardEntry = {
+  __typename?: "CumulativeRewardEntry";
+  timestamp: Scalars["DateTime"]["output"];
+  value?: Maybe<CumulativeRewardValue>;
+};
+
+export type CumulativeRewardTimeseries = {
+  __typename?: "CumulativeRewardTimeseries";
+  data: Array<CumulativeRewardEntry>;
+  step: Scalars["Float"]["output"];
+};
+
+export type CumulativeRewardValue = {
+  __typename?: "CumulativeRewardValue";
+  stakerReward: Scalars["BigInt"]["output"];
+  workerReward: Scalars["BigInt"]["output"];
 };
 
 export type Delegation = {
@@ -1766,7 +1802,9 @@ export type DelegationsEntry = {
 export type DelegationsTimeseries = {
   __typename?: "DelegationsTimeseries";
   data: Array<DelegationsEntry>;
+  from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
+  to: Scalars["DateTime"]["output"];
 };
 
 export type DelegatorsEntry = {
@@ -1778,7 +1816,9 @@ export type DelegatorsEntry = {
 export type DelegatorsTimeseries = {
   __typename?: "DelegatorsTimeseries";
   data: Array<DelegatorsEntry>;
+  from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
+  to: Scalars["DateTime"]["output"];
 };
 
 export type Epoch = {
@@ -2621,13 +2661,17 @@ export type HoldersCountEntry = {
 export type HoldersCountTimeseries = {
   __typename?: "HoldersCountTimeseries";
   data: Array<HoldersCountEntry>;
+  from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
+  to: Scalars["DateTime"]["output"];
 };
 
 export type LockedValueTimeseries = {
   __typename?: "LockedValueTimeseries";
   data: Array<TvlEntry>;
+  from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
+  to: Scalars["DateTime"]["output"];
 };
 
 export type NetworkStats = {
@@ -2676,11 +2720,14 @@ export type QueriesCountEntry = {
 export type QueriesCountTimeseries = {
   __typename?: "QueriesCountTimeseries";
   data: Array<QueriesCountEntry>;
+  from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
+  to: Scalars["DateTime"]["output"];
 };
 
 export type Query = {
   __typename?: "Query";
+  accountBalanceTimeseries: AccountBalanceTimeseries;
   accountById?: Maybe<Account>;
   accountTransferById?: Maybe<AccountTransfer>;
   accountTransfers: Array<AccountTransfer>;
@@ -2755,6 +2802,13 @@ export type Query = {
   workerStatusChangesConnection: WorkerStatusChangesConnection;
   workers: Array<Worker>;
   workersConnection: WorkersConnection;
+};
+
+export type QueryAccountBalanceTimeseriesArgs = {
+  accountId: Scalars["String"]["input"];
+  from?: InputMaybe<Scalars["DateTime"]["input"]>;
+  step?: InputMaybe<Scalars["String"]["input"]>;
+  to?: InputMaybe<Scalars["DateTime"]["input"]>;
 };
 
 export type QueryAccountByIdArgs = {
@@ -3204,7 +3258,9 @@ export type RewardEntry = {
 export type RewardTimeseries = {
   __typename?: "RewardTimeseries";
   data: Array<RewardEntry>;
+  from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
+  to: Scalars["DateTime"]["output"];
 };
 
 export type RewardValue = {
@@ -3222,7 +3278,9 @@ export type ServedDataEntry = {
 export type ServedDataTimeseries = {
   __typename?: "ServedDataTimeseries";
   data: Array<ServedDataEntry>;
+  from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
+  to: Scalars["DateTime"]["output"];
 };
 
 export type Settings = {
@@ -3536,7 +3594,9 @@ export type StoredDataEntry = {
 export type StoredDataTimeseries = {
   __typename?: "StoredDataTimeseries";
   data: Array<StoredDataEntry>;
+  from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
+  to: Scalars["DateTime"]["output"];
 };
 
 export type TemporaryHoldingData = {
@@ -4260,7 +4320,9 @@ export type TransferWhereInput = {
 export type TransfersByTypeTimeseries = {
   __typename?: "TransfersByTypeTimeseries";
   data: Array<TransferCountByType>;
+  from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
+  to: Scalars["DateTime"]["output"];
 };
 
 export type TransfersConnection = {
@@ -4285,13 +4347,17 @@ export type UniqueAccountsEntry = {
 export type UniqueAccountsTimeseries = {
   __typename?: "UniqueAccountsTimeseries";
   data: Array<UniqueAccountsEntry>;
+  from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
+  to: Scalars["DateTime"]["output"];
 };
 
 export type UniqueOperatorsTimeseries = {
   __typename?: "UniqueOperatorsTimeseries";
   data: Array<OperatorsEntry>;
+  from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
+  to: Scalars["DateTime"]["output"];
 };
 
 export type UptimeEntry = {
@@ -4303,7 +4369,9 @@ export type UptimeEntry = {
 export type UptimeTimeseries = {
   __typename?: "UptimeTimeseries";
   data: Array<UptimeEntry>;
+  from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
+  to: Scalars["DateTime"]["output"];
 };
 
 export type Worker = {
@@ -7344,6 +7412,8 @@ export type HoldersCountTimeseriesQuery = {
   holdersCountTimeseries: {
     __typename?: "HoldersCountTimeseries";
     step: number;
+    from: string;
+    to: string;
     data: Array<{
       __typename?: "HoldersCountEntry";
       timestamp: string;
@@ -7363,6 +7433,8 @@ export type LockedValueTimeseriesQuery = {
   lockedValueTimeseries: {
     __typename?: "LockedValueTimeseries";
     step: number;
+    from: string;
+    to: string;
     data: Array<{ __typename?: "TvlEntry"; timestamp: string; value?: string }>;
   };
 };
@@ -7378,6 +7450,8 @@ export type ActiveWorkersTimeseriesQuery = {
   activeWorkersTimeseries: {
     __typename?: "ActiveWorkersTimeseries";
     step: number;
+    from: string;
+    to: string;
     data: Array<{
       __typename?: "ActiveWorkersEntry";
       timestamp: string;
@@ -7397,6 +7471,8 @@ export type UniqueOperatorsTimeseriesQuery = {
   uniqueOperatorsTimeseries: {
     __typename?: "UniqueOperatorsTimeseries";
     step: number;
+    from: string;
+    to: string;
     data: Array<{
       __typename?: "OperatorsEntry";
       timestamp: string;
@@ -7416,6 +7492,8 @@ export type DelegationsTimeseriesQuery = {
   delegationsTimeseries: {
     __typename?: "DelegationsTimeseries";
     step: number;
+    from: string;
+    to: string;
     data: Array<{
       __typename?: "DelegationsEntry";
       timestamp: string;
@@ -7435,6 +7513,8 @@ export type DelegatorsTimeseriesQuery = {
   delegatorsTimeseries: {
     __typename?: "DelegatorsTimeseries";
     step: number;
+    from: string;
+    to: string;
     data: Array<{
       __typename?: "DelegatorsEntry";
       timestamp: string;
@@ -7454,6 +7534,8 @@ export type TransfersByTypeTimeseriesQuery = {
   transfersByTypeTimeseries: {
     __typename?: "TransfersByTypeTimeseries";
     step: number;
+    from: string;
+    to: string;
     data: Array<{
       __typename?: "TransferCountByType";
       timestamp: string;
@@ -7480,6 +7562,8 @@ export type UniqueAccountsTimeseriesQuery = {
   uniqueAccountsTimeseries: {
     __typename?: "UniqueAccountsTimeseries";
     step: number;
+    from: string;
+    to: string;
     data: Array<{
       __typename?: "UniqueAccountsEntry";
       timestamp: string;
@@ -7500,6 +7584,8 @@ export type QueriesCountTimeseriesQuery = {
   queriesCountTimeseries: {
     __typename?: "QueriesCountTimeseries";
     step: number;
+    from: string;
+    to: string;
     data: Array<{
       __typename?: "QueriesCountEntry";
       timestamp: string;
@@ -7520,6 +7606,8 @@ export type ServedDataTimeseriesQuery = {
   servedDataTimeseries: {
     __typename?: "ServedDataTimeseries";
     step: number;
+    from: string;
+    to: string;
     data: Array<{
       __typename?: "ServedDataEntry";
       timestamp: string;
@@ -7540,6 +7628,8 @@ export type StoredDataTimeseriesQuery = {
   storedDataTimeseries: {
     __typename?: "StoredDataTimeseries";
     step: number;
+    from: string;
+    to: string;
     data: Array<{
       __typename?: "StoredDataEntry";
       timestamp: string;
@@ -7560,6 +7650,8 @@ export type RewardTimeseriesQuery = {
   rewardTimeseries: {
     __typename?: "RewardTimeseries";
     step: number;
+    from: string;
+    to: string;
     data: Array<{
       __typename?: "RewardEntry";
       timestamp: string;
@@ -7584,6 +7676,8 @@ export type AprTimeseriesQuery = {
   aprTimeseries: {
     __typename?: "AprTimeseries";
     step: number;
+    from: string;
+    to: string;
     data: Array<{
       __typename?: "AprEntry";
       timestamp: string;
@@ -7604,6 +7698,8 @@ export type UptimeTimeseriesQuery = {
   uptimeTimeseries: {
     __typename?: "UptimeTimeseries";
     step: number;
+    from: string;
+    to: string;
     data: Array<{
       __typename?: "UptimeEntry";
       timestamp: string;
@@ -8591,6 +8687,8 @@ export const HoldersCountTimeseriesDocument = `
       value
     }
     step
+    from
+    to
   }
 }
     `;
@@ -8629,6 +8727,8 @@ export const LockedValueTimeseriesDocument = `
       value
     }
     step
+    from
+    to
   }
 }
     `;
@@ -8667,6 +8767,8 @@ export const ActiveWorkersTimeseriesDocument = `
       value
     }
     step
+    from
+    to
   }
 }
     `;
@@ -8705,6 +8807,8 @@ export const UniqueOperatorsTimeseriesDocument = `
       value
     }
     step
+    from
+    to
   }
 }
     `;
@@ -8743,6 +8847,8 @@ export const DelegationsTimeseriesDocument = `
       value
     }
     step
+    from
+    to
   }
 }
     `;
@@ -8781,6 +8887,8 @@ export const DelegatorsTimeseriesDocument = `
       value
     }
     step
+    from
+    to
   }
 }
     `;
@@ -8825,6 +8933,8 @@ export const TransfersByTypeTimeseriesDocument = `
       }
     }
     step
+    from
+    to
   }
 }
     `;
@@ -8863,6 +8973,8 @@ export const UniqueAccountsTimeseriesDocument = `
       value
     }
     step
+    from
+    to
   }
 }
     `;
@@ -8901,6 +9013,8 @@ export const QueriesCountTimeseriesDocument = `
       value
     }
     step
+    from
+    to
   }
 }
     `;
@@ -8939,6 +9053,8 @@ export const ServedDataTimeseriesDocument = `
       value
     }
     step
+    from
+    to
   }
 }
     `;
@@ -8977,6 +9093,8 @@ export const StoredDataTimeseriesDocument = `
       value
     }
     step
+    from
+    to
   }
 }
     `;
@@ -9018,6 +9136,8 @@ export const RewardTimeseriesDocument = `
       }
     }
     step
+    from
+    to
   }
 }
     `;
@@ -9059,6 +9179,8 @@ export const AprTimeseriesDocument = `
       }
     }
     step
+    from
+    to
   }
 }
     `;
@@ -9093,6 +9215,8 @@ export const UptimeTimeseriesDocument = `
       value
     }
     step
+    from
+    to
   }
 }
     `;
