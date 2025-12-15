@@ -1,41 +1,45 @@
+import { useMemo } from 'react';
 import { Box, Divider, Paper, Typography } from '@mui/material';
 import { toDateSeconds } from '@lib/formatters/formatters';
-import type { LineChartProps, LineChartSeries, SingleLineChartDatum } from './types';
-
-// ============================================================================
-// Chart Tooltip Component
-// ============================================================================
+import type { ChartDatum, ChartFormatters, ChartSeries } from './types';
 
 interface ChartTooltipProps {
-  tooltipData: Record<string, SingleLineChartDatum<false>>;
-  series: LineChartSeries[];
+  tooltipData: Record<string, ChartDatum<false>>;
+  series: ChartSeries[];
   palette: string[];
-  tooltipFormat?: LineChartProps['tooltipFormat'];
+  tooltipFormat?: ChartFormatters;
+}
+
+function buildColorMap(series: ChartSeries[], palette: string[]): Map<string, string> {
+  const colorMap = new Map<string, string>();
+
+  series.forEach((s, i) => {
+    if (s.stack && s.data.length > 0) {
+      // For stacked series, map each stack item key to its color
+      s.data[0].y.forEach((item, stackIndex) => {
+        colorMap.set(item.key, item.color ?? palette[stackIndex % palette.length]);
+      });
+    } else {
+      colorMap.set(s.name, s.color ?? palette[i % palette.length]);
+    }
+  });
+
+  return colorMap;
 }
 
 export function ChartTooltip({ tooltipData, series, palette, tooltipFormat }: ChartTooltipProps) {
   const firstDatum = Object.values(tooltipData)[0];
 
-  // Create a map of series names to colors for quick lookup
-  const seriesColorMap = new Map<string, string>();
-  series.forEach((s, i) => {
-    if (s.stack && s.data.length > 0) {
-      // For stacked series, map each stack item key to a color
-      s.data[0].y.forEach((item, stackIndex) => {
-        seriesColorMap.set(item.key, item.color ?? palette[stackIndex % palette.length]);
-      });
-    } else {
-      seriesColorMap.set(s.name, s.color ?? palette[i % palette.length]);
-    }
-  });
+  const colorMap = useMemo(() => buildColorMap(series, palette), [series, palette]);
+
+  const formatX = tooltipFormat?.x ?? toDateSeconds.format;
+  const formatY = tooltipFormat?.y;
 
   return (
     <Paper variant="outlined" sx={{ p: 1 }}>
       {firstDatum && (
         <>
-          <Typography variant="body2">
-            {tooltipFormat?.x ? tooltipFormat.x(firstDatum.x) : toDateSeconds.format(firstDatum.x)}
-          </Typography>
+          <Typography variant="body2">{formatX(firstDatum.x)}</Typography>
           <Divider sx={{ my: 0.5 }} />
         </>
       )}
@@ -56,13 +60,13 @@ export function ChartTooltip({ tooltipData, series, palette, tooltipFormat }: Ch
                 width: 8,
                 height: 8,
                 borderRadius: '50%',
-                bgcolor: seriesColorMap.get(key) || palette[0],
+                bgcolor: colorMap.get(key) ?? palette[0],
               }}
             />
             <Typography variant="body2">{key}</Typography>
           </Box>
           <Typography variant="body2">
-            {tooltipFormat?.y && datum.y != null ? tooltipFormat.y(datum.y) : String(datum.y || '')}
+            {formatY && datum.y != null ? formatY(datum.y) : String(datum.y ?? '')}
           </Typography>
         </Box>
       ))}

@@ -1,13 +1,7 @@
-// ============================================================================
-// Chart Components - Barrel Export
-// ============================================================================
-
-// Core chart components
 export { LineChart, useChartPalette } from './LineChart';
 export { ChartLegend } from './ChartLegend';
 export { SharedCursorProvider, useSharedCursor } from './SharedCursorContext';
 
-// High-level chart component and factory functions
 export {
   AnalyticsChart,
   type AnalyticsChartProps,
@@ -17,7 +11,6 @@ export {
   CHART_FORMATTERS,
 } from './AnalyticsChart';
 
-// Internal components (for advanced usage)
 export { ChartTooltip } from './ChartTooltip';
 export { CursorLines, CursorPoints } from './ChartCursor';
 export { LineRenderer } from './LineRenderer';
@@ -29,6 +22,27 @@ export {
 } from './BarRenderer';
 export { useTooltipHandler } from './useTooltipHandler';
 
-// Types and utilities
-export * from './types';
+export {
+  type ChartDatum,
+  type StackedChartDatum,
+  type ChartSeriesBase,
+  type SingleChartSeries,
+  type StackedChartSeries,
+  type ChartSeries,
+  type ChartFormatters,
+  type AxisRange,
+  type ChartProps,
+  isStackedSeries,
+  isSingleSeries,
+  type SingleLineChartDatum,
+  type StackedLineChartDatum,
+  type SingleLineChartSeries,
+  type StackedLineChartSeries,
+  type LineChartSeries,
+  type LineChartDatum,
+  type LineChartSeriesBase,
+  type LineChartProps,
+  CHART_CONFIG,
+} from './types';
+
 export * from './utils';
