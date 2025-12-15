@@ -1,21 +1,62 @@
+import { useMemo } from 'react';
 import { Bar } from '@visx/shape';
 import { Group } from '@visx/group';
 import type { ScaleTime, ScaleLinear } from 'd3-scale';
-import type { StackedLineChartSeries, SingleLineChartSeries } from './types';
-
-// ============================================================================
-// Types
-// ============================================================================
+import type { StackedChartSeries, SingleChartSeries } from './types';
 
 type XScale = ScaleTime<number, number, never>;
 type YScale = ScaleLinear<number, number, never>;
 
-// ============================================================================
-// Bar Chart Rendering Components
-// ============================================================================
+interface BarDimensions {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+function calculateBarDimensions(
+  dataX: Date,
+  dataY: number,
+  xScale: XScale,
+  yScale: YScale,
+  barWidth: number,
+): BarDimensions {
+  const yBottom = yScale.range()[0];
+  const barY = yScale(Math.max(0, dataY));
+
+  return {
+    x: Math.max(0, xScale(dataX) - barWidth / 2),
+    y: barY,
+    width: barWidth,
+    height: Math.max(0, yBottom - barY),
+  };
+}
+
+export function calculateOptimalBarWidth(
+  data: { x: Date }[],
+  width: number,
+  xScale: XScale,
+): number {
+  if (data.length < 2) return Math.min(width * 0.1, 40);
+
+  const [minTime, maxTime] = xScale.domain() as [Date, Date];
+  const timeRangeMs = maxTime.getTime() - minTime.getTime();
+
+  // Calculate average interval between data points
+  const sortedData = [...data].sort((a, b) => a.x.getTime() - b.x.getTime());
+  let totalInterval = 0;
+  for (let i = 1; i < sortedData.length; i++) {
+    totalInterval += sortedData[i].x.getTime() - sortedData[i - 1].x.getTime();
+  }
+  const avgInterval = totalInterval / (sortedData.length - 1);
+
+  // Estimate expected data points and calculate bar width
+  const expectedDataPoints = Math.max(timeRangeMs / avgInterval, data.length);
+  return (width / expectedDataPoints) * 0.5;
+}
 
 interface BarRendererProps {
-  series: SingleLineChartSeries;
+  series: SingleChartSeries;
   xScale: XScale;
   yScale: YScale;
   color: string;
@@ -31,39 +72,47 @@ export function BarRenderer({
   barWidth,
   barBorderRadius,
 }: BarRendererProps) {
-  const data = series.data.filter(d => d.y != null);
+  const bars = useMemo(() => {
+    return series.data
+      .filter(d => d.y != null)
+      .map(d => ({
+        key: `${series.name}-${d.x.getTime()}`,
+        ...calculateBarDimensions(d.x, d.y!, xScale, yScale, barWidth),
+      }));
+  }, [series, xScale, yScale, barWidth]);
 
   return (
     <Group>
-      {data.map(d => {
-        if (d.y == null) return null;
-        const barHeight = Math.max(0, yScale.range()[0] - yScale(d.y));
-        const barY = yScale(Math.max(0, d.y));
-        const barX = Math.max(0, xScale(d.x) - barWidth / 2);
-
-        return (
-          <Bar
-            key={`${series.name}-${d.x.getTime()}`}
-            x={barX}
-            y={barY}
-            height={barHeight}
-            width={barWidth}
-            fill={color}
-            rx={barBorderRadius}
-          />
-        );
-      })}
+      {bars.map(bar => (
+        <Bar
+          key={bar.key}
+          x={bar.x}
+          y={bar.y}
+          height={bar.height}
+          width={bar.width}
+          fill={color}
+          rx={barBorderRadius}
+        />
+      ))}
     </Group>
   );
 }
 
 interface StackedBarRendererProps {
-  series: StackedLineChartSeries;
+  series: StackedChartSeries;
   xScale: XScale;
   yScale: YScale;
   palette: string[];
   barWidth: number;
   barBorderRadius: number;
+}
+
+interface StackSegment {
+  key: string;
+  x: number;
+  y: number;
+  height: number;
+  color: string;
 }
 
 export function StackedBarRenderer({
@@ -74,37 +123,56 @@ export function StackedBarRenderer({
   barWidth,
   barBorderRadius,
 }: StackedBarRendererProps) {
-  const barSegments = series.data.flatMap(d => {
-    const x = d.x;
-    const barX = Math.max(0, xScale(x) - barWidth / 2);
+  const segments = useMemo((): StackSegment[] => {
+    const yBottom = yScale.range()[0];
+    const result: StackSegment[] = [];
 
-    let offsetY = d.y.reduce((acc, { value }) => acc + (value ?? 0), 0);
-    return d.y.map(({ key, color, value }, i) => {
-      if (value == null) return null;
+    for (const datum of series.data) {
+      const barX = Math.max(0, xScale(datum.x) - barWidth / 2);
 
-      const barY = yScale(offsetY);
-      const barHeight = Math.max(0, yScale.range()[0] - barY);
-      offsetY -= value;
+      // Calculate total stack height for positioning from top
+      let cumulativeY = datum.y.reduce((acc, { value }) => acc + (value ?? 0), 0);
 
-      return (
+      for (let i = 0; i < datum.y.length; i++) {
+        const { key, color, value } = datum.y[i];
+        if (value == null) continue;
+
+        const barY = yScale(cumulativeY);
+        const barHeight = Math.max(0, yBottom - barY);
+        cumulativeY -= value;
+
+        result.push({
+          key: `${key}-${datum.x.getTime()}`,
+          x: barX,
+          y: barY,
+          height: barHeight,
+          color: color ?? palette[i % palette.length],
+        });
+      }
+    }
+
+    return result;
+  }, [series, xScale, yScale, palette, barWidth]);
+
+  return (
+    <Group>
+      {segments.map(segment => (
         <Bar
-          key={`${key}-${d.x.getTime()}`}
-          x={barX}
-          y={barY}
-          height={barHeight}
+          key={segment.key}
+          x={segment.x}
+          y={segment.y}
+          height={segment.height}
           width={barWidth}
-          fill={color ?? palette[i % palette.length]}
+          fill={segment.color}
           rx={barBorderRadius}
         />
-      );
-    });
-  });
-
-  return <>{barSegments}</>;
+      ))}
+    </Group>
+  );
 }
 
 interface GroupedBarRendererProps {
-  barSeries: SingleLineChartSeries[];
+  barSeries: SingleChartSeries[];
   xScale: XScale;
   yScale: YScale;
   palette: string[];
@@ -120,63 +188,49 @@ export function GroupedBarRenderer({
   barWidth,
   barBorderRadius,
 }: GroupedBarRendererProps) {
-  if (barSeries.length === 0) return null;
+  const groupedBars = useMemo(() => {
+    if (barSeries.length === 0) return [];
 
-  const groupWidth = barWidth * 0.9;
-  const individualBarWidth = groupWidth / barSeries.length;
+    const groupWidth = barWidth * 0.9;
+    const individualBarWidth = groupWidth / barSeries.length;
+    const yBottom = yScale.range()[0];
+
+    return barSeries.flatMap((series, seriesIndex) => {
+      const color = series.color ?? palette[seriesIndex % palette.length];
+
+      return series.data
+        .filter(d => d.y != null)
+        .map(d => {
+          const barY = yScale(Math.max(0, d.y!));
+          const groupX = xScale(d.x) - groupWidth / 2;
+
+          return {
+            key: `${series.name}-${d.x.getTime()}`,
+            x: Math.max(0, groupX + seriesIndex * individualBarWidth),
+            y: barY,
+            height: Math.max(0, yBottom - barY),
+            width: individualBarWidth,
+            color,
+          };
+        });
+    });
+  }, [barSeries, xScale, yScale, palette, barWidth]);
+
+  if (groupedBars.length === 0) return null;
 
   return (
-    <>
-      {barSeries.map((s, seriesIndex) => {
-        const color = s.color ?? palette[seriesIndex % palette.length];
-        const data = s.data.filter(d => d.y != null);
-
-        return (
-          <Group key={s.name}>
-            {data.map(d => {
-              if (d.y == null) return null;
-              const barHeight = Math.max(0, yScale.range()[0] - yScale(d.y));
-              const barY = yScale(Math.max(0, d.y));
-              const groupX = xScale(d.x) - groupWidth / 2;
-              const barX = Math.max(0, groupX + seriesIndex * individualBarWidth);
-
-              return (
-                <Bar
-                  key={`${s.name}-${d.x.getTime()}`}
-                  x={barX}
-                  y={barY}
-                  height={barHeight}
-                  width={individualBarWidth}
-                  fill={color}
-                  rx={barBorderRadius}
-                />
-              );
-            })}
-          </Group>
-        );
-      })}
-    </>
+    <Group>
+      {groupedBars.map(bar => (
+        <Bar
+          key={bar.key}
+          x={bar.x}
+          y={bar.y}
+          height={bar.height}
+          width={bar.width}
+          fill={bar.color}
+          rx={barBorderRadius}
+        />
+      ))}
+    </Group>
   );
-}
-
-export function calculateOptimalBarWidth(
-  data: { x: Date }[],
-  width: number,
-  xScale: XScale,
-): number {
-  if (data.length < 2) return Math.min(width * 0.1, 40);
-
-  const [minTime, maxTime] = xScale.domain() as [Date, Date];
-  const timeRangeMs = maxTime.getTime() - minTime.getTime();
-
-  const sortedData = [...data].sort((a, b) => a.x.getTime() - b.x.getTime());
-  const intervals = [];
-  for (let i = 1; i < sortedData.length; i++) {
-    intervals.push(sortedData[i].x.getTime() - sortedData[i - 1].x.getTime());
-  }
-  const avgInterval = intervals.reduce((sum, interval) => sum + interval, 0) / intervals.length;
-
-  const expectedDataPoints = Math.max(timeRangeMs / avgInterval, data.length);
-
-  return (width / expectedDataPoints) * 0.5;
 }

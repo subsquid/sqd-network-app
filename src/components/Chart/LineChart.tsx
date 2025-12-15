@@ -9,30 +9,23 @@ import {
   useTooltip,
   useTooltipInPortal,
 } from '@visx/tooltip';
-import { partition } from 'lodash-es';
 import {
   CHART_CONFIG,
-  type LineChartProps,
-  type LineChartSeries,
-  type SingleLineChartDatum,
-  type SingleLineChartSeries,
-  type StackedLineChartSeries,
+  type ChartProps,
+  type ChartSeries,
+  type ChartDatum,
+  type ChartFormatters,
+  type SingleChartSeries,
+  type StackedChartSeries,
+  isStackedSeries,
+  isSingleSeries,
 } from './types';
 import { useSharedCursor } from './SharedCursorContext';
 import { LineRenderer } from './LineRenderer';
-import {
-  BarRenderer,
-  GroupedBarRenderer,
-  StackedBarRenderer,
-  calculateOptimalBarWidth,
-} from './BarRenderer';
+import { BarRenderer, GroupedBarRenderer, StackedBarRenderer, calculateOptimalBarWidth } from './BarRenderer';
 import { ChartTooltip } from './ChartTooltip';
 import { CursorLines, CursorPoints } from './ChartCursor';
 import { useTooltipHandler } from './useTooltipHandler';
-
-// ============================================================================
-// Chart Hooks
-// ============================================================================
 
 export function useChartPalette() {
   const theme = useTheme();
@@ -49,10 +42,15 @@ export function useChartPalette() {
   );
 }
 
+interface AxisRange<T> {
+  min?: T;
+  max?: T;
+}
+
 function useChartScales(
-  series: LineChartSeries[],
-  xAxis?: { min?: Date; max?: Date },
-  yAxis?: { min?: number; max?: number },
+  series: ChartSeries[],
+  xAxis?: AxisRange<Date>,
+  yAxis?: AxisRange<number>,
 ) {
   const calculatePadding = useCallback((min: number, max: number, padding: number) => {
     if (min === max) {
@@ -71,21 +69,19 @@ function useChartScales(
     const allX = series.flatMap(s => s.data.map(d => d.x.getTime()));
 
     const [minX, maxX] = calculatePadding(
-      xAxis?.min?.getTime() || Math.min(...allX),
-      xAxis?.max?.getTime() || Math.max(...allX),
+      xAxis?.min?.getTime() ?? Math.min(...allX),
+      xAxis?.max?.getTime() ?? Math.max(...allX),
       CHART_CONFIG.padding.x,
     );
 
-    return scaleTime<number>({
-      domain: [minX, maxX],
-    });
+    return scaleTime<number>({ domain: [minX, maxX] });
   }, [series, xAxis, calculatePadding]);
 
   const yScale = useMemo(() => {
     const allY = series.flatMap(s =>
-      s.stack
+      isStackedSeries(s)
         ? s.data.map(d => d.y.reduce((acc, { value }) => acc + (value ?? 0), 0))
-        : s.data.map(d => d.y).filter(y => y != null),
+        : s.data.map(d => d.y).filter((y): y is number => y != null),
     );
 
     let [minY, maxY] = calculatePadding(
@@ -97,20 +93,18 @@ function useChartScales(
     // Ensure Y-axis never goes below 0
     minY = Math.max(minY, 0);
 
-    return scaleLinear<number>({
-      domain: [minY, maxY],
-    });
+    return scaleLinear<number>({ domain: [minY, maxY] });
   }, [series, yAxis, calculatePadding]);
 
   return { xScale, yScale };
 }
 
-function useChartDomain(series: LineChartSeries[]) {
+function useChartDomain(series: ChartSeries[]) {
   return useMemo(() => {
     if (series.length === 0) return { x: undefined, y: undefined };
 
     const allY = series.flatMap(s =>
-      s.stack
+      isStackedSeries(s)
         ? s.data.map(d => d.y.reduce((acc, { value }) => acc + (value ?? 0), 0))
         : s.data.map(d => d.y),
     );
@@ -119,24 +113,20 @@ function useChartDomain(series: LineChartSeries[]) {
     return {
       x: { min: new Date(Math.min(...allX)), max: new Date(Math.max(...allX)) },
       y: {
-        min: Math.min(...allY.filter(y => y != null)),
-        max: Math.max(...allY.filter(y => y != null)),
+        min: Math.min(...allY.filter((y): y is number => y != null)),
+        max: Math.max(...allY.filter((y): y is number => y != null)),
       },
     };
   }, [series]);
 }
 
-function useAutoMargin(
-  xTicks: Date[],
-  yTicks: number[],
-  axisFormat?: LineChartProps['axisFormat'],
-) {
+function useAutoMargin(yTicks: number[], axisFormat?: ChartFormatters) {
   return useMemo(() => {
-    const maxYValue = Math.max(
-      ...yTicks.map(d => (axisFormat?.y ? (axisFormat.y(d)?.length ?? 0) : String(d).length)),
+    const maxYLabelLength = Math.max(
+      ...yTicks.map(d => (axisFormat?.y ? axisFormat.y(d).length : String(d).length)),
     );
 
-    const leftMargin = maxYValue * 7 + 8 + 6;
+    const leftMargin = maxYLabelLength * 7 + 14;
 
     return {
       top: CHART_CONFIG.baseMargin.top,
@@ -147,27 +137,49 @@ function useAutoMargin(
   }, [yTicks, axisFormat]);
 }
 
-// ============================================================================
-// Chart Series Component
-// ============================================================================
+interface PartitionedSeries {
+  stacked: StackedChartSeries[];
+  single: SingleChartSeries[];
+  barSeries: SingleChartSeries[];
+  lineSeries: SingleChartSeries[];
+}
 
-interface ChartSeriesProps {
-  series: LineChartSeries[];
-  xScale: any;
-  yScale: any;
+function partitionSeries(series: ChartSeries[]): PartitionedSeries {
+  const stacked: StackedChartSeries[] = [];
+  const single: SingleChartSeries[] = [];
+
+  for (const s of series) {
+    if (isStackedSeries(s)) {
+      stacked.push(s);
+    } else if (isSingleSeries(s)) {
+      single.push(s);
+    }
+  }
+
+  return {
+    stacked,
+    single,
+    barSeries: single.filter(s => s.type === 'bar'),
+    lineSeries: single.filter(s => s.type === 'line'),
+  };
+}
+
+interface ChartSeriesRendererProps {
+  series: ChartSeries[];
+  xScale: ReturnType<typeof scaleTime<number>>;
+  yScale: ReturnType<typeof scaleLinear<number>>;
   palette: string[];
   width: number;
   height: number;
   margin: { top: number; right: number; bottom: number; left: number };
-  tooltipFormat?: LineChartProps['tooltipFormat'];
+  tooltipFormat?: ChartFormatters;
   strokeWidth: number;
   fillOpacity: number;
-  pointSize: number;
   barBorderRadius: number;
   grouped: boolean;
 }
 
-function ChartSeries({
+function ChartSeriesRenderer({
   series,
   xScale,
   yScale,
@@ -180,11 +192,11 @@ function ChartSeries({
   fillOpacity,
   barBorderRadius,
   grouped,
-}: ChartSeriesProps) {
+}: ChartSeriesRendererProps) {
   const theme = useTheme();
 
   const { tooltipData, tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
-    useTooltip<Record<string, SingleLineChartDatum<false>>>();
+    useTooltip<Record<string, ChartDatum<false>>>();
 
   const { containerRef: tooltipContainerRef, TooltipInPortal } = useTooltipInPortal({
     scroll: true,
@@ -204,23 +216,25 @@ function ChartSeries({
     setCursor,
   });
 
+  const handleMouseLeave = useCallback(() => {
+    hideTooltip();
+    setCursor(null);
+  }, [hideTooltip, setCursor]);
+
+  const partitioned = useMemo(() => partitionSeries(series), [series]);
+
+  const barWidth = useMemo(() => {
+    const referenceData = partitioned.stacked[0]?.data ?? partitioned.single[0]?.data ?? [];
+    return calculateOptimalBarWidth(referenceData, width, xScale);
+  }, [partitioned, width, xScale]);
+
   if (width <= 0) return null;
-
-  const [stackedSeries, unstackedSeries] = partition(series, s => s.stack) as [
-    StackedLineChartSeries[],
-    SingleLineChartSeries[],
-  ];
-
-  // Calculate bar width based on the first available series
-  const referenceData = stackedSeries[0]?.data || unstackedSeries[0]?.data || [];
-  const barWidth = calculateOptimalBarWidth(referenceData, width, xScale);
 
   return (
     <g ref={tooltipContainerRef}>
-      {/* Render stacked bars */}
-      {stackedSeries.map(s => {
-        if (s.type !== 'bar') return null;
-        return (
+      {/* Stacked bars */}
+      {partitioned.stacked.map(s =>
+        s.type === 'bar' ? (
           <StackedBarRenderer
             key={s.name}
             series={s}
@@ -230,13 +244,13 @@ function ChartSeries({
             barWidth={barWidth}
             barBorderRadius={barBorderRadius}
           />
-        );
-      })}
+        ) : null,
+      )}
 
-      {/* Render grouped or individual unstacked series */}
-      {grouped && unstackedSeries.some(s => s.type === 'bar') ? (
+      {/* Single series - grouped or individual */}
+      {grouped && partitioned.barSeries.length > 0 ? (
         <GroupedBarRenderer
-          barSeries={unstackedSeries.filter(s => s.type === 'bar')}
+          barSeries={partitioned.barSeries}
           xScale={xScale}
           yScale={yScale}
           palette={palette}
@@ -244,7 +258,7 @@ function ChartSeries({
           barBorderRadius={barBorderRadius}
         />
       ) : (
-        unstackedSeries.map((s, i) => {
+        partitioned.single.map((s, i) => {
           const color = s.color ?? palette[i % palette.length];
 
           if (s.type === 'line') {
@@ -282,7 +296,7 @@ function ChartSeries({
       {/* Cursor lines */}
       {cursor && <CursorLines x={cursor.x} y={cursor.y} width={width} height={height} />}
 
-      {/* Tooltip points */}
+      {/* Tooltip cursor points */}
       {tooltipOpen && (
         <CursorPoints
           series={series}
@@ -294,7 +308,7 @@ function ChartSeries({
         />
       )}
 
-      {/* Interaction rect */}
+      {/* Interaction overlay */}
       <rect
         x={0}
         y={0}
@@ -304,10 +318,7 @@ function ChartSeries({
         onTouchStart={handleTooltip}
         onTouchMove={handleTooltip}
         onMouseMove={handleTooltip}
-        onMouseLeave={() => {
-          hideTooltip();
-          setCursor(null);
-        }}
+        onMouseLeave={handleMouseLeave}
       />
 
       {/* Tooltip portal */}
@@ -338,10 +349,6 @@ function ChartSeries({
   );
 }
 
-// ============================================================================
-// Line Chart Component
-// ============================================================================
-
 export function LineChart({
   series,
   axisFormat,
@@ -353,13 +360,13 @@ export function LineChart({
   pointSize = 10,
   barBorderRadius = 4,
   grouped = false,
-}: LineChartProps) {
+}: ChartProps) {
   const theme = useTheme();
   const palette = useChartPalette();
   const domain = useChartDomain(series);
-  const { xScale, yScale } = useChartScales(series, xAxis || domain.x, yAxis || domain.y);
+  const { xScale, yScale } = useChartScales(series, xAxis ?? domain.x, yAxis ?? domain.y);
 
-  const margin = useAutoMargin(xScale.ticks(), yScale.ticks(), axisFormat);
+  const margin = useAutoMargin(yScale.ticks(), axisFormat);
 
   return (
     <ParentSize>
@@ -394,7 +401,7 @@ export function LineChart({
                 <AxisLeft
                   scale={yScale}
                   numTicks={5}
-                  tickFormat={axisFormat?.y as any}
+                  tickFormat={axisFormat?.y as Parameters<typeof AxisLeft>[0]['tickFormat']}
                   stroke="transparent"
                   strokeWidth={1}
                   tickStroke={theme.palette.divider}
@@ -407,7 +414,7 @@ export function LineChart({
                   })}
                 />
 
-                <ChartSeries
+                <ChartSeriesRenderer
                   series={series}
                   xScale={xScale}
                   yScale={yScale}
@@ -418,7 +425,6 @@ export function LineChart({
                   tooltipFormat={tooltipFormat}
                   strokeWidth={strokeWidth}
                   fillOpacity={fillOpacity}
-                  pointSize={pointSize}
                   barBorderRadius={barBorderRadius}
                   grouped={grouped}
                 />
