@@ -1,26 +1,27 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, useMemo } from 'react';
 
-// ============================================================================
-// Shared Cursor for synchronized chart interactions
-// ============================================================================
-
-interface CursorState {
+interface CursorPosition {
   x: number;
   y: number;
 }
 
 interface SharedCursorContextValue {
-  cursor: CursorState | null;
-  setSharedCursor: (cursor: CursorState | null) => void;
+  cursor: CursorPosition | null;
+  setSharedCursor: (cursor: CursorPosition | null) => void;
 }
 
 const SharedCursorContext = createContext<SharedCursorContextValue | null>(null);
 
 export function SharedCursorProvider({ children }: { children: React.ReactNode }) {
-  const [cursor, setSharedCursor] = useState<CursorState | null>(null);
+  const [cursor, setSharedCursor] = useState<CursorPosition | null>(null);
+
+  const value = useMemo(
+    () => ({ cursor, setSharedCursor }),
+    [cursor],
+  );
 
   return (
-    <SharedCursorContext.Provider value={{ cursor, setSharedCursor }}>
+    <SharedCursorContext.Provider value={value}>
       {children}
     </SharedCursorContext.Provider>
   );
@@ -39,11 +40,10 @@ export function useSharedCursor({ shared, width, height }: UseSharedCursorProps)
     throw new Error('useSharedCursor with shared=true must be used within a SharedCursorProvider');
   }
 
-  const [localCursor, setLocalCursor] = useState<CursorState | null>(null);
+  const [localCursor, setLocalCursor] = useState<CursorPosition | null>(null);
 
-  // Normalize cursor position to relative coordinates (0-1)
   const normalizeCursor = useCallback(
-    (cursor: CursorState | null) => {
+    (cursor: CursorPosition | null): CursorPosition | null => {
       if (!cursor || width <= 0 || height <= 0) return null;
       return {
         x: cursor.x / width,
@@ -53,9 +53,8 @@ export function useSharedCursor({ shared, width, height }: UseSharedCursorProps)
     [width, height],
   );
 
-  // Denormalize cursor position back to pixel coordinates
   const denormalizeCursor = useCallback(
-    (cursor: CursorState | null) => {
+    (cursor: CursorPosition | null): CursorPosition | null => {
       if (!cursor) return null;
       return {
         x: cursor.x * width,
@@ -66,7 +65,7 @@ export function useSharedCursor({ shared, width, height }: UseSharedCursorProps)
   );
 
   const setCursor = useCallback(
-    (cursor: CursorState | null) => {
+    (cursor: CursorPosition | null) => {
       setLocalCursor(cursor);
       if (shared && context) {
         context.setSharedCursor(normalizeCursor(cursor));
