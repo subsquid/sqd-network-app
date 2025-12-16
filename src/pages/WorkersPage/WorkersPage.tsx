@@ -26,6 +26,7 @@ import {
 import { AddWorkerButton } from './AddNewWorker';
 import { SquaredChip } from '@components/Chip';
 import { SectionHeader } from '@components/SectionHeader';
+import { Card } from '@components/Card';
 import { useAccount } from '@network/useAccount';
 
 export function MyWorkers() {
@@ -47,9 +48,8 @@ export function MyWorkers() {
   const isLoading = isSourcesLoading || isWorkersLoading;
 
   return (
-    <Box>
+    <>
       <SectionHeader
-        sx={{ mb: 2 }}
         title={<SquaredChip label="My Workers" color="primary" />}
         action={
           <Stack direction="row" spacing={1}>
@@ -66,7 +66,8 @@ export function MyWorkers() {
           </Stack>
         }
       />
-      <DashboardTable loading={isLoading}>
+      <Card>
+        <DashboardTable loading={isLoading} sx={{ mx: -2 }}>
         <>
           <TableHead>
             <TableRow>
@@ -153,8 +154,9 @@ export function MyWorkers() {
             )}
           </TableBody>
         </>
-      </DashboardTable>
-    </Box>
+        </DashboardTable>
+      </Card>
+    </>
   );
 }
 

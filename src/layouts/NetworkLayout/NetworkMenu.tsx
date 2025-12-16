@@ -1,6 +1,8 @@
 import React, { useRef } from 'react';
 
 import {
+  AccountTree,
+  AccountTreeOutlined,
   ArrowOutwardOutlined,
   BackHand,
   BackHandOutlined,
@@ -134,7 +136,7 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
   const previousPathRef = useRef<string>('/dashboard');
 
   // Find which menu path matches the current location
-  const paths = ['/dashboard', '/assets', '/workers', '/delegations'];
+  const paths = ['/dashboard', '/assets', '/workers', '/my-portals', '/delegations'];
   if (demoFeaturesEnabled()) {
     paths.push('/portals');
   }
@@ -172,6 +174,15 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
         path="/workers"
         selected={activePath === '/workers'}
       />
+      {demoFeaturesEnabled() && (
+        <Item
+          LeftIcon={active => (active ? <AccountTree /> : <AccountTreeOutlined />)}
+          label="Portals"
+          onClick={onItemClick}
+          path="/portals"
+          selected={activePath === '/portals'}
+        />
+      )}
       <Item
         LeftIcon={active => (active ? <BackHand /> : <BackHandOutlined />)}
         label="Delegations"
@@ -179,15 +190,6 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
         path="/delegations"
         selected={activePath === '/delegations'}
       />
-      {demoFeaturesEnabled() && (
-        <Item
-          LeftIcon={active => (active ? <SensorDoor /> : <SensorDoorOutlined />)}
-          label="Portals"
-          onClick={onItemClick}
-          path="/portals"
-          selected={activePath === '/portals'}
-        />
-      )}
       <MenuSpacer />
       {isWorkerOperator && (
         <Item

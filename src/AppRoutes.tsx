@@ -9,15 +9,17 @@ import { BuyBacksPage } from '@pages/BuyBackPage/BuyBackPage.tsx';
 import { DashboardPage } from '@pages/DashboardPage/DashboardPage.tsx';
 import { Workers } from '@pages/DashboardPage/Workers.tsx';
 import { Analytics } from '@pages/DashboardPage/Analytics.tsx';
+import { MockPortals } from '@pages/DashboardPage/MockPortals.tsx';
 import { DelegationsPage } from '@pages/DelegationsPage/DelegationsPage.tsx';
-import { Gateway } from '@pages/GatewaysPage/Gateway.tsx';
-import { GatewaysPage } from '@pages/GatewaysPage/GatewaysPage.tsx';
 import { Worker } from '@pages/WorkerPage/Worker.tsx';
 import { WorkersPage } from '@pages/WorkersPage/WorkersPage.tsx';
+import { PortalsPage } from '@pages/PortalsPage/PortalsPage.tsx';
+import { Portal } from '@pages/PortalPage/Portal.tsx';
 
 import { hideLoader } from './index.tsx';
 import { WorkerGeneral } from '@pages/WorkerPage/General.tsx';
 import { WorkerAnalytics } from '@pages/WorkerPage/Analytics.tsx';
+import { PortalGeneral } from '@pages/PortalPage/PortalGeneral.tsx';
 
 export const AppRoutes = () => {
   hideLoader(0);
@@ -30,6 +32,7 @@ export const AppRoutes = () => {
           <Route index element={<Navigate to="workers" replace={true} />} />
           <Route path="workers" element={<Workers />} />
           <Route path="analytics" element={<Analytics />} />
+          <Route path="portals" element={<MockPortals />} />
         </Route>
 
         <Route path="/assets" element={<AssetsPage />}>
@@ -56,8 +59,10 @@ export const AppRoutes = () => {
           <Route element={<DelegationsPage />} index />
         </Route>
         <Route path="/portals">
-          <Route element={<GatewaysPage />} index />
-          <Route element={<Gateway backPath="/portals" />} path=":peerId" />
+          <Route element={<PortalsPage />} index />
+        </Route>
+        <Route path="portal/:address" element={<Portal backPath="/portals" />}>
+          <Route index element={<PortalGeneral />} />
         </Route>
         <Route path="/gateways" element={<Navigate to="/portals" replace={true} />} />
         <Route path="/buyback">

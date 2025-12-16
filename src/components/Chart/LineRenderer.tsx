@@ -40,7 +40,7 @@ export function LineRenderer({
   }, [series.data]);
 
   const gradientId = useMemo(
-    () => `gradient-${series.name.replace(/\s+/g, '-')}`,
+    () => `gradient-${series.name?.replace(/\s+/g, '-') ?? ''}`,
     [series.name],
   );
 
