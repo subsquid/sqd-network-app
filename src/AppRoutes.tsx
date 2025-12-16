@@ -12,6 +12,7 @@ import { Analytics } from '@pages/DashboardPage/Analytics.tsx';
 import { DelegationsPage } from '@pages/DelegationsPage/DelegationsPage.tsx';
 import { Gateway } from '@pages/GatewaysPage/Gateway.tsx';
 import { GatewaysPage } from '@pages/GatewaysPage/GatewaysPage.tsx';
+import { PoolPage } from '@pages/PoolsPage';
 import { Worker } from '@pages/WorkerPage/Worker.tsx';
 import { WorkersPage } from '@pages/WorkersPage/WorkersPage.tsx';
 
@@ -54,6 +55,10 @@ export const AppRoutes = () => {
         </Route>
         <Route path="/delegations">
           <Route element={<DelegationsPage />} index />
+        </Route>
+        <Route path="/pools">
+          <Route index element={<Navigate to="portal-pool" replace={true} />} />
+          <Route path=":poolId" element={<PoolPage />} />
         </Route>
         <Route path="/portals">
           <Route element={<GatewaysPage />} index />

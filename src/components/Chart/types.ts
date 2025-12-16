@@ -52,6 +52,8 @@ export interface LineChartProps {
   pointSize?: number;
   barBorderRadius?: number;
   grouped?: boolean;
+  // Custom margin overrides
+  margin?: { top?: number; right?: number; bottom?: number; left?: number };
 }
 
 // Chart configuration

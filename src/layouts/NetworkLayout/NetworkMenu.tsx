@@ -10,6 +10,8 @@ import {
   LanOutlined,
   Savings,
   SavingsOutlined,
+  Sensors,
+  SensorsOutlined,
   SensorDoor,
   SensorDoorOutlined,
   SmsOutlined,
@@ -134,7 +136,7 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
   const previousPathRef = useRef<string>('/dashboard');
 
   // Find which menu path matches the current location
-  const paths = ['/dashboard', '/assets', '/workers', '/delegations'];
+  const paths = ['/dashboard', '/assets', '/workers', '/delegations', '/pools'];
   if (demoFeaturesEnabled()) {
     paths.push('/portals');
   }
@@ -178,6 +180,13 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
         onClick={onItemClick}
         path="/delegations"
         selected={activePath === '/delegations'}
+      />
+      <Item
+        LeftIcon={active => (active ? <Sensors /> : <SensorsOutlined />)}
+        label="Pools"
+        onClick={onItemClick}
+        path="/pools"
+        selected={activePath === '/pools'}
       />
       {demoFeaturesEnabled() && (
         <Item

@@ -353,13 +353,18 @@ export function LineChart({
   pointSize = 10,
   barBorderRadius = 4,
   grouped = false,
+  margin: marginOverride,
 }: LineChartProps) {
   const theme = useTheme();
   const palette = useChartPalette();
   const domain = useChartDomain(series);
   const { xScale, yScale } = useChartScales(series, xAxis || domain.x, yAxis || domain.y);
 
-  const margin = useAutoMargin(xScale.ticks(), yScale.ticks(), axisFormat);
+  const autoMargin = useAutoMargin(xScale.ticks(), yScale.ticks(), axisFormat);
+  const margin = {
+    ...autoMargin,
+    ...marginOverride,
+  };
 
   return (
     <ParentSize>
