@@ -58,7 +58,8 @@ function ReadyWithdrawalItem({
       alignItems="center"
       justifyContent="space-between"
       sx={{
-        bgcolor: theme => (theme.palette.mode === 'dark' ? 'rgba(46, 125, 50, 0.15)' : 'rgba(46, 125, 50, 0.08)'),
+        bgcolor: theme =>
+          theme.palette.mode === 'dark' ? 'rgba(46, 125, 50, 0.15)' : 'rgba(46, 125, 50, 0.08)',
         p: 2,
         borderRadius: 2,
         border: '1px solid',
@@ -165,7 +166,9 @@ function WithdrawDialogContent({ pool, onClose }: Omit<WithdrawDialogProps, 'ope
             <Savings sx={{ color: 'warning.contrastText' }} />
           </Box>
           <Box>
-            <Typography variant="h6" color="text.primary">Withdraw Liquidity</Typography>
+            <Typography variant="h6" color="text.primary">
+              Withdraw Liquidity
+            </Typography>
             <Typography variant="body2" color="text.secondary">
               Withdraw your SQD from the pool
             </Typography>
@@ -176,11 +179,7 @@ function WithdrawDialogContent({ pool, onClose }: Omit<WithdrawDialogProps, 'ope
         <Stack spacing={2.5} sx={{ mt: 1 }}>
           {hasReadyWithdrawals && (
             <>
-              <Alert
-                severity="success"
-                sx={{ borderRadius: 2 }}
-                icon={<CheckCircle />}
-              >
+              <Alert severity="success" sx={{ borderRadius: 2 }} icon={<CheckCircle />}>
                 You have {readyWithdrawals.length} withdrawal(s) ready to claim!
               </Alert>
               <Stack spacing={1.5}>
@@ -232,7 +231,9 @@ function WithdrawDialogContent({ pool, onClose }: Omit<WithdrawDialogProps, 'ope
                   >
                     MAX
                   </Button>
-                  <Typography sx={{ ml: 1, fontWeight: 500 }} color="text.primary">{SQD_TOKEN}</Typography>
+                  <Typography sx={{ ml: 1, fontWeight: 500 }} color="text.primary">
+                    {SQD_TOKEN}
+                  </Typography>
                 </InputAdornment>
               ),
             }}
@@ -273,7 +274,12 @@ function WithdrawDialogContent({ pool, onClose }: Omit<WithdrawDialogProps, 'ope
               <Divider />
 
               <Box>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  sx={{ mb: 0.5 }}
+                >
                   <Stack direction="row" alignItems="center" spacing={0.5}>
                     <AccessTime sx={{ fontSize: 16, color: 'text.primary' }} />
                     <Typography variant="body2" color="text.primary">
@@ -325,7 +331,11 @@ function WithdrawDialogContent({ pool, onClose }: Omit<WithdrawDialogProps, 'ope
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 3 }}>
-        <Button onClick={onClose} disabled={isSubmitting} sx={{ borderRadius: 2, color: 'text.primary' }}>
+        <Button
+          onClick={onClose}
+          disabled={isSubmitting}
+          sx={{ borderRadius: 2, color: 'text.primary' }}
+        >
           Cancel
         </Button>
         <Button
@@ -368,26 +378,14 @@ export function WithdrawButton({ pool }: WithdrawButtonProps) {
 
   const button = (
     <Button
-      variant="contained"
+      variant="outlined"
       fullWidth
+      color="error"
       onClick={() => setDialogOpen(true)}
       disabled={!hasBalance}
-      sx={{
-        py: 1.5,
-        fontWeight: 600,
-        fontSize: '1rem',
-        bgcolor: 'grey.500',
-        color: 'common.white',
-        '&:hover': {
-          bgcolor: 'grey.800',
-        },
-        '&.Mui-disabled': {
-          bgcolor: 'grey.500',
-          color: 'common.white',
-        },
-      }}
+      sx={{}}
     >
-      Withdraw
+      WITHDRAW
     </Button>
   );
 

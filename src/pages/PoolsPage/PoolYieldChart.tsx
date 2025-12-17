@@ -13,6 +13,7 @@ import { Info } from '@mui/icons-material';
 import { useHistoricalTokenPrices } from '@api/price';
 import { LineChart, SharedCursorProvider } from '@components/Chart';
 import { useContracts } from '@network/useContracts';
+import { Card } from '@components/Card';
 
 type TimePeriod = '1w' | '1m' | '3m' | '1y';
 
@@ -23,11 +24,7 @@ interface PoolYieldChartProps {
 
 // Calculate APY at a given price point
 // APY = (monthlyPayoutUsd * 12) / (tvlInSqd * sqdPrice)
-function calculateApyAtPrice(
-  monthlyPayoutUsd: number,
-  tvlInSqd: number,
-  sqdPrice: number,
-): number {
+function calculateApyAtPrice(monthlyPayoutUsd: number, tvlInSqd: number, sqdPrice: number): number {
   if (sqdPrice <= 0 || tvlInSqd <= 0) return 0;
   const tvlUsd = tvlInSqd * sqdPrice;
   const annualPayoutUsd = monthlyPayoutUsd * 12;
@@ -104,23 +101,19 @@ export function PoolYieldChart({ monthlyPayoutUsd, tvlInSqd }: PoolYieldChartPro
     'Rolling APY calculated from historical SQD prices.\nAPY = (Monthly Payout × 12) / (TVL × SQD Price)\nPrice data via DefiLlama.';
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-        <Stack direction="row" alignItems="center" spacing={0.5}>
-          <Typography variant="h6">APY History</Typography>
-          <Tooltip title={<span style={{ whiteSpace: 'pre-line' }}>{priceTooltip}</span>} placement="top">
-            <Info sx={{ fontSize: 18, color: 'text.secondary', cursor: 'help' }} />
-          </Tooltip>
-        </Stack>
-        <ToggleButtonGroup value={period} exclusive onChange={handlePeriodChange} size="small">
+    <Card
+      title="APY"
+      subtitle="Rolling APY calculated from historical SQD prices."
+      action={
+        <ToggleButtonGroup value={period} exclusive onChange={handlePeriodChange}>
           <ToggleButton value="1w">1W</ToggleButton>
           <ToggleButton value="1m">1M</ToggleButton>
           <ToggleButton value="3m">3M</ToggleButton>
-          <ToggleButton value="1y">1Y</ToggleButton>
         </ToggleButtonGroup>
-      </Stack>
-
-      <Box sx={{ height: 496, width: '100%' }}>
+      }
+      sx={{ height: '100%', width: '100%' }}
+    >
+      <Box height={200} width={1} display="flex" alignItems="center" justifyContent="center">
         {isChartLoading ? (
           <Skeleton variant="rectangular" height="100%" sx={{ borderRadius: 1, width: '100%' }} />
         ) : (
@@ -138,6 +131,6 @@ export function PoolYieldChart({ monthlyPayoutUsd, tvlInSqd }: PoolYieldChartPro
           </SharedCursorProvider>
         )}
       </Box>
-    </Box>
+    </Card>
   );
 }

@@ -1,8 +1,14 @@
 import type { ReactNode } from 'react';
-import { Avatar, Box, Link, Stack, Tooltip, Typography } from '@mui/material';
+import { Avatar, Box, Grid, Link, Stack, Tooltip, Typography } from '@mui/material';
 import { Info } from '@mui/icons-material';
 
-import { dollarFormatter, tokenFormatter } from '@lib/formatters/formatters';
+import {
+  dollarFormatter,
+  numberCompactFormatter,
+  percentFormatter,
+  toCompact,
+  tokenFormatter,
+} from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
@@ -13,6 +19,8 @@ const USDC_ARBITRUM = {
 };
 
 import type { PoolData } from './usePoolData';
+import { useTokenPrice } from '@api/price';
+import { HelpTooltip } from '@components/HelpTooltip';
 
 interface PoolStatsProps {
   pool: PoolData;
@@ -28,72 +36,100 @@ function StatItem({
   tooltip?: string;
 }) {
   return (
-    <Box sx={{ flex: 1, minWidth: 0 }}>
-      <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.5 }}>
-        <Typography variant="body2" color="text.secondary" noWrap>
-          {label}
-        </Typography>
-        {tooltip && (
-          <Tooltip title={<span style={{ whiteSpace: 'pre-line' }}>{tooltip}</span>} placement="top">
-            <Info sx={{ fontSize: 14, color: 'text.secondary', cursor: 'help', flexShrink: 0 }} />
-          </Tooltip>
-        )}
-      </Stack>
+    <Box sx={{ minWidth: 0 }}>
+      <Typography variant="body2" color="text.secondary" noWrap>
+        <Stack direction="row" alignItems="center" spacing={0.5}>
+          <span>{label}</span>
+          {tooltip && <HelpTooltip title={tooltip} />}
+        </Stack>
+      </Typography>
       <Box sx={{ '& > *': { lineHeight: 1.3 } }}>{value}</Box>
     </Box>
   );
 }
 
+// Calculate APY: (monthlyPayoutUsd * 12) / (tvl * sqdPrice)
+function calculateApy(
+  monthlyPayoutUsd: number,
+  tvlInSqd: number,
+  sqdPrice: number | undefined,
+): number | undefined {
+  if (!sqdPrice || tvlInSqd === 0) return undefined;
+  const tvlInUsd = tvlInSqd * sqdPrice;
+  const annualPayoutUsd = monthlyPayoutUsd * 12;
+  return annualPayoutUsd / tvlInUsd;
+}
+
 export function PoolStats({ pool }: PoolStatsProps) {
-  const { SQD_TOKEN } = useContracts();
+  const { SQD_TOKEN, SQD } = useContracts();
+  const { data: sqdPrice } = useTokenPrice({ address: SQD });
 
   const currentTvl = fromSqd(pool.tvl.current);
   const maxTvl = fromSqd(pool.tvl.max);
   const tvlPercent = maxTvl.gt(0) ? currentTvl.div(maxTvl).times(100).toNumber() : 0;
 
+  const calculatedApyRatio = calculateApy(pool.monthlyPayoutUsd, maxTvl.toNumber(), sqdPrice);
+
+  // Calculate APY using max TVL (pool capacity)
+  const displayApy = calculatedApyRatio !== undefined ? calculatedApyRatio * 100 : pool.apy * 100;
+
+  const apyTooltip =
+    'APY = (Monthly Payout × 12) / (Pool Capacity × SQD Price)\nBased on full pool capacity and live SQD price.';
+
   return (
-    <Stack spacing={2}>
+    <Stack
+      direction={{ xs: 'column', sm: 'row' }}
+      spacing={2}
+      sx={{ justifyContent: 'space-between', width: '100%' }}
+    >
       <StatItem
         label="TVL"
         value={
           <Stack direction="row" alignItems="baseline" spacing={0.5} flexWrap="wrap">
             <Typography variant="h6" component="span">
-              {tokenFormatter(currentTvl, SQD_TOKEN, 0)}
+              {numberCompactFormatter(currentTvl.toNumber())}
             </Typography>
-            <Typography variant="body2" color="text.secondary" component="span">
-              / {tokenFormatter(maxTvl, SQD_TOKEN, 0)} ({tvlPercent.toFixed(0)}%)
+            <Typography variant="h6" component="span">
+              / {numberCompactFormatter(maxTvl.toNumber())} {SQD_TOKEN}
             </Typography>
           </Stack>
         }
       />
-      <Stack direction="row" spacing={3}>
-        <StatItem
-          label="Monthly Payout"
-          value={<Typography variant="h6">{dollarFormatter(pool.monthlyPayoutUsd)}</Typography>}
-          tooltip="Fixed monthly amount paid to SQD liquidity providers"
-        />
-        <StatItem
-          label="Currency"
-          value={
-            <Link
-              href={`https://arbiscan.io/token/${USDC_ARBITRUM.address}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              underline="hover"
-              sx={{ display: 'flex', alignItems: 'center' }}
-            >
-              <Stack direction="row" alignItems="center" spacing={1}>
+      <StatItem
+        label="APY"
+        tooltip={apyTooltip}
+        value={
+          <Typography variant="h5" color="success.main">
+            {percentFormatter(displayApy)}
+          </Typography>
+        }
+      />
+      <StatItem
+        label="Monthly Payout"
+        value={
+          <Typography variant="h6">
+            <Stack direction="row" alignItems="center" spacing={0.5} flexWrap="wrap">
+              <Typography variant="h6">
+                {tokenFormatter(pool.monthlyPayoutUsd, USDC_ARBITRUM.symbol, 0)}
+              </Typography>
+              <Link
+                href={`https://arbiscan.io/token/${USDC_ARBITRUM.address}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                underline="hover"
+                sx={{ display: 'flex', alignItems: 'center' }}
+              >
                 <Avatar
                   src={USDC_ARBITRUM.logo}
                   alt={USDC_ARBITRUM.symbol}
                   sx={{ width: 24, height: 24 }}
                 />
-                <Typography variant="h6" color="text.primary">{USDC_ARBITRUM.symbol}</Typography>
-              </Stack>
-            </Link>
-          }
-        />
-      </Stack>
+              </Link>
+            </Stack>
+          </Typography>
+        }
+        tooltip="Fixed monthly amount paid to SQD liquidity providers"
+      />
     </Stack>
   );
 }

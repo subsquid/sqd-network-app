@@ -64,7 +64,7 @@ export const HelpTooltip = ({
         enterDelay={enterDelay}
         leaveDelay={leaveDelay}
       >
-        <InfoOutlined fontSize="inherit" sx={{ transform: 'scale(1.2)', ...iconSx }} />
+        <InfoOutlined fontSize="small" sx={{ transform: 'scale(1)', ...iconSx }} />
       </Tooltip>
       {placement === 'start' && children && <Box>{children}</Box>}
     </Stack>

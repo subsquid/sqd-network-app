@@ -69,7 +69,7 @@ export function tokenFormatter(val: number | BigNumber, currency: string, decima
   const res =
     rounded.eq(0) && !bn.eq(0)
       ? '< ' + BigNumber(1).shiftedBy(-decimals).toFormat(tokenFormatOptions)
-      : rounded.toFormat(tokenFormatOptions);
+      :  rounded.toFormat(tokenFormatOptions);
 
   return res + ` ${currency}`;
 }

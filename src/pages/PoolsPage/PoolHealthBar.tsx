@@ -7,6 +7,7 @@ import { useContracts } from '@network/useContracts';
 
 import type { PoolData } from './usePoolData';
 import { calculateBufferHealth } from './usePoolData';
+import { HelpTooltip } from '@components/HelpTooltip';
 
 interface PoolHealthBarProps {
   pool: PoolData;
@@ -43,19 +44,16 @@ function ActivationProgress({ pool }: { pool: PoolData }) {
   const remaining = Math.max(threshold - current, 0);
 
   return (
-    <Box>
+    <Box sx={{ flex: 1 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-        <Stack direction="row" alignItems="center" spacing={0.5}>
-          <Typography variant="body2" color="text.secondary">
-            Activation Progress
-          </Typography>
-          <Tooltip
-            title={`Pool activates when ${tokenFormatter(threshold, SQD_TOKEN, 0)} is deposited (Base + ${pool.activation.bufferPercent}% buffer)`}
-            placement="top"
-          >
-            <Info sx={{ fontSize: 16, color: 'text.secondary', cursor: 'help' }} />
-          </Tooltip>
-        </Stack>
+        <Typography variant="body2" color="text.secondary">
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            <span>Activation Progress</span>
+            <HelpTooltip
+              title={`Pool activates when ${tokenFormatter(threshold, SQD_TOKEN, 0)} is deposited (Base + ${pool.activation.bufferPercent}% buffer)`}
+            />
+          </Stack>
+        </Typography>
         <Typography variant="body2" color="warning.main" fontWeight="medium">
           {progress.toFixed(0)}%
         </Typography>
@@ -70,9 +68,6 @@ function ActivationProgress({ pool }: { pool: PoolData }) {
           backgroundColor: 'action.hover',
         }}
       />
-      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-        {tokenFormatter(remaining, SQD_TOKEN, 0)} more needed to activate
-      </Typography>
     </Box>
   );
 }
@@ -88,16 +83,14 @@ function BufferHealth({ pool }: { pool: PoolData }) {
   const visualProgress = Math.min(healthPercent, 100);
 
   return (
-    <Box>
+    <Box sx={{ flex: 1 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-        <Stack direction="row" alignItems="center" spacing={0.5}>
-          <Typography variant="body2" color="text.secondary">
-            Pool Health
-          </Typography>
-          <Tooltip title={description} placement="top">
-            <Info sx={{ fontSize: 16, color: 'text.secondary', cursor: 'help' }} />
-          </Tooltip>
-        </Stack>
+        <Typography variant="body2" color="text.secondary">
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            <span>Pool Health</span>
+            <HelpTooltip title={description} />
+          </Stack>
+        </Typography>
         <Typography variant="body2" color={`${color}.main`} fontWeight="medium">
           {label} ({healthPercent.toFixed(0)}%)
         </Typography>
@@ -118,21 +111,21 @@ function BufferHealth({ pool }: { pool: PoolData }) {
 
 export function PoolHealthBar({ pool }: PoolHealthBarProps) {
   // Show paused warning if yields are stopped
-  if (pool.phase === 'paused') {
-    return (
-      <Box>
-        <Alert severity="error" icon={<Warning />} sx={{ mb: 2 }}>
-          <Typography variant="body2" fontWeight="medium">
-            Yields Stopped
-          </Typography>
-          <Typography variant="caption">
-            Buffer dropped below minimum. Yields will resume when more liquidity is added.
-          </Typography>
-        </Alert>
-        <BufferHealth pool={pool} />
-      </Box>
-    );
-  }
+  // if (pool.phase === 'paused') {
+  //   return (
+  //     <Box >
+  //       <Alert severity="error" icon={<Warning />} sx={{ mb: 2 }}>
+  //         <Typography variant="body2" fontWeight="medium">
+  //           Yields Stopped
+  //         </Typography>
+  //         <Typography variant="caption">
+  //           Buffer dropped below minimum. Yields will resume when more liquidity is added.
+  //         </Typography>
+  //       </Alert>
+  //       <BufferHealth pool={pool} />
+  //     </Box>
+  //   );
+  // }
 
   // Show activation progress during deposit window
   if (pool.phase === 'deposit_window') {

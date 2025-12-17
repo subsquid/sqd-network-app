@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Box, Divider, Grid, Stack, Tab, Tabs, Typography } from '@mui/material';
 
 import { Card } from '@components/Card';
+import { Property, PropertyList } from '@components/Property';
 import { CenteredPageWrapper } from '@layouts/NetworkLayout';
 import { fromSqd } from '@lib/network';
 
@@ -15,60 +16,62 @@ import { ProvideButton } from './ProvideDialog';
 import { WithdrawButton } from './WithdrawDialog';
 import { PendingWithdrawals } from './PendingWithdrawals';
 import { usePoolData, type PoolData } from './usePoolData';
+import { dateFormat } from '@i18n';
 
 function PoolInfoCard({ pool }: { pool: PoolData }) {
   const [activeTab, setActiveTab] = useState(0);
 
   return (
-    <Card>
-      <Tabs
-        value={activeTab}
-        onChange={(_, newValue) => setActiveTab(newValue)}
-        sx={{ mb: 2 }}
-      >
-        <Tab label="Overview" />
-        <Tab label="Pool Info" />
+    <>
+      <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
+        <Tab label="Delegate" />
+        <Tab label="Manage" />
+        <Tab label="Info" />
       </Tabs>
-      {activeTab === 0 && (
-        <Stack spacing={2} divider={<Divider />}>
-          <UserPoolBalance pool={pool} />
-          <PoolStats pool={pool} />
-          <PoolHealthBar pool={pool} />
-        </Stack>
-      )}
-      {activeTab === 1 && (
-        <Stack spacing={2} divider={<Divider />}>
-          <Stack direction="row" justifyContent="space-between">
-            <Typography variant="body2" color="text.secondary">Created by</Typography>
-            <Typography variant="body2">{pool.operator.name}</Typography>
-          </Stack>
-          <Stack direction="row" justifyContent="space-between">
-            <Typography variant="body2" color="text.secondary">Created at</Typography>
-            <Typography variant="body2">Dec 16, 2025</Typography>
-          </Stack>
-          <Stack direction="row" justifyContent="space-between">
-            <Typography variant="body2" color="text.secondary">Pool contract</Typography>
-            <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>0x1234...5678</Typography>
-          </Stack>
-          <Stack direction="row" justifyContent="space-between">
-            <Typography variant="body2" color="text.secondary">Pool capacity</Typography>
-            <Typography variant="body2">1,000,000 SQD</Typography>
-          </Stack>
-          <Stack direction="row" justifyContent="space-between">
-            <Typography variant="body2" color="text.secondary">Max deposit per address</Typography>
-            <Typography variant="body2">100,000 SQD</Typography>
-          </Stack>
-          <Stack direction="row" justifyContent="space-between">
-            <Typography variant="body2" color="text.secondary">Activation threshold</Typography>
-            <Typography variant="body2">1,000,000 SQD</Typography>
-          </Stack>
-          <Stack direction="row" justifyContent="space-between">
-            <Typography variant="body2" color="text.secondary">Withdrawal window</Typography>
-            <Typography variant="body2">{pool.withdrawalQueue.windowDuration}</Typography>
-          </Stack>
-        </Stack>
-      )}
-    </Card>
+      <Box height="100%" display="flex" flexDirection="column" gap={2} justifyContent="stretch">
+        {activeTab === 0 && (
+          <>
+            <Card sx={{ height: '100%' }}>
+              <Stack spacing={2} divider={<Divider />}>
+                <UserPoolBalance pool={pool} />
+                <Stack spacing={1.5} direction="row" justifyContent="space-between">
+                  <ProvideButton pool={pool} />
+                  <WithdrawButton pool={pool} />
+                </Stack>
+              </Stack>
+            </Card>
+          </>
+        )}
+        {activeTab === 1 && (
+          <>
+            <Card sx={{ height: '100%' }}>
+              <Stack spacing={2} divider={<Divider />}></Stack>
+            </Card>
+          </>
+        )}
+        {activeTab === 2 && (
+          <Card sx={{ height: '100%' }}>
+            <Stack divider={<Divider />} spacing={2}>
+              <PropertyList>
+                <Property label="Operator" value={pool.operator.name} />
+                <Property
+                  label="Created"
+                  value={dateFormat(new Date('2025-12-16T12:00:00Z'), 'dateTime')}
+                />
+              </PropertyList>
+              <Typography>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+                exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute
+                irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+                pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
+                deserunt mollit anim id est laborum
+              </Typography>
+            </Stack>
+          </Card>
+        )}
+      </Box>
+    </>
   );
 }
 
@@ -85,32 +88,29 @@ function PoolPageContent({ poolId }: { poolId?: string }) {
 
   return (
     <>
-      <PoolHeader pool={pool} />
+      <Box>
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, md: 8 }} container>
+            <Grid size={{ xs: 12 }}>
+              <PoolHeader pool={pool} />
+            </Grid>
+            <Grid size={{ xs: 12 }}>
+              <PoolYieldChart
+                monthlyPayoutUsd={pool.monthlyPayoutUsd}
+                tvlInSqd={fromSqd(pool.tvl.max).toNumber()}
+              />
+            </Grid>
+          </Grid>
 
-      <Grid container spacing={2} sx={{ mt: 2 }}>
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Card>
-            <PoolYieldChart
-              monthlyPayoutUsd={pool.monthlyPayoutUsd}
-              tvlInSqd={fromSqd(pool.tvl.max).toNumber()}
-            />
-          </Card>
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Stack spacing={2} height="100%">
+              <PoolInfoCard pool={pool} />
+            </Stack>
+          </Grid>
         </Grid>
 
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Stack spacing={2}>
-            <PoolInfoCard pool={pool} />
-            <Card>
-              <Stack spacing={1.5}>
-                <ProvideButton pool={pool} />
-                <WithdrawButton pool={pool} />
-              </Stack>
-            </Card>
-          </Stack>
-        </Grid>
-      </Grid>
-
-      <PendingWithdrawals pool={pool} />
+        <PendingWithdrawals pool={pool} />
+      </Box>
     </>
   );
 }

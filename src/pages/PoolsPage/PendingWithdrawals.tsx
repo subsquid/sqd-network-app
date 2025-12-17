@@ -30,7 +30,7 @@ interface PendingWithdrawalsProps {
 }
 
 function getStatusColor(
-  status: PendingWithdrawal['status']
+  status: PendingWithdrawal['status'],
 ): 'warning' | 'info' | 'success' | 'default' {
   switch (status) {
     case 'pending':
@@ -158,7 +158,9 @@ function PayoutsTable() {
           <TableCell>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Avatar src={USDC_LOGO} alt="USDC" sx={{ width: 20, height: 20 }} />
-              <Typography variant="body2" fontWeight={500}>+125.50 USDC</Typography>
+              <Typography variant="body2" fontWeight={500}>
+                +125.50 USDC
+              </Typography>
             </Box>
           </TableCell>
           <TableCell>
@@ -178,7 +180,9 @@ function PayoutsTable() {
           <TableCell>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Avatar src={USDC_LOGO} alt="USDC" sx={{ width: 20, height: 20 }} />
-              <Typography variant="body2" fontWeight={500}>+118.75 USDC</Typography>
+              <Typography variant="body2" fontWeight={500}>
+                +118.75 USDC
+              </Typography>
             </Box>
           </TableCell>
           <TableCell>
@@ -239,17 +243,13 @@ export function PendingWithdrawals({ pool }: PendingWithdrawalsProps) {
   const readyCount = userPendingWithdrawals.filter(w => w.status === 'ready').length;
 
   return (
-    <Box sx={{ mt: 3 }}>
+    <Box sx={{ mt: 2 }}>
+      <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)} sx={{ mb: 2 }}>
+        <Tab label={`Pending Withdrawals${readyCount > 0 ? ` (${readyCount})` : ''}`} />
+        <Tab label="Payouts" />
+        <Tab label="My History" />
+      </Tabs>
       <Card>
-        <Tabs
-          value={activeTab}
-          onChange={(_, newValue) => setActiveTab(newValue)}
-          sx={{ mb: 2 }}
-        >
-          <Tab label={`Pending Withdrawals${readyCount > 0 ? ` (${readyCount})` : ''}`} />
-          <Tab label="Payouts" />
-          <Tab label="My History" />
-        </Tabs>
         {activeTab === 0 && (
           <PendingWithdrawalsTable pool={pool} claimingId={claimingId} onClaim={handleClaim} />
         )}

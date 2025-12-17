@@ -76,7 +76,7 @@ export function usePoolData(poolId?: string) {
         name: 'Subsquid',
         address: '0x1234567890abcdef1234567890abcdef12345678',
       },
-      phase: 'deposit_window' as PoolPhase,
+      phase: 'paused' as PoolPhase,
       apy: 0.04, // 4% - calculated as (monthlyPayoutUsd * 12) / (tvl in USD)
       monthlyPayoutUsd: 3000, // $3,000 per month paid to SQD providers
       tvl: {

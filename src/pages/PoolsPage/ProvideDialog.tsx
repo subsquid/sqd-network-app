@@ -157,7 +157,9 @@ function ProvideDialogContent({ pool, onClose }: Omit<ProvideDialogProps, 'open'
             <AccountBalanceWallet sx={{ color: 'primary.contrastText' }} />
           </Box>
           <Box>
-            <Typography variant="h6" color="text.primary">Provide Liquidity</Typography>
+            <Typography variant="h6" color="text.primary">
+              Provide Liquidity
+            </Typography>
             <Typography variant="body2" color="text.secondary">
               Earn yield by depositing SQD
             </Typography>
@@ -220,7 +222,9 @@ function ProvideDialogContent({ pool, onClose }: Omit<ProvideDialogProps, 'open'
                   >
                     MAX
                   </Button>
-                  <Typography sx={{ ml: 1, fontWeight: 500 }} color="text.primary">{SQD_TOKEN}</Typography>
+                  <Typography sx={{ ml: 1, fontWeight: 500 }} color="text.primary">
+                    {SQD_TOKEN}
+                  </Typography>
                 </InputAdornment>
               ),
             }}
@@ -239,7 +243,12 @@ function ProvideDialogContent({ pool, onClose }: Omit<ProvideDialogProps, 'open'
           >
             <Stack spacing={2}>
               <Box>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  sx={{ mb: 0.5 }}
+                >
                   <Typography variant="body2" color="text.primary">
                     Your deposit limit
                   </Typography>
@@ -263,7 +272,12 @@ function ProvideDialogContent({ pool, onClose }: Omit<ProvideDialogProps, 'open'
               </Box>
 
               <Box>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  sx={{ mb: 0.5 }}
+                >
                   <Typography variant="body2" color="text.primary">
                     Pool capacity
                   </Typography>
@@ -300,7 +314,11 @@ function ProvideDialogContent({ pool, onClose }: Omit<ProvideDialogProps, 'open'
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 3 }}>
-        <Button onClick={onClose} disabled={isSubmitting} sx={{ borderRadius: 2, color: 'text.primary' }}>
+        <Button
+          onClick={onClose}
+          disabled={isSubmitting}
+          sx={{ borderRadius: 2, color: 'text.primary' }}
+        >
           Cancel
         </Button>
         <Button
@@ -342,18 +360,8 @@ export function ProvideButton({ pool }: ProvideButtonProps) {
 
   return (
     <>
-      <Button
-        variant="contained"
-        color="info"
-        fullWidth
-        onClick={() => setDialogOpen(true)}
-        sx={{
-          py: 1.5,
-          fontWeight: 600,
-          fontSize: '1rem',
-        }}
-      >
-        Provide $SQD
+      <Button variant="outlined" color="secondary" fullWidth onClick={() => setDialogOpen(true)}>
+        DEPOSIT
       </Button>
       <ProvideDialog open={dialogOpen} onClose={() => setDialogOpen(false)} pool={pool} />
     </>
