@@ -50,6 +50,7 @@ export interface PoolData {
     bufferPercent: number; // 20%
     threshold: bigint; // 1.2M SQD (base + buffer)
   };
+  depositWindowEndsAt?: Date; // When the deposit window closes (only for deposit_window phase)
   buffer: {
     current: bigint;
     min: bigint; // Minimum buffer to keep yields active
@@ -57,6 +58,7 @@ export interface PoolData {
   withdrawalQueue: WithdrawalQueue;
   userBalance: bigint;
   userPendingWithdrawals: PendingWithdrawal[];
+  userRewards: bigint; // Claimable rewards earned by the user in USDC (6 decimals)
   maxDepositPerAddress: bigint;
   withdrawWaitTime?: string;
 }
@@ -76,7 +78,7 @@ export function usePoolData(poolId?: string) {
         name: 'Subsquid',
         address: '0x1234567890abcdef1234567890abcdef12345678',
       },
-      phase: 'paused' as PoolPhase,
+      phase: 'deposit_window' as PoolPhase,
       apy: 0.04, // 4% - calculated as (monthlyPayoutUsd * 12) / (tvl in USD)
       monthlyPayoutUsd: 3000, // $3,000 per month paid to SQD providers
       tvl: {
@@ -88,6 +90,7 @@ export function usePoolData(poolId?: string) {
         bufferPercent: 0, // No buffer requirement for activation
         threshold: BigInt('1000000000000000000000000'), // 1M SQD to activate
       },
+      depositWindowEndsAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
       buffer: {
         current: BigInt('120000000000000000000000'), // 120k SQD (current buffer above minimum)
         min: BigInt('100000000000000000000000'), // 100k SQD minimum to keep yields
@@ -99,6 +102,7 @@ export function usePoolData(poolId?: string) {
         windowResetIn: '18 hours',
       },
       userBalance: address ? BigInt('12345600000000000000000') : BigInt(0), // 12,345.6 SQD
+      userRewards: address ? BigInt('234560000') : BigInt(0), // 234.56 USDC in rewards (6 decimals)
       userPendingWithdrawals: address
         ? [
             {

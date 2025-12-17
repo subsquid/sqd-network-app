@@ -1,27 +1,14 @@
 import { useState } from 'react';
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  InputAdornment,
-  LinearProgress,
-  Stack,
-  TextField,
-  Tooltip,
-  Typography,
-} from '@mui/material';
-import { AccessTime, CheckCircle, Savings } from '@mui/icons-material';
+import { Alert, Box, Button, Chip, Divider, Stack, Tooltip, Typography } from '@mui/material';
+import { CheckCircle } from '@mui/icons-material';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 
+import { ContractCallDialog } from '@components/ContractCallDialog';
+import { FormRow, FormikTextInput } from '@components/Form';
+import { dateFormat } from '@i18n';
 import { tokenFormatter } from '@lib/formatters/formatters';
-import { fromSqd, toSqd } from '@lib/network';
+import { fromSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
 import type { PendingWithdrawal, PoolData } from './usePoolData';
@@ -32,13 +19,21 @@ interface WithdrawDialogProps {
   pool: PoolData;
 }
 
-const createValidationSchema = (maxAmount: number) =>
+const createValidationSchema = (maxAmount: string) =>
   yup.object({
     amount: yup
-      .number()
+      .string()
       .required('Amount is required')
-      .positive('Amount must be positive')
-      .max(maxAmount, `Maximum withdrawal is ${maxAmount.toLocaleString()} SQD`),
+      .test('positive', 'Amount must be positive', value => {
+        const num = parseFloat(value || '0');
+        return num > 0;
+      })
+      .test('max', `Insufficient balance`, function (value) {
+        const num = parseFloat(value || '0');
+        const max = parseFloat(this.parent.max || '0');
+        return num <= max;
+      }),
+    max: yup.string().required(),
   });
 
 function ReadyWithdrawalItem({
@@ -91,280 +86,210 @@ function ReadyWithdrawalItem({
   );
 }
 
-function WithdrawDialogContent({ pool, onClose }: Omit<WithdrawDialogProps, 'open'>) {
+interface WithdrawDialogContentProps {
+  pool: PoolData;
+  formik: ReturnType<typeof useFormik<{ amount: string; max: string }>>;
+  onClaim: (id: string) => void;
+  claimingId: string | null;
+}
+
+function WithdrawDialogContent({ pool, formik, onClaim, claimingId }: WithdrawDialogContentProps) {
   const { SQD_TOKEN } = useContracts();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [claimingId, setClaimingId] = useState<string | null>(null);
 
   const readyWithdrawals = pool.userPendingWithdrawals.filter(w => w.status === 'ready');
   const pendingWithdrawals = pool.userPendingWithdrawals.filter(w => w.status !== 'ready');
   const hasReadyWithdrawals = readyWithdrawals.length > 0;
 
-  const maxWithdraw = fromSqd(pool.userBalance).toNumber();
-  const validationSchema = createValidationSchema(maxWithdraw);
+  const currentUserBalance = fromSqd(pool.userBalance).toNumber();
+  const currentPoolTvl = fromSqd(pool.tvl.current).toNumber();
+  const maxPoolCapacity = fromSqd(pool.tvl.max).toNumber();
+
+  // Calculate expected values after withdrawal
+  const typedAmount = parseFloat(formik.values.amount || '0');
+  const expectedUserDelegation = Math.max(0, currentUserBalance - typedAmount);
+  const expectedTotalDelegation = Math.max(0, currentPoolTvl - typedAmount);
+
+  // Calculate expected monthly payout
+  const payoutCoefficientPerSqd = maxPoolCapacity > 0 ? pool.monthlyPayoutUsd / maxPoolCapacity : 0;
+  const userExpectedMonthlyPayout = expectedUserDelegation * payoutCoefficientPerSqd;
+
+  // Calculate expected unlock date
+  const calculateUnlockDate = (): Date | null => {
+    if (!pool.withdrawWaitTime) return null;
+    
+    const now = new Date();
+    const waitTimeStr = pool.withdrawWaitTime.toLowerCase();
+    
+    // Parse wait time (e.g., "2 days", "3 hours", "1 week")
+    const match = waitTimeStr.match(/(\d+)\s*(day|hour|week|minute)/);
+    if (!match) return null;
+    
+    const value = parseInt(match[1]);
+    const unit = match[2];
+    
+    const unlockDate = new Date(now);
+    switch (unit) {
+      case 'minute':
+        unlockDate.setMinutes(unlockDate.getMinutes() + value);
+        break;
+      case 'hour':
+        unlockDate.setHours(unlockDate.getHours() + value);
+        break;
+      case 'day':
+        unlockDate.setDate(unlockDate.getDate() + value);
+        break;
+      case 'week':
+        unlockDate.setDate(unlockDate.getDate() + value * 7);
+        break;
+    }
+    
+    return unlockDate;
+  };
+
+  const expectedUnlockDate = typedAmount > 0 ? calculateUnlockDate() : null;
 
   const queueUsedPercent =
     (fromSqd(pool.withdrawalQueue.windowUsed).toNumber() /
       fromSqd(pool.withdrawalQueue.windowLimit).toNumber()) *
     100;
 
-  const handleClaim = async (withdrawalId: string) => {
-    setClaimingId(withdrawalId);
-    try {
-      // TODO: Call pool contract claim function
-      console.log('Claiming withdrawal:', withdrawalId);
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
-    } catch (error) {
-      console.error('Claim failed:', error);
-    } finally {
-      setClaimingId(null);
-    }
+  const handleMaxClick = () => {
+    formik.setFieldValue('amount', formik.values.max);
   };
+
+  return (
+    <Stack spacing={2.5}>
+      {pendingWithdrawals.length > 0 && (
+        <Alert severity="info">
+          You have {pendingWithdrawals.length} pending withdrawal(s) in queue. Estimated wait time:
+          ~{pool.withdrawWaitTime || '2 days'}.
+        </Alert>
+      )}
+
+      <FormRow>
+        <FormikTextInput
+          id="amount"
+          label="Amount"
+          formik={formik}
+          showErrorOnlyOfTouched
+          autoComplete="off"
+          placeholder="0"
+          InputProps={{
+            endAdornment: (
+              <Chip
+                clickable
+                disabled={formik.values.max === formik.values.amount}
+                onClick={handleMaxClick}
+                label="Max"
+              />
+            ),
+          }}
+        />
+      </FormRow>
+
+      <Divider />
+
+      <Stack spacing={1.5}>
+        <Stack direction="row" justifyContent="space-between">
+          <Typography variant="body2">Total Delegation</Typography>
+          <Typography variant="body2">
+            {typedAmount > 0
+              ? `${currentPoolTvl.toLocaleString(undefined, { maximumFractionDigits: 0 })} → ${expectedTotalDelegation.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${SQD_TOKEN}`
+              : tokenFormatter(fromSqd(pool.tvl.current), SQD_TOKEN, 0)}
+          </Typography>
+        </Stack>
+        <Stack direction="row" justifyContent="space-between">
+          <Typography variant="body2">Your Delegation</Typography>
+          <Typography variant="body2">
+            {typedAmount > 0
+              ? `${currentUserBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} → ${expectedUserDelegation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${SQD_TOKEN}`
+              : tokenFormatter(fromSqd(pool.userBalance), SQD_TOKEN, 2)}
+          </Typography>
+        </Stack>
+        <Stack direction="row" justifyContent="space-between">
+          <Typography variant="body2">Expected Monthly Payout</Typography>
+          <Typography variant="body2">
+            {userExpectedMonthlyPayout > 0
+              ? `$${userExpectedMonthlyPayout.toFixed(2)} USDC`
+              : '$0.00 USDC'}
+          </Typography>
+        </Stack>
+        <Stack direction="row" justifyContent="space-between">
+          <Typography variant="body2">Expected Unlock Date</Typography>
+          <Typography variant="body2">
+            {expectedUnlockDate ? dateFormat(expectedUnlockDate, 'dateTime') : '—'}
+          </Typography>
+        </Stack>
+      </Stack>
+    </Stack>
+  );
+}
+
+export function WithdrawDialog({ open, onClose, pool }: WithdrawDialogProps) {
+  const { SQD_TOKEN } = useContracts();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [claimingId, setClaimingId] = useState<string | null>(null);
+
+  const maxWithdraw = fromSqd(pool.userBalance).toNumber();
+  const validationSchema = createValidationSchema(maxWithdraw.toString());
 
   const formik = useFormik({
     initialValues: {
       amount: '',
+      max: maxWithdraw.toString(),
     },
     validationSchema,
     validateOnChange: true,
     validateOnBlur: true,
+    enableReinitialize: true,
     onSubmit: async values => {
       setIsSubmitting(true);
       try {
-        const amountInWei = toSqd(values.amount);
+        const sqdAmount = BigInt(Math.floor(parseFloat(values.amount) * 10 ** 18));
         // TODO: Call pool contract withdraw function
-        console.log('Withdrawing:', amountInWei.toString());
+        // Example: await withdrawFromPool(pool.id, sqdAmount);
         await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
         onClose();
+        formik.resetForm();
       } catch (error) {
-        console.error('Withdrawal failed:', error);
+        // Handle error in production
       } finally {
         setIsSubmitting(false);
       }
     },
   });
 
-  const handleMaxClick = () => {
-    formik.setFieldValue('amount', maxWithdraw.toString());
+  const handleClaim = async (withdrawalId: string) => {
+    setClaimingId(withdrawalId);
+    try {
+      // TODO: Call pool contract claim function
+      // Example: await claimWithdrawal(withdrawalId);
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
+    } catch (error) {
+      // Handle error in production
+    } finally {
+      setClaimingId(null);
+    }
   };
 
   return (
-    <form onSubmit={formik.handleSubmit}>
-      <DialogTitle sx={{ pb: 1 }}>
-        <Stack direction="row" alignItems="center" spacing={1.5}>
-          <Box
-            sx={{
-              width: 40,
-              height: 40,
-              borderRadius: 2,
-              bgcolor: 'warning.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Savings sx={{ color: 'warning.contrastText' }} />
-          </Box>
-          <Box>
-            <Typography variant="h6" color="text.primary">
-              Withdraw Liquidity
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Withdraw your SQD from the pool
-            </Typography>
-          </Box>
-        </Stack>
-      </DialogTitle>
-      <DialogContent>
-        <Stack spacing={2.5} sx={{ mt: 1 }}>
-          {hasReadyWithdrawals && (
-            <>
-              <Alert severity="success" sx={{ borderRadius: 2 }} icon={<CheckCircle />}>
-                You have {readyWithdrawals.length} withdrawal(s) ready to claim!
-              </Alert>
-              <Stack spacing={1.5}>
-                {readyWithdrawals.map(withdrawal => (
-                  <ReadyWithdrawalItem
-                    key={withdrawal.id}
-                    withdrawal={withdrawal}
-                    onClaim={handleClaim}
-                    isClaiming={claimingId === withdrawal.id}
-                  />
-                ))}
-              </Stack>
-              <Divider sx={{ my: 1 }} />
-            </>
-          )}
-
-          <Box>
-            <Typography variant="subtitle2" fontWeight={600} color="text.primary" sx={{ mb: 1 }}>
-              Request New Withdrawal
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Your request will be added to the queue and processed based on available liquidity.
-            </Typography>
-          </Box>
-
-          <TextField
-            id="amount"
-            name="amount"
-            label="Amount to withdraw"
-            type="number"
-            fullWidth
-            value={formik.values.amount}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={formik.touched.amount && Boolean(formik.errors.amount)}
-            helperText={formik.touched.amount && formik.errors.amount}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 2,
-              },
-            }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Button
-                    size="small"
-                    onClick={handleMaxClick}
-                    sx={{ minWidth: 'auto', fontWeight: 600, color: 'text.primary' }}
-                  >
-                    MAX
-                  </Button>
-                  <Typography sx={{ ml: 1, fontWeight: 500 }} color="text.primary">
-                    {SQD_TOKEN}
-                  </Typography>
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <Box
-            sx={{
-              bgcolor: 'background.default',
-              p: 2.5,
-              borderRadius: 2,
-              border: '1px solid',
-              borderColor: 'divider',
-            }}
-          >
-            <Stack spacing={2}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Typography variant="body2" color="text.primary">
-                  Your balance in pool
-                </Typography>
-                <Typography variant="body2" fontWeight={600} color="text.primary">
-                  {tokenFormatter(fromSqd(pool.userBalance), SQD_TOKEN, 2)}
-                </Typography>
-              </Stack>
-
-              {pendingWithdrawals.length > 0 && (
-                <Stack direction="row" justifyContent="space-between" alignItems="center">
-                  <Typography variant="body2" color="text.primary">
-                    Pending withdrawals
-                  </Typography>
-                  <Chip
-                    label={`${pendingWithdrawals.length} in queue`}
-                    size="small"
-                    color="warning"
-                  />
-                </Stack>
-              )}
-
-              <Divider />
-
-              <Box>
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  sx={{ mb: 0.5 }}
-                >
-                  <Stack direction="row" alignItems="center" spacing={0.5}>
-                    <AccessTime sx={{ fontSize: 16, color: 'text.primary' }} />
-                    <Typography variant="body2" color="text.primary">
-                      Queue limit ({pool.withdrawalQueue.windowDuration})
-                    </Typography>
-                  </Stack>
-                  <Typography variant="body2" fontWeight={600} color="text.primary">
-                    {tokenFormatter(fromSqd(pool.withdrawalQueue.windowUsed), SQD_TOKEN, 0)} /{' '}
-                    {tokenFormatter(fromSqd(pool.withdrawalQueue.windowLimit), SQD_TOKEN, 0)}
-                  </Typography>
-                </Stack>
-                <LinearProgress
-                  variant="determinate"
-                  value={queueUsedPercent}
-                  color={queueUsedPercent > 80 ? 'warning' : 'primary'}
-                  sx={{
-                    height: 6,
-                    borderRadius: 3,
-                    bgcolor: 'grey.400',
-                    '& .MuiLinearProgress-bar': {
-                      borderRadius: 3,
-                    },
-                  }}
-                />
-              </Box>
-
-              {pool.withdrawWaitTime && (
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  sx={{
-                    bgcolor: 'action.hover',
-                    p: 1.5,
-                    borderRadius: 1.5,
-                    mt: 1,
-                  }}
-                >
-                  <Typography variant="body2" color="text.primary">
-                    Estimated wait time
-                  </Typography>
-                  <Typography variant="body2" fontWeight={600} color="text.primary">
-                    ~{pool.withdrawWaitTime}
-                  </Typography>
-                </Stack>
-              )}
-            </Stack>
-          </Box>
-        </Stack>
-      </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 3 }}>
-        <Button
-          onClick={onClose}
-          disabled={isSubmitting}
-          sx={{ borderRadius: 2, color: 'text.primary' }}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          variant="contained"
-          loading={isSubmitting}
-          disabled={!formik.isValid || !formik.values.amount}
-          sx={{ borderRadius: 2, px: 3, color: 'text.primary' }}
-        >
-          Request Withdrawal
-        </Button>
-      </DialogActions>
-    </form>
-  );
-}
-
-export function WithdrawDialog({ open, onClose, pool }: WithdrawDialogProps) {
-  return (
-    <Dialog
+    <ContractCallDialog
+      title="Withdraw Liquidity"
       open={open}
-      onClose={onClose}
-      maxWidth="sm"
-      fullWidth
-      PaperProps={{
-        sx: { borderRadius: 3 },
+      onResult={confirmed => {
+        if (!confirmed) return onClose();
+        formik.handleSubmit();
       }}
+      loading={isSubmitting}
+      disableConfirmButton={!formik.isValid || !formik.values.amount}
     >
-      <WithdrawDialogContent pool={pool} onClose={onClose} />
-    </Dialog>
+      <WithdrawDialogContent
+        pool={pool}
+        formik={formik}
+        onClaim={handleClaim}
+        claimingId={claimingId}
+      />
+    </ContractCallDialog>
   );
 }
 

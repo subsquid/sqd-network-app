@@ -3,22 +3,20 @@ import {
   Alert,
   Box,
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  InputAdornment,
+  Chip,
+  Divider,
   LinearProgress,
   Stack,
-  TextField,
   Typography,
 } from '@mui/material';
-import { AccountBalanceWallet, TrendingUp } from '@mui/icons-material';
+import { TrendingUp } from '@mui/icons-material';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 
+import { ContractCallDialog } from '@components/ContractCallDialog';
+import { FormRow, FormikTextInput } from '@components/Form';
 import { tokenFormatter } from '@lib/formatters/formatters';
-import { fromSqd, toSqd } from '@lib/network';
+import { fromSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
 import type { PoolData } from './usePoolData';
@@ -29,13 +27,42 @@ interface ProvideDialogProps {
   pool: PoolData;
 }
 
-const createValidationSchema = (maxAmount: number) =>
+const createValidationSchema = (
+  maxAmount: string,
+  userRemainingCapacity: number,
+  poolRemainingCapacity: number,
+  maxDepositPerAddress: number,
+  currentUserBalance: number,
+  sqdToken: string,
+) =>
   yup.object({
     amount: yup
-      .number()
+      .string()
       .required('Amount is required')
-      .positive('Amount must be positive')
-      .max(maxAmount, `Maximum deposit is ${maxAmount.toLocaleString()} SQD`),
+      .test('positive', 'Amount must be positive', value => {
+        const num = parseFloat(value || '0');
+        return num > 0;
+      })
+      .test('max', function (value) {
+        const num = parseFloat(value || '0');
+        const max = parseFloat(this.parent.max || '0');
+
+        if (num <= max) return true;
+
+        // Determine which limit is being exceeded
+        if (userRemainingCapacity < poolRemainingCapacity) {
+          // User limit is the constraint
+          return this.createError({
+            message: `You have reached the maximum deposit limit of ${maxDepositPerAddress.toLocaleString()} ${sqdToken}`,
+          });
+        } else {
+          // Pool capacity is the constraint
+          return this.createError({
+            message: `Pool is at maximum capacity`,
+          });
+        }
+      }),
+    max: yup.string().required(),
   });
 
 function ActivationProgress({ pool }: { pool: PoolData }) {
@@ -86,7 +113,135 @@ function ActivationProgress({ pool }: { pool: PoolData }) {
   );
 }
 
-function ProvideDialogContent({ pool, onClose }: Omit<ProvideDialogProps, 'open'>) {
+interface ProvideDialogContentProps {
+  pool: PoolData;
+  formik: ReturnType<typeof useFormik<{ amount: string; max: string }>>;
+}
+
+function ProvideDialogContent({ pool, formik }: ProvideDialogContentProps) {
+  const { SQD_TOKEN } = useContracts();
+
+  // Calculate remaining capacity based on both per-address limit and pool capacity
+  const maxDepositPerAddress = fromSqd(pool.maxDepositPerAddress).toNumber();
+  const currentUserBalance = fromSqd(pool.userBalance).toNumber();
+  const userRemainingCapacity = Math.max(0, maxDepositPerAddress - currentUserBalance);
+
+  // Pool remaining capacity
+  const currentPoolTvl = fromSqd(pool.tvl.current).toNumber();
+  const maxPoolCapacity = fromSqd(pool.tvl.max).toNumber();
+  const poolRemainingCapacity = Math.max(0, maxPoolCapacity - currentPoolTvl);
+
+  const isDepositPhase = pool.phase === 'deposit_window';
+  const isPoolFull = poolRemainingCapacity === 0;
+  const isUserAtLimit = userRemainingCapacity === 0;
+
+  const poolCapacityPercent = (currentPoolTvl / maxPoolCapacity) * 100;
+
+  // Calculate user's expected monthly payout based on their delegation
+  // Coefficient per SQD = monthly payout / max pool capacity
+  const payoutCoefficientPerSqd = maxPoolCapacity > 0 ? pool.monthlyPayoutUsd / maxPoolCapacity : 0;
+
+  // Calculate expected delegation including the typed amount
+  const typedAmount = parseFloat(formik.values.amount || '0');
+  const maxAllowedDeposit = parseFloat(formik.values.max || '0');
+
+  // For preview, show uncapped values so user can see they're exceeding limits
+  const expectedUserDelegation = currentUserBalance + typedAmount;
+  const expectedTotalDelegation = currentPoolTvl + typedAmount;
+
+  // For payout calculation, cap at allowed amount
+  const actualDepositAmount = Math.min(typedAmount, maxAllowedDeposit);
+  const cappedUserDelegation = currentUserBalance + actualDepositAmount;
+  const userExpectedMonthlyPayout = cappedUserDelegation * payoutCoefficientPerSqd;
+
+  const handleMaxClick = () => {
+    formik.setFieldValue('amount', formik.values.max);
+  };
+
+  return (
+    <Stack spacing={2.5}>
+      {isDepositPhase && (
+        <Alert severity="info">
+          Collecting deposits to reach activation threshold. Pool will activate once the minimum
+          liquidity is met.
+          <br />
+          Deposits are locked until the pool activates or the collection period expires without
+          reaching the threshold.
+        </Alert>
+      )}
+
+      {pool.phase === 'paused' && (
+        <Alert severity="warning">
+          Pool is paused. Yields are currently stopped due to low buffer.
+        </Alert>
+      )}
+
+      {isPoolFull && (
+        <Alert severity="warning">Pool is at maximum capacity. No more deposits accepted.</Alert>
+      )}
+
+      {!isPoolFull && isUserAtLimit && (
+        <Alert severity="info">
+          You have reached the maximum deposit limit of{' '}
+          {tokenFormatter(fromSqd(pool.maxDepositPerAddress), SQD_TOKEN, 0)} per address.
+        </Alert>
+      )}
+
+      <FormRow>
+        <FormikTextInput
+          id="amount"
+          label="Amount"
+          formik={formik}
+          showErrorOnlyOfTouched
+          autoComplete="off"
+          placeholder="0"
+          disabled={isPoolFull || isUserAtLimit}
+          InputProps={{
+            endAdornment: (
+              <Chip
+                clickable
+                disabled={isPoolFull || isUserAtLimit || formik.values.max === formik.values.amount}
+                onClick={handleMaxClick}
+                label="Max"
+              />
+            ),
+          }}
+        />
+      </FormRow>
+
+      <Divider />
+
+      <Stack spacing={1.5}>
+        <Stack direction="row" justifyContent="space-between">
+          <Typography variant="body2">Total Delegation</Typography>
+          <Typography variant="body2">
+            {typedAmount > 0
+              ? `${currentPoolTvl.toLocaleString(undefined, { maximumFractionDigits: 0 })} → ${expectedTotalDelegation.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${SQD_TOKEN}`
+              : tokenFormatter(fromSqd(pool.tvl.current), SQD_TOKEN, 0)}
+          </Typography>
+        </Stack>
+        <Stack direction="row" justifyContent="space-between">
+          <Typography variant="body2">Your Delegation</Typography>
+          <Typography variant="body2">
+            {typedAmount > 0
+              ? `${currentUserBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} → ${expectedUserDelegation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${SQD_TOKEN}`
+              : tokenFormatter(fromSqd(pool.userBalance), SQD_TOKEN, 2)}
+          </Typography>
+        </Stack>
+        <Stack direction="row" justifyContent="space-between">
+          <Typography variant="body2">Expected Monthly Payout</Typography>
+          <Typography variant="body2">
+            {userExpectedMonthlyPayout > 0
+              ? `$${userExpectedMonthlyPayout.toFixed(2)} USDC`
+              : '$0.00 USDC'}
+          </Typography>
+        </Stack>
+      </Stack>
+    </Stack>
+  );
+}
+
+export function ProvideDialog({ open, onClose, pool }: ProvideDialogProps) {
   const { SQD_TOKEN } = useContracts();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -103,251 +258,54 @@ function ProvideDialogContent({ pool, onClose }: Omit<ProvideDialogProps, 'open'
   // Effective max is the lesser of user's remaining and pool's remaining
   const effectiveMax = Math.min(userRemainingCapacity, poolRemainingCapacity);
 
-  const validationSchema = createValidationSchema(effectiveMax);
-
-  const isDepositPhase = pool.phase === 'deposit_window';
-  const isPoolFull = poolRemainingCapacity === 0;
-  const isUserAtLimit = userRemainingCapacity === 0;
-
-  const userLimitPercent = (currentUserBalance / maxDepositPerAddress) * 100;
-  const poolCapacityPercent = (currentPoolTvl / maxPoolCapacity) * 100;
+  const validationSchema = createValidationSchema(
+    effectiveMax.toString(),
+    userRemainingCapacity,
+    poolRemainingCapacity,
+    maxDepositPerAddress,
+    currentUserBalance,
+    SQD_TOKEN,
+  );
 
   const formik = useFormik({
     initialValues: {
       amount: '',
+      max: effectiveMax.toString(),
     },
     validationSchema,
     validateOnChange: true,
     validateOnBlur: true,
+    enableReinitialize: true,
     onSubmit: async values => {
       setIsSubmitting(true);
       try {
-        const amountInWei = toSqd(values.amount);
+        const sqdAmount = BigInt(Math.floor(parseFloat(values.amount) * 10 ** 18));
         // TODO: Call pool contract deposit function
-        console.log('Depositing:', amountInWei.toString());
+        // Example: await depositToPool(pool.id, sqdAmount);
         await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
         onClose();
+        formik.resetForm();
       } catch (error) {
-        console.error('Deposit failed:', error);
+        // Handle error in production
       } finally {
         setIsSubmitting(false);
       }
     },
   });
 
-  const handleMaxClick = () => {
-    formik.setFieldValue('amount', effectiveMax.toString());
-  };
-
   return (
-    <form onSubmit={formik.handleSubmit}>
-      <DialogTitle sx={{ pb: 1 }}>
-        <Stack direction="row" alignItems="center" spacing={1.5}>
-          <Box
-            sx={{
-              width: 40,
-              height: 40,
-              borderRadius: 2,
-              bgcolor: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <AccountBalanceWallet sx={{ color: 'primary.contrastText' }} />
-          </Box>
-          <Box>
-            <Typography variant="h6" color="text.primary">
-              Provide Liquidity
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Earn yield by depositing SQD
-            </Typography>
-          </Box>
-        </Stack>
-      </DialogTitle>
-      <DialogContent>
-        <Stack spacing={2.5} sx={{ mt: 1 }}>
-          {isDepositPhase && (
-            <Alert severity="info" sx={{ borderRadius: 2 }}>
-              Pool is in deposit window. Portal will activate when{' '}
-              {tokenFormatter(fromSqd(pool.activation.threshold), SQD_TOKEN, 0)} is reached.
-            </Alert>
-          )}
-
-          {pool.phase === 'paused' && (
-            <Alert severity="warning" sx={{ borderRadius: 2 }}>
-              Pool is paused. Yields are currently stopped due to low buffer.
-            </Alert>
-          )}
-
-          {isPoolFull && (
-            <Alert severity="warning" sx={{ borderRadius: 2 }}>
-              Pool is at maximum capacity. No more deposits accepted.
-            </Alert>
-          )}
-
-          {!isPoolFull && isUserAtLimit && (
-            <Alert severity="info" sx={{ borderRadius: 2 }}>
-              You have reached the maximum deposit limit of{' '}
-              {tokenFormatter(fromSqd(pool.maxDepositPerAddress), SQD_TOKEN, 0)} per address.
-            </Alert>
-          )}
-
-          <TextField
-            id="amount"
-            name="amount"
-            label="Amount to deposit"
-            type="number"
-            fullWidth
-            disabled={isPoolFull || isUserAtLimit}
-            value={formik.values.amount}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-            error={formik.touched.amount && Boolean(formik.errors.amount)}
-            helperText={formik.touched.amount && formik.errors.amount}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 2,
-              },
-            }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Button
-                    size="small"
-                    onClick={handleMaxClick}
-                    disabled={isPoolFull || isUserAtLimit}
-                    sx={{ minWidth: 'auto', fontWeight: 600, color: 'text.primary' }}
-                  >
-                    MAX
-                  </Button>
-                  <Typography sx={{ ml: 1, fontWeight: 500 }} color="text.primary">
-                    {SQD_TOKEN}
-                  </Typography>
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          {isDepositPhase && <ActivationProgress pool={pool} />}
-
-          <Box
-            sx={{
-              bgcolor: 'background.default',
-              p: 2.5,
-              borderRadius: 2,
-              border: '1px solid',
-              borderColor: 'divider',
-            }}
-          >
-            <Stack spacing={2}>
-              <Box>
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  sx={{ mb: 0.5 }}
-                >
-                  <Typography variant="body2" color="text.primary">
-                    Your deposit limit
-                  </Typography>
-                  <Typography variant="body2" fontWeight={600} color="text.primary">
-                    {tokenFormatter(currentUserBalance, SQD_TOKEN, 0)} /{' '}
-                    {tokenFormatter(fromSqd(pool.maxDepositPerAddress), SQD_TOKEN, 0)}
-                  </Typography>
-                </Stack>
-                <LinearProgress
-                  variant="determinate"
-                  value={userLimitPercent}
-                  sx={{
-                    height: 6,
-                    borderRadius: 3,
-                    bgcolor: 'grey.400',
-                    '& .MuiLinearProgress-bar': {
-                      borderRadius: 3,
-                    },
-                  }}
-                />
-              </Box>
-
-              <Box>
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  sx={{ mb: 0.5 }}
-                >
-                  <Typography variant="body2" color="text.primary">
-                    Pool capacity
-                  </Typography>
-                  <Typography variant="body2" fontWeight={600} color="text.primary">
-                    {tokenFormatter(fromSqd(pool.tvl.current), SQD_TOKEN, 0)} /{' '}
-                    {tokenFormatter(fromSqd(pool.tvl.max), SQD_TOKEN, 0)}
-                  </Typography>
-                </Stack>
-                <LinearProgress
-                  variant="determinate"
-                  value={poolCapacityPercent}
-                  color="secondary"
-                  sx={{
-                    height: 6,
-                    borderRadius: 3,
-                    bgcolor: 'grey.400',
-                    '& .MuiLinearProgress-bar': {
-                      borderRadius: 3,
-                    },
-                  }}
-                />
-              </Box>
-
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Typography variant="body2" color="text.primary">
-                  Your balance in pool
-                </Typography>
-                <Typography variant="body2" fontWeight={600} color="text.primary">
-                  {tokenFormatter(fromSqd(pool.userBalance), SQD_TOKEN, 2)}
-                </Typography>
-              </Stack>
-            </Stack>
-          </Box>
-        </Stack>
-      </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 3 }}>
-        <Button
-          onClick={onClose}
-          disabled={isSubmitting}
-          sx={{ borderRadius: 2, color: 'text.primary' }}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="submit"
-          variant="contained"
-          loading={isSubmitting}
-          disabled={!formik.isValid || !formik.values.amount || isPoolFull || isUserAtLimit}
-          sx={{ borderRadius: 2, px: 4, color: 'text.primary' }}
-        >
-          Provide
-        </Button>
-      </DialogActions>
-    </form>
-  );
-}
-
-export function ProvideDialog({ open, onClose, pool }: ProvideDialogProps) {
-  return (
-    <Dialog
+    <ContractCallDialog
+      title="Deposit Liquidity"
       open={open}
-      onClose={onClose}
-      maxWidth="sm"
-      fullWidth
-      PaperProps={{
-        sx: { borderRadius: 3 },
+      onResult={confirmed => {
+        if (!confirmed) return onClose();
+        formik.handleSubmit();
       }}
+      loading={isSubmitting}
+      disableConfirmButton={!formik.isValid || !formik.values.amount}
     >
-      <ProvideDialogContent pool={pool} onClose={onClose} />
-    </Dialog>
+      <ProvideDialogContent pool={pool} formik={formik} />
+    </ContractCallDialog>
   );
 }
 

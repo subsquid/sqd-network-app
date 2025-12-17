@@ -114,7 +114,7 @@ function PendingWithdrawalsTable({
   const { userPendingWithdrawals } = pool;
 
   return (
-    <DashboardTable>
+    <DashboardTable sx={{ mx: -2, my: -1 }}>
       <TableHead>
         <TableRow>
           <TableCell>Amount</TableCell>

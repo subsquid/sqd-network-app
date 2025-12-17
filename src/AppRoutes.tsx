@@ -20,6 +20,7 @@ import { hideLoader } from './index.tsx';
 import { WorkerGeneral } from '@pages/WorkerPage/General.tsx';
 import { WorkerAnalytics } from '@pages/WorkerPage/Analytics.tsx';
 import { PortalGeneral } from '@pages/PortalPage/PortalGeneral.tsx';
+import { PoolPage } from '@pages/PoolsPage/PoolPage.tsx';
 
 export const AppRoutes = () => {
   hideLoader(0);
@@ -60,7 +61,7 @@ export const AppRoutes = () => {
         </Route>
         <Route path="/pools">
           <Route index element={<Navigate to="portal-pool" replace={true} />} />
-          <Route path=":poolId" element={<PortalsPage />} />
+          <Route path=":poolId" element={<PoolPage />} />
         </Route>
         <Route path="/portals">
           <Route element={<PortalsPage />} index />

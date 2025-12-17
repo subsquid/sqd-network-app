@@ -98,11 +98,7 @@ export function PoolStats({ pool }: PoolStatsProps) {
       <StatItem
         label="APY"
         tooltip={apyTooltip}
-        value={
-          <Typography variant="h5" color="success.main">
-            {percentFormatter(displayApy)}
-          </Typography>
-        }
+        value={<Typography variant="h6">{percentFormatter(displayApy)}</Typography>}
       />
       <StatItem
         label="Monthly Payout"

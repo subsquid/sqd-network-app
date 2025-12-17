@@ -21,19 +21,12 @@ export function UserPoolBalance({ pool }: UserPoolBalanceProps) {
 
   return (
     <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-      <Box>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-          Your Balance
-        </Typography>
-        <Stack spacing={0}>
-          <Typography variant="h5">{tokenFormatter(balance, SQD_TOKEN, 2)}</Typography>
-          {balanceInUsd !== undefined && balanceInUsd > 0 && (
-            <Typography variant="body2" color="text.secondary">
-              ≈ {dollarFormatter(balanceInUsd)}
-            </Typography>
-          )}
-        </Stack>
-      </Box>
+      <Stack>
+        <Typography variant="h6">{tokenFormatter(balance, SQD_TOKEN, 2)}</Typography>
+        {balanceInUsd !== undefined && balanceInUsd > 0 && (
+          <Typography color="text.secondary">≈ {dollarFormatter(balanceInUsd)}</Typography>
+        )}
+      </Stack>
     </Stack>
   );
 }

@@ -1,5 +1,6 @@
-import { Alert, Box, LinearProgress, Stack, Tooltip, Typography } from '@mui/material';
-import { Info, Warning } from '@mui/icons-material';
+import { useEffect, useState } from 'react';
+import { Box, LinearProgress, Stack, Typography } from '@mui/material';
+import { AccessTime } from '@mui/icons-material';
 
 import { tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
@@ -35,23 +36,54 @@ function getHealthDescription(percentage: number): string {
   return 'Pool buffer is critical. Yields have stopped until more liquidity is added.';
 }
 
+// Format time remaining as "Xd Xh Xm"
+function formatTimeRemaining(ms: number): string {
+  if (ms <= 0) return 'Ended';
+
+  const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+
+  const parts: string[] = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0 || days > 0) parts.push(`${hours}h`);
+  parts.push(`${minutes}m`);
+
+  return parts.join(' ');
+}
+
 // Shows activation progress during deposit window phase
 function ActivationProgress({ pool }: { pool: PoolData }) {
   const { SQD_TOKEN } = useContracts();
   const current = fromSqd(pool.tvl.current).toNumber();
   const threshold = fromSqd(pool.activation.threshold).toNumber();
   const progress = Math.min((current / threshold) * 100, 100);
-  const remaining = Math.max(threshold - current, 0);
+
+  const [timeRemaining, setTimeRemaining] = useState<string>('');
+
+  useEffect(() => {
+    if (!pool.depositWindowEndsAt) return;
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const end = pool.depositWindowEndsAt!.getTime();
+      const remaining = end - now;
+      setTimeRemaining(formatTimeRemaining(remaining));
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, [pool.depositWindowEndsAt]);
 
   return (
     <Box sx={{ flex: 1 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
         <Typography variant="body2" color="text.secondary">
           <Stack direction="row" alignItems="center" spacing={0.5}>
-            <span>Activation Progress</span>
-            <HelpTooltip
-              title={`Pool activates when ${tokenFormatter(threshold, SQD_TOKEN, 0)} is deposited (Base + ${pool.activation.bufferPercent}% buffer)`}
-            />
+            <AccessTime sx={{ fontSize: 16 }} />
+            <span>{timeRemaining || 'Deposit Window'}</span>
           </Stack>
         </Typography>
         <Typography variant="body2" color="warning.main" fontWeight="medium">

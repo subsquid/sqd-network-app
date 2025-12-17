@@ -8,13 +8,9 @@ import { CenteredPageWrapper } from '@layouts/NetworkLayout';
 import { fromSqd } from '@lib/network';
 
 import { PoolHeader } from './PoolHeader';
-import { PoolStats } from './PoolStats';
-import { PoolHealthBar } from './PoolHealthBar';
 import { PoolYieldChart } from './PoolYieldChart';
-import { UserPoolBalance } from './UserPoolBalance';
-import { ProvideButton } from './ProvideDialog';
-import { WithdrawButton } from './WithdrawDialog';
 import { PendingWithdrawals } from './PendingWithdrawals';
+import { DelegateTab } from './DelegateTab';
 import { usePoolData, type PoolData } from './usePoolData';
 import { dateFormat } from '@i18n';
 
@@ -25,23 +21,17 @@ function PoolInfoCard({ pool }: { pool: PoolData }) {
     <>
       <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
         <Tab label="Delegate" />
-        <Tab label="Manage" />
+        <Tab label="Manage" disabled />
         <Tab label="Info" />
       </Tabs>
-      <Box height="100%" display="flex" flexDirection="column" gap={2} justifyContent="stretch">
-        {activeTab === 0 && (
-          <>
-            <Card sx={{ height: '100%' }}>
-              <Stack spacing={2} divider={<Divider />}>
-                <UserPoolBalance pool={pool} />
-                <Stack spacing={1.5} direction="row" justifyContent="space-between">
-                  <ProvideButton pool={pool} />
-                  <WithdrawButton pool={pool} />
-                </Stack>
-              </Stack>
-            </Card>
-          </>
-        )}
+      <Box
+        display="flex"
+        flexDirection="column"
+        gap={2}
+        justifyContent="stretch"
+        sx={{ height: '100%' }}
+      >
+        {activeTab === 0 && <DelegateTab pool={pool} />}
         {activeTab === 1 && (
           <>
             <Card sx={{ height: '100%' }}>

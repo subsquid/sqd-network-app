@@ -106,6 +106,12 @@ export const useCreateTheme = (mode: PaletteType) => {
             fontWeight: 500,
             letterSpacing: '-0.01rem',
           },
+          h5: {
+            fontSize: '1.5rem',
+            lineHeight: '1.75rem',
+            fontWeight: 500,
+            letterSpacing: '-0.01rem',
+          },
           body1: {
             fontSize: '1rem',
             lineHeight: '1.5rem',
