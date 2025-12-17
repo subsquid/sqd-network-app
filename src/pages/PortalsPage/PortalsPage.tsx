@@ -18,6 +18,7 @@ import { CopyToClipboard } from '@components/CopyToClipboard';
 import { formatUnits } from 'viem';
 import { PortalDelegate } from '@pages/DashboardPage/PortalDelegate';
 import { AddPortalButton } from './AddNewPortal';
+import { fromSqd, toSqd } from '@lib/network';
 
 enum PortalSortBy {
   Name = 'name',
@@ -115,11 +116,7 @@ export function MyPortals() {
                 <SortableHeaderCell sort={PortalSortBy.Staked} query={query} setQuery={setQuery}>
                   Your Stake
                 </SortableHeaderCell>
-                <SortableHeaderCell
-                  sort={PortalSortBy.Claimable}
-                  query={query}
-                  setQuery={setQuery}
-                >
+                <SortableHeaderCell sort={PortalSortBy.Claimable} query={query} setQuery={setQuery}>
                   Claimable
                 </SortableHeaderCell>
                 <TableCell>Daily Rate</TableCell>
@@ -133,9 +130,7 @@ export function MyPortals() {
                     <TableCell>
                       <PortalName name={portal.name} address={portal.address} />
                     </TableCell>
-                    <TableCell>
-                      {tokenFormatter(formatUnits(stake, 18), SQD_TOKEN, 2)}
-                    </TableCell>
+                    <TableCell>{tokenFormatter(fromSqd(stake), SQD_TOKEN, 2)}</TableCell>
                     <TableCell>
                       {claimable > 0 ? `$${formatUnits(claimable, 6)} USDC` : '-'}
                     </TableCell>

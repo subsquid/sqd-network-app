@@ -8,7 +8,7 @@ interface ChartLegendProps {
 }
 
 interface LegendItem {
-  name: string;
+  name?: string;
   color: string;
 }
 
