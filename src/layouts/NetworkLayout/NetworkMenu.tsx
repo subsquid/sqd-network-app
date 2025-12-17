@@ -12,6 +12,8 @@ import {
   LanOutlined,
   Savings,
   SavingsOutlined,
+  Sensors,
+  SensorsOutlined,
   SensorDoor,
   SensorDoorOutlined,
   SmsOutlined,
@@ -136,7 +138,7 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
   const previousPathRef = useRef<string>('/dashboard');
 
   // Find which menu path matches the current location
-  const paths = ['/dashboard', '/assets', '/workers', '/my-portals', '/delegations'];
+  const paths = ['/dashboard', '/assets', '/workers', '/delegations', '/pools'];
   if (demoFeaturesEnabled()) {
     paths.push('/portals');
   }
@@ -190,6 +192,22 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
         path="/delegations"
         selected={activePath === '/delegations'}
       />
+      <Item
+        LeftIcon={active => (active ? <Sensors /> : <SensorsOutlined />)}
+        label="Pools"
+        onClick={onItemClick}
+        path="/pools"
+        selected={activePath === '/pools'}
+      />
+      {demoFeaturesEnabled() && (
+        <Item
+          LeftIcon={active => (active ? <SensorDoor /> : <SensorDoorOutlined />)}
+          label="Portals"
+          onClick={onItemClick}
+          path="/portals"
+          selected={activePath === '/portals'}
+        />
+      )}
       <MenuSpacer />
       {isWorkerOperator && (
         <Item

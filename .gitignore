@@ -30,6 +30,7 @@ storybook
 /.idea
 **/.idea
 .vscode
+.claude
 
 # envs
 .env

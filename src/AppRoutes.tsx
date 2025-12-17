@@ -58,6 +58,10 @@ export const AppRoutes = () => {
         <Route path="/delegations">
           <Route element={<DelegationsPage />} index />
         </Route>
+        <Route path="/pools">
+          <Route index element={<Navigate to="portal-pool" replace={true} />} />
+          <Route path=":poolId" element={<PortalsPage />} />
+        </Route>
         <Route path="/portals">
           <Route element={<PortalsPage />} index />
         </Route>
