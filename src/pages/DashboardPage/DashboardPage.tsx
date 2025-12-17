@@ -27,7 +27,7 @@ export function DashboardPage() {
       <NetworkSummary />
       <Tabs value={activeTab} onChange={handleTabChange}>
         <Tab label="Workers" value="workers" />
-        <Tab
+        {/* <Tab
           label={
             <Box display="flex" alignItems="center" gap={1}>
               Portals
@@ -35,7 +35,7 @@ export function DashboardPage() {
             </Box>
           }
           value="portals"
-        />
+        /> */}
         <Tab label="Analytics" value="analytics" />
       </Tabs>
       <Outlet />

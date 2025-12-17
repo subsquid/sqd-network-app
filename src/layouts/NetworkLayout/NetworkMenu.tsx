@@ -176,7 +176,7 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
         path="/workers"
         selected={activePath === '/workers'}
       />
-      {demoFeaturesEnabled() && (
+      {/* {demoFeaturesEnabled() && (
         <Item
           LeftIcon={active => (active ? <AccountTree /> : <AccountTreeOutlined />)}
           label="Portals"
@@ -184,7 +184,7 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
           path="/portals"
           selected={activePath === '/portals'}
         />
-      )}
+      )} */}
       <Item
         LeftIcon={active => (active ? <BackHand /> : <BackHandOutlined />)}
         label="Delegations"
@@ -192,14 +192,14 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
         path="/delegations"
         selected={activePath === '/delegations'}
       />
-      <Item
+      {/* <Item
         LeftIcon={active => (active ? <Sensors /> : <SensorsOutlined />)}
         label="Pools"
         onClick={onItemClick}
         path="/pools"
         selected={activePath === '/pools'}
-      />
-      {demoFeaturesEnabled() && (
+      /> */}
+      {/* {demoFeaturesEnabled() && (
         <Item
           LeftIcon={active => (active ? <SensorDoor /> : <SensorDoorOutlined />)}
           label="Portals"
@@ -207,7 +207,7 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
           path="/portals"
           selected={activePath === '/portals'}
         />
-      )}
+      )} */}
       <MenuSpacer />
       {isWorkerOperator && (
         <Item
