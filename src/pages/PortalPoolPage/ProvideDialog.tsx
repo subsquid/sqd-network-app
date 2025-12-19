@@ -16,15 +16,18 @@ import * as yup from 'yup';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
 import { tokenFormatter } from '@lib/formatters/formatters';
-import { fromSqd } from '@lib/network';
+import { fromSqd, toSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
+import { portalPoolAbi } from '@api/contracts';
+import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 
-import type { PoolData } from './usePoolData';
+import type { PoolData, PoolUserData } from './usePoolData';
 
 interface ProvideDialogProps {
   open: boolean;
   onClose: () => void;
   pool: PoolData;
+  userData?: PoolUserData;
 }
 
 const createValidationSchema = (
@@ -115,15 +118,16 @@ function ActivationProgress({ pool }: { pool: PoolData }) {
 
 interface ProvideDialogContentProps {
   pool: PoolData;
+  userData?: PoolUserData;
   formik: ReturnType<typeof useFormik<{ amount: string; max: string }>>;
 }
 
-function ProvideDialogContent({ pool, formik }: ProvideDialogContentProps) {
+function ProvideDialogContent({ pool, userData, formik }: ProvideDialogContentProps) {
   const { SQD_TOKEN } = useContracts();
 
   // Calculate remaining capacity based on both per-address limit and pool capacity
   const maxDepositPerAddress = fromSqd(pool.maxDepositPerAddress).toNumber();
-  const currentUserBalance = fromSqd(pool.userBalance).toNumber();
+  const currentUserBalance = userData ? fromSqd(userData.userBalance).toNumber() : 0;
   const userRemainingCapacity = Math.max(0, maxDepositPerAddress - currentUserBalance);
 
   // Pool remaining capacity
@@ -225,7 +229,7 @@ function ProvideDialogContent({ pool, formik }: ProvideDialogContentProps) {
           <Typography variant="body2">
             {typedAmount > 0
               ? `${currentUserBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} → ${expectedUserDelegation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${SQD_TOKEN}`
-              : tokenFormatter(fromSqd(pool.userBalance), SQD_TOKEN, 2)}
+              : userData ? tokenFormatter(fromSqd(userData.userBalance), SQD_TOKEN, 2) : '0 SQD'}
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">
@@ -241,13 +245,13 @@ function ProvideDialogContent({ pool, formik }: ProvideDialogContentProps) {
   );
 }
 
-export function ProvideDialog({ open, onClose, pool }: ProvideDialogProps) {
+export function ProvideDialog({ open, onClose, pool, userData }: ProvideDialogProps) {
   const { SQD_TOKEN } = useContracts();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
 
   // Calculate remaining capacity based on both per-address limit and pool capacity
   const maxDepositPerAddress = fromSqd(pool.maxDepositPerAddress).toNumber();
-  const currentUserBalance = fromSqd(pool.userBalance).toNumber();
+  const currentUserBalance = userData ? fromSqd(userData.userBalance).toNumber() : 0;
   const userRemainingCapacity = Math.max(0, maxDepositPerAddress - currentUserBalance);
 
   // Pool remaining capacity
@@ -277,18 +281,21 @@ export function ProvideDialog({ open, onClose, pool }: ProvideDialogProps) {
     validateOnBlur: true,
     enableReinitialize: true,
     onSubmit: async values => {
-      setIsSubmitting(true);
       try {
-        const sqdAmount = BigInt(Math.floor(parseFloat(values.amount) * 10 ** 18));
-        // TODO: Call pool contract deposit function
-        // Example: await depositToPool(pool.id, sqdAmount);
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
+        const sqdAmount = BigInt(toSqd(values.amount));
+
+        await writeTransactionAsync({
+          address: pool.id as `0x${string}`,
+          abi: portalPoolAbi,
+          functionName: 'deposit',
+          args: [sqdAmount],
+          approve: sqdAmount,
+        });
+
         onClose();
         formik.resetForm();
       } catch (error) {
-        // Handle error in production
-      } finally {
-        setIsSubmitting(false);
+        // Error is already handled by useWriteSQDTransaction
       }
     },
   });
@@ -301,19 +308,20 @@ export function ProvideDialog({ open, onClose, pool }: ProvideDialogProps) {
         if (!confirmed) return onClose();
         formik.handleSubmit();
       }}
-      loading={isSubmitting}
+      loading={isPending}
       disableConfirmButton={!formik.isValid || !formik.values.amount}
     >
-      <ProvideDialogContent pool={pool} formik={formik} />
+      <ProvideDialogContent pool={pool} userData={userData} formik={formik} />
     </ContractCallDialog>
   );
 }
 
 interface ProvideButtonProps {
   pool: PoolData;
+  userData?: PoolUserData;
 }
 
-export function ProvideButton({ pool }: ProvideButtonProps) {
+export function ProvideButton({ pool, userData }: ProvideButtonProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
@@ -321,7 +329,7 @@ export function ProvideButton({ pool }: ProvideButtonProps) {
       <Button variant="outlined" color="secondary" fullWidth onClick={() => setDialogOpen(true)}>
         DEPOSIT
       </Button>
-      <ProvideDialog open={dialogOpen} onClose={() => setDialogOpen(false)} pool={pool} />
+      <ProvideDialog open={dialogOpen} onClose={() => setDialogOpen(false)} pool={pool} userData={userData} />
     </>
   );
 }

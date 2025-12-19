@@ -11,10 +11,11 @@ import { PoolHeader } from './PoolHeader';
 import { PoolYieldChart } from './PoolYieldChart';
 import { PendingWithdrawals } from './PendingWithdrawals';
 import { DelegateTab } from './DelegateTab';
-import { usePoolData, type PoolData } from './usePoolData';
+import { usePoolData, usePoolUserData, usePoolPendingWithdrawals, type PoolData, type PoolUserData, type PendingWithdrawal } from './usePoolData';
 import { dateFormat } from '@i18n';
+import { addressFormatter, urlFormatter } from '@lib/formatters/formatters';
 
-function PoolInfoCard({ pool }: { pool: PoolData }) {
+function PoolInfoCard({ pool, userData, pendingWithdrawals }: { pool: PoolData; userData?: PoolUserData; pendingWithdrawals?: PendingWithdrawal[] }) {
   const [activeTab, setActiveTab] = useState(0);
 
   return (
@@ -31,7 +32,7 @@ function PoolInfoCard({ pool }: { pool: PoolData }) {
         justifyContent="stretch"
         sx={{ height: '100%' }}
       >
-        {activeTab === 0 && <DelegateTab pool={pool} />}
+        {activeTab === 0 && <DelegateTab pool={pool} userData={userData} pendingWithdrawals={pendingWithdrawals} />}
         {activeTab === 1 && (
           <>
             <Card sx={{ height: '100%' }}>
@@ -41,22 +42,26 @@ function PoolInfoCard({ pool }: { pool: PoolData }) {
         )}
         {activeTab === 2 && (
           <Card sx={{ height: '100%' }}>
-            <Stack divider={<Divider />} spacing={2}>
+            <Stack divider={<Divider />} spacing={2} sx={{}}>
               <PropertyList>
-                <Property label="Operator" value={pool.operator.name} />
+                <Property label="Contract" value={addressFormatter(pool.id, true)} />
+                <Property label="Operator" value={addressFormatter(pool.operator.address, true)} />
                 <Property
                   label="Created"
                   value={dateFormat(new Date('2025-12-16T12:00:00Z'), 'dateTime')}
                 />
+                <Property
+                  label="Website"
+                  value={
+                    pool.website && (
+                      <a href={urlFormatter(pool.website)} target="_blank" rel="noreferrer">
+                        {pool.website}
+                      </a>
+                    )
+                  }
+                />
               </PropertyList>
-              <Typography>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-                exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute
-                irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-                pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia
-                deserunt mollit anim id est laborum
-              </Typography>
+              <Typography>{pool.description}</Typography>
             </Stack>
           </Card>
         )}
@@ -66,9 +71,11 @@ function PoolInfoCard({ pool }: { pool: PoolData }) {
 }
 
 function PoolPageContent({ poolId }: { poolId?: string }) {
-  const { data: pool, isLoading } = usePoolData(poolId);
+  const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
+  const { data: userData, isLoading: userDataLoading } = usePoolUserData(poolId);
+  const { data: pendingWithdrawals } = usePoolPendingWithdrawals(poolId);
 
-  if (isLoading) {
+  if (poolLoading) {
     return <Box>Loading...</Box>;
   }
 
@@ -94,12 +101,12 @@ function PoolPageContent({ poolId }: { poolId?: string }) {
 
           <Grid size={{ xs: 12, md: 4 }}>
             <Stack spacing={2} height="100%">
-              <PoolInfoCard pool={pool} />
+              <PoolInfoCard pool={pool} userData={userData} pendingWithdrawals={pendingWithdrawals} />
             </Stack>
           </Grid>
         </Grid>
 
-        <PendingWithdrawals pool={pool} />
+        <PendingWithdrawals pool={pool} userData={userData} pendingWithdrawals={pendingWithdrawals || []} />
       </Box>
     </>
   );

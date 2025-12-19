@@ -77,7 +77,7 @@ const PropertyListBase = styled(Box, {
   shouldForwardProp: prop => prop !== 'grouped',
 })<{ grouped?: boolean }>(({ theme, grouped }) => ({
   display: grouped ? 'contents' : 'grid',
-  gridTemplateColumns: grouped ? undefined : `minmax(auto, ${theme.spacing(25)}) 1fr`,
+  gridTemplateColumns: grouped ? undefined : `minmax(auto, 0.5fr) minmax(auto, 0.75fr)`,
   columnGap: grouped ? undefined : theme.spacing(1),
   rowGap: grouped ? undefined : theme.spacing(2),
   [theme.breakpoints.down('sm')]: {
@@ -135,7 +135,7 @@ export function Property({ label, value }: PropertyProps) {
   return (
     <>
       <PropertyLabel>{label}</PropertyLabel>
-      <PropertyValue>{value}</PropertyValue>
+      <PropertyValue>{value || '-'}</PropertyValue>
     </>
   );
 }

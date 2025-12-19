@@ -71,7 +71,7 @@ export const FormikTextInput = <T extends Record<string, any>>({
   InputProps,
   error,
   sx,
-  autoComplete,
+  autoComplete = 'off',
   onFocus,
   onBlur,
   showErrorOnlyOfTouched = false,

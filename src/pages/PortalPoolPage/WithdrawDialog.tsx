@@ -8,15 +8,19 @@ import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
 import { dateFormat } from '@i18n';
 import { tokenFormatter } from '@lib/formatters/formatters';
-import { fromSqd } from '@lib/network';
+import { fromSqd, toSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
+import { portalPoolAbi } from '@api/contracts';
+import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 
-import type { PendingWithdrawal, PoolData } from './usePoolData';
+import type { PendingWithdrawal, PoolData, PoolUserData } from './usePoolData';
 
 interface WithdrawDialogProps {
   open: boolean;
   onClose: () => void;
   pool: PoolData;
+  userData?: PoolUserData;
+  pendingWithdrawals: PendingWithdrawal[];
 }
 
 const createValidationSchema = (maxAmount: string) =>
@@ -88,19 +92,21 @@ function ReadyWithdrawalItem({
 
 interface WithdrawDialogContentProps {
   pool: PoolData;
+  userData?: PoolUserData;
+  pendingWithdrawals: PendingWithdrawal[];
   formik: ReturnType<typeof useFormik<{ amount: string; max: string }>>;
   onClaim: (id: string) => void;
   claimingId: string | null;
 }
 
-function WithdrawDialogContent({ pool, formik, onClaim, claimingId }: WithdrawDialogContentProps) {
+function WithdrawDialogContent({ pool, userData, pendingWithdrawals, formik, onClaim, claimingId }: WithdrawDialogContentProps) {
   const { SQD_TOKEN } = useContracts();
 
-  const readyWithdrawals = pool.userPendingWithdrawals.filter(w => w.status === 'ready');
-  const pendingWithdrawals = pool.userPendingWithdrawals.filter(w => w.status !== 'ready');
+  const readyWithdrawals = pendingWithdrawals.filter(w => w.status === 'ready');
+  const pendingWithdrawalsOnly = pendingWithdrawals.filter(w => w.status !== 'ready');
   const hasReadyWithdrawals = readyWithdrawals.length > 0;
 
-  const currentUserBalance = fromSqd(pool.userBalance).toNumber();
+  const currentUserBalance = userData ? fromSqd(userData.userBalance).toNumber() : 0;
   const currentPoolTvl = fromSqd(pool.tvl.current).toNumber();
   const maxPoolCapacity = fromSqd(pool.tvl.max).toNumber();
 
@@ -116,17 +122,17 @@ function WithdrawDialogContent({ pool, formik, onClaim, claimingId }: WithdrawDi
   // Calculate expected unlock date
   const calculateUnlockDate = (): Date | null => {
     if (!pool.withdrawWaitTime) return null;
-    
+
     const now = new Date();
     const waitTimeStr = pool.withdrawWaitTime.toLowerCase();
-    
+
     // Parse wait time (e.g., "2 days", "3 hours", "1 week")
     const match = waitTimeStr.match(/(\d+)\s*(day|hour|week|minute)/);
     if (!match) return null;
-    
+
     const value = parseInt(match[1]);
     const unit = match[2];
-    
+
     const unlockDate = new Date(now);
     switch (unit) {
       case 'minute':
@@ -142,7 +148,7 @@ function WithdrawDialogContent({ pool, formik, onClaim, claimingId }: WithdrawDi
         unlockDate.setDate(unlockDate.getDate() + value * 7);
         break;
     }
-    
+
     return unlockDate;
   };
 
@@ -159,9 +165,9 @@ function WithdrawDialogContent({ pool, formik, onClaim, claimingId }: WithdrawDi
 
   return (
     <Stack spacing={2.5}>
-      {pendingWithdrawals.length > 0 && (
+      {pendingWithdrawalsOnly.length > 0 && (
         <Alert severity="info">
-          You have {pendingWithdrawals.length} pending withdrawal(s) in queue. Estimated wait time:
+          You have {pendingWithdrawalsOnly.length} pending withdrawal(s) in queue. Estimated wait time:
           ~{pool.withdrawWaitTime || '2 days'}.
         </Alert>
       )}
@@ -203,7 +209,7 @@ function WithdrawDialogContent({ pool, formik, onClaim, claimingId }: WithdrawDi
           <Typography variant="body2">
             {typedAmount > 0
               ? `${currentUserBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} → ${expectedUserDelegation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${SQD_TOKEN}`
-              : tokenFormatter(fromSqd(pool.userBalance), SQD_TOKEN, 2)}
+              : userData ? tokenFormatter(fromSqd(userData.userBalance), SQD_TOKEN, 2) : '0 SQD'}
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">
@@ -225,12 +231,12 @@ function WithdrawDialogContent({ pool, formik, onClaim, claimingId }: WithdrawDi
   );
 }
 
-export function WithdrawDialog({ open, onClose, pool }: WithdrawDialogProps) {
+export function WithdrawDialog({ open, onClose, pool, userData, pendingWithdrawals }: WithdrawDialogProps) {
   const { SQD_TOKEN } = useContracts();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
   const [claimingId, setClaimingId] = useState<string | null>(null);
 
-  const maxWithdraw = fromSqd(pool.userBalance).toNumber();
+  const maxWithdraw = userData ? fromSqd(userData.userBalance).toNumber() : 0;
   const validationSchema = createValidationSchema(maxWithdraw.toString());
 
   const formik = useFormik({
@@ -243,18 +249,20 @@ export function WithdrawDialog({ open, onClose, pool }: WithdrawDialogProps) {
     validateOnBlur: true,
     enableReinitialize: true,
     onSubmit: async values => {
-      setIsSubmitting(true);
       try {
-        const sqdAmount = BigInt(Math.floor(parseFloat(values.amount) * 10 ** 18));
-        // TODO: Call pool contract withdraw function
-        // Example: await withdrawFromPool(pool.id, sqdAmount);
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
+        const sqdAmount = BigInt(toSqd(values.amount));
+
+        await writeTransactionAsync({
+          address: pool.id as `0x${string}`,
+          abi: portalPoolAbi,
+          functionName: 'requestExit',
+          args: [sqdAmount],
+        });
+
         onClose();
         formik.resetForm();
       } catch (error) {
-        // Handle error in production
-      } finally {
-        setIsSubmitting(false);
+        // Error is already handled by useWriteSQDTransaction
       }
     },
   });
@@ -262,11 +270,14 @@ export function WithdrawDialog({ open, onClose, pool }: WithdrawDialogProps) {
   const handleClaim = async (withdrawalId: string) => {
     setClaimingId(withdrawalId);
     try {
-      // TODO: Call pool contract claim function
-      // Example: await claimWithdrawal(withdrawalId);
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
+      await writeTransactionAsync({
+        address: pool.id as `0x${string}`,
+        abi: portalPoolAbi,
+        functionName: 'withdrawExit',
+        args: [BigInt(withdrawalId)],
+      });
     } catch (error) {
-      // Handle error in production
+      // Error is already handled by useWriteSQDTransaction
     } finally {
       setClaimingId(null);
     }
@@ -280,11 +291,13 @@ export function WithdrawDialog({ open, onClose, pool }: WithdrawDialogProps) {
         if (!confirmed) return onClose();
         formik.handleSubmit();
       }}
-      loading={isSubmitting}
+      loading={isPending}
       disableConfirmButton={!formik.isValid || !formik.values.amount}
     >
       <WithdrawDialogContent
         pool={pool}
+        userData={userData}
+        pendingWithdrawals={pendingWithdrawals}
         formik={formik}
         onClaim={handleClaim}
         claimingId={claimingId}
@@ -295,11 +308,13 @@ export function WithdrawDialog({ open, onClose, pool }: WithdrawDialogProps) {
 
 interface WithdrawButtonProps {
   pool: PoolData;
+  userData?: PoolUserData;
+  pendingWithdrawals: PendingWithdrawal[];
 }
 
-export function WithdrawButton({ pool }: WithdrawButtonProps) {
+export function WithdrawButton({ pool, userData, pendingWithdrawals }: WithdrawButtonProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const hasBalance = pool.userBalance > BigInt(0);
+  const hasBalance = userData ? userData.userBalance > BigInt(0) : false;
 
   const button = (
     <Button
@@ -323,7 +338,13 @@ export function WithdrawButton({ pool }: WithdrawButtonProps) {
       ) : (
         button
       )}
-      <WithdrawDialog open={dialogOpen} onClose={() => setDialogOpen(false)} pool={pool} />
+      <WithdrawDialog 
+        open={dialogOpen} 
+        onClose={() => setDialogOpen(false)} 
+        pool={pool} 
+        userData={userData}
+        pendingWithdrawals={pendingWithdrawals}
+      />
     </>
   );
 }

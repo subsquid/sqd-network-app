@@ -1,12 +1,9 @@
 import type { ReactNode } from 'react';
-import { Avatar, Box, Grid, Link, Stack, Tooltip, Typography } from '@mui/material';
-import { Info } from '@mui/icons-material';
+import { Avatar, Box, Link, Stack, Typography } from '@mui/material';
 
 import {
-  dollarFormatter,
   numberCompactFormatter,
   percentFormatter,
-  toCompact,
   tokenFormatter,
 } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
@@ -68,10 +65,10 @@ export function PoolStats({ pool }: PoolStatsProps) {
   const maxTvl = fromSqd(pool.tvl.max);
   const tvlPercent = maxTvl.gt(0) ? currentTvl.div(maxTvl).times(100).toNumber() : 0;
 
-  const calculatedApyRatio = calculateApy(pool.monthlyPayoutUsd, maxTvl.toNumber(), sqdPrice);
+  const calculatedApyRatio = calculateApy(pool.monthlyPayoutUsd, maxTvl.toNumber(), sqdPrice) || 0;
 
   // Calculate APY using max TVL (pool capacity)
-  const displayApy = calculatedApyRatio !== undefined ? calculatedApyRatio * 100 : pool.apy * 100;
+  const displayApy = calculatedApyRatio * 100;
 
   const apyTooltip =
     'APY = (Monthly Payout × 12) / (Pool Capacity × SQD Price)\nBased on full pool capacity and live SQD price.';

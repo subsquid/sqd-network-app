@@ -1,14 +1,13 @@
-import { useEffect, useState } from 'react';
-import { Box, LinearProgress, Stack, Typography } from '@mui/material';
+import { Box, LinearProgress, Stack, Tooltip, Typography } from '@mui/material';
 import { AccessTime } from '@mui/icons-material';
 
-import { tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
-import { useContracts } from '@network/useContracts';
+import { useCountdown } from '@hooks/useCountdown';
 
 import type { PoolData } from './usePoolData';
 import { calculateBufferHealth } from './usePoolData';
 import { HelpTooltip } from '@components/HelpTooltip';
+import { dateFormat } from '@i18n';
 
 interface PoolHealthBarProps {
   pool: PoolData;
@@ -36,68 +35,37 @@ function getHealthDescription(percentage: number): string {
   return 'Pool buffer is critical. Yields have stopped until more liquidity is added.';
 }
 
-// Format time remaining as "Xd Xh Xm"
-function formatTimeRemaining(ms: number): string {
-  if (ms <= 0) return 'Ended';
-
-  const days = Math.floor(ms / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-
-  const parts: string[] = [];
-  if (days > 0) parts.push(`${days}d`);
-  if (hours > 0 || days > 0) parts.push(`${hours}h`);
-  parts.push(`${minutes}m`);
-
-  return parts.join(' ');
-}
-
 // Shows activation progress during deposit window phase
 function ActivationProgress({ pool }: { pool: PoolData }) {
-  const { SQD_TOKEN } = useContracts();
   const current = fromSqd(pool.tvl.current).toNumber();
   const threshold = fromSqd(pool.activation.threshold).toNumber();
   const progress = Math.min((current / threshold) * 100, 100);
 
-  const [timeRemaining, setTimeRemaining] = useState<string>('');
-
-  useEffect(() => {
-    if (!pool.depositWindowEndsAt) return;
-
-    const updateTimer = () => {
-      const now = Date.now();
-      const end = pool.depositWindowEndsAt!.getTime();
-      const remaining = end - now;
-      setTimeRemaining(formatTimeRemaining(remaining));
-    };
-
-    updateTimer();
-    const interval = setInterval(updateTimer, 60000); // Update every minute
-
-    return () => clearInterval(interval);
-  }, [pool.depositWindowEndsAt]);
+  const timeRemaining = useCountdown({ timestamp: pool.depositWindowEndsAt });
 
   return (
     <Box sx={{ flex: 1 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
         <Typography variant="body2" color="text.secondary">
-          <Stack direction="row" alignItems="center" spacing={0.5}>
-            <AccessTime sx={{ fontSize: 16 }} />
-            <span>{timeRemaining || 'Deposit Window'}</span>
-          </Stack>
+          <Tooltip title={dateFormat(pool.depositWindowEndsAt, 'dateTime')}>
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+              <AccessTime sx={{ fontSize: 16 }} />
+              <span>{timeRemaining || 'Deposit Window'}</span>
+            </Stack>
+          </Tooltip>
         </Typography>
-        <Typography variant="body2" color="warning.main" fontWeight="medium">
+        <Typography variant="body2" color="info.main" fontWeight="medium">
           {progress.toFixed(0)}%
         </Typography>
       </Stack>
       <LinearProgress
         variant="determinate"
         value={progress}
-        color="warning"
+        color="info"
         sx={{
           height: 8,
           borderRadius: 1,
-          backgroundColor: 'action.hover',
+          backgroundColor: '#f0f2f5',
         }}
       />
     </Box>

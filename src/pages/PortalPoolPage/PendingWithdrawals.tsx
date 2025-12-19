@@ -23,10 +23,12 @@ import { tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
-import type { PendingWithdrawal, PoolData } from './usePoolData';
+import type { PendingWithdrawal, PoolData, PoolUserData } from './usePoolData';
 
 interface PendingWithdrawalsProps {
   pool: PoolData;
+  userData?: PoolUserData;
+  pendingWithdrawals: PendingWithdrawal[];
 }
 
 function getStatusColor(
@@ -103,16 +105,14 @@ function WithdrawalRow({
 }
 
 function PendingWithdrawalsTable({
-  pool,
+  pendingWithdrawals,
   claimingId,
   onClaim,
 }: {
-  pool: PoolData;
+  pendingWithdrawals: PendingWithdrawal[];
   claimingId: string | null;
   onClaim: (id: string) => void;
 }) {
-  const { userPendingWithdrawals } = pool;
-
   return (
     <DashboardTable sx={{ mx: -2, my: -1 }}>
       <TableHead>
@@ -123,8 +123,8 @@ function PendingWithdrawalsTable({
         </TableRow>
       </TableHead>
       <TableBody>
-        {userPendingWithdrawals.length ? (
-          userPendingWithdrawals.map(withdrawal => (
+        {pendingWithdrawals.length ? (
+          pendingWithdrawals.map(withdrawal => (
             <WithdrawalRow
               key={withdrawal.id}
               withdrawal={withdrawal}
@@ -222,8 +222,7 @@ function MyHistoryTable() {
   );
 }
 
-export function PendingWithdrawals({ pool }: PendingWithdrawalsProps) {
-  const { userPendingWithdrawals } = pool;
+export function PendingWithdrawals({ pool, userData, pendingWithdrawals }: PendingWithdrawalsProps) {
   const [claimingId, setClaimingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState(0);
 
@@ -231,27 +230,26 @@ export function PendingWithdrawals({ pool }: PendingWithdrawalsProps) {
     setClaimingId(withdrawalId);
     try {
       // TODO: Call pool contract claim function
-      console.log('Claiming withdrawal:', withdrawalId);
       await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
     } catch (error) {
-      console.error('Claim failed:', error);
+      // Error handling
     } finally {
       setClaimingId(null);
     }
   };
 
-  const readyCount = userPendingWithdrawals.filter(w => w.status === 'ready').length;
+  const readyCount = pendingWithdrawals.filter(w => w.status === 'ready').length;
 
   return (
     <Box sx={{ mt: 2 }}>
       <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)} sx={{ mb: 2 }}>
         <Tab label={`Pending Withdrawals${readyCount > 0 ? ` (${readyCount})` : ''}`} />
-        <Tab label="Payouts" />
-        <Tab label="My History" />
+        {/* <Tab label="Payouts" />
+        <Tab label="My History" /> */}
       </Tabs>
       <Card>
         {activeTab === 0 && (
-          <PendingWithdrawalsTable pool={pool} claimingId={claimingId} onClaim={handleClaim} />
+          <PendingWithdrawalsTable pendingWithdrawals={pendingWithdrawals} claimingId={claimingId} onClaim={handleClaim} />
         )}
         {activeTab === 1 && <PayoutsTable />}
         {activeTab === 2 && <MyHistoryTable />}

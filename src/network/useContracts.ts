@@ -15,6 +15,7 @@ export function useContracts(): {
   CHAIN_ID_L1: number;
   MULTICALL: `0x${string}`;
   BUYBACK: `0x${string}`;
+  PORTAL_POOL_FACTORY: `0x${string}`;
 } {
   const network = getSubsquidNetwork();
 
@@ -33,6 +34,7 @@ export function useContracts(): {
         CHAIN_ID_L1: sepolia.id,
         MULTICALL: '0x7eCfBaa8742fDf5756DAC92fbc8b90a19b8815bF',
         BUYBACK: '0xe34189ad45044e93d3af7d93ac520d02651faf72',
+        PORTAL_POOL_FACTORY: '0x0000000000000000000000000000000000000000',
       };
     }
     case NetworkName.Mainnet: {
@@ -42,13 +44,14 @@ export function useContracts(): {
         STAKING: `0xb31a0d39d2c69ed4b28d96e12cbf52c5f9ac9a51`,
         REWARD_TREASURY: `0x237abf43bc51fd5c50d0d598a1a4c26e56a8a2a0`,
         REWARD_DISTRIBUTION: `0x4de282bD18aE4987B3070F4D5eF8c80756362AEa`,
-        GATEWAY_REGISTRATION: `0x8a90a1ce5fa8cf71de9e6f76b7d3c0b72feb8c4b`,
+        GATEWAY_REGISTRATION: `0xeaFb8e80Cd0bd6109664bD66Ba75d7fFD4947A1b`,
         SOFT_CAP: `0x0eb27b1cbba04698dd7ce0f2364584d33a616545`,
         SQD_TOKEN: 'SQD',
         ROUTER: '0x67F56D27dab93eEb07f6372274aCa277F49dA941',
         CHAIN_ID_L1: mainnet.id,
         MULTICALL: '0x7eCfBaa8742fDf5756DAC92fbc8b90a19b8815bF',
         BUYBACK: '0x4efab28e320ef16907930a06e2a5aaadb7425b48',
+        PORTAL_POOL_FACTORY: '0x66D749C4e54904eEe5B9Dc312D1ca8Df36368Ea5',
       };
     }
   }
