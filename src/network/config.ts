@@ -30,9 +30,7 @@ export const rainbowConfig = getDefaultConfig({
   appName: `Subsquid Network ${upperFirst(network)}`,
   projectId: process.env.WALLET_CONNECT_PROJECT_ID || '',
   transports: {
-    [arbitrum.id]: fallback([
-      http('https://virtual.arbitrum.eu.rpc.tenderly.co/1975f1f7-1857-4714-b409-e3620497dad8'),
-    ]),
+    [arbitrum.id]: fallback([http()]),
     [arbitrumSepolia.id]: fallback([http()]),
   },
   chains: network === NetworkName.Mainnet ? [arbitrum] : [arbitrumSepolia],

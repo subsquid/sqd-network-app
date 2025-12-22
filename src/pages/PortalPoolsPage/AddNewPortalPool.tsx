@@ -25,21 +25,15 @@ import {
   portalPoolFactoryAbi,
   useReadNetworkControllerMinStakeThreshold,
   useReadPortalPoolFactoryCollectionDeadlineSeconds,
-  useReadPortalPoolFactoryMaxPoolCapacity,
   useReadRouterNetworkController,
 } from '@api/contracts';
 import { toHex } from 'viem';
 import { errorMessage } from '@api/contracts/utils';
 import { dateFormat } from '@i18n';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
+import { Loader } from '@components/Loader';
 
-export const addPortalSchema = ({
-  maxCapacity,
-  minCapacity,
-}: {
-  maxCapacity: BigNumber;
-  minCapacity: BigNumber;
-}) => {
+export const addPortalSchema = ({ minCapacity }: { minCapacity: BigNumber }) => {
   return yup.object({
     name: yup.string().label('Name').trim().required('Name is required'),
     description: yup.string().label('Description').max(500).trim(),
@@ -48,7 +42,6 @@ export const addPortalSchema = ({
       .label('Capacity')
       .required()
       .min(minCapacity)
-      .max(maxCapacity)
       .typeError('${path} is invalid'),
     earnings: yup
       .decimal()
@@ -117,17 +110,12 @@ function AddNewPortalDialog({
       address: NETWORK_CONTROLLER,
       query: { enabled: !!NETWORK_CONTROLLER },
     });
-  const { data: maxCapacity, isLoading: isMaxCapacityLoading } =
-    useReadPortalPoolFactoryMaxPoolCapacity({
-      address: PORTAL_POOL_FACTORY,
-    });
 
   const validationSchema = useMemo(() => {
     return addPortalSchema({
-      maxCapacity: fromSqd(maxCapacity),
       minCapacity: fromSqd(minCapacity),
     });
-  }, [maxCapacity, minCapacity]);
+  }, [minCapacity]);
 
   const { data: collectionDeadlineSeconds, isLoading: isCollectionDeadlineSecondsLoading } =
     useReadPortalPoolFactoryCollectionDeadlineSeconds({
@@ -136,11 +124,7 @@ function AddNewPortalDialog({
 
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
 
-  const isLoading =
-    isNetworkControllerLoading ||
-    isMinCapacityLoading ||
-    isMaxCapacityLoading ||
-    isCollectionDeadlineSecondsLoading;
+  const isLoading = false;
 
   const initialSource = sources?.[0];
 
@@ -152,10 +136,10 @@ function AddNewPortalDialog({
     initialValues: {
       name: '',
       description: '',
-      capacity: optimalCapacity,
+      capacity: undefined,
       earnings: '',
       rateType: 'day' as 'day' | 'month',
-    },
+    } as any,
     validationSchema,
     validateOnChange: true,
     validateOnBlur: true,
@@ -166,8 +150,8 @@ function AddNewPortalDialog({
         const distributionRatePerSecond = BigInt(
           BigNumber(getRate(values.earnings, values.rateType))
             .div(86400)
-            .multipliedBy(10 ** 18)
-            .toString(),
+            .multipliedBy(10 ** 6)
+            .toFixed(0),
         );
 
         const receipt = await writeTransactionAsync({
@@ -178,7 +162,7 @@ function AddNewPortalDialog({
             {
               distributionRatePerSecond,
               capacity: BigInt(toSqd(values.capacity)),
-              portalName: values.name,
+              tokenSuffix: collapseTokenName(values.name),
               operator: initialSource?.id as `0x${string}`,
               peerId: toHex(Date.now()),
               metadata: JSON.stringify({
@@ -220,43 +204,47 @@ function AddNewPortalDialog({
       loading={isPending}
       disableConfirmButton={!formik.isValid}
     >
-      <Form onSubmit={formik.handleSubmit}>
-        <FormRow>
-          <FormikTextInput id="name" label="Name" formik={formik} showErrorOnlyOfTouched />
-        </FormRow>
-        <FormRow>
-          <FormikTextInput
-            id="description"
-            label="Description"
-            formik={formik}
-            showErrorOnlyOfTouched
-            multiline
-            minRows={3}
-          />
-        </FormRow>
-        <FormRow>
-          <FormikTextInput
-            id="capacity"
-            label="Pool Capacity"
-            formik={formik}
-            showErrorOnlyOfTouched
-            InputProps={{
-              endAdornment: (
-                <Chip
-                  clickable
-                  onClick={() => {
-                    formik.setValues({
-                      ...formik.values,
-                      capacity: optimalCapacity,
-                    });
-                  }}
-                  label="Auto"
-                />
-              ),
-            }}
-          />
-        </FormRow>
-        {/* <Box sx={{ px: 1 }}>
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <Form onSubmit={formik.handleSubmit}>
+          <FormRow>
+            <FormikTextInput id="name" label="Name" formik={formik} showErrorOnlyOfTouched />
+          </FormRow>
+          <FormRow>
+            <FormikTextInput
+              id="description"
+              label="Description"
+              formik={formik}
+              showErrorOnlyOfTouched
+              multiline
+              minRows={3}
+            />
+          </FormRow>
+          <FormRow>
+            <FormikTextInput
+              id="capacity"
+              label="Pool Capacity"
+              formik={formik}
+              placeholder={optimalCapacity.toString()}
+              showErrorOnlyOfTouched
+              InputProps={{
+                endAdornment: (
+                  <Chip
+                    clickable
+                    onClick={() => {
+                      formik.setValues({
+                        ...formik.values,
+                        capacity: optimalCapacity,
+                      });
+                    }}
+                    label="Auto"
+                  />
+                ),
+              }}
+            />
+          </FormRow>
+          {/* <Box sx={{ px: 1 }}>
           <Slider
             value={formik.values.capacity}
             min={MIN_CAPACITY}
@@ -281,68 +269,74 @@ function AddNewPortalDialog({
           />
         </Box> */}
 
-        <FormRow>
-          <Box>
-            <Typography variant="body2" mb={1}>
-              Payment Tokens (for fee distribution)
-            </Typography>
-            <Stack direction="row" spacing={1}>
-              <Button variant="contained" size="small" disabled={false}>
-                USDC
-              </Button>
-              <Button variant="outlined" size="small" disabled>
-                DAI (Coming soon)
-              </Button>
-              <Button variant="outlined" size="small" disabled>
-                USDT (Coming soon)
-              </Button>
+          <FormRow>
+            <Box>
+              <Typography variant="body2" mb={1}>
+                Payment Tokens (for fee distribution)
+              </Typography>
+              <Stack direction="row" spacing={1}>
+                <Button variant="contained" size="small" disabled={false}>
+                  USDC
+                </Button>
+                <Button variant="outlined" size="small" disabled>
+                  DAI (Coming soon)
+                </Button>
+                <Button variant="outlined" size="small" disabled>
+                  USDT (Coming soon)
+                </Button>
+              </Stack>
+            </Box>
+          </FormRow>
+          <FormRow>
+            <Stack direction="row" spacing={1} alignItems="baseline">
+              <FormikTextInput
+                id="earnings"
+                label="Expected Provider Earnings (USDC)"
+                placeholder="0"
+                formik={formik}
+                showErrorOnlyOfTouched
+              />
+              <ToggleButtonGroup
+                value={formik.values.rateType}
+                exclusive
+                onChange={(_, value) => {
+                  if (value) formik.setFieldValue('rateType', value);
+                }}
+                size="small"
+              >
+                <ToggleButton value="day">Day</ToggleButton>
+                <ToggleButton value="month">Month</ToggleButton>
+              </ToggleButtonGroup>
             </Stack>
-          </Box>
-        </FormRow>
-        <FormRow>
-          <Stack direction="row" spacing={1} alignItems="baseline">
-            <FormikTextInput
-              id="earnings"
-              label="Expected Provider Earnings (USDC)"
-              formik={formik}
-              showErrorOnlyOfTouched
-            />
-            <ToggleButtonGroup
-              value={formik.values.rateType}
-              exclusive
-              onChange={(_, value) => {
-                if (value) formik.setFieldValue('rateType', value);
-              }}
-              size="small"
-            >
-              <ToggleButton value="day">Day</ToggleButton>
-              <ToggleButton value="month">Month</ToggleButton>
-            </ToggleButtonGroup>
-          </Stack>
-        </FormRow>
+          </FormRow>
 
-        <FormDivider />
-        <Stack direction="column" spacing={1}>
-          <Stack direction="row" justifyContent="space-between" alignContent="center">
-            <Typography variant="body2">Estimated CUs</Typography>
-            <Typography variant="body2">{estimatedCUs.toLocaleString()}</Typography>
+          <FormDivider />
+          <Stack direction="column" spacing={1}>
+            <Stack direction="row" justifyContent="space-between" alignContent="center">
+              <Typography variant="body2">Estimated CUs</Typography>
+              <Typography variant="body2">{estimatedCUs.toLocaleString()}</Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="space-between" alignContent="center">
+              <Typography variant="body2">Collection Deadline</Typography>
+              <Typography variant="body2">{deadlineDate}</Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="space-between" alignContent="center">
+              <Typography variant="body2">Payment Rate</Typography>
+              <Typography variant="body2">
+                {getRate(formik.values.earnings, formik.values.rateType).toFixed(2)} USDC/d
+              </Typography>
+            </Stack>
           </Stack>
-          <Stack direction="row" justifyContent="space-between" alignContent="center">
-            <Typography variant="body2">Collection Deadline</Typography>
-            <Typography variant="body2">{deadlineDate}</Typography>
-          </Stack>
-          <Stack direction="row" justifyContent="space-between" alignContent="center">
-            <Typography variant="body2">Payment Rate</Typography>
-            <Typography variant="body2">
-              {getRate(formik.values.earnings, formik.values.rateType).toFixed(8)} USDC/d
-            </Typography>
-          </Stack>
-        </Stack>
-      </Form>
+        </Form>
+      )}
     </ContractCallDialog>
   );
 }
 
 function getRate(earnings: string, rateType: 'day' | 'month') {
   return rateType === 'month' ? Number(earnings) / 30 : Number(earnings);
+}
+
+function collapseTokenName(name: string): string {
+  return name.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '-');
 }

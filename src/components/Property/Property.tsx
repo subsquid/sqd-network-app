@@ -77,7 +77,7 @@ const PropertyListBase = styled(Box, {
   shouldForwardProp: prop => prop !== 'grouped',
 })<{ grouped?: boolean }>(({ theme, grouped }) => ({
   display: grouped ? 'contents' : 'grid',
-  gridTemplateColumns: grouped ? undefined : `minmax(auto, 0.5fr) minmax(auto, 0.75fr)`,
+  gridTemplateColumns: grouped ? undefined : `minmax(auto, 0.5fr) minmax(auto, 1fr)`,
   columnGap: grouped ? undefined : theme.spacing(1),
   rowGap: grouped ? undefined : theme.spacing(2),
   [theme.breakpoints.down('sm')]: {

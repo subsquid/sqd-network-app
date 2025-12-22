@@ -1,38 +1,90 @@
 import { Box, LinearProgress, Stack, Tooltip, Typography } from '@mui/material';
-import { AccessTime } from '@mui/icons-material';
+import { AccessTime, CheckCircle, Warning, Error } from '@mui/icons-material';
 
-import { fromSqd } from '@lib/network';
 import { useCountdown } from '@hooks/useCountdown';
-
-import type { PoolData } from './usePoolData';
-import { calculateBufferHealth } from './usePoolData';
-import { HelpTooltip } from '@components/HelpTooltip';
 import { dateFormat } from '@i18n';
+import { percentFormatter } from '@lib/formatters/formatters';
+import { fromSqd } from '@lib/network';
+
+import type { PoolData } from './hooks';
+import { usePoolData } from './hooks';
 
 interface PoolHealthBarProps {
-  pool: PoolData;
+  poolId: string;
 }
 
-function getHealthColor(percentage: number): 'success' | 'warning' | 'error' {
-  if (percentage >= 120) return 'success';
-  if (percentage >= 100) return 'warning';
+function calculateBufferHealth(pool: PoolData): number {
+  const current = fromSqd(pool.tvl.current).toNumber();
+  const max = fromSqd(pool.tvl.max).toNumber();
+  if (max === 0) return 100;
+  return (current / max) * 100;
+}
+
+function getHealthColor(state: 'healthy' | 'low' | 'critical'): 'success' | 'warning' | 'error' {
+  if (state === 'healthy') return 'success';
+  if (state === 'low') return 'warning';
   return 'error';
 }
 
-function getHealthLabel(percentage: number): string {
-  if (percentage >= 120) return 'Healthy';
-  if (percentage >= 100) return 'Low Buffer';
-  return 'Critical';
+function getPoolState(pool: PoolData): 'healthy' | 'low' | 'critical' {
+  const max = fromSqd(pool.tvl.max).toNumber();
+  const min = fromSqd(pool.tvl.min).toNumber();
+  const current = fromSqd(pool.tvl.current).toNumber();
+
+  const buffer = current - min;
+
+  if (current < min) return 'critical';
+  if (current < min + buffer / 2) return 'low';
+
+  return 'healthy';
 }
 
-function getHealthDescription(percentage: number): string {
-  if (percentage >= 120) {
+function getHealthLabel(pool: PoolData): React.ReactNode {
+  const poolState = getPoolState(pool);
+  const description = getHealthDescription(poolState);
+
+  if (poolState === 'healthy')
+    return (
+      <Tooltip title={description} arrow>
+        <Stack direction="row" alignItems="center" spacing={0.5}>
+          <CheckCircle sx={{ fontSize: 18, color: 'success.main' }} />
+          <Typography variant="body2" color="success.main">
+            Healthy
+          </Typography>
+        </Stack>
+      </Tooltip>
+    );
+  if (poolState === 'low')
+    return (
+      <Tooltip title={description} arrow>
+        <Stack direction="row" alignItems="center" spacing={0.5}>
+          <Warning sx={{ fontSize: 18, color: 'warning.main' }} />
+          <Typography variant="body2" color="warning.main">
+            Low
+          </Typography>
+        </Stack>
+      </Tooltip>
+    );
+  return (
+    <Tooltip title={description} arrow>
+      <Stack direction="row" alignItems="center" spacing={0.5}>
+        <Error sx={{ fontSize: 18, color: 'error.main' }} />
+        <Typography variant="body2" color="error.main">
+          Critical
+        </Typography>
+      </Stack>
+    </Tooltip>
+  );
+}
+
+function getHealthDescription(state: 'healthy' | 'low' | 'critical'): string {
+  if (state === 'healthy') {
     return 'Pool buffer is healthy. Yields are being distributed normally.';
   }
-  if (percentage >= 100) {
-    return 'Pool buffer is running low. Consider adding liquidity.';
+  if (state === 'low') {
+    return 'Pool is running low. Consider adding liquidity.';
   }
-  return 'Pool buffer is critical. Yields have stopped until more liquidity is added.';
+  return 'Pool is critical. Yields have stopped until more liquidity is added.';
 }
 
 // Shows activation progress during deposit window phase
@@ -55,7 +107,7 @@ function ActivationProgress({ pool }: { pool: PoolData }) {
           </Tooltip>
         </Typography>
         <Typography variant="body2" color="info.main" fontWeight="medium">
-          {progress.toFixed(0)}%
+          {percentFormatter(progress)}
         </Typography>
       </Stack>
       <LinearProgress
@@ -75,9 +127,8 @@ function ActivationProgress({ pool }: { pool: PoolData }) {
 // Shows buffer health when pool is active
 function BufferHealth({ pool }: { pool: PoolData }) {
   const healthPercent = calculateBufferHealth(pool);
-  const color = getHealthColor(healthPercent);
-  const label = getHealthLabel(healthPercent);
-  const description = getHealthDescription(healthPercent);
+  const color = getHealthColor(getPoolState(pool));
+  const label = getHealthLabel(pool);
 
   // Cap the visual progress at 100% but show actual percentage in text
   const visualProgress = Math.min(healthPercent, 100);
@@ -85,14 +136,11 @@ function BufferHealth({ pool }: { pool: PoolData }) {
   return (
     <Box sx={{ flex: 1 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-        <Typography variant="body2" color="text.secondary">
-          <Stack direction="row" alignItems="center" spacing={0.5}>
-            <span>Pool Health</span>
-            <HelpTooltip title={description} />
-          </Stack>
+        <Typography variant="body2" color={`${color}.main`}>
+          {label}
         </Typography>
         <Typography variant="body2" color={`${color}.main`} fontWeight="medium">
-          {label} ({healthPercent.toFixed(0)}%)
+          {percentFormatter(healthPercent)}
         </Typography>
       </Stack>
       <LinearProgress
@@ -109,29 +157,14 @@ function BufferHealth({ pool }: { pool: PoolData }) {
   );
 }
 
-export function PoolHealthBar({ pool }: PoolHealthBarProps) {
-  // Show paused warning if yields are stopped
-  // if (pool.phase === 'paused') {
-  //   return (
-  //     <Box >
-  //       <Alert severity="error" icon={<Warning />} sx={{ mb: 2 }}>
-  //         <Typography variant="body2" fontWeight="medium">
-  //           Yields Stopped
-  //         </Typography>
-  //         <Typography variant="caption">
-  //           Buffer dropped below minimum. Yields will resume when more liquidity is added.
-  //         </Typography>
-  //       </Alert>
-  //       <BufferHealth pool={pool} />
-  //     </Box>
-  //   );
-  // }
+export function PoolHealthBar({ poolId }: PoolHealthBarProps) {
+  const { data: pool } = usePoolData(poolId);
 
-  // Show activation progress during deposit window
-  if (pool.phase === 'deposit_window') {
+  if (!pool) return null;
+
+  if (pool.phase === 'collecting') {
     return <ActivationProgress pool={pool} />;
   }
 
-  // Show buffer health when active
   return <BufferHealth pool={pool} />;
 }

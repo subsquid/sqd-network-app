@@ -1,10 +1,8 @@
-import { tokenFormatter } from '@lib/formatters/formatters.ts';
 import { Box, Button, Stack, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import { Link, Outlet, Link as RouterLink } from 'react-router-dom';
 import { useMemo } from 'react';
 
 import { SortDir, useMySources } from '@api/subsquid-network-squid';
-import { useMockPortals } from '@api/portal-pools';
 import { DashboardTable, SortableHeaderCell, NoItems } from '@components/Table';
 import { Location, useLocationState } from '@hooks/useLocationState';
 import { CenteredPageWrapper } from '@layouts/NetworkLayout';
@@ -15,22 +13,21 @@ import { SectionHeader } from '@components/SectionHeader';
 import { Card } from '@components/Card';
 import { NameWithAvatar } from '@components/SourceWalletName';
 import { CopyToClipboard } from '@components/CopyToClipboard';
-import { formatUnits } from 'viem';
-import { PortalDelegate } from '@pages/DashboardPage/PortalDelegate';
 import { AddPortalButton } from './AddNewPortalPool';
-import { fromSqd, toSqd } from '@lib/network';
+import { useAccount } from '@network/useAccount';
+import { useReadContract, useReadContracts } from 'wagmi';
+import { portalPoolFactoryAbi, portalPoolAbi } from '@api/contracts';
+import { unwrapMulticallResult } from '@lib/network';
 
 enum PortalSortBy {
   Name = 'name',
-  Staked = 'staked',
-  Claimable = 'claimable',
 }
 
 function PortalName({ name, address }: { name: string; address: string }) {
   const shortAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
 
   return (
-    <RouterLink to={`/portal/${address}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+    <RouterLink to={`/portal-pool/${address}`} style={{ textDecoration: 'none', color: 'inherit' }}>
       <NameWithAvatar
         title={name}
         subtitle={<CopyToClipboard text={address} content={shortAddress} />}
@@ -42,49 +39,64 @@ function PortalName({ name, address }: { name: string; address: string }) {
 
 export function MyPortals() {
   const [query, setQuery] = useLocationState({
-    sortBy: new Location.Enum<PortalSortBy>(PortalSortBy.Staked),
-    sortDir: new Location.Enum<SortDir>(SortDir.Desc),
+    sortBy: new Location.Enum<PortalSortBy>(PortalSortBy.Name),
+    sortDir: new Location.Enum<SortDir>(SortDir.Asc),
   });
 
-  const { SQD_TOKEN } = useContracts();
+  const { SQD_TOKEN, PORTAL_POOL_FACTORY } = useContracts();
+  const { address } = useAccount();
   const { data: sources, isLoading: isSourcesLoading } = useMySources();
-  const { mockPortals, mockProviders, mockUserAddress, stakeMock, requestExitMock } =
-    useMockPortals();
 
-  const userProvider = mockProviders.find(p => p.address === mockUserAddress);
+  const { data: portalAddresses, isLoading: isPortalsLoading } = useReadContract({
+    address: PORTAL_POOL_FACTORY,
+    abi: portalPoolFactoryAbi,
+    functionName: 'getOperatorPortals',
+    args: [address as `0x${string}`],
+    query: {
+      enabled: !!address,
+    },
+  });
 
-  // Filter portals where user has stake
+  const portalContracts = useMemo(() => {
+    if (!portalAddresses) return [];
+
+    return portalAddresses.map(portalAddress => ({
+      address: portalAddress,
+      abi: portalPoolAbi,
+      functionName: 'getPortalInfo' as const,
+    }));
+  }, [portalAddresses]);
+
+  const { data: portalsData, isLoading: isPortalsDataLoading } = useReadContracts({
+    contracts: portalContracts as any,
+    query: {
+      enabled: portalContracts.length > 0,
+    },
+  });
+
   const myPortals = useMemo(() => {
-    return mockPortals
-      .filter(portal => {
-        const stake = userProvider?.stakes[portal.address];
-        return stake && stake > 0n;
-      })
-      .map(portal => {
-        const stake = userProvider?.stakes[portal.address] || BigInt(0);
-        const claimable =
-          userProvider?.claimable[portal.address]?.['0xA911Abb691d1F09DF1063cE28D78Ba5f9E1E66A2'] ||
-          BigInt(0);
-        return { portal, stake, claimable };
-      })
-      .sort((a, b) => {
-        let comparison = 0;
-        switch (query.sortBy) {
-          case PortalSortBy.Name:
-            comparison = a.portal.name.localeCompare(b.portal.name);
-            break;
-          case PortalSortBy.Staked:
-            comparison = Number(a.stake - b.stake);
-            break;
-          case PortalSortBy.Claimable:
-            comparison = Number(a.claimable - b.claimable);
-            break;
-        }
-        return query.sortDir === SortDir.Asc ? comparison : -comparison;
-      });
-  }, [mockPortals, userProvider, query.sortBy, query.sortDir]);
+    if (!portalAddresses || !portalsData) return [];
 
-  const isLoading = isSourcesLoading;
+    const portals = portalAddresses
+      .map((portalAddress, index) => {
+        const portalInfo = unwrapMulticallResult(portalsData[index]) as any;
+
+        if (!portalInfo) return null;
+
+        return {
+          address: portalAddress,
+          name: (portalInfo.operator as string) || portalAddress,
+        };
+      })
+      .filter((portal): portal is NonNullable<typeof portal> => portal !== null);
+
+    return portals.sort((a, b) => {
+      const comparison = a.name.localeCompare(b.name);
+      return query.sortDir === SortDir.Asc ? comparison : -comparison;
+    });
+  }, [portalAddresses, portalsData, query.sortDir]);
+
+  const isLoading = isSourcesLoading || isPortalsLoading || isPortalsDataLoading;
 
   return (
     <>
@@ -113,44 +125,20 @@ export function MyPortals() {
                 <SortableHeaderCell sort={PortalSortBy.Name} query={query} setQuery={setQuery}>
                   Portal
                 </SortableHeaderCell>
-                <SortableHeaderCell sort={PortalSortBy.Staked} query={query} setQuery={setQuery}>
-                  Your Stake
-                </SortableHeaderCell>
-                <SortableHeaderCell sort={PortalSortBy.Claimable} query={query} setQuery={setQuery}>
-                  Claimable
-                </SortableHeaderCell>
-                <TableCell>Daily Rate</TableCell>
-                <TableCell></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {myPortals.length ? (
-                myPortals.map(({ portal, stake, claimable }) => (
+                myPortals.map(portal => (
                   <TableRow key={portal.address}>
                     <TableCell>
                       <PortalName name={portal.name} address={portal.address} />
-                    </TableCell>
-                    <TableCell>{tokenFormatter(fromSqd(stake), SQD_TOKEN, 2)}</TableCell>
-                    <TableCell>
-                      {claimable > 0 ? `$${formatUnits(claimable, 6)} USDC` : '-'}
-                    </TableCell>
-                    <TableCell>{formatUnits(portal.expectedRatePerDay, 6)} USDC</TableCell>
-                    <TableCell>
-                      <Box display="flex" justifyContent="flex-end">
-                        <PortalDelegate
-                          portal={portal}
-                          sources={sources}
-                          onDeposit={stakeMock}
-                          onWithdraw={requestExitMock}
-                          userStake={stake}
-                        />
-                      </Box>
                     </TableCell>
                   </TableRow>
                 ))
               ) : isLoading ? null : (
                 <NoItems>
-                  <span>No portal stakes yet</span>
+                  <span>No portals yet</span>
                 </NoItems>
               )}
             </TableBody>

@@ -1,114 +1,76 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Box, Divider, Grid, Stack, Tab, Tabs, Typography } from '@mui/material';
+import { Box, Grid, Stack, Tab, Tabs } from '@mui/material';
 
-import { Card } from '@components/Card';
-import { Property, PropertyList } from '@components/Property';
-import { CenteredPageWrapper } from '@layouts/NetworkLayout';
-import { fromSqd } from '@lib/network';
+import { Loader } from '@components/Loader';
+import { NotFound } from '@components/NotFound';
+import { CenteredPageWrapper, PageTitle } from '@layouts/NetworkLayout';
+import { useAccount } from '@network/useAccount';
 
+import { usePoolData } from './hooks';
+import { PendingWithdrawals } from './PendingWithdrawals';
 import { PoolHeader } from './PoolHeader';
 import { PoolYieldChart } from './PoolYieldChart';
-import { PendingWithdrawals } from './PendingWithdrawals';
-import { DelegateTab } from './DelegateTab';
-import { usePoolData, usePoolUserData, usePoolPendingWithdrawals, type PoolData, type PoolUserData, type PendingWithdrawal } from './usePoolData';
-import { dateFormat } from '@i18n';
-import { addressFormatter, urlFormatter } from '@lib/formatters/formatters';
+import { DelegateTab } from './tabs/DelegateTab';
+import { InfoTab } from './tabs/InfoTab';
+import { ManageTab } from './tabs/ManageTab';
 
-function PoolInfoCard({ pool, userData, pendingWithdrawals }: { pool: PoolData; userData?: PoolUserData; pendingWithdrawals?: PendingWithdrawal[] }) {
+function PoolInfoCard({ poolId }: { poolId: string }) {
+  const { data: pool } = usePoolData(poolId);
+  const { address } = useAccount();
   const [activeTab, setActiveTab] = useState(0);
 
+  const isOperator = pool && address?.toLowerCase() === pool.operator.address.toLowerCase();
+
   return (
-    <>
+    <Stack spacing={2} height="100%">
       <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
         <Tab label="Delegate" />
-        <Tab label="Manage" disabled />
         <Tab label="Info" />
+        {isOperator && <Tab label="Manage" />}
       </Tabs>
-      <Box
-        display="flex"
-        flexDirection="column"
-        gap={2}
-        justifyContent="stretch"
-        sx={{ height: '100%' }}
-      >
-        {activeTab === 0 && <DelegateTab pool={pool} userData={userData} pendingWithdrawals={pendingWithdrawals} />}
-        {activeTab === 1 && (
-          <>
-            <Card sx={{ height: '100%' }}>
-              <Stack spacing={2} divider={<Divider />}></Stack>
-            </Card>
-          </>
-        )}
-        {activeTab === 2 && (
-          <Card sx={{ height: '100%' }}>
-            <Stack divider={<Divider />} spacing={2} sx={{}}>
-              <PropertyList>
-                <Property label="Contract" value={addressFormatter(pool.id, true)} />
-                <Property label="Operator" value={addressFormatter(pool.operator.address, true)} />
-                <Property
-                  label="Created"
-                  value={dateFormat(new Date('2025-12-16T12:00:00Z'), 'dateTime')}
-                />
-                <Property
-                  label="Website"
-                  value={
-                    pool.website && (
-                      <a href={urlFormatter(pool.website)} target="_blank" rel="noreferrer">
-                        {pool.website}
-                      </a>
-                    )
-                  }
-                />
-              </PropertyList>
-              <Typography>{pool.description}</Typography>
-            </Stack>
-          </Card>
-        )}
+
+      <Box height={454}>
+        {activeTab === 0 && <DelegateTab poolId={poolId} />}
+        {activeTab === 1 && <InfoTab poolId={poolId} />}
+        {activeTab === 2 && isOperator && <ManageTab poolId={poolId} />}
       </Box>
-    </>
+    </Stack>
   );
 }
 
 function PoolPageContent({ poolId }: { poolId?: string }) {
   const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
-  const { data: userData, isLoading: userDataLoading } = usePoolUserData(poolId);
-  const { data: pendingWithdrawals } = usePoolPendingWithdrawals(poolId);
 
   if (poolLoading) {
-    return <Box>Loading...</Box>;
+    return <Loader />;
   }
 
-  if (!pool) {
-    return <Box>Pool not found</Box>;
+  if (!pool || !poolId) {
+    return <NotFound item="portal pool" id={poolId} />;
   }
 
   return (
-    <>
-      <Box>
-        <Grid container spacing={2}>
-          <Grid size={{ xs: 12, md: 8 }} container>
-            <Grid size={{ xs: 12 }}>
-              <PoolHeader pool={pool} />
-            </Grid>
-            <Grid size={{ xs: 12 }}>
-              <PoolYieldChart
-                monthlyPayoutUsd={pool.monthlyPayoutUsd}
-                tvlInSqd={fromSqd(pool.tvl.max).toNumber()}
-              />
-            </Grid>
-          </Grid>
-
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Stack spacing={2} height="100%">
-              <PoolInfoCard pool={pool} userData={userData} pendingWithdrawals={pendingWithdrawals} />
-            </Stack>
-          </Grid>
+    <Stack spacing={2}>
+      <Grid container spacing={2} height={516} overflow={'auto'}>
+        <Grid size={{ xs: 12, md: 8 }}>
+          <Stack spacing={2} sx={{ height: '100%' }}>
+            <Box flex={1}>
+              <PoolHeader poolId={poolId} />
+            </Box>
+            <Box>
+              <PoolYieldChart poolId={poolId} />
+            </Box>
+          </Stack>
         </Grid>
 
-        <PendingWithdrawals pool={pool} userData={userData} pendingWithdrawals={pendingWithdrawals || []} />
-      </Box>
-    </>
+        <Grid size={{ xs: 12, md: 4 }}>
+          <PoolInfoCard poolId={poolId} />
+        </Grid>
+      </Grid>
+
+      <PendingWithdrawals poolId={poolId} />
+    </Stack>
   );
 }
 
@@ -117,6 +79,7 @@ export function PoolPage() {
 
   return (
     <CenteredPageWrapper>
+      <PageTitle title={'Portal Pool'} />
       <PoolPageContent poolId={poolId} />
     </CenteredPageWrapper>
   );

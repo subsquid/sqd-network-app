@@ -1,10 +1,7 @@
 import { useState } from 'react';
 import {
-  Avatar,
   Box,
   Button,
-  Chip,
-  Link,
   Tab,
   TableBody,
   TableCell,
@@ -14,8 +11,8 @@ import {
   Typography,
 } from '@mui/material';
 
-const USDC_LOGO = 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png?v=040';
-
+import { portalPoolAbi } from '@api/contracts';
+import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { Card } from '@components/Card';
 import { DashboardTable, NoItems } from '@components/Table';
 import { useCountdown } from '@hooks/useCountdown';
@@ -23,45 +20,11 @@ import { tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
-import type { PendingWithdrawal, PoolData, PoolUserData } from './usePoolData';
+import type { PendingWithdrawal } from './hooks';
+import { usePoolData, usePoolPendingWithdrawals } from './hooks';
 
 interface PendingWithdrawalsProps {
-  pool: PoolData;
-  userData?: PoolUserData;
-  pendingWithdrawals: PendingWithdrawal[];
-}
-
-function getStatusColor(
-  status: PendingWithdrawal['status'],
-): 'warning' | 'info' | 'success' | 'default' {
-  switch (status) {
-    case 'pending':
-      return 'warning';
-    case 'processing':
-      return 'info';
-    case 'ready':
-      return 'success';
-    default:
-      return 'default';
-  }
-}
-
-function getStatusLabel(status: PendingWithdrawal['status']): string {
-  switch (status) {
-    case 'pending':
-      return 'Pending';
-    case 'processing':
-      return 'Processing';
-    case 'ready':
-      return 'Ready to Claim';
-    default:
-      return status;
-  }
-}
-
-function TimeUntilWithdrawn({ timestamp }: { timestamp: string }) {
-  const timeLeft = useCountdown({ timestamp });
-  return <span>~{timeLeft}</span>;
+  poolId: string;
 }
 
 function WithdrawalRow({
@@ -75,30 +38,23 @@ function WithdrawalRow({
 }) {
   const { SQD_TOKEN } = useContracts();
   const isReady = withdrawal.status === 'ready';
+  const timeLeft = useCountdown({ timestamp: withdrawal.estimatedCompletionAt });
 
   return (
     <TableRow>
+      <TableCell>{withdrawal.id}</TableCell>
       <TableCell>{tokenFormatter(fromSqd(withdrawal.amount), SQD_TOKEN, 2)}</TableCell>
+      <TableCell>{timeLeft}</TableCell>
       <TableCell>
-        <Chip
-          label={getStatusLabel(withdrawal.status)}
-          color={getStatusColor(withdrawal.status)}
+        <Button
           size="small"
-        />
-      </TableCell>
-      <TableCell>
-        {isReady ? (
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => onClaim(withdrawal.id)}
-            loading={isClaiming}
-          >
-            Claim
-          </Button>
-        ) : (
-          <TimeUntilWithdrawn timestamp={withdrawal.estimatedCompletionAt} />
-        )}
+          variant="contained"
+          onClick={() => onClaim(withdrawal.id)}
+          loading={isClaiming}
+          disabled={!isReady}
+        >
+          Claim
+        </Button>
       </TableCell>
     </TableRow>
   );
@@ -117,8 +73,9 @@ function PendingWithdrawalsTable({
     <DashboardTable sx={{ mx: -2, my: -1 }}>
       <TableHead>
         <TableRow>
+          <TableCell>Ticket</TableCell>
           <TableCell>Amount</TableCell>
-          <TableCell>Status</TableCell>
+          <TableCell>Time Left</TableCell>
           <TableCell>Action</TableCell>
         </TableRow>
       </TableHead>
@@ -142,117 +99,43 @@ function PendingWithdrawalsTable({
   );
 }
 
-function PayoutsTable() {
-  return (
-    <DashboardTable>
-      <TableHead>
-        <TableRow>
-          <TableCell>Date</TableCell>
-          <TableCell>Amount</TableCell>
-          <TableCell>Transaction</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        <TableRow>
-          <TableCell>Dec 15, 2025</TableCell>
-          <TableCell>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Avatar src={USDC_LOGO} alt="USDC" sx={{ width: 20, height: 20 }} />
-              <Typography variant="body2" fontWeight={500}>
-                +125.50 USDC
-              </Typography>
-            </Box>
-          </TableCell>
-          <TableCell>
-            <Link
-              href="https://arbiscan.io/tx/0x1a2b3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890"
-              target="_blank"
-              rel="noopener noreferrer"
-              underline="hover"
-              sx={{ fontFamily: 'monospace', fontSize: '0.875rem', color: 'text.primary' }}
-            >
-              0x1a2b...7890
-            </Link>
-          </TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Dec 1, 2025</TableCell>
-          <TableCell>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Avatar src={USDC_LOGO} alt="USDC" sx={{ width: 20, height: 20 }} />
-              <Typography variant="body2" fontWeight={500}>
-                +118.75 USDC
-              </Typography>
-            </Box>
-          </TableCell>
-          <TableCell>
-            <Link
-              href="https://arbiscan.io/tx/0x9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba"
-              target="_blank"
-              rel="noopener noreferrer"
-              underline="hover"
-              sx={{ fontFamily: 'monospace', fontSize: '0.875rem', color: 'text.primary' }}
-            >
-              0x9876...dcba
-            </Link>
-          </TableCell>
-        </TableRow>
-      </TableBody>
-    </DashboardTable>
-  );
-}
-
-function MyHistoryTable() {
-  return (
-    <DashboardTable>
-      <TableHead>
-        <TableRow>
-          <TableCell>Date</TableCell>
-          <TableCell>Type</TableCell>
-          <TableCell>Amount</TableCell>
-          <TableCell>Status</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        <NoItems>
-          <Typography>No history yet</Typography>
-        </NoItems>
-      </TableBody>
-    </DashboardTable>
-  );
-}
-
-export function PendingWithdrawals({ pool, userData, pendingWithdrawals }: PendingWithdrawalsProps) {
+export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
+  const { data: pool } = usePoolData(poolId);
   const [claimingId, setClaimingId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState(0);
+  const { writeTransactionAsync } = useWriteSQDTransaction();
+  const { data: pendingWithdrawals = [] } = usePoolPendingWithdrawals(poolId);
 
   const handleClaim = async (withdrawalId: string) => {
     setClaimingId(withdrawalId);
     try {
-      // TODO: Call pool contract claim function
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
+      await writeTransactionAsync({
+        address: poolId as `0x${string}`,
+        abi: portalPoolAbi,
+        functionName: 'withdrawExit',
+        args: [BigInt(withdrawalId)],
+      });
     } catch (error) {
-      // Error handling
+      // Error is already handled by useWriteSQDTransaction
     } finally {
       setClaimingId(null);
     }
   };
 
+  if (!pool) return null;
+
   const readyCount = pendingWithdrawals.filter(w => w.status === 'ready').length;
 
   return (
     <Box sx={{ mt: 2 }}>
-      <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)} sx={{ mb: 2 }}>
+      <Tabs value={0} sx={{ mb: 2 }}>
         <Tab label={`Pending Withdrawals${readyCount > 0 ? ` (${readyCount})` : ''}`} />
-        {/* <Tab label="Payouts" />
-        <Tab label="My History" /> */}
       </Tabs>
       <Card>
-        {activeTab === 0 && (
-          <PendingWithdrawalsTable pendingWithdrawals={pendingWithdrawals} claimingId={claimingId} onClaim={handleClaim} />
-        )}
-        {activeTab === 1 && <PayoutsTable />}
-        {activeTab === 2 && <MyHistoryTable />}
+        <PendingWithdrawalsTable 
+          pendingWithdrawals={pendingWithdrawals} 
+          claimingId={claimingId} 
+          onClaim={handleClaim} 
+        />
       </Card>
     </Box>
   );
