@@ -37,7 +37,7 @@ function WithdrawalRow({
   isClaiming: boolean;
 }) {
   const { SQD_TOKEN } = useContracts();
-  const isReady = withdrawal.status === 'ready';
+  const isReady = withdrawal.estimatedCompletionAt.getTime() < Date.now();
   const timeLeft = useCountdown({ timestamp: withdrawal.estimatedCompletionAt });
 
   return (
@@ -46,15 +46,16 @@ function WithdrawalRow({
       <TableCell>{tokenFormatter(fromSqd(withdrawal.amount), SQD_TOKEN, 2)}</TableCell>
       <TableCell>{timeLeft}</TableCell>
       <TableCell>
-        <Button
-          size="small"
-          variant="contained"
-          onClick={() => onClaim(withdrawal.id)}
-          loading={isClaiming}
-          disabled={!isReady}
-        >
-          Claim
-        </Button>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            variant="outlined"
+            onClick={() => onClaim(withdrawal.id)}
+            loading={isClaiming}
+            disabled={!isReady}
+          >
+            CLAIM
+          </Button>
+        </Box>
       </TableCell>
     </TableRow>
   );
@@ -76,7 +77,7 @@ function PendingWithdrawalsTable({
           <TableCell>Ticket</TableCell>
           <TableCell>Amount</TableCell>
           <TableCell>Time Left</TableCell>
-          <TableCell>Action</TableCell>
+          <TableCell></TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -123,7 +124,7 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
 
   if (!pool) return null;
 
-  const readyCount = pendingWithdrawals.filter(w => w.status === 'ready').length;
+  const readyCount = pendingWithdrawals.length;
 
   return (
     <Box sx={{ mt: 2 }}>
@@ -131,10 +132,10 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
         <Tab label={`Pending Withdrawals${readyCount > 0 ? ` (${readyCount})` : ''}`} />
       </Tabs>
       <Card>
-        <PendingWithdrawalsTable 
-          pendingWithdrawals={pendingWithdrawals} 
-          claimingId={claimingId} 
-          onClaim={handleClaim} 
+        <PendingWithdrawalsTable
+          pendingWithdrawals={pendingWithdrawals}
+          claimingId={claimingId}
+          onClaim={handleClaim}
         />
       </Card>
     </Box>

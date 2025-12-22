@@ -139,6 +139,7 @@ export function usePoolData(poolId?: string) {
           .multipliedBy(86400)
           .toNumber(),
       ),
+      distributionRatePerSecond,
       tvl: {
         current: activeStake,
         max: capacity,

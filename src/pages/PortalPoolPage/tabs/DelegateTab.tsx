@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Button, Divider, Stack, Typography } from '@mui/material';
 import BigNumber from 'bignumber.js';
 import { useQueryClient } from '@tanstack/react-query';
@@ -37,6 +37,20 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
     ? new BigNumber(userData.userRewards.toString()).div(10 ** (rewardToken?.decimals ?? 6))
     : BigNumber(0);
 
+  const dailyRewardRate = useMemo(() => {
+    if (!pool || !userData || !pool.tvl.current) return BigNumber(0);
+
+    // Calculate daily distribution rate: rate per second * seconds in a day / decimals
+    const dailyDistribution = new BigNumber(pool.distributionRatePerSecond.toString())
+      .multipliedBy(86400)
+      .div(10 ** (rewardToken?.decimals ?? 6));
+
+    // Calculate user's share of daily rewards: daily rate * (user balance / total active stake)
+    const userShare = balance.div(fromSqd(pool.tvl.current));
+
+    return dailyDistribution.multipliedBy(userShare);
+  }, [pool, userData, balance, rewardToken?.decimals]);
+
   const hasRewards = userData ? userData.userRewards > BigInt(0) : false;
 
   const handleClaimRewards = useCallback(async () => {
@@ -63,7 +77,7 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
           </Stack>
           <Stack spacing={1}>
             <ProvideButton poolId={poolId} />
-            <WithdrawButton poolId={poolId}/>
+            <WithdrawButton poolId={poolId} />
           </Stack>
         </Stack>
       </Card>
@@ -75,7 +89,7 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
               {tokenFormatter(rewards, rewardToken?.symbol ?? 'USDC', 2)}
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              ≈ {dollarFormatter(rewards.toNumber())}
+              {tokenFormatter(dailyRewardRate, rewardToken?.symbol ?? '', 4)}/day
             </Typography>
           </Stack>
           <Button
@@ -84,8 +98,9 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
             fullWidth
             onClick={handleClaimRewards}
             disabled={!hasRewards || isPending}
+            loading={isPending}
           >
-            {isPending ? 'CLAIMING...' : 'CLAIM'}
+            CLAIM
           </Button>
         </Stack>
       </Card>

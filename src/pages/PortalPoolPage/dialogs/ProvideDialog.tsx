@@ -276,7 +276,7 @@ export function ProvideButton({ poolId }: ProvideButtonProps) {
 
   return (
     <>
-      <Button variant="contained" color="info" fullWidth onClick={handleOpen}>
+      <Button variant="contained" color="info" fullWidth onClick={handleOpen} loading={dialogOpen}>
         DEPOSIT
       </Button>
       <ProvideDialog open={dialogOpen} onClose={handleClose} poolId={poolId} />

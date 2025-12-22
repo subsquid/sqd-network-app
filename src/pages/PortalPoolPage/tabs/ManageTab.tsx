@@ -5,10 +5,15 @@ import { useReadContract } from 'wagmi';
 import { portalPoolAbi } from '@api/contracts';
 import { Card } from '@components/Card';
 import { Property, PropertyList } from '@components/Property';
+import { useRewardToken } from '@hooks/useRewardToken';
 import { dollarFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
+import {
+  EditCapacityButton,
+  EditDistributionRateButton,
+} from '../dialogs/EditSettingsDialog';
 import { TopUpButton } from '../dialogs/TopUpDialog';
 import { usePoolData } from '../hooks';
 
@@ -19,6 +24,7 @@ interface ManageTabProps {
 export function ManageTab({ poolId }: ManageTabProps) {
   const { data: pool } = usePoolData(poolId);
   const { SQD_TOKEN } = useContracts();
+  const { data: rewardToken } = useRewardToken();
 
   const { data: rewardBalance } = useReadContract({
     address: poolId as `0x${string}`,
@@ -31,7 +37,9 @@ export function ManageTab({ poolId }: ManageTabProps) {
 
   if (!pool) return null;
 
-  const formattedBalance = rewardBalance ? formatUnits(rewardBalance, 6) : '0';
+  const rewardDecimals = rewardToken?.decimals ?? 6;
+  const rewardSymbol = rewardToken?.symbol ?? 'USDC';
+  const formattedBalance = rewardBalance ? formatUnits(rewardBalance, rewardDecimals) : '0';
 
   return (
     <Card sx={{ height: '100%', overflowY: 'auto' }}>
@@ -40,7 +48,9 @@ export function ManageTab({ poolId }: ManageTabProps) {
           <Typography variant="body2" color="text.secondary">
             Current Reward Balance
           </Typography>
-          <Typography variant="body1">{dollarFormatter(Number(formattedBalance))} USDC</Typography>
+          <Typography variant="body1">
+            {dollarFormatter(Number(formattedBalance))} {rewardSymbol}
+          </Typography>
         </Stack>
 
         <TopUpButton poolId={poolId} />
@@ -50,11 +60,13 @@ export function ManageTab({ poolId }: ManageTabProps) {
           <PropertyList>
             <Property
               label="Distribution Rate"
-              value={`$${(pool.monthlyPayoutUsd / 30).toFixed(2)} USDC/day`}
+              value={`${(pool.monthlyPayoutUsd / 30).toFixed(2)} ${rewardSymbol}/day`}
+              action={<EditDistributionRateButton poolId={poolId} />}
             />
             <Property
               label="Max Pool Capacity"
               value={tokenFormatter(fromSqd(pool.tvl.max), SQD_TOKEN, 0)}
+              action={<EditCapacityButton poolId={poolId} />}
             />
           </PropertyList>
         </Stack>

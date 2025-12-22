@@ -129,13 +129,17 @@ export const PropertyValue = styled(Box, {
 export interface PropertyProps {
   label: React.ReactNode;
   value: React.ReactNode;
+  action?: React.ReactNode;
 }
 
-export function Property({ label, value }: PropertyProps) {
+export function Property({ label, value, action }: PropertyProps) {
   return (
     <>
       <PropertyLabel>{label}</PropertyLabel>
-      <PropertyValue>{value || '-'}</PropertyValue>
+      <PropertyValue sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ flex: 1 }}>{value || '-'}</Box>
+        {action && <Box>{action}</Box>}
+      </PropertyValue>
     </>
   );
 }

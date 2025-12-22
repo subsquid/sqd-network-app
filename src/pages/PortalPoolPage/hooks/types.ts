@@ -14,9 +14,7 @@ export interface PoolOperator {
 export interface PendingWithdrawal {
   id: string;
   amount: bigint;
-  requestedAt: string;
-  estimatedCompletionAt: string;
-  status: 'pending' | 'processing' | 'ready';
+  estimatedCompletionAt: Date;
 }
 
 export interface WithdrawalQueue {
@@ -34,6 +32,7 @@ export interface PoolData {
   operator: PoolOperator;
   phase: PoolPhase;
   monthlyPayoutUsd: number;
+  distributionRatePerSecond: bigint;
   tvl: {
     current: bigint;
     max: bigint;

@@ -32,7 +32,7 @@ export function usePoolPendingWithdrawals(poolId?: string) {
     return Array.from({ length: count }, (_, i) => BigInt(i));
   }, [ticketCount]);
 
-  // Query all ticket data
+  // Query all ticket data (both ticket details and queue status)
   const { data: ticketsData, isLoading } = useReadContracts({
     contracts: ticketIds.flatMap(ticketId => [
       {
@@ -48,7 +48,6 @@ export function usePoolPendingWithdrawals(poolId?: string) {
     ]),
     query: {
       enabled: !!poolId && !!address && ticketIds.length > 0,
-      refetchInterval: 10000,
     },
   });
 
@@ -58,58 +57,30 @@ export function usePoolPendingWithdrawals(poolId?: string) {
     const withdrawals: PendingWithdrawal[] = [];
 
     for (let i = 0; i < ticketIds.length; i++) {
+      // Each ticket has 2 contract calls: getExitTicket and getQueueStatusWithTimestamp
       const exitTicketResult = ticketsData[i * 2];
       const queueStatusResult = ticketsData[i * 2 + 1];
 
-      const exitTicket = unwrapMulticallResult(exitTicketResult) as
-        | { endPosition: bigint; amount: bigint; withdrawn: boolean }
-        | undefined;
-      const queueStatus = unwrapMulticallResult(queueStatusResult) as
-        | {
-            processed: bigint;
-            userEndPos: bigint;
-            secondsRemaining: bigint;
-            ready: boolean;
-            unlockTimestamp: bigint;
-          }
-        | undefined;
+      const exitTicket = unwrapMulticallResult(exitTicketResult) as {
+        endPosition: bigint;
+        amount: bigint;
+        withdrawn: boolean;
+      };
+      const queueStatus = unwrapMulticallResult(queueStatusResult) as [
+        bigint,
+        bigint,
+        bigint,
+        boolean,
+        bigint,
+      ];
 
-      if (!exitTicket || !queueStatus) continue;
-
-      // Only display withdrawals that haven't been claimed yet (withdrawn === false)
-      if (exitTicket.withdrawn === true) continue;
-
-      const isReady = queueStatus.ready;
-
-      // Use unlockTimestamp from getQueueStatusWithTimestamp
-      const unlockTimestampSeconds = Number(queueStatus.unlockTimestamp);
-      const estimatedCompletionAt = new Date(unlockTimestampSeconds * 1000);
-
-      // Validate the date before converting to ISO string
-      if (isNaN(estimatedCompletionAt.getTime())) {
-        continue; // Skip invalid tickets
-      }
-
-      const now = Date.now();
-      const timeUntilCompletion = estimatedCompletionAt.getTime() - now;
-
-      // Determine status based on time remaining
-      let status: 'pending' | 'processing' | 'ready';
-      if (isReady || timeUntilCompletion <= 0) {
-        status = 'ready';
-      } else if (timeUntilCompletion < 24 * 60 * 60 * 1000) {
-        // Less than 24 hours remaining
-        status = 'processing';
-      } else {
-        status = 'pending';
-      }
+      // Convert timestamps to milliseconds
+      const unlockTimestampMs = Number(queueStatus[4]) * 1000;
 
       withdrawals.push({
         id: ticketIds[i].toString(),
-        amount: exitTicket.amount,
-        requestedAt: new Date(now - 24 * 60 * 60 * 1000).toISOString(), // We don't have exact request time from contract
-        estimatedCompletionAt: estimatedCompletionAt.toISOString(),
-        status,
+        amount: exitTicket?.amount ?? 0n,
+        estimatedCompletionAt: new Date(unlockTimestampMs),
       });
     }
 
@@ -121,4 +92,3 @@ export function usePoolPendingWithdrawals(poolId?: string) {
     isLoading,
   };
 }
-

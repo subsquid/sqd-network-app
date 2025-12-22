@@ -52,13 +52,7 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
   const { SQD_TOKEN } = useContracts();
   const { data: pool } = usePoolData(poolId);
   const { data: userData } = usePoolUserData(poolId);
-  const { data: pendingWithdrawals = [] } = usePoolPendingWithdrawals(poolId);
   const capacity = usePoolCapacity(poolId);
-
-  const pendingWithdrawalsOnly = useMemo(
-    () => pendingWithdrawals.filter(w => w.status !== 'ready'),
-    [pendingWithdrawals],
-  );
 
   const { currentUserBalance, currentPoolTvl } = capacity || {};
 
@@ -92,13 +86,6 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
 
   return (
     <Stack spacing={2.5}>
-      {pendingWithdrawalsOnly.length > 0 && (
-        <Alert severity="info">
-          You have {pendingWithdrawalsOnly.length} pending withdrawal(s) in queue. Estimated wait
-          time: ~{pool.withdrawWaitTime || '2 days'}.
-        </Alert>
-      )}
-
       <FormRow>
         <FormikTextInput
           id="amount"
@@ -251,6 +238,7 @@ export function WithdrawButton({ poolId }: WithdrawButtonProps) {
       color="error"
       onClick={handleOpen}
       disabled={!hasBalance || pool?.phase === 'collecting'}
+      loading={dialogOpen}
     >
       WITHDRAW
     </Button>

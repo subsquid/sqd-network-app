@@ -18,6 +18,7 @@ import { useAccount } from '@network/useAccount';
 import { useReadContract, useReadContracts } from 'wagmi';
 import { portalPoolFactoryAbi, portalPoolAbi } from '@api/contracts';
 import { unwrapMulticallResult } from '@lib/network';
+import { parseMetadata } from '@pages/PortalPoolPage/hooks';
 
 enum PortalSortBy {
   Name = 'name',
@@ -60,15 +61,18 @@ export function MyPortals() {
   const portalContracts = useMemo(() => {
     if (!portalAddresses) return [];
 
-    return portalAddresses.map(portalAddress => ({
-      address: portalAddress,
-      abi: portalPoolAbi,
-      functionName: 'getPortalInfo' as const,
-    }));
+    return portalAddresses.map(
+      portalAddress =>
+        ({
+          address: portalAddress,
+          abi: portalPoolAbi,
+          functionName: 'getMetadata',
+        }) as const,
+    );
   }, [portalAddresses]);
 
   const { data: portalsData, isLoading: isPortalsDataLoading } = useReadContracts({
-    contracts: portalContracts as any,
+    contracts: portalContracts,
     query: {
       enabled: portalContracts.length > 0,
     },
@@ -79,13 +83,13 @@ export function MyPortals() {
 
     const portals = portalAddresses
       .map((portalAddress, index) => {
-        const portalInfo = unwrapMulticallResult(portalsData[index]) as any;
+        const portalInfo = unwrapMulticallResult(portalsData[index]);
 
-        if (!portalInfo) return null;
+        if (!portalInfo) return;
 
         return {
           address: portalAddress,
-          name: (portalInfo.operator as string) || portalAddress,
+          name: parseMetadata(portalInfo).name || portalAddress,
         };
       })
       .filter((portal): portal is NonNullable<typeof portal> => portal !== null);
@@ -118,7 +122,7 @@ export function MyPortals() {
         }
       />
       <Card>
-        <DashboardTable loading={isLoading} sx={{ mx: -2 }}>
+        <DashboardTable loading={isLoading} sx={{ mx: -2, mb: -2 }}>
           <>
             <TableHead>
               <TableRow>
