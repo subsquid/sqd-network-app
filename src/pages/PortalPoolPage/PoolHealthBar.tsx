@@ -110,13 +110,12 @@ function CapacityUsage({ pool }: { pool: PoolData }) {
   const max = fromSqd(pool.tvl.max).toNumber();
   const min = fromSqd(pool.tvl.min).toNumber();
 
-  console.log(current, max, min);
-
   const real = Math.min(0, current - min);
   const total = max - min;
   const usagePercent = total === 0 ? 100 : (real / total) * 100;
-
   const status = getCapacityStatus(pool, usagePercent);
+
+  const realUsagePercent = max === 0 ? 100 : (current / max) * 100;
 
   const label = (
     <Tooltip title={status.description} arrow>
@@ -129,7 +128,7 @@ function CapacityUsage({ pool }: { pool: PoolData }) {
     </Tooltip>
   );
 
-  return <ProgressBar label={label} value={usagePercent} color={status.color} />;
+  return <ProgressBar label={label} value={realUsagePercent} color={status.color} />;
 }
 
 export function PoolHealthBar({ poolId }: PoolHealthBarProps) {
