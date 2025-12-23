@@ -10,10 +10,7 @@ import { dollarFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
-import {
-  EditCapacityButton,
-  EditDistributionRateButton,
-} from '../dialogs/EditSettingsDialog';
+import { EditCapacityButton, EditDistributionRateButton } from '../dialogs/EditSettingsDialog';
 import { TopUpButton } from '../dialogs/TopUpDialog';
 import { usePoolData } from '../hooks';
 
@@ -49,7 +46,7 @@ export function ManageTab({ poolId }: ManageTabProps) {
             Current Reward Balance
           </Typography>
           <Typography variant="body1">
-            {dollarFormatter(Number(formattedBalance))} {rewardSymbol}
+            {tokenFormatter(Number(formattedBalance), rewardSymbol, 6)}
           </Typography>
         </Stack>
 
@@ -61,12 +58,14 @@ export function ManageTab({ poolId }: ManageTabProps) {
             <Property
               label="Distribution Rate"
               value={`${(pool.monthlyPayoutUsd / 30).toFixed(2)} ${rewardSymbol}/day`}
-              action={<EditDistributionRateButton poolId={poolId} />}
+              action={
+                <EditDistributionRateButton poolId={poolId} disabled={pool.phase !== 'active'} />
+              }
             />
             <Property
               label="Max Pool Capacity"
               value={tokenFormatter(fromSqd(pool.tvl.max), SQD_TOKEN, 0)}
-              action={<EditCapacityButton poolId={poolId} />}
+              action={<EditCapacityButton poolId={poolId} disabled={pool.phase !== 'active'} />}
             />
           </PropertyList>
         </Stack>

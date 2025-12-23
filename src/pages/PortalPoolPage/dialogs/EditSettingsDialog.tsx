@@ -105,7 +105,7 @@ export function EditCapacityDialog({ open, onClose, poolId }: EditCapacityDialog
   );
 }
 
-export function EditCapacityButton({ poolId }: { poolId: string }) {
+export function EditCapacityButton({ poolId, disabled }: { poolId: string, disabled?: boolean }) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleOpen = useCallback(() => setDialogOpen(true), []);
@@ -113,7 +113,7 @@ export function EditCapacityButton({ poolId }: { poolId: string }) {
 
   return (
     <>
-      <IconButton size="small" onClick={handleOpen}>
+      <IconButton size="small" onClick={handleOpen} disabled={disabled}>
         <Edit fontSize="small" />
       </IconButton>
       <EditCapacityDialog open={dialogOpen} onClose={handleClose} poolId={poolId} />
@@ -220,7 +220,7 @@ export function EditDistributionRateDialog({
   );
 }
 
-export function EditDistributionRateButton({ poolId }: { poolId: string }) {
+export function EditDistributionRateButton({ poolId, disabled }: { poolId: string, disabled?: boolean }) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleOpen = useCallback(() => setDialogOpen(true), []);
@@ -228,7 +228,7 @@ export function EditDistributionRateButton({ poolId }: { poolId: string }) {
 
   return (
     <>
-      <IconButton size="small" onClick={handleOpen}>
+      <IconButton size="small" onClick={handleOpen} disabled={disabled}>
         <Edit fontSize="small" />
       </IconButton>
       <EditDistributionRateDialog open={dialogOpen} onClose={handleClose} poolId={poolId} />
