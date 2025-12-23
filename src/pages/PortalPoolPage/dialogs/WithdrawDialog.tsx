@@ -4,7 +4,7 @@ import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { portalPoolAbi } from '@api/contracts';
+import { portalPoolAbi, useReadPortalPoolGetWithdrawalWaitingTimestamp } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
@@ -13,12 +13,9 @@ import { tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, toSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
-import { usePoolCapacity, usePoolData, usePoolUserData, usePoolPendingWithdrawals } from '../hooks';
-import {
-  calculateExpectedMonthlyPayout,
-  calculateUnlockDate,
-  invalidatePoolQueries,
-} from '../utils/poolUtils';
+import { usePoolCapacity, usePoolData, usePoolUserData } from '../hooks';
+import { calculateExpectedMonthlyPayout, invalidatePoolQueries } from '../utils/poolUtils';
+import { useReadContract } from 'wagmi';
 
 interface WithdrawDialogProps {
   open: boolean;
@@ -73,10 +70,15 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
     [pool, expectedUserDelegation],
   );
 
-  const expectedUnlockDate = useMemo(
-    () => (typedAmount > 0 && pool ? calculateUnlockDate(pool.withdrawWaitTime) : null),
-    [typedAmount, pool],
-  );
+  const { data: withdrawalWaitingTimestamp } = useReadContract({
+    address: poolId as `0x${string}`,
+    abi: portalPoolAbi,
+    functionName: 'getWithdrawalWaitingTimestamp',
+    args: [BigInt(toSqd(typedAmount))],
+    query: {
+      enabled: !!poolId && !!typedAmount,
+    },
+  });
 
   const handleMaxClick = useCallback(() => {
     formik.setFieldValue('amount', formik.values.max);
@@ -139,7 +141,12 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
         <Stack direction="row" justifyContent="space-between">
           <Typography variant="body2">Expected Unlock Date</Typography>
           <Typography variant="body2">
-            {expectedUnlockDate ? dateFormat(expectedUnlockDate, 'dateTime') : '—'}
+            {dateFormat(
+              withdrawalWaitingTimestamp
+                ? new Date(Number(withdrawalWaitingTimestamp) * 1000)
+                : undefined,
+              'dateTime',
+            ) || '—'}
           </Typography>
         </Stack>
       </Stack>

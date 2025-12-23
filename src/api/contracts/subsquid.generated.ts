@@ -237,6 +237,13 @@ export const portalPoolAbi = [
   },
   {
     type: 'function',
+    inputs: [{ name: 'amount', internalType: 'uint256', type: 'uint256' }],
+    name: 'getWithdrawalWaitingTimestamp',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
     inputs: [],
     name: 'FACTORY_ROLE',
     outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
@@ -3416,6 +3423,15 @@ export const useReadPortalPoolDefaultAdminRole =
   /*#__PURE__*/ createUseReadContract({
     abi: portalPoolAbi,
     functionName: 'DEFAULT_ADMIN_ROLE',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getWithdrawalWaitingTimestamp"`
+ */
+export const useReadPortalPoolGetWithdrawalWaitingTimestamp =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolAbi,
+    functionName: 'getWithdrawalWaitingTimestamp',
   })
 
 /**
