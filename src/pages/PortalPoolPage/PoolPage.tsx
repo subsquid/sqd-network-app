@@ -52,7 +52,7 @@ function PoolPageContent({ poolId }: { poolId?: string }) {
 
   return (
     <Stack spacing={2}>
-      <Grid container spacing={2} height={516} overflow={'auto'}>
+      <Grid container spacing={2} height={518} overflow={'auto'}>
         <Grid size={{ xs: 12, md: 8 }}>
           <Stack spacing={2} sx={{ height: '100%' }}>
             <Box flex={1}>
