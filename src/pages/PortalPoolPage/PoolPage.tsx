@@ -80,6 +80,7 @@ export function PoolPage() {
   return (
     <CenteredPageWrapper>
       <PageTitle
+        backButton={false}
         title={
           <Box display="flex" alignItems="center" gap={1}>
             Portal Pool
