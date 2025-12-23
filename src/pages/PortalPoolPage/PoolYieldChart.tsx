@@ -48,7 +48,7 @@ export function PoolYieldChart({ poolId }: PoolYieldChartProps) {
   const range = useMemo(() => getTimeRangeFromPeriod(period), [period]);
 
   const { data: chartPrices, isLoading: isChartLoading } = useHistoricalTokenPrices({
-    address: SQD,
+    address: '0x1337420ded5adb9980cfc35f8f2b054ea86f8ab1',
     from: range.from,
     to: range.to,
     points: 50,

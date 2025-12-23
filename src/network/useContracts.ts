@@ -41,7 +41,7 @@ export function useContracts(): {
     }
     case NetworkName.Mainnet: {
       return {
-        SQD: `0x4c8076A4c7c223109D8b1eb7F9f13470EDcb555c`,
+        SQD: `0x1337420dED5ADb9980CFc35f8f2B054ea86f8aB1`,
         WORKER_REGISTRATION: `0x36e2b147db67e76ab67a4d07c293670ebefcae4e`,
         STAKING: `0xb31a0d39d2c69ed4b28d96e12cbf52c5f9ac9a51`,
         REWARD_TREASURY: `0x237abf43bc51fd5c50d0d598a1a4c26e56a8a2a0`,

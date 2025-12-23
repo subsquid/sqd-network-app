@@ -19,12 +19,7 @@ export function usePoolUserData(poolId?: string) {
     contracts: [
       {
         ...portalPoolContract,
-        functionName: 'getProviderStake',
-        args: [address as `0x${string}`],
-      },
-      {
-        ...portalPoolContract,
-        functionName: 'getClaimableRewards',
+        functionName: 'getPoolStatusWithRewards',
         args: [address as `0x${string}`],
       },
     ] as const,
@@ -37,11 +32,11 @@ export function usePoolUserData(poolId?: string) {
   const data = useMemo<PoolUserData | undefined>(() => {
     if (!poolId || !address || !contractData) return undefined;
 
-    const userBalance = unwrapMulticallResult(contractData?.[0]) || 0n;
-    const userRewards = unwrapMulticallResult(contractData?.[1]) || 0n;
+    const [poolCredit, poolDebt, poolBalance, runway, outOfMoney, userRewards, userStake] =
+      unwrapMulticallResult(contractData?.[0]) || [0n, 0n, 0n, 0n, false, 0n, 0n];
 
     return {
-      userBalance,
+      userBalance: userStake,
       userRewards,
     };
   }, [poolId, address, contractData]);
@@ -51,4 +46,3 @@ export function usePoolUserData(poolId?: string) {
     isLoading,
   };
 }
-

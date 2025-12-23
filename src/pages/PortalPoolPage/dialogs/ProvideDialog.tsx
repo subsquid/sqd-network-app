@@ -264,22 +264,69 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
   );
 }
 
+function LegalDialog({
+  open,
+  onAccept,
+  onReject,
+}: {
+  open: boolean;
+  onAccept: () => void;
+  onReject: () => void;
+}) {
+  const handleResult = useCallback(
+    (confirmed: boolean) => {
+      if (!confirmed) return onReject();
+      onAccept();
+    },
+    [onAccept, onReject],
+  );
+
+  return (
+    <ContractCallDialog
+      title="Legal Agreement"
+      open={open}
+      onResult={handleResult}
+      confirmButtonText="Accept"
+      cancelButtonText="Reject"
+      hideCancelButton={false}
+    >
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
+      labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
+      laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
+      voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat
+      non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+    </ContractCallDialog>
+  );
+}
+
 interface ProvideButtonProps {
   poolId: string;
 }
 
 export function ProvideButton({ poolId }: ProvideButtonProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
-
-  const handleOpen = useCallback(() => setDialogOpen(true), []);
-  const handleClose = useCallback(() => setDialogOpen(false), []);
+  const [legalOpen, setLegalOpen] = useState(false);
 
   return (
     <>
-      <Button variant="contained" color="info" fullWidth onClick={handleOpen} loading={dialogOpen}>
+      <Button
+        variant="contained"
+        color="info"
+        fullWidth
+        onClick={() => setLegalOpen(true)}
+        loading={dialogOpen || legalOpen}
+      >
         DEPOSIT
       </Button>
-      <ProvideDialog open={dialogOpen} onClose={handleClose} poolId={poolId} />
+      <LegalDialog
+        open={legalOpen}
+        onAccept={() => {
+          setLegalOpen(false);
+          setDialogOpen(true);
+        }}
+        onReject={() => setLegalOpen(false)}
+      />
+      <ProvideDialog open={dialogOpen} onClose={() => setDialogOpen(false)} poolId={poolId} />
     </>
   );
 }

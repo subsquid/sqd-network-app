@@ -52,6 +52,7 @@ function WithdrawalRow({
             onClick={() => onClaim(withdrawal.id)}
             loading={isClaiming}
             disabled={!isReady}
+            color="secondary"
           >
             CLAIM
           </Button>
@@ -129,7 +130,7 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
   return (
     <Box sx={{ mt: 2 }}>
       <Tabs value={0} sx={{ mb: 2 }}>
-        <Tab label={`Pending Withdrawals${readyCount > 0 ? ` (${readyCount})` : ''}`} />
+        <Tab label={`Pending Withdrawals`} />
       </Tabs>
       <Card>
         <PendingWithdrawalsTable
