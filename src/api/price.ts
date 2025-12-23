@@ -1,12 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import { getAddress } from 'viem';
 
 function getChain() {
   return process.env.NETWORK === 'tethys' ? 'arbitrum-sepolia' : 'arbitrum';
 }
 
 function getCoin(address: string) {
-  return `${getChain()}:${getAddress(address)}`;
+  return `${'arbitrum'}:${'0x1337420ded5adb9980cfc35f8f2b054ea86f8ab1'}`;
 }
 
 export function useTokenPrice({ address }: { address: string }) {
