@@ -74,6 +74,8 @@ export function usePoolPendingWithdrawals(poolId?: string) {
         bigint,
       ];
 
+      if (exitTicket?.withdrawn) continue;
+
       // Convert timestamps to milliseconds
       const unlockTimestampMs = Number(queueStatus[4]) * 1000;
 
