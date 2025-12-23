@@ -38,11 +38,6 @@ export interface PoolData {
     max: bigint;
     min: bigint;
   };
-  activation: {
-    baseAmount: bigint;
-    bufferPercent: number;
-    threshold: bigint;
-  };
   depositWindowEndsAt?: Date;
   withdrawalQueue: WithdrawalQueue;
   maxDepositPerAddress: bigint;

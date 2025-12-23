@@ -57,8 +57,8 @@ function getCapacityStatus(
   description: string;
 } {
   // Color is based on pool phase/state, not percentage
-  const isHealthy = pool.phase === 'active';
-  const isCritical = pool.phase === 'idle' || pool.phase === 'debt';
+  const isHealthy = pool.phase === 'active' || pool.phase === 'debt';
+  const isCritical = pool.phase === 'idle';
 
   let color: 'success' | 'warning' | 'error';
   let icon: React.ReactElement;
@@ -70,7 +70,7 @@ function getCapacityStatus(
     icon = <Error sx={{ fontSize: 18, color: 'error.main' }} />;
     text = 'Critical';
     description = 'Pool is critical. Yields have stopped until more liquidity is added.';
-  } else if (!isHealthy || usagePercent < 90) {
+  } else if (!isHealthy || usagePercent < 50) {
     color = 'warning';
     icon = <Warning sx={{ fontSize: 18, color: 'warning.main' }} />;
     text = 'Low';
@@ -88,8 +88,8 @@ function getCapacityStatus(
 // Shows activation progress during deposit window phase
 function ActivationProgress({ pool }: { pool: PoolData }) {
   const current = fromSqd(pool.tvl.current).toNumber();
-  const threshold = fromSqd(pool.activation.threshold).toNumber();
-  const progress = Math.min((current / threshold) * 100, 100);
+  const max = fromSqd(pool.tvl.max).toNumber();
+  const progress = Math.min((current / max) * 100, 100);
   const timeRemaining = useCountdown({ timestamp: pool.depositWindowEndsAt });
 
   const label = (
@@ -108,7 +108,13 @@ function ActivationProgress({ pool }: { pool: PoolData }) {
 function CapacityUsage({ pool }: { pool: PoolData }) {
   const current = fromSqd(pool.tvl.current).toNumber();
   const max = fromSqd(pool.tvl.max).toNumber();
-  const usagePercent = max === 0 ? 0 : (current / max) * 100;
+  const min = fromSqd(pool.tvl.min).toNumber();
+
+  console.log(current, max, min);
+
+  const real = Math.min(0, current - min);
+  const total = max - min;
+  const usagePercent = total === 0 ? 100 : (real / total) * 100;
 
   const status = getCapacityStatus(pool, usagePercent);
 

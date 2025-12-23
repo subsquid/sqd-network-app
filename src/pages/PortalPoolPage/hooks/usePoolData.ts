@@ -152,11 +152,6 @@ export function usePoolData(poolId?: string) {
         max: capacity,
         min: minCapacity || 0n,
       },
-      activation: {
-        baseAmount: BigInt('1000000000000000000000000'),
-        bufferPercent: 0,
-        threshold: BigInt('1000000000000000000000000'),
-      },
       depositWindowEndsAt: new Date(Number(depositDeadline) * 1000),
       withdrawalQueue: {
         windowLimit: BigInt('100000000000000000000000'),
