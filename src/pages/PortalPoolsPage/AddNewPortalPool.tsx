@@ -25,6 +25,7 @@ import {
   portalPoolFactoryAbi,
   useReadNetworkControllerMinStakeThreshold,
   useReadPortalPoolFactoryCollectionDeadlineSeconds,
+  useReadPortalPoolFactoryGetMinCapacity,
   useReadRouterNetworkController,
 } from '@api/contracts';
 import { toHex } from 'viem';
@@ -100,15 +101,11 @@ function AddNewPortalDialog({
   const { setWaitHeight } = useSquidHeight();
 
   const { PORTAL_POOL_FACTORY, ROUTER } = useContracts();
-  const { data: NETWORK_CONTROLLER, isLoading: isNetworkControllerLoading } =
-    useReadRouterNetworkController({
-      address: ROUTER,
-    });
 
   const { data: minCapacity, isLoading: isMinCapacityLoading } =
-    useReadNetworkControllerMinStakeThreshold({
-      address: NETWORK_CONTROLLER,
-      query: { enabled: !!NETWORK_CONTROLLER },
+    useReadPortalPoolFactoryGetMinCapacity({
+      address: PORTAL_POOL_FACTORY,
+      query: { enabled: !!PORTAL_POOL_FACTORY },
     });
 
   const validationSchema = useMemo(() => {

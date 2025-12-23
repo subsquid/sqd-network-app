@@ -259,6 +259,13 @@ export const portalPoolAbi = [
   {
     type: 'function',
     inputs: [],
+    name: 'getMinCapacity',
+    outputs: [{ name: '', internalType: 'uint64', type: 'uint64' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
     name: 'balanceTs',
     outputs: [{ name: '', internalType: 'uint64', type: 'uint64' }],
     stateMutability: 'view',
@@ -1314,6 +1321,13 @@ export const portalPoolFactoryAbi = [
     inputs: [],
     name: 'DEFAULT_ADMIN_ROLE',
     outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'getMinCapacity',
+    outputs: [{ name: '', internalType: 'uint64', type: 'uint64' }],
     stateMutability: 'view',
   },
   {
@@ -3429,6 +3443,15 @@ export const useReadPortalPoolPrecision = /*#__PURE__*/ createUseReadContract({
 })
 
 /**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getMinCapacity"`
+ */
+export const useReadPortalPoolGetMinCapacity =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolAbi,
+    functionName: 'getMinCapacity',
+  })
+
+/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"balanceTs"`
  */
 export const useReadPortalPoolBalanceTs = /*#__PURE__*/ createUseReadContract({
@@ -3562,15 +3585,6 @@ export const useReadPortalPoolGetExitTicket =
 export const useReadPortalPoolGetMetadata = /*#__PURE__*/ createUseReadContract(
   { abi: portalPoolAbi, functionName: 'getMetadata' },
 )
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getMinCapacity"`
- */
-export const useReadPortalPoolGetMinCapacity =
-  /*#__PURE__*/ createUseReadContract({
-    abi: portalPoolAbi,
-    functionName: 'getMinCapacity',
-  })
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getPeerId"`
@@ -4394,6 +4408,15 @@ export const useReadPortalPoolFactoryDefaultAdminRole =
   /*#__PURE__*/ createUseReadContract({
     abi: portalPoolFactoryAbi,
     functionName: 'DEFAULT_ADMIN_ROLE',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"getMinCapacity"`
+ */
+export const useReadPortalPoolFactoryGetMinCapacity =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'getMinCapacity',
   })
 
 /**

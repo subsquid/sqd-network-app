@@ -912,6 +912,13 @@ export default defineConfig({
         },
         {
           type: 'function',
+          name: 'getMinCapacity',
+          inputs: [],
+          outputs: [{ name: '', type: 'uint64', internalType: 'uint64' }],
+          stateMutability: 'view',
+        },
+        {
+          type: 'function',
           name: 'PAUSER_ROLE',
           inputs: [],
           outputs: [{ name: '', type: 'bytes32', internalType: 'bytes32' }],
@@ -1414,6 +1421,13 @@ export default defineConfig({
           name: 'PRECISION',
           inputs: [],
           outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+          stateMutability: 'view',
+        },
+        {
+          type: 'function',
+          name: 'getMinCapacity',
+          inputs: [],
+          outputs: [{ name: '', type: 'uint64', internalType: 'uint64' }],
           stateMutability: 'view',
         },
         {

@@ -64,6 +64,10 @@ export function usePoolData(poolId?: string) {
         ...portalPoolContract,
         functionName: 'isOutOfMoney',
       },
+      {
+        ...portalPoolContract,
+        functionName: 'getMinCapacity',
+      },
     ] as const,
     query: {
       enabled: !!poolId && !!isPortal,
@@ -76,6 +80,7 @@ export function usePoolData(poolId?: string) {
         const metadata = parseMetadata(unwrapMulticallResult(data?.[4]));
         const lptToken = unwrapMulticallResult(data?.[5]);
         const isOutOfMoney = unwrapMulticallResult(data?.[6]);
+        const minCapacity = unwrapMulticallResult(data?.[7]);
         if (!portalInfo || !lptToken) return undefined;
 
         return {
@@ -88,6 +93,7 @@ export function usePoolData(poolId?: string) {
           distributionRatePerSecond,
           lptToken,
           isOutOfMoney,
+          minCapacity,
         };
       },
     },
@@ -120,6 +126,7 @@ export function usePoolData(poolId?: string) {
       depositDeadline,
       lptToken,
       isOutOfMoney,
+      minCapacity,
     } = contractData;
 
     return {
@@ -143,7 +150,7 @@ export function usePoolData(poolId?: string) {
       tvl: {
         current: activeStake,
         max: capacity,
-        min: 0n,
+        min: minCapacity || 0n,
       },
       activation: {
         baseAmount: BigInt('1000000000000000000000000'),
