@@ -32,7 +32,7 @@ export function PageTitle({
 }: PropsWithChildren<{
   backPath?: string;
   sx?: SxProps;
-  title?: string;
+  title?: React.ReactNode;
 }>) {
   return (
     <PageTitleWrapper sx={sx}>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Box, Grid, Stack, Tab, Tabs } from '@mui/material';
+import { Box, Chip, Grid, Stack, Tab, Tabs, Typography } from '@mui/material';
 
 import { Loader } from '@components/Loader';
 import { NotFound } from '@components/NotFound';
@@ -79,7 +79,14 @@ export function PoolPage() {
 
   return (
     <CenteredPageWrapper>
-      <PageTitle title={'Portal Pool'} />
+      <PageTitle
+        title={
+          <Box display="flex" alignItems="center" gap={1}>
+            Portal Pool
+            <Chip label="Beta" size="small" color="info" variant="outlined" />
+          </Box>
+        }
+      />
       <PoolPageContent poolId={poolId} />
     </CenteredPageWrapper>
   );
