@@ -7,13 +7,16 @@ import { useQueryClient } from '@tanstack/react-query';
 import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { ContractCallDialog } from '@components/ContractCallDialog';
-import { FormRow, FormikTextInput } from '@components/Form';
+import { FormRow, FormikSelect, FormikTextInput } from '@components/Form';
 import { tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, toSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
 import { usePoolCapacity, usePoolData, usePoolUserData } from '../hooks';
 import { calculateExpectedMonthlyPayout, invalidatePoolQueries } from '../utils/poolUtils';
+import { useAccount } from '@network/useAccount';
+import { AccountType, useMySources } from '@api/subsquid-network-squid';
+import { SourceWalletOption } from '@components/SourceWallet';
 
 interface ProvideDialogProps {
   open: boolean;
@@ -65,6 +68,9 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
   const { data: pool } = usePoolData(poolId);
   const { data: userData } = usePoolUserData(poolId);
   const capacity = usePoolCapacity(poolId);
+
+  const { address } = useAccount();
+  const { data: sources } = useMySources();
 
   const {
     maxDepositPerAddress,
@@ -132,6 +138,19 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
           {tokenFormatter(fromSqd(pool.maxDepositPerAddress), SQD_TOKEN, 0)} per address.
         </Alert>
       )}
+
+      <FormRow>
+        <FormikSelect
+          id={'source' as any}
+          showErrorOnlyOfTouched
+          options={sources?.map(s => ({
+            label: <SourceWalletOption source={s} />,
+            value: s.id,
+            disabled: s.type !== AccountType.User,
+          }))}
+          formik={formik}
+        />
+      </FormRow>
 
       <FormRow>
         <FormikTextInput
