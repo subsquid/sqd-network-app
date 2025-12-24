@@ -38,7 +38,7 @@ export function calculateCapacity(pool: PoolData, currentUserBalance: bigint = 0
 /**
  * Calculate APY (Annual Percentage Yield) for a pool
  * APY = (monthlyPayoutUsd * 12) / (tvlInSqd * sqdPrice)
- * 
+ *
  * @param monthlyPayoutUsd - Monthly payout in USD
  * @param tvlInSqd - Total Value Locked in SQD tokens
  * @param sqdPrice - Price of SQD token in USD (optional)
@@ -111,8 +111,9 @@ export function getPhaseTooltip(phase: PoolPhase): string {
     case 'collecting':
       return "Accepting deposits to reach activation threshold. Pool will activate once the minimum liquidity is reached. If threshold isn't met, deposits can be fully withdrawn.";
     case 'idle':
-    case 'debt':
       return 'Pool temporarily paused. Rewards have stopped due to insufficient buffer. Will resume once liquidity increases above minimum threshold.';
+    case 'debt':
+      return 'Pool is in debt. Rewards emission is paused because the USDC balance has run out. Please report it to the pool owner.';
     default:
       return phase;
   }

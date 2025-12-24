@@ -35,6 +35,7 @@ export interface PoolData {
   distributionRatePerSecond: bigint;
   tvl: {
     current: bigint;
+    total: bigint;
     max: bigint;
     min: bigint;
   };

@@ -246,16 +246,18 @@ export function WithdrawButton({ poolId }: WithdrawButtonProps) {
           : ''
       }
     >
-      <Button
-        variant="outlined"
-        fullWidth
-        color="error"
-        onClick={handleOpen}
-        disabled={!hasBalance || pool?.phase === 'collecting'}
-        loading={dialogOpen}
-      >
-        WITHDRAW
-      </Button>
+      <span>
+        <Button
+          variant="outlined"
+          fullWidth
+          color="error"
+          onClick={handleOpen}
+          disabled={!hasBalance || pool?.phase === 'collecting'}
+          loading={dialogOpen}
+        >
+          WITHDRAW
+        </Button>
+      </span>
     </Tooltip>
   );
 

@@ -127,6 +127,7 @@ export function usePoolData(poolId?: string) {
       lptToken,
       isOutOfMoney,
       minCapacity,
+      totalStaked,
     } = contractData;
 
     return {
@@ -151,6 +152,7 @@ export function usePoolData(poolId?: string) {
         current: activeStake,
         max: capacity,
         min: minCapacity || 0n,
+        total: totalStaked,
       },
       depositWindowEndsAt: new Date(Number(depositDeadline) * 1000),
       withdrawalQueue: {

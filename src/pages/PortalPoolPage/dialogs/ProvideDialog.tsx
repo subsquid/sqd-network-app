@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Alert, Button, Chip, Divider, Stack, Typography } from '@mui/material';
+import { Alert, Button, Chip, Divider, Stack, Tooltip, Typography } from '@mui/material';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { useQueryClient } from '@tanstack/react-query';
@@ -325,18 +325,30 @@ interface ProvideButtonProps {
 export function ProvideButton({ poolId }: ProvideButtonProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [legalOpen, setLegalOpen] = useState(false);
+  const { data: pool } = usePoolData(poolId);
+
+  const isDisabled = useMemo(() => {
+    if (!pool) return true;
+    return pool.tvl.current >= pool.tvl.max;
+  }, [pool]);
 
   return (
     <>
-      <Button
-        variant="contained"
-        color="info"
-        fullWidth
-        onClick={() => setLegalOpen(true)}
-        loading={dialogOpen || legalOpen}
-      >
-        DEPOSIT
-      </Button>
+      <Tooltip title={isDisabled ? 'Pool is at maximum capacity' : ''}>
+        <span>
+          <Button
+            variant="contained"
+            color="info"
+            fullWidth
+            onClick={() => setLegalOpen(true)}
+            loading={dialogOpen || legalOpen}
+            disabled={isDisabled}
+          >
+            DEPOSIT
+          </Button>
+        </span>
+      </Tooltip>
+
       <LegalDialog
         open={legalOpen}
         onAccept={() => {
