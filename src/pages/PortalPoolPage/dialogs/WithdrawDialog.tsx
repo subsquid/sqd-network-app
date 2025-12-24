@@ -239,16 +239,24 @@ export function WithdrawButton({ poolId }: WithdrawButtonProps) {
   const handleClose = useCallback(() => setDialogOpen(false), []);
 
   const button = (
-    <Button
-      variant="outlined"
-      fullWidth
-      color="error"
-      onClick={handleOpen}
-      disabled={!hasBalance || pool?.phase === 'collecting'}
-      loading={dialogOpen}
+    <Tooltip
+      title={
+        pool?.phase === 'collecting'
+          ? "You can't withdraw funds while the pool is still collecting"
+          : ''
+      }
     >
-      WITHDRAW
-    </Button>
+      <Button
+        variant="outlined"
+        fullWidth
+        color="error"
+        onClick={handleOpen}
+        disabled={!hasBalance || pool?.phase === 'collecting'}
+        loading={dialogOpen}
+      >
+        WITHDRAW
+      </Button>
+    </Tooltip>
   );
 
   return (

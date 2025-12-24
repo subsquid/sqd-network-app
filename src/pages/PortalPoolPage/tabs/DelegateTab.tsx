@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { Button, Divider, Stack, Typography } from '@mui/material';
+import { Button, Divider, Stack, Tooltip, Typography } from '@mui/material';
 import BigNumber from 'bignumber.js';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -14,7 +14,7 @@ import { useContracts } from '@network/useContracts';
 
 import { ProvideButton } from '../dialogs/ProvideDialog';
 import { WithdrawButton } from '../dialogs/WithdrawDialog';
-import { usePoolData, usePoolUserData } from '../hooks';
+import { usePoolData, usePoolUserData, type PoolPhase } from '../hooks';
 import { invalidatePoolQueries } from '../utils/poolUtils';
 
 interface DelegateTabProps {
@@ -92,18 +92,35 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
               {tokenFormatter(dailyRewardRate, rewardToken?.symbol ?? '', 4)}/day
             </Typography>
           </Stack>
-          <Button
-            variant="contained"
-            color="info"
-            fullWidth
-            onClick={handleClaimRewards}
-            disabled={!hasRewards || isPending}
-            loading={isPending}
-          >
-            CLAIM
-          </Button>
+          <Tooltip title={getClaimRewardsTooltip(pool!.phase)}>
+            <span>
+              <Button
+                variant="contained"
+                color="info"
+                fullWidth
+                onClick={handleClaimRewards}
+                disabled={!hasRewards || isPending}
+                loading={isPending}
+              >
+                CLAIM
+              </Button>
+            </span>
+          </Tooltip>
         </Stack>
       </Card>
     </Stack>
   );
+}
+
+function getClaimRewardsTooltip(phase: PoolPhase): string {
+  switch (phase) {
+    case 'collecting':
+      return 'The reward distribution will start once the pool is active';
+    case 'idle':
+      return 'The reward distribution is paused because there is not enough SQD locked in the pool';
+    case 'debt':
+      return 'The reward distribution is paused becase pool is out of rewards';
+    default:
+      return '';
+  }
 }
