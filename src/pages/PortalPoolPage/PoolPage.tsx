@@ -76,7 +76,6 @@ function PoolPageContent({ poolId }: { poolId?: string }) {
 
 export function PoolPage() {
   const { poolId } = useParams<{ poolId: string }>();
-
   return (
     <CenteredPageWrapper>
       <PageTitle

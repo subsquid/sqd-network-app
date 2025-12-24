@@ -45,20 +45,14 @@ export const ContractCallDialog = ({
   if (!isConnected) {
     return (
       <ConfirmDialog
-        title={title}
+        title={'Connect wallet'}
         maxWidth={maxWidth}
         minWidth={minWidth}
         open={open}
-        onResult={onResult}
         loading={loading}
-        confirmColor={confirmColor}
-        confirmButtonText={confirmButtonText}
-        hideCancelButton={hideCancelButton}
-        disableBackdropClick={disableBackdropClick}
-        disableConfirmButton={disableConfirmButton}
-        onApprove={onApprove}
-        cancelButtonText={cancelButtonText}
+        hideCancelButton
         hideConfirmButton
+        onResult={onResult}
       >
         <Box
           sx={{
