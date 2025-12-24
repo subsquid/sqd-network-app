@@ -38,7 +38,7 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
     : BigNumber(0);
 
   const dailyRewardRate = useMemo(() => {
-    if (!pool || !userData || !pool.tvl.current) return BigNumber(0);
+    if (!pool || !userData || !pool.tvl.current || pool.phase !== 'active') return BigNumber(0);
 
     // Calculate daily distribution rate: rate per second * seconds in a day / decimals
     const dailyDistribution = new BigNumber(pool.distributionRatePerSecond.toString())
