@@ -13,6 +13,7 @@ import { useContracts } from '@network/useContracts';
 import { EditCapacityButton, EditDistributionRateButton } from '../dialogs/EditSettingsDialog';
 import { TopUpButton } from '../dialogs/TopUpDialog';
 import { usePoolData } from '../hooks';
+import { useMemo } from 'react';
 
 interface ManageTabProps {
   poolId: string;
@@ -31,6 +32,11 @@ export function ManageTab({ poolId }: ManageTabProps) {
       enabled: !!poolId,
     },
   });
+
+  const canEdit = useMemo(() => {
+    if (!pool?.phase) return false;
+    return pool.phase !== 'collecting' && pool.phase !== 'debt' && pool.phase !== 'failed';
+  }, [pool?.phase]);
 
   if (!pool) return null;
 
@@ -58,14 +64,12 @@ export function ManageTab({ poolId }: ManageTabProps) {
             <Property
               label="Distribution Rate"
               value={`${(pool.monthlyPayoutUsd / 30).toFixed(2)} ${rewardSymbol}/day`}
-              action={
-                <EditDistributionRateButton poolId={poolId} disabled={pool.phase !== 'active'} />
-              }
+              action={<EditDistributionRateButton poolId={poolId} disabled={!canEdit} />}
             />
             <Property
               label="Max Pool Capacity"
               value={tokenFormatter(fromSqd(pool.tvl.max), SQD_TOKEN, 0)}
-              action={<EditCapacityButton poolId={poolId} disabled={pool.phase !== 'active'} />}
+              action={<EditCapacityButton poolId={poolId} disabled={!canEdit} />}
             />
           </PropertyList>
         </Stack>
