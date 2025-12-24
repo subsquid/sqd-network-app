@@ -30,7 +30,7 @@ function PoolInfoCard({ poolId }: { poolId: string }) {
         {isOperator && <Tab label="Manage" />}
       </Tabs>
 
-      <Box height={454}>
+      <Box height={462}>
         {activeTab === 0 && <DelegateTab poolId={poolId} />}
         {activeTab === 1 && <InfoTab poolId={poolId} />}
         {activeTab === 2 && isOperator && <ManageTab poolId={poolId} />}
@@ -52,7 +52,7 @@ function PoolPageContent({ poolId }: { poolId?: string }) {
 
   return (
     <Stack spacing={2}>
-      <Grid container spacing={2} height={518} overflow={'auto'}>
+      <Grid container spacing={2} height={524} overflow={'auto'}>
         <Grid size={{ xs: 12, md: 8 }}>
           <Stack spacing={2} sx={{ height: '100%' }}>
             <Box flex={1}>

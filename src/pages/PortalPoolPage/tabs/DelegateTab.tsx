@@ -68,8 +68,8 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
   }, [poolId, writeTransactionAsync, queryClient]);
 
   return (
-    <Stack spacing={2}>
-      <Card title="Current Balance">
+    <Stack spacing={2} height="100%">
+      <Card title="Current Balance" sx={{ height: '100%' }}>
         <Stack spacing={2} divider={<Divider />}>
           <Stack spacing={0.5}>
             <Typography variant="h5">{tokenFormatter(balance, SQD_TOKEN, 2)}</Typography>
@@ -82,7 +82,7 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
         </Stack>
       </Card>
 
-      <Card title="Available Rewards">
+      <Card title="Available Rewards" sx={{ height: '100%' }}>
         <Stack spacing={2} divider={<Divider />}>
           <Stack spacing={0.5}>
             <Typography variant="h5">
