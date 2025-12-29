@@ -8,6 +8,8 @@ import { SectionHeader } from '@components/SectionHeader';
 export interface CardProps extends Omit<MuiCardProps, 'title'> {
   title?: React.ReactNode;
   subtitle?: React.ReactNode;
+  tooltip?: string;
+  tooltipPlacement?: 'top' | 'bottom' | 'left' | 'right';
   sx?: SxProps<Theme>;
   loading?: boolean;
   action?: React.ReactNode;
@@ -27,6 +29,7 @@ export function Card({
   children,
   title,
   subtitle,
+  tooltip,
   sx,
   action,
   className,
@@ -39,7 +42,7 @@ export function Card({
     <MuiCard className={className} sx={sx} {...props}>
       <CardContent>
         {hasHeader && (
-          <SectionHeader title={title} subtitle={subtitle} action={action} sx={{ mb: 2 }} />
+          <SectionHeader title={title} subtitle={subtitle} tooltip={tooltip} action={action} sx={{ mb: 2 }} />
         )}
         {loading ? (
           <Box height={1} width={1}>

@@ -1,21 +1,19 @@
+import { useMemo } from 'react';
 import { AreaClosed, LinePath } from '@visx/shape';
 import { curveMonotoneX } from '@visx/curve';
 import type { ScaleTime, ScaleLinear } from 'd3-scale';
-import type { SingleLineChartDatum, SingleLineChartSeries } from './types';
-
-// ============================================================================
-// Types
-// ============================================================================
+import type { SingleChartSeries } from './types';
 
 type XScale = ScaleTime<number, number, never>;
 type YScale = ScaleLinear<number, number, never>;
 
-// ============================================================================
-// Line Chart Rendering Component
-// ============================================================================
+interface DataPoint {
+  x: Date;
+  y: number;
+}
 
 interface LineRendererProps {
-  series: SingleLineChartSeries;
+  series: SingleChartSeries;
   xScale: XScale;
   yScale: YScale;
   color: string;
@@ -31,8 +29,22 @@ export function LineRenderer({
   strokeWidth,
   fillOpacity,
 }: LineRendererProps) {
-  const data = series.data.filter(d => d.y != null);
-  const gradientId = `gradient-${series.name.replace(/\s+/g, '-')}`;
+  const data = useMemo((): DataPoint[] => {
+    const result: DataPoint[] = [];
+    for (const d of series.data) {
+      if (d.y != null) {
+        result.push({ x: d.x, y: d.y });
+      }
+    }
+    return result;
+  }, [series.data]);
+
+  const gradientId = useMemo(
+    () => `gradient-${series.name?.replace(/\s+/g, '-') ?? ''}`,
+    [series.name],
+  );
+
+  if (data.length === 0) return null;
 
   return (
     <g>
@@ -42,18 +54,18 @@ export function LineRenderer({
           <stop offset="100%" stopColor={color} stopOpacity={0.02} />
         </linearGradient>
       </defs>
-      <AreaClosed<SingleLineChartDatum>
+      <AreaClosed
         data={data}
         x={d => xScale(d.x)}
-        y={d => yScale(d.y ?? 0)}
+        y={d => yScale(d.y)}
         yScale={yScale}
         fill={`url(#${gradientId})`}
         curve={curveMonotoneX}
       />
-      <LinePath<SingleLineChartDatum>
+      <LinePath
         data={data}
         x={d => xScale(d.x)}
-        y={d => yScale(d.y ?? 0)}
+        y={d => yScale(d.y)}
         stroke={color}
         strokeWidth={strokeWidth}
         curve={curveMonotoneX}

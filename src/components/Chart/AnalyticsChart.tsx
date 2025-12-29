@@ -14,11 +14,7 @@ import {
 } from '@lib/formatters/formatters';
 import { LineChart, useChartPalette } from './LineChart';
 import { ChartLegend } from './ChartLegend';
-import { CHART_CONFIG, toTimeRange, type LineChartProps, type LineChartSeries } from './';
-
-// ============================================================================
-// Common Formatters
-// ============================================================================
+import { CHART_CONFIG, toTimeRange, type ChartProps, type ChartSeries } from './';
 
 export const CHART_FORMATTERS = {
   number: {
@@ -39,16 +35,32 @@ export const CHART_FORMATTERS = {
   },
 } as const;
 
-// ============================================================================
-// Analytics Chart Props Types
-// ============================================================================
+interface TimeSeriesData<V = unknown> {
+  data: Array<{ timestamp: string; value: number | V | null | undefined }>;
+  step?: number;
+  from?: string;
+  to?: string;
+}
+
+interface SeriesConfig<V = unknown> {
+  name: string;
+  valuePath: (value: V) => number | null | undefined;
+  color?: string;
+}
+
+interface StackConfig<V = unknown> {
+  key: string;
+  valuePath: (value: V) => number;
+  color?: string;
+}
 
 export interface AnalyticsChartProps<
   T extends Record<string, unknown> = Record<string, unknown>,
   V = unknown,
 > {
-  title: string;
+  title?: string;
   subtitle?: string;
+  action?: React.ReactNode;
   primaryColor?: string;
   category?: string;
   range?: { from: Date; to: Date };
@@ -57,14 +69,9 @@ export interface AnalyticsChartProps<
     data: T | undefined;
     isLoading: boolean;
   };
-  dataPath: (data: T) => {
-    data: Array<{ timestamp: string; value: number | V | null | undefined }>;
-    step?: number;
-    from?: string;
-    to?: string;
-  };
-  tooltipFormat?: LineChartProps['tooltipFormat'];
-  axisFormat?: LineChartProps['axisFormat'];
+  dataPath: (data: T) => TimeSeriesData<V>;
+  tooltipFormat?: ChartProps['tooltipFormat'];
+  axisFormat?: ChartProps['axisFormat'];
   yAxis?: { min?: number; max?: number };
   yAxisScale?: 'linear' | 'log';
   height?: number;
@@ -79,26 +86,14 @@ export interface AnalyticsChartProps<
   valueTransform?: (value: number) => number;
 
   // Multi-series chart fields
-  series?: Array<{
-    name: string;
-    valuePath: (value: V) => number | null | undefined;
-    color?: string;
-  }>;
+  series?: SeriesConfig<V>[];
   grouped?: boolean;
 
   // Stacked chart fields
-  stacks?: Array<{
-    key: string;
-    valuePath: (value: V) => number;
-    color?: string;
-  }>;
+  stacks?: StackConfig<V>[];
 }
 
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-function createColorPalette(primaryColor: string | undefined, defaultPalette: string[]) {
+function createColorPalette(primaryColor: string | undefined, defaultPalette: string[]): string[] {
   if (!primaryColor) return defaultPalette;
 
   return [
@@ -110,77 +105,33 @@ function createColorPalette(primaryColor: string | undefined, defaultPalette: st
   ];
 }
 
-function createSeries<T extends Record<string, unknown> = Record<string, unknown>, V = unknown>(
-  props: AnalyticsChartProps<T, V>,
-  data: T,
-  title: string,
-): {
-  series: LineChartSeries[];
+interface SeriesResult {
+  name?: string;
+  series: ChartSeries[];
   step?: number;
   from?: string;
   to?: string;
-} {
-  const timeseries = props.dataPath(data);
+}
 
-  // Stacked chart
-  if (props.stacks) {
-    return {
-      series: [
-        {
-          name: title,
-          data: timeseries.data.map(d => ({
-            x: new Date(d.timestamp),
-            y: props.stacks!.map(s => ({
-              key: s.key,
-              value: s.valuePath(d.value as V),
-              color: s.color,
-            })),
-          })),
-          type: 'bar' as const,
-          stack: true as const,
-        },
-      ],
-      step: timeseries.step,
-      from: timeseries.from,
-      to: timeseries.to,
-    };
-  }
-
-  // Multi-series chart
-  if (props.series) {
-    const type = props.type || 'line';
-    return {
-      series: props.series.map(s => ({
-        name: s.name,
-        color: s.color,
-        data: timeseries.data.map(d => ({
-          x: new Date(d.timestamp),
-          y: s.valuePath(d.value as V) ?? null,
-        })),
-        type,
-      })),
-      step: timeseries.step,
-      from: timeseries.from,
-      to: timeseries.to,
-    };
-  }
-
-  // Simple chart
-  const seriesName = props.seriesName || title;
-  const type = props.type || 'line';
-  const valueTransform = props.valueTransform || ((v: number) => v);
-
+function buildStackedSeries<V>(
+  timeseries: TimeSeriesData<V>,
+  title: string | undefined,
+  stacks: StackConfig<V>[],
+): SeriesResult {
   return {
     series: [
       {
-        name: seriesName,
-        data: timeseries.data
-          .filter(d => d.value != null)
-          .map(d => ({
-            x: new Date(d.timestamp),
-            y: d.value != null ? valueTransform(d.value as number) : null,
+        name: title,
+        type: 'bar' as const,
+        stack: true as const,
+        data: timeseries.data.map(d => ({
+          x: new Date(d.timestamp),
+          y: stacks.map(s => ({
+            key: s.key,
+            value: s.valuePath(d.value as V),
+            color: s.color,
           })),
-        type,
+        })),
       },
     ],
     step: timeseries.step,
@@ -189,22 +140,81 @@ function createSeries<T extends Record<string, unknown> = Record<string, unknown
   };
 }
 
-// ============================================================================
-// Factory Functions
-// ============================================================================
+function buildMultiSeries<V>(
+  timeseries: TimeSeriesData<V>,
+  seriesConfigs: SeriesConfig<V>[],
+  type: 'line' | 'bar',
+): SeriesResult {
+  return {
+    series: seriesConfigs.map(s => ({
+      name: s.name,
+      color: s.color,
+      type,
+      data: timeseries.data.map(d => ({
+        x: new Date(d.timestamp),
+        y: s.valuePath(d.value as V) ?? null,
+      })),
+    })),
+    step: timeseries.step,
+    from: timeseries.from,
+    to: timeseries.to,
+  };
+}
 
-/**
- * Creates a simple single-series chart configuration
- */
+function buildSimpleSeries(
+  timeseries: TimeSeriesData<number>,
+  seriesName: string | undefined,
+  type: 'line' | 'bar',
+  valueTransform: (v: number) => number,
+): SeriesResult {
+  return {
+    series: [
+      {
+        name: seriesName,
+        type,
+        data: timeseries.data
+          .filter(d => d.value != null)
+          .map(d => ({
+            x: new Date(d.timestamp),
+            y: valueTransform(d.value as number),
+          })),
+      },
+    ],
+    step: timeseries.step,
+    from: timeseries.from,
+    to: timeseries.to,
+  };
+}
+
+function createSeries<T extends Record<string, unknown>, V>(
+  props: AnalyticsChartProps<T, V>,
+  data: T,
+  title?: string,
+): SeriesResult {
+  const timeseries = props.dataPath(data);
+
+  if (props.stacks) {
+    return buildStackedSeries(timeseries, title, props.stacks);
+  }
+
+  if (props.series) {
+    return buildMultiSeries(timeseries, props.series, props.type ?? 'line');
+  }
+
+  return buildSimpleSeries(
+    timeseries as TimeSeriesData<number>,
+    props.seriesName ?? title,
+    props.type ?? 'line',
+    props.valueTransform ?? (v => v),
+  );
+}
+
 export function createSimpleChart<T extends Record<string, unknown> = Record<string, unknown>>(
   config: Omit<AnalyticsChartProps<T, number>, 'range' | 'step' | 'series' | 'stacks'>,
 ): Omit<AnalyticsChartProps<T, number>, 'range' | 'step'> {
   return config;
 }
 
-/**
- * Creates a multi-series chart configuration
- */
 export function createMultiSeriesChart<
   T extends Record<string, unknown> = Record<string, unknown>,
   V = unknown,
@@ -213,19 +223,12 @@ export function createMultiSeriesChart<
     AnalyticsChartProps<T, V>,
     'range' | 'step' | 'seriesName' | 'valueTransform' | 'stacks'
   > & {
-    series: Array<{
-      name: string;
-      valuePath: (value: V) => number | null | undefined;
-      color?: string;
-    }>;
+    series: SeriesConfig<V>[];
   },
 ): Omit<AnalyticsChartProps<T, V>, 'range' | 'step'> {
   return config;
 }
 
-/**
- * Creates a stacked bar chart configuration
- */
 export function createStackedChart<
   T extends Record<string, unknown> = Record<string, unknown>,
   V = unknown,
@@ -234,23 +237,12 @@ export function createStackedChart<
     AnalyticsChartProps<T, V>,
     'range' | 'step' | 'seriesName' | 'valueTransform' | 'series' | 'type' | 'grouped'
   > & {
-    stacks: Array<{
-      key: string;
-      valuePath: (value: V) => number;
-      color?: string;
-    }>;
+    stacks: StackConfig<V>[];
   },
 ): Omit<AnalyticsChartProps<T, V>, 'range' | 'step'> {
   return config;
 }
 
-// ============================================================================
-// Analytics Chart Component
-// ============================================================================
-
-/**
- * Universal chart component that handles simple, multi-series, and stacked charts
- */
 export function AnalyticsChart<
   T extends Record<string, unknown> = Record<string, unknown>,
   V = unknown,
@@ -258,6 +250,7 @@ export function AnalyticsChart<
   const {
     title,
     subtitle,
+    action,
     primaryColor,
     range,
     queryHook,
@@ -268,13 +261,11 @@ export function AnalyticsChart<
     height = CHART_CONFIG.height,
     strokeWidth,
     fillOpacity,
-    pointSize,
     barBorderRadius,
     grouped,
   } = props;
 
   const queryVars = useMemo(() => {
-    // If no range provided, use a very wide range to fetch all data
     const from = range?.from ? toUTCDate(range.from) : new Date(0);
     const to = range?.to ? toUTCDate(range.to) : new Date();
 
@@ -294,15 +285,15 @@ export function AnalyticsChart<
   );
 
   const { series, stepMs, from, to } = useMemo(() => {
-    if (!data) return { series: [], stepMs: undefined };
+    if (!data) return { series: [], stepMs: undefined, from: new Date(0), to: new Date() };
 
     const result = createSeries(props, data, title);
     const palette = createGenerator(chartPalette);
 
-    // Assign colors from palette to series that don't have colors
+    // Assign colors from palette to series without explicit colors
     const seriesWithColors = result.series.map(s => ({
       ...s,
-      color: s.color || palette.next(),
+      color: s.color ?? palette.next(),
     }));
 
     return {
@@ -316,8 +307,16 @@ export function AnalyticsChart<
   const hasData = series.some(s => s.data.length > 0);
   const showLegend = false;
 
+  const tooltipFormatWithRange = useMemo(
+    () => ({
+      x: (d: Date) => toTimeRange(d, stepMs),
+      ...tooltipFormat,
+    }),
+    [stepMs, tooltipFormat],
+  );
+
   return (
-    <Card title={title} subtitle={subtitle}>
+    <Card title={title} subtitle={subtitle} action={action}>
       <Box display="flex" flexDirection="column">
         <Box height={height} display="flex" alignItems="center" justifyContent="center">
           {isLoading ? (
@@ -325,10 +324,7 @@ export function AnalyticsChart<
           ) : hasData ? (
             <LineChart
               series={series}
-              tooltipFormat={{
-                x: (d: Date) => toTimeRange(d, stepMs),
-                ...tooltipFormat,
-              }}
+              tooltipFormat={tooltipFormatWithRange}
               axisFormat={axisFormat}
               xAxis={{ min: from, max: to }}
               yAxis={yAxis}

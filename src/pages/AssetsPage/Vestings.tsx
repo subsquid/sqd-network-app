@@ -8,6 +8,7 @@ import { useReadContracts } from 'wagmi';
 
 import { vestingAbi } from '@api/contracts';
 import { DashboardTable, NoItems } from '@components/Table';
+import { Card } from '@components/Card';
 import { NameWithAvatar } from '@components/SourceWalletName';
 import { useAccount } from '@network/useAccount';
 import { useContracts } from '@network/useContracts';
@@ -86,8 +87,8 @@ export function MyVestings() {
   );
 
   return (
-    <>
-      <DashboardTable loading={isLoading || isVestingsLoading}>
+    <Card>
+      <DashboardTable loading={isLoading || isVestingsLoading} sx={{ mx: -2, mb: -2, mt: -0.5 }}>
         <TableHead>
           <TableRow>
             <TableCell>Contract</TableCell>
@@ -153,6 +154,6 @@ export function MyVestings() {
           )}
         </TableBody>
       </DashboardTable>
-    </>
+    </Card>
   );
 }

@@ -1,15 +1,24 @@
+import { useMemo } from 'react';
 import { Box, Typography } from '@mui/material';
-import type { LineChartSeries } from './types';
+import type { ChartSeries } from './types';
 
-// ============================================================================
-// Chart Legend Component
-// ============================================================================
+interface ChartLegendProps {
+  series: ChartSeries[];
+  palette: string[];
+}
 
-export function ChartLegend({ series, palette }: { series: LineChartSeries[]; palette: string[] }) {
-  const items = series.map((s, i) => ({
-    name: s.name,
-    color: s.color ?? palette[i % palette.length],
-  }));
+interface LegendItem {
+  name?: string;
+  color: string;
+}
+
+export function ChartLegend({ series, palette }: ChartLegendProps) {
+  const items = useMemo((): LegendItem[] => {
+    return series.map((s, i) => ({
+      name: s.name,
+      color: s.color ?? palette[i % palette.length],
+    }));
+  }, [series, palette]);
 
   return (
     <Box

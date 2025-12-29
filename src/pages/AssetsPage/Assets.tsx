@@ -52,7 +52,7 @@ function PieChart({ balances }: { balances: TokenBalance[] }) {
   const filteredBalances = useMemo(() => balances.filter(b => !b.value.isZero()), [balances]);
 
   return (
-    <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" flex={1}>
+    <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center">
       <svg width={192} height={192}>
         <Group top={96} left={96}>
           <Pie
@@ -308,13 +308,15 @@ export function MyAssets() {
             }}
             mt="auto"
           >
-            <PropertyList>
-              <TokenBalance balance={balances[0]} />
-              <TokenBalance balance={balances[1]} />
-              <TokenBalance balance={balances[3]} />
-              <TokenBalance balance={balances[4]} />
-              {demoFeaturesEnabled() && <TokenBalance balance={balances[5]} />}
-            </PropertyList>
+            <Box flex={1}>
+              <PropertyList>
+                <TokenBalance balance={balances[0]} />
+                <TokenBalance balance={balances[1]} />
+                <TokenBalance balance={balances[3]} />
+                <TokenBalance balance={balances[4]} />
+                {demoFeaturesEnabled() && <TokenBalance balance={balances[5]} />}
+              </PropertyList>
+            </Box>
             {/* Only render PieChart on md screens and up (1000px+) */}
             <Box
               sx={theme => ({

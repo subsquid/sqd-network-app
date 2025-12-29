@@ -1,6 +1,5 @@
 ---
-description: work with UI components
-alwaysApply: false
+alwaysApply: true
 ---
 # Material-UI/MUI Best Practices and Coding Standards
 
@@ -14,12 +13,24 @@ Adopt a clear and consistent directory structure to improve code maintainability
 
 
 src/
+  api/
+    *.ts             # API client
+  contexts/
+    [ContextName]/
+      [ContextName].tsx      # ContextComponent
+      index.ts           # (Optional) Export the component
+  hooks/
+    [useHookName].ts      # hook function
   components/
     [ComponentName]/
       [ComponentName].tsx  # Component implementation
       [ComponentName].module.css # Component-specific styles (CSS Modules)
       [ComponentName].test.tsx # Unit tests
       index.ts           # (Optional) Export the component
+  layouts/
+    [LayoutName]/
+      [LayoutName].tsx      # Layout component
+      index.ts           # (Optional) Export the layout component
   pages/
     [PageName]/
       [PageName].tsx      # Page component
@@ -27,9 +38,8 @@ src/
   styles/
     theme.ts           # MUI theme configuration
     global.css        # Global styles
-  utils/
-    api.ts             # API client
-    helpers.ts         # Utility functions
+  lib/
+    *.ts             # Utility functions
   App.tsx              # Main application component
   index.tsx            # Entry point
 

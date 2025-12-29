@@ -18,6 +18,8 @@ import { WorkersPage } from '@pages/WorkersPage/WorkersPage.tsx';
 import { hideLoader } from './index.tsx';
 import { WorkerGeneral } from '@pages/WorkerPage/General.tsx';
 import { WorkerAnalytics } from '@pages/WorkerPage/Analytics.tsx';
+import { PoolPage } from '@pages/PortalPoolPage/PoolPage.tsx';
+import { PortalPoolsPage } from '@pages/PortalPoolsPage/PortalPoolsPage.tsx';
 
 export const AppRoutes = () => {
   hideLoader(0);
@@ -55,6 +57,10 @@ export const AppRoutes = () => {
         <Route path="/delegations">
           <Route element={<DelegationsPage />} index />
         </Route>
+        <Route path="/portal-pool">
+          <Route path=":poolId" element={<PoolPage />} />
+        </Route>
+        <Route path="/portal-pools" element={<PortalPoolsPage />} />
         <Route path="/portals">
           <Route element={<GatewaysPage />} index />
           <Route element={<Gateway backPath="/portals" />} path=":peerId" />

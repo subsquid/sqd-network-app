@@ -77,7 +77,7 @@ const PropertyListBase = styled(Box, {
   shouldForwardProp: prop => prop !== 'grouped',
 })<{ grouped?: boolean }>(({ theme, grouped }) => ({
   display: grouped ? 'contents' : 'grid',
-  gridTemplateColumns: grouped ? undefined : `minmax(auto, ${theme.spacing(25)}) 1fr`,
+  gridTemplateColumns: grouped ? undefined : `minmax(auto, 0.5fr) minmax(auto, 1fr)`,
   columnGap: grouped ? undefined : theme.spacing(1),
   rowGap: grouped ? undefined : theme.spacing(2),
   [theme.breakpoints.down('sm')]: {
@@ -129,13 +129,17 @@ export const PropertyValue = styled(Box, {
 export interface PropertyProps {
   label: React.ReactNode;
   value: React.ReactNode;
+  action?: React.ReactNode;
 }
 
-export function Property({ label, value }: PropertyProps) {
+export function Property({ label, value, action }: PropertyProps) {
   return (
     <>
       <PropertyLabel>{label}</PropertyLabel>
-      <PropertyValue>{value}</PropertyValue>
+      <PropertyValue sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ flex: 1 }}>{value || '-'}</Box>
+        {action && <Box>{action}</Box>}
+      </PropertyValue>
     </>
   );
 }

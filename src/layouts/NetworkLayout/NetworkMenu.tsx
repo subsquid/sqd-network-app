@@ -1,6 +1,8 @@
 import React, { useRef } from 'react';
 
 import {
+  AccountTree,
+  AccountTreeOutlined,
   ArrowOutwardOutlined,
   BackHand,
   BackHandOutlined,
@@ -10,6 +12,8 @@ import {
   LanOutlined,
   Savings,
   SavingsOutlined,
+  Sensors,
+  SensorsOutlined,
   SensorDoor,
   SensorDoorOutlined,
   SmsOutlined,
@@ -172,6 +176,15 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
         path="/workers"
         selected={activePath === '/workers'}
       />
+      {demoFeaturesEnabled() && (
+        <Item
+          LeftIcon={active => (active ? <AccountTree /> : <AccountTreeOutlined />)}
+          label="Portals"
+          onClick={onItemClick}
+          path="/portals"
+          selected={activePath === '/portals'}
+        />
+      )}
       <Item
         LeftIcon={active => (active ? <BackHand /> : <BackHandOutlined />)}
         label="Delegations"
@@ -179,7 +192,14 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
         path="/delegations"
         selected={activePath === '/delegations'}
       />
-      {demoFeaturesEnabled() && (
+      {/* <Item
+        LeftIcon={active => (active ? <Sensors /> : <SensorsOutlined />)}
+        label="Pools"
+        onClick={onItemClick}
+        path="/pools"
+        selected={activePath === '/pools'}
+      /> */}
+      {/* {demoFeaturesEnabled() && (
         <Item
           LeftIcon={active => (active ? <SensorDoor /> : <SensorDoorOutlined />)}
           label="Portals"
@@ -187,7 +207,7 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
           path="/portals"
           selected={activePath === '/portals'}
         />
-      )}
+      )} */}
       <MenuSpacer />
       {isWorkerOperator && (
         <Item
