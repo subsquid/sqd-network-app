@@ -12,6 +12,8 @@ import { useRewardToken } from '@hooks/useRewardToken';
 
 import { invalidatePoolQueries } from '../utils/poolUtils';
 import { usePoolData } from '../hooks';
+import toast from 'react-hot-toast';
+import { errorMessage } from '@api/contracts/utils';
 
 interface TopUpDialogProps {
   open: boolean;
@@ -104,7 +106,9 @@ export function TopUpDialog({ open, onClose, poolId }: TopUpDialogProps) {
         await invalidatePoolQueries(queryClient, poolId);
         formik.resetForm();
         onClose();
-      } catch (error) {}
+      } catch (error) {
+        toast.error(errorMessage(error));
+      }
     },
   });
 

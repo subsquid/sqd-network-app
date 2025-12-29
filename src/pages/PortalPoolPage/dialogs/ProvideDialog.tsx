@@ -17,6 +17,8 @@ import { calculateExpectedMonthlyPayout, invalidatePoolQueries } from '../utils/
 import { useAccount } from '@network/useAccount';
 import { AccountType, useMySources } from '@api/subsquid-network-squid';
 import { SourceWalletOption } from '@components/SourceWallet';
+import toast from 'react-hot-toast';
+import { errorMessage } from '@api/contracts/utils';
 
 interface ProvideDialogProps {
   open: boolean;
@@ -245,7 +247,9 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
 
         await invalidatePoolQueries(queryClient, poolId);
         onClose();
-      } catch (error) {}
+      } catch (error) {
+        toast.error(errorMessage(error));
+      }
     },
     [pool, poolId, writeTransactionAsync, queryClient, onClose],
   );

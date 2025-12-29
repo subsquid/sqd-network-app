@@ -1,10 +1,10 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Alert, Button, Chip, Divider, Stack, Tooltip, Typography } from '@mui/material';
+import { Button, Chip, Divider, Stack, Tooltip, Typography } from '@mui/material';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { portalPoolAbi, useReadPortalPoolGetWithdrawalWaitingTimestamp } from '@api/contracts';
+import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
@@ -16,6 +16,8 @@ import { useContracts } from '@network/useContracts';
 import { usePoolCapacity, usePoolData, usePoolUserData } from '../hooks';
 import { calculateExpectedMonthlyPayout, invalidatePoolQueries } from '../utils/poolUtils';
 import { useReadContract } from 'wagmi';
+import toast from 'react-hot-toast';
+import { errorMessage } from '@api/contracts/utils';
 
 interface WithdrawDialogProps {
   open: boolean;
@@ -183,7 +185,9 @@ export function WithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
 
         await invalidatePoolQueries(queryClient, poolId);
         onClose();
-      } catch (error) {}
+      } catch (error) {
+        toast.error(errorMessage(error));
+      }
     },
     [poolId, writeTransactionAsync, queryClient, onClose],
   );

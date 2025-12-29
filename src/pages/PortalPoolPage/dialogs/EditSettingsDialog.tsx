@@ -17,6 +17,8 @@ import { useContracts } from '@network/useContracts';
 
 import { invalidatePoolQueries } from '../utils/poolUtils';
 import { usePoolData } from '../hooks';
+import toast from 'react-hot-toast';
+import { errorMessage } from '@api/contracts/utils';
 
 // Edit Capacity Dialog
 interface EditCapacityDialogProps {
@@ -68,7 +70,9 @@ export function EditCapacityDialog({ open, onClose, poolId }: EditCapacityDialog
         await invalidatePoolQueries(queryClient, poolId);
         formik.resetForm();
         onClose();
-      } catch (error) {}
+      } catch (error) {
+        toast.error(errorMessage(error));
+      }
     },
   });
 
@@ -105,7 +109,7 @@ export function EditCapacityDialog({ open, onClose, poolId }: EditCapacityDialog
   );
 }
 
-export function EditCapacityButton({ poolId, disabled }: { poolId: string, disabled?: boolean }) {
+export function EditCapacityButton({ poolId, disabled }: { poolId: string; disabled?: boolean }) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleOpen = useCallback(() => setDialogOpen(true), []);
@@ -183,7 +187,9 @@ export function EditDistributionRateDialog({
         await invalidatePoolQueries(queryClient, poolId);
         formik.resetForm();
         onClose();
-      } catch (error) {}
+      } catch (error) {
+        toast.error(errorMessage(error));
+      }
     },
   });
 
@@ -220,7 +226,13 @@ export function EditDistributionRateDialog({
   );
 }
 
-export function EditDistributionRateButton({ poolId, disabled }: { poolId: string, disabled?: boolean }) {
+export function EditDistributionRateButton({
+  poolId,
+  disabled,
+}: {
+  poolId: string;
+  disabled?: boolean;
+}) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleOpen = useCallback(() => setDialogOpen(true), []);
@@ -235,4 +247,3 @@ export function EditDistributionRateButton({ poolId, disabled }: { poolId: strin
     </>
   );
 }
-

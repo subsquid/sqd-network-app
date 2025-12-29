@@ -127,7 +127,13 @@ export function useWriteSQDTransaction({}: object = {}): WriteTransactionResult 
           } as Parameters<typeof writeContractAsync>[0]);
         }
 
-        return await waitForTransactionReceipt(config, { hash });
+        const receipt = await waitForTransactionReceipt(config, { hash });
+
+        if (receipt.status === 'reverted') {
+          throw new Error('Transaction reverted');
+        }
+
+        return receipt;
       } catch (e) {
         if (e instanceof Error && !/rejected/i.test(e.message)) {
           let params: any;
