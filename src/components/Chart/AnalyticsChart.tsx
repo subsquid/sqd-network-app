@@ -58,8 +58,9 @@ export interface AnalyticsChartProps<
   T extends Record<string, unknown> = Record<string, unknown>,
   V = unknown,
 > {
-  title: string;
+  title?: string;
   subtitle?: string;
+  action?: React.ReactNode;
   primaryColor?: string;
   category?: string;
   range?: { from: Date; to: Date };
@@ -105,6 +106,7 @@ function createColorPalette(primaryColor: string | undefined, defaultPalette: st
 }
 
 interface SeriesResult {
+  name?: string;
   series: ChartSeries[];
   step?: number;
   from?: string;
@@ -113,7 +115,7 @@ interface SeriesResult {
 
 function buildStackedSeries<V>(
   timeseries: TimeSeriesData<V>,
-  title: string,
+  title: string | undefined,
   stacks: StackConfig<V>[],
 ): SeriesResult {
   return {
@@ -161,7 +163,7 @@ function buildMultiSeries<V>(
 
 function buildSimpleSeries(
   timeseries: TimeSeriesData<number>,
-  seriesName: string,
+  seriesName: string | undefined,
   type: 'line' | 'bar',
   valueTransform: (v: number) => number,
 ): SeriesResult {
@@ -187,7 +189,7 @@ function buildSimpleSeries(
 function createSeries<T extends Record<string, unknown>, V>(
   props: AnalyticsChartProps<T, V>,
   data: T,
-  title: string,
+  title?: string,
 ): SeriesResult {
   const timeseries = props.dataPath(data);
 
@@ -248,6 +250,7 @@ export function AnalyticsChart<
   const {
     title,
     subtitle,
+    action,
     primaryColor,
     range,
     queryHook,
@@ -313,7 +316,7 @@ export function AnalyticsChart<
   );
 
   return (
-    <Card title={title} subtitle={subtitle}>
+    <Card title={title} subtitle={subtitle} action={action}>
       <Box display="flex" flexDirection="column">
         <Box height={height} display="flex" alignItems="center" justifyContent="center">
           {isLoading ? (

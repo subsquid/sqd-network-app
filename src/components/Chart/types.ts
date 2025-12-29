@@ -24,7 +24,7 @@ export interface StackedChartDatum<Nullable extends boolean = true> {
  * Base series configuration shared by all series types
  */
 export interface ChartSeriesBase {
-  name: string;
+  name?: string;
   type: 'line' | 'bar';
   color?: string;
 }
@@ -83,6 +83,8 @@ export interface ChartProps {
   pointSize?: number;
   barBorderRadius?: number;
   grouped?: boolean;
+  // Custom margin overrides
+  margin?: { top?: number; right?: number; bottom?: number; left?: number };
 }
 
 /**

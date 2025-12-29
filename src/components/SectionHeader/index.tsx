@@ -1,5 +1,6 @@
 import { SquaredChip } from '@components/Chip';
-import { Box, styled, Typography, type SxProps } from '@mui/material';
+import { HelpTooltip } from '@components/HelpTooltip';
+import { Box, styled, Tooltip, Typography, type SxProps } from '@mui/material';
 
 const CardHeader = styled(Box, {
   name: 'CardHeader',
@@ -24,12 +25,14 @@ const CardTitle = styled(Box, {
 export interface SectionHeaderProps {
   title?: React.ReactNode;
   subtitle?: React.ReactNode;
+  tooltip?: string;
   action?: React.ReactNode;
 }
 
 export function SectionHeader({
   title,
   subtitle,
+  tooltip,
   action,
   sx,
 }: SectionHeaderProps & { sx?: SxProps }) {
@@ -43,7 +46,12 @@ export function SectionHeader({
     <CardHeader sx={sx}>
       {hasTitle && (
         <CardTitle>
-          {title && <Box sx={{ width: '100%' }}>{normalizedTitle}</Box>}
+          {title && (
+            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              {normalizedTitle}
+              {tooltip && <HelpTooltip title={tooltip} />}
+            </Box>
+          )}
           {subtitle && <Box>{normalizedSubtitle}</Box>}
         </CardTitle>
       )}

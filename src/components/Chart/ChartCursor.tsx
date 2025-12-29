@@ -130,7 +130,7 @@ export function CursorPoints({
       }
 
       // Single series point
-      const datum = tooltipData[s.name];
+      const datum = tooltipData[s.name || i];
       if (!datum) return null;
 
       const color = s.color ?? palette[i % palette.length];

@@ -13,7 +13,9 @@
     "preview": "vite preview --outDir build --host 127.0.0.1 --port 3005",
     "upg": "yarn upgrade-interactive",
     "prepare": "husky install",
-    "codegen": "npx graphql-codegen --config graphql.config.ts"
+    "codegen:graphql": "npx graphql-codegen --config graphql.config.ts",
+    "codegen:wagmi": "wagmi generate",
+    "codegen": "npm run codegen:graphql && npm run codegen:wagmi"
   },
   "lint-staged": {
     "src/**/*.{js,jsx,ts,tsx}": "eslint --cache --fix"

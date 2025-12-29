@@ -54,7 +54,7 @@ function extractTooltipData(
     } else {
       const datum = findNearestDatum(s.data, targetDate);
       if (datum.y != null) {
-        tooltipData[s.name] = { x: datum.x, y: datum.y };
+        tooltipData[s.name ?? ''] = { x: datum.x, y: datum.y };
       }
     }
   }

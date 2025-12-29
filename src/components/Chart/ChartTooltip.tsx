@@ -20,7 +20,7 @@ function buildColorMap(series: ChartSeries[], palette: string[]): Map<string, st
         colorMap.set(item.key, item.color ?? palette[stackIndex % palette.length]);
       });
     } else {
-      colorMap.set(s.name, s.color ?? palette[i % palette.length]);
+      colorMap.set(s.name ?? '', s.color ?? palette[i % palette.length]);
     }
   });
 

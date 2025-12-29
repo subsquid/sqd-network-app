@@ -63,7 +63,7 @@ class DecimalSchema<
     });
   }
 
-  min(min: string | Reference<string>, message = messages.min) {
+  min(min: string | Reference<string> | BigNumber, message = messages.min) {
     return this.test({
       message,
       name: 'min',
@@ -76,7 +76,7 @@ class DecimalSchema<
     });
   }
 
-  max(max: string | Reference<string>, message = messages.max) {
+  max(max: string | Reference<string> | BigNumber, message = messages.max) {
     return this.test({
       message,
       name: 'max',

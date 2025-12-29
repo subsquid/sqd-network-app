@@ -26,6 +26,7 @@ type WriteTransactionParams<TAbi extends Abi, TFunctionName extends ContractFunc
   functionName: TFunctionName;
   args?: ContractFunctionArgs<TAbi, 'nonpayable' | 'payable', TFunctionName>;
   approve?: bigint;
+  approveToken?: Address;
   vesting?: Address;
 };
 
@@ -77,17 +78,18 @@ export function useWriteSQDTransaction({}: object = {}): WriteTransactionResult 
           } as Parameters<typeof writeContractAsync>[0]);
         } else {
           if (params.approve) {
+            const tokenAddress = params.approveToken || SQD;
             const allowance = await readContract(config, {
               abi: erc20Abi,
               functionName: 'allowance',
-              address: SQD,
+              address: tokenAddress,
               args: [account.address!, params.address],
             });
 
             if (allowance < params.approve) {
               simulateTenderly({
                 sender: account.address!,
-                contractAddress: SQD,
+                contractAddress: tokenAddress,
                 params: {
                   abi: erc20Abi,
                   functionName: 'approve',
@@ -98,7 +100,7 @@ export function useWriteSQDTransaction({}: object = {}): WriteTransactionResult 
               const hash = await writeContract(config, {
                 abi: erc20Abi,
                 functionName: 'approve',
-                address: SQD,
+                address: tokenAddress,
                 args: [params.address, params.approve],
               });
               await waitForTransactionReceipt(config, { hash });

@@ -59,17 +59,10 @@ export function SquidHeightProvider({ children }: PropsWithChildren) {
 
   const { data: chainHeight } = useBlockNumber({
     watch: true,
-    query: {
-      refetchInterval: isSyncing ? 200 : 1000,
-    },
+    query: {},
   });
 
-  const { data, isLoading } = useSquidNetworkHeightQuery(
-    {},
-    {
-      refetchInterval: isSyncing ? 200 : 2000,
-    },
-  );
+  const { data, isLoading } = useSquidNetworkHeightQuery({}, {});
   // const { enqueueSnackbar } = useSnackbar();
 
   const currentHeight = data?.squidStatus?.height || 0;

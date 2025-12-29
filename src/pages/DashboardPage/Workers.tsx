@@ -29,6 +29,7 @@ import {
 } from '@components/Worker';
 import { Location, useLocationState } from '@hooks/useLocationState';
 import { WorkersFilters } from './WorkersFilters';
+import { Card } from '@components/Card';
 
 function TableNavigation({
   totalPages,
@@ -166,90 +167,96 @@ export function Workers() {
           />
         </Collapse>
       </Box>
-      <DashboardTable loading={isLoading} minHeight={PER_PAGE * 73}>
-        <TableHead>
-          <TableRow>
-            <SortableHeaderCell sort={WorkerSortBy.Name} query={query} setQuery={setQuery}>
-              Worker
-            </SortableHeaderCell>
-            <TableCell>Status</TableCell>
-            <SortableHeaderCell sort={WorkerSortBy.Version} query={query} setQuery={setQuery}>
-              Version
-            </SortableHeaderCell>
-            <SortableHeaderCell sort={WorkerSortBy.Uptime90d} query={query} setQuery={setQuery}>
-              Uptime, 90d
-            </SortableHeaderCell>
-            <SortableHeaderCell sort={WorkerSortBy.WorkerAPR} query={query} setQuery={setQuery}>
-              Worker APR
-            </SortableHeaderCell>
-            <SortableHeaderCell sort={WorkerSortBy.StakerAPR} query={query} setQuery={setQuery}>
-              Delegator APR
-            </SortableHeaderCell>
-            <SortableHeaderCell
-              sort={WorkerSortBy.DelegationCapacity}
-              query={query}
-              setQuery={setQuery}
-              help={
-                <Box>
-                  The Delegator APR decreases significantly once more than 20,000 SQD is delegated
-                  to the worker.
-                  <br />
-                  To maximize delegation rewards, choose workers with high uptime and a low amount
-                  of delegated SQD.
-                </Box>
-              }
-            >
-              Delegation capacity
-            </SortableHeaderCell>
-            <SortableHeaderCell sort={WorkerSortBy.JoinedAt} query={query} setQuery={setQuery}>
-              Created
-            </SortableHeaderCell>
-            <TableCell className="pinned"></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {workers.length ? (
-            workers.map(worker => (
-              <TableRow key={worker.peerId}>
-                <TableCell className="pinned">
-                  <WorkerName worker={worker} />
-                </TableCell>
-                <TableCell>
-                  <WorkerStatusChip worker={worker} />
-                </TableCell>
-                <TableCell>
-                  <WorkerVersion worker={worker} />
-                </TableCell>
-                <TableCell>{percentFormatter(worker.uptime90Days)}</TableCell>
-                <TableCell>{worker.apr != null ? percentFormatter(worker.apr) : '-'}</TableCell>
-                <TableCell>
-                  {worker.stakerApr != null ? percentFormatter(worker.stakerApr) : '-'}
-                </TableCell>
-                <TableCell>
-                  <DelegationCapacity worker={worker} />
-                </TableCell>
-                <TableCell>{dateFormat(worker.createdAt)}</TableCell>
-                <TableCell className="pinned">
-                  <Box display="flex" justifyContent="flex-end">
-                    <WorkerDelegate worker={worker} sources={sources} />
+      <Card>
+        <DashboardTable
+          loading={isLoading}
+          minHeight={PER_PAGE * 73}
+          sx={{ m: -2, mt: -0.5 }}
+        >
+          <TableHead>
+            <TableRow>
+              <SortableHeaderCell sort={WorkerSortBy.Name} query={query} setQuery={setQuery}>
+                Worker
+              </SortableHeaderCell>
+              <TableCell>Status</TableCell>
+              <SortableHeaderCell sort={WorkerSortBy.Version} query={query} setQuery={setQuery}>
+                Version
+              </SortableHeaderCell>
+              <SortableHeaderCell sort={WorkerSortBy.Uptime90d} query={query} setQuery={setQuery}>
+                Uptime, 90d
+              </SortableHeaderCell>
+              <SortableHeaderCell sort={WorkerSortBy.WorkerAPR} query={query} setQuery={setQuery}>
+                Worker APR
+              </SortableHeaderCell>
+              <SortableHeaderCell sort={WorkerSortBy.StakerAPR} query={query} setQuery={setQuery}>
+                Delegator APR
+              </SortableHeaderCell>
+              <SortableHeaderCell
+                sort={WorkerSortBy.DelegationCapacity}
+                query={query}
+                setQuery={setQuery}
+                help={
+                  <Box>
+                    The Delegator APR decreases significantly once more than 20,000 SQD is delegated
+                    to the worker.
+                    <br />
+                    To maximize delegation rewards, choose workers with high uptime and a low amount
+                    of delegated SQD.
                   </Box>
-                </TableCell>
-              </TableRow>
-            ))
-          ) : (
-            <NoItems />
-          )}
-        </TableBody>
-      </DashboardTable>
-      <Box display="flex" justifyContent="flex-end">
-        {!isWorkersLoading && (
-          <Pagination
-            count={totalPages}
-            page={page}
-            onChange={(_, value) => setQuery.page(value)}
-          />
+                }
+              >
+                Delegation capacity
+              </SortableHeaderCell>
+              <SortableHeaderCell sort={WorkerSortBy.JoinedAt} query={query} setQuery={setQuery}>
+                Created
+              </SortableHeaderCell>
+              <TableCell className="pinned"></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {workers.length ? (
+              workers.map(worker => (
+                <TableRow key={worker.peerId}>
+                  <TableCell className="pinned">
+                    <WorkerName worker={worker} />
+                  </TableCell>
+                  <TableCell>
+                    <WorkerStatusChip worker={worker} />
+                  </TableCell>
+                  <TableCell>
+                    <WorkerVersion worker={worker} />
+                  </TableCell>
+                  <TableCell>{percentFormatter(worker.uptime90Days)}</TableCell>
+                  <TableCell>{worker.apr != null ? percentFormatter(worker.apr) : '-'}</TableCell>
+                  <TableCell>
+                    {worker.stakerApr != null ? percentFormatter(worker.stakerApr) : '-'}
+                  </TableCell>
+                  <TableCell>
+                    <DelegationCapacity worker={worker} />
+                  </TableCell>
+                  <TableCell>{dateFormat(worker.createdAt)}</TableCell>
+                  <TableCell className="pinned">
+                    <Box display="flex" justifyContent="flex-end">
+                      <WorkerDelegate worker={worker} sources={sources} />
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <NoItems />
+            )}
+          </TableBody>
+        </DashboardTable>
+        {!isWorkersLoading && totalPages > 1 && (
+          <Box display="flex" justifyContent="flex-end" mt={2}>
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={(_, value) => setQuery.page(value)}
+            />
+          </Box>
         )}
-      </Box>
+      </Card>
     </>
   );
 }

@@ -29,16 +29,18 @@ export function PageTitle({
   children,
   sx,
   title,
+  backButton = true,
 }: PropsWithChildren<{
   backPath?: string;
   sx?: SxProps;
-  title?: string;
+  title?: React.ReactNode;
+  backButton?: boolean;
 }>) {
   return (
     <PageTitleWrapper sx={sx}>
       <Typography variant="h4">
         <div className="title">
-          <BackButton path={backPath} />
+          {backButton && <BackButton path={backPath} />}
           <Box color="text.primary">{title}</Box>
         </div>
       </Typography>

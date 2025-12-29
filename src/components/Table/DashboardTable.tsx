@@ -35,8 +35,12 @@ export const DashboardTableBase = styled(Table)(({ theme }) => ({
     minHeight: theme.spacing(8),
   },
 
+  '& td:first-child, & th:first-child': {
+    paddingLeft: theme.spacing(2),
+  },
+
   '& td:last-child, & th:last-child': {
-    paddingRight: theme.spacing(0),
+    paddingRight: theme.spacing(2),
   },
 
   '& th': {
@@ -44,6 +48,10 @@ export const DashboardTableBase = styled(Table)(({ theme }) => ({
     minHeight: theme.spacing(4),
     textAlign: 'start',
     paddingTop: 0,
+  },
+
+  '& tbody tr:last-child td': {
+    borderBottom: 'none',
   },
 
   '& tbody': {
@@ -112,7 +120,7 @@ export const DashboardTable = ({
   const tableContent = loading ? <LoadingTableBody minHeight={minHeight} /> : children;
 
   return (
-    <Box sx={sx} className={className}>
+    <Box sx={{ ...sx, mx: -2, my: -1 }} className={className}>
       <Box
         position="relative"
         sx={{
