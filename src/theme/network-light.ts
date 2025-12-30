@@ -15,11 +15,11 @@ export const NetworkLightTheme = {
     contrastText: '#fff',
   },
   success: {
-    main: '#248a0f',
+    main: '#10B981',
     contrastText: '#fff',
   },
   error: {
-    main: '#dc3545',
+    main: '#DC3545',
     contrastText: '#fff',
   },
   warning: {
