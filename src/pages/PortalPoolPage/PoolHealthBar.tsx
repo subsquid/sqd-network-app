@@ -69,17 +69,20 @@ function getCapacityStatus(
     color = 'error';
     icon = <Error sx={{ fontSize: 18, color: 'error.main' }} />;
     text = 'Critical';
-    description = 'Pool is critical. Yields have stopped until more liquidity is added.';
+    description =
+      'Pool has insufficient liquidity. Rewards are paused until deposits increase above the minimum threshold required for operations.';
   } else if (!isHealthy || usagePercent < 50) {
     color = 'warning';
     icon = <Warning sx={{ fontSize: 18, color: 'warning.main' }} />;
     text = 'Low';
-    description = 'Pool is running low. Consider adding liquidity.';
+    description =
+      'Pool liquidity is below optimal levels. Additional deposits may be needed to maintain stable reward distribution.';
   } else {
     color = 'success';
     icon = <CheckCircle sx={{ fontSize: 18, color: 'success.main' }} />;
     text = 'Healthy';
-    description = 'Pool buffer is healthy. Yields are being distributed normally.';
+    description =
+      'Pool has sufficient liquidity. Rewards are being distributed normally to all delegators.';
   }
 
   return { color, icon, text, description };

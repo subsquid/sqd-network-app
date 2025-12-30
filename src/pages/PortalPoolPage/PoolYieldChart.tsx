@@ -73,7 +73,7 @@ export function PoolYieldChart({ poolId }: PoolYieldChartProps) {
   return (
     <Card
       title="APY"
-      subtitle="Rolling APY calculated from historical SQD prices."
+      subtitle="Historical APY based on past SQD token prices."
       action={
         <ToggleButtonGroup value={period} exclusive onChange={handlePeriodChange}>
           <ToggleButton value="1w">1W</ToggleButton>

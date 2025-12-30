@@ -4,9 +4,10 @@ import { useReadContract } from 'wagmi';
 
 import { portalPoolAbi } from '@api/contracts';
 import { Card } from '@components/Card';
+import { HelpTooltip } from '@components/HelpTooltip';
 import { Property, PropertyList } from '@components/Property';
 import { useRewardToken } from '@hooks/useRewardToken';
-import { dollarFormatter, tokenFormatter } from '@lib/formatters/formatters';
+import { tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
@@ -48,9 +49,12 @@ export function ManageTab({ poolId }: ManageTabProps) {
     <Card sx={{ height: '100%', overflowY: 'auto' }}>
       <Stack spacing={3} divider={<Divider />}>
         <Stack spacing={1.5}>
-          <Typography variant="body2" color="text.secondary">
-            Current Reward Balance
-          </Typography>
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            <Typography variant="body2" color="text.secondary">
+              Reward Pool Balance
+            </Typography>
+            <HelpTooltip title="Total rewards available for distribution to delegators." />
+          </Stack>
           <Typography variant="body1">
             {tokenFormatter(Number(formattedBalance), rewardSymbol, 6)}
           </Typography>
@@ -62,12 +66,22 @@ export function ManageTab({ poolId }: ManageTabProps) {
           <Typography variant="subtitle2">Configurable Settings</Typography>
           <PropertyList>
             <Property
-              label="Distribution Rate"
+              label={
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <span>Distribution Rate</span>
+                  <HelpTooltip title="Daily reward amount distributed to delegators. Monthly payout = rate × 30 days." />
+                </Stack>
+              }
               value={`${(pool.monthlyPayoutUsd / 30).toFixed(2)} ${rewardSymbol}/day`}
               action={<EditDistributionRateButton poolId={poolId} disabled={!canEdit} />}
             />
             <Property
-              label="Max Pool Capacity"
+              label={
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <span>Max Pool Capacity</span>
+                  <HelpTooltip title="Maximum SQD that can be deposited in this pool." />
+                </Stack>
+              }
               value={tokenFormatter(fromSqd(pool.tvl.max), SQD_TOKEN, 0)}
               action={<EditCapacityButton poolId={poolId} disabled={!canEdit} />}
             />

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   Box,
   Button,
+  Stack,
   Tab,
   TableBody,
   TableCell,
@@ -14,6 +15,7 @@ import {
 import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { Card } from '@components/Card';
+import { HelpTooltip } from '@components/HelpTooltip';
 import { DashboardTable, NoItems } from '@components/Table';
 import { useCountdown } from '@hooks/useCountdown';
 import { tokenFormatter } from '@lib/formatters/formatters';
@@ -38,21 +40,23 @@ function WithdrawalRow({
 }) {
   const { SQD_TOKEN } = useContracts();
   const isReady = withdrawal.estimatedCompletionAt.getTime() < Date.now();
-  const timeLeft = useCountdown({ timestamp: withdrawal.estimatedCompletionAt });
+  const timeLeft = useCountdown({
+    timestamp: withdrawal.estimatedCompletionAt,
+  });
 
   return (
     <TableRow>
-      <TableCell>{withdrawal.id}</TableCell>
+      <TableCell>{Number(withdrawal.id) + 1}</TableCell>
       <TableCell>{tokenFormatter(fromSqd(withdrawal.amount), SQD_TOKEN, 2)}</TableCell>
       <TableCell>{timeLeft}</TableCell>
       <TableCell>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Button
-            variant="outlined"
+            variant="contained"
             onClick={() => onClaim(withdrawal.id)}
             loading={isClaiming}
             disabled={!isReady}
-            color="secondary"
+            color="success"
           >
             CLAIM
           </Button>
@@ -75,9 +79,14 @@ function PendingWithdrawalsTable({
     <DashboardTable>
       <TableHead>
         <TableRow>
-          <TableCell>Ticket</TableCell>
+          <TableCell>Withdrawal ID</TableCell>
           <TableCell>Amount</TableCell>
-          <TableCell>Time Left</TableCell>
+          <TableCell>
+            <Stack direction="row" alignItems="center" spacing={0.5}>
+              <span>Time Left</span>
+              <HelpTooltip title="Remaining time before this withdrawal can be claimed." />
+            </Stack>
+          </TableCell>
           <TableCell></TableCell>
         </TableRow>
       </TableHead>
@@ -93,7 +102,7 @@ function PendingWithdrawalsTable({
           ))
         ) : (
           <NoItems>
-            <Typography>No pending withdrawals</Typography>
+            <Typography>No withdrawal requests</Typography>
           </NoItems>
         )}
       </TableBody>
@@ -130,7 +139,7 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
   return (
     <Box sx={{ mt: 2 }}>
       <Tabs value={0} sx={{ mb: 2 }}>
-        <Tab label={`Pending Withdrawals`} />
+        <Tab label={`Withdrawal Requests`} />
       </Tabs>
       <Card>
         <PendingWithdrawalsTable

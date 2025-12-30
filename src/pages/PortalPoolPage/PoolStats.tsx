@@ -60,7 +60,7 @@ export function PoolStats({ poolId }: PoolStatsProps) {
   const displayApy = calculatedApyRatio * 100;
 
   const apyTooltip =
-    'APY = (Monthly Payout × 12) / (Pool Capacity × SQD Price)\nBased on full pool capacity and live SQD price.';
+    'APY = (Monthly Payout × 12) / (Max Pool Capacity × SQD Price)\nCalculated using current SQD price.';
 
   return (
     <Stack
@@ -70,6 +70,7 @@ export function PoolStats({ poolId }: PoolStatsProps) {
     >
       <StatItem
         label="TVL"
+        tooltip="Total Value Locked - current deposits relative to maximum pool capacity."
         value={
           <Stack direction="row" alignItems="baseline" spacing={0.5} flexWrap="wrap">
             <Typography variant="h6" component="span">

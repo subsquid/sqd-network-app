@@ -8,6 +8,7 @@ import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikSelect, FormikTextInput } from '@components/Form';
+import { HelpTooltip } from '@components/HelpTooltip';
 import { tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, toSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
@@ -116,17 +117,14 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
     <Stack spacing={2.5}>
       {isDepositPhase && (
         <Alert severity="info">
-          Collecting deposits to reach activation threshold. Pool will activate once the minimum
-          liquidity is met.
-          <br />
-          Deposits are locked until the pool activates or the collection period expires without
-          reaching the threshold.
+          Pool is collecting deposits to activate. Your deposit is locked until the pool activates
+          or the deposit window closes. If activation fails, you can withdraw your full deposit.
         </Alert>
       )}
 
       {pool.phase === 'idle' && (
         <Alert severity="warning">
-          Pool is paused. Yields are currently stopped due to low buffer.
+          Pool is paused due to low liquidity. Rewards are not being distributed.
         </Alert>
       )}
 
@@ -137,7 +135,7 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
       {!isPoolFull && isUserAtLimit && (
         <Alert severity="info">
           You have reached the maximum deposit limit of{' '}
-          {tokenFormatter(fromSqd(pool.maxDepositPerAddress), SQD_TOKEN, 0)} per address.
+          {tokenFormatter(fromSqd(pool.maxDepositPerAddress), SQD_TOKEN, 0)}.
         </Alert>
       )}
 
@@ -198,7 +196,10 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2">Expected Monthly Payout</Typography>
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            <Typography variant="body2">Expected Monthly Payout</Typography>
+            <HelpTooltip title="Estimated monthly rewards based on your share of the pool at current APY." />
+          </Stack>
           <Typography variant="body2">
             {userExpectedMonthlyPayout > 0
               ? `${userExpectedMonthlyPayout.toFixed(2)} USDC`
@@ -276,7 +277,7 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
 
   return (
     <ContractCallDialog
-      title="Deposit Liquidity"
+      title="Deposit to Pool"
       open={open}
       onResult={handleResult}
       loading={isPending}
