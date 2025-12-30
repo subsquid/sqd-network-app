@@ -1,7 +1,7 @@
-import type { QueryClient } from '@tanstack/react-query';
+import type { QueryClient } from "@tanstack/react-query";
 
-import { fromSqd } from '@lib/network';
-import type { PoolData, PoolPhase } from '../hooks/types';
+import { fromSqd } from "@lib/network";
+import type { PoolData, PoolPhase } from "../hooks/types";
 
 export interface CapacityInfo {
   maxDepositPerAddress: number;
@@ -13,7 +13,10 @@ export interface CapacityInfo {
   effectiveMax: number;
 }
 
-export function calculateCapacity(pool: PoolData, currentUserBalance: bigint = 0n): CapacityInfo {
+export function calculateCapacity(
+  pool: PoolData,
+  currentUserBalance: bigint = 0n,
+): CapacityInfo {
   const maxDepositPerAddress = fromSqd(pool.maxDepositPerAddress).toNumber();
   const userBalance = fromSqd(currentUserBalance).toNumber();
   const userRemainingCapacity = Math.max(0, maxDepositPerAddress - userBalance);
@@ -49,7 +52,8 @@ export function calculateApy(
   tvlInSqd: number,
   sqdPrice?: number,
 ): number | undefined {
-  if (sqdPrice === undefined || sqdPrice <= 0 || tvlInSqd <= 0) return undefined;
+  if (sqdPrice === undefined || sqdPrice <= 0 || tvlInSqd <= 0)
+    return undefined;
   const tvlInUsd = tvlInSqd * sqdPrice;
   const annualPayoutUsd = monthlyPayoutUsd * 12;
   return annualPayoutUsd / tvlInUsd;
@@ -67,38 +71,42 @@ export function calculateApyOrZero(
   return calculateApy(monthlyPayoutUsd, tvlInSqd, sqdPrice) ?? 0;
 }
 
-export function calculateExpectedMonthlyPayout(pool: PoolData, userDelegation: number): number {
+export function calculateExpectedMonthlyPayout(
+  pool: PoolData,
+  userDelegation: number,
+): number {
   const maxPoolCapacity = fromSqd(pool.tvl.max).toNumber();
-  const payoutCoefficientPerSqd = maxPoolCapacity > 0 ? pool.monthlyPayoutUsd / maxPoolCapacity : 0;
+  const payoutCoefficientPerSqd =
+    maxPoolCapacity > 0 ? pool.monthlyPayoutUsd / maxPoolCapacity : 0;
   return userDelegation * payoutCoefficientPerSqd;
 }
 
 export function getPhaseColor(
   phase: PoolPhase,
-): 'success' | 'warning' | 'error' | 'default' | 'info' {
+): "success" | "warning" | "error" | "default" | "info" {
   switch (phase) {
-    case 'active':
-      return 'success';
-    case 'collecting':
-      return 'info';
-    case 'idle':
-    case 'debt':
-      return 'warning';
+    case "active":
+      return "success";
+    case "collecting":
+      return "info";
+    case "idle":
+    case "debt":
+      return "warning";
     default:
-      return 'default';
+      return "default";
   }
 }
 
 export function getPhaseLabel(phase: PoolPhase): string {
   switch (phase) {
-    case 'active':
-      return 'Active';
-    case 'collecting':
-      return 'Collecting';
-    case 'debt':
-      return 'In Debt';
-    case 'idle':
-      return 'Paused';
+    case "active":
+      return "Active";
+    case "collecting":
+      return "Collecting";
+    case "debt":
+      return "In Debt";
+    case "idle":
+      return "Paused";
     default:
       return phase;
   }
@@ -106,14 +114,14 @@ export function getPhaseLabel(phase: PoolPhase): string {
 
 export function getPhaseTooltip(phase: PoolPhase): string {
   switch (phase) {
-    case 'active':
-      return 'Pool is active and earning rewards. Distributing yields to liquidity providers.';
-    case 'collecting':
-      return "Accepting deposits to reach activation threshold. Pool will activate once the minimum liquidity is reached. If threshold isn't met, deposits can be fully withdrawn.";
-    case 'idle':
-      return 'Pool temporarily paused. Rewards have stopped due to insufficient buffer. Will resume once liquidity increases above minimum threshold.';
-    case 'debt':
-      return 'Pool is in debt. Rewards emission is paused because the USDC balance has run out. Please report it to the pool owner.';
+    case "active":
+      return "Pool is active. Distributing yields to liquidity providers.";
+    case "collecting":
+      return "Pool is collecting deposits to activate. Pool activates once minimum threshold is met. If not met by deadline, you can withdraw your full deposit.";
+    case "idle":
+      return "Pool is paused due to insufficient liquidity. Rewards are not being distributed. Pool reactivates when liquidity increases above minimum threshold.";
+    case "debt":
+      return "Pool has run out of USDC rewards. No rewards are being distributed. Contact the pool operator to add more USDC to resume rewards.";
     default:
       return phase;
   }
@@ -128,18 +136,22 @@ export async function invalidatePoolQueries(
   poolId: string,
 ): Promise<void> {
   await queryClient.invalidateQueries({
-    predicate: query => {
+    predicate: (query) => {
       const key = query.queryKey;
       if (!Array.isArray(key)) return false;
 
       // Invalidate readContract queries for this pool
-      if (key[0] === 'readContract' && typeof key[1] === 'object' && key[1] !== null) {
+      if (
+        key[0] === "readContract" &&
+        typeof key[1] === "object" &&
+        key[1] !== null
+      ) {
         const params = key[1] as any;
         return params.address === poolId;
       }
 
       // Invalidate readContracts queries (user data, etc)
-      if (key[0] === 'readContracts') {
+      if (key[0] === "readContracts") {
         return true;
       }
 
@@ -163,16 +175,16 @@ export function calculateUnlockDate(waitTime?: string): Date | null {
 
   const unlockDate = new Date(now);
   switch (unit) {
-    case 'minute':
+    case "minute":
       unlockDate.setMinutes(unlockDate.getMinutes() + value);
       break;
-    case 'hour':
+    case "hour":
       unlockDate.setHours(unlockDate.getHours() + value);
       break;
-    case 'day':
+    case "day":
       unlockDate.setDate(unlockDate.getDate() + value);
       break;
-    case 'week':
+    case "week":
       unlockDate.setDate(unlockDate.getDate() + value * 7);
       break;
   }

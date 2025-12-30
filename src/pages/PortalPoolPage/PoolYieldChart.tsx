@@ -1,25 +1,25 @@
-import { useState, useMemo } from 'react';
-import { Box, Skeleton, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { useState, useMemo } from "react";
+import { Box, Skeleton, ToggleButton, ToggleButtonGroup } from "@mui/material";
 
-import { useHistoricalTokenPrices } from '@api/price';
-import { Card } from '@components/Card';
-import { LineChart, SharedCursorProvider } from '@components/Chart';
-import { useContracts } from '@network/useContracts';
+import { useHistoricalTokenPrices } from "@api/price";
+import { Card } from "@components/Card";
+import { LineChart, SharedCursorProvider } from "@components/Chart";
+import { useContracts } from "@network/useContracts";
 
-import { usePoolData } from './hooks';
-import { fromSqd } from '@lib/network';
-import { calculateApyOrZero } from './utils/poolUtils';
+import { usePoolData } from "./hooks";
+import { fromSqd } from "@lib/network";
+import { calculateApyOrZero } from "./utils/poolUtils";
 
-type TimePeriod = '1w' | '1m' | '3m';
+type TimePeriod = "1w" | "1m" | "3m";
 
 interface PoolYieldChartProps {
   poolId: string;
 }
 
 const TIME_PERIODS: Record<TimePeriod, number> = {
-  '1w': 7 * 24 * 60 * 60 * 1000,
-  '1m': 30 * 24 * 60 * 60 * 1000,
-  '3m': 90 * 24 * 60 * 60 * 1000,
+  "1w": 7 * 24 * 60 * 60 * 1000,
+  "1m": 30 * 24 * 60 * 60 * 1000,
+  "3m": 90 * 24 * 60 * 60 * 1000,
 };
 
 function getTimeRangeFromPeriod(period: TimePeriod): { from: Date; to: Date } {
@@ -33,13 +33,16 @@ const apyTooltipFormatter = (d: number) => `${d.toFixed(2)}%`;
 
 export function PoolYieldChart({ poolId }: PoolYieldChartProps) {
   const { data: pool } = usePoolData(poolId);
-  const [period, setPeriod] = useState<TimePeriod>('1m');
+  const [period, setPeriod] = useState<TimePeriod>("1m");
   const { SQD } = useContracts();
 
   const monthlyPayoutUsd = pool?.monthlyPayoutUsd ?? 0;
   const tvlInSqd = pool ? fromSqd(pool.tvl.max).toNumber() : 0;
 
-  const handlePeriodChange = (_: React.MouseEvent<HTMLElement>, newPeriod: TimePeriod | null) => {
+  const handlePeriodChange = (
+    _: React.MouseEvent<HTMLElement>,
+    newPeriod: TimePeriod | null,
+  ) => {
     if (newPeriod) {
       setPeriod(newPeriod);
     }
@@ -47,21 +50,22 @@ export function PoolYieldChart({ poolId }: PoolYieldChartProps) {
 
   const range = useMemo(() => getTimeRangeFromPeriod(period), [period]);
 
-  const { data: chartPrices, isLoading: isChartLoading } = useHistoricalTokenPrices({
-    address: '0x1337420ded5adb9980cfc35f8f2b054ea86f8ab1',
-    from: range.from,
-    to: range.to,
-    points: 50,
-  });
+  const { data: chartPrices, isLoading: isChartLoading } =
+    useHistoricalTokenPrices({
+      address: "0x1337420ded5adb9980cfc35f8f2b054ea86f8ab1",
+      from: range.from,
+      to: range.to,
+      points: 50,
+    });
 
   const chartSeries = useMemo(() => {
     if (!chartPrices || chartPrices.length === 0) return [];
 
     return [
       {
-        name: 'APY',
-        type: 'line' as const,
-        color: '#4A90E2',
+        name: "APY",
+        type: "line" as const,
+        color: "#4A90E2",
         data: chartPrices.map(({ timestamp, price }) => ({
           x: new Date(timestamp * 1000),
           y: calculateApyOrZero(monthlyPayoutUsd, tvlInSqd, price) * 100,
@@ -73,19 +77,33 @@ export function PoolYieldChart({ poolId }: PoolYieldChartProps) {
   return (
     <Card
       title="APY"
-      subtitle="Rolling APY calculated from historical SQD prices."
+      subtitle="Historical APY based on past SQD token prices."
       action={
-        <ToggleButtonGroup value={period} exclusive onChange={handlePeriodChange}>
+        <ToggleButtonGroup
+          value={period}
+          exclusive
+          onChange={handlePeriodChange}
+        >
           <ToggleButton value="1w">1W</ToggleButton>
           <ToggleButton value="1m">1M</ToggleButton>
           <ToggleButton value="3m">3M</ToggleButton>
         </ToggleButtonGroup>
       }
-      sx={{ height: '100%', width: '100%' }}
+      sx={{ height: "100%", width: "100%" }}
     >
-      <Box height={218} width={1} display="flex" alignItems="center" justifyContent="center">
+      <Box
+        height={218}
+        width={1}
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
         {isChartLoading ? (
-          <Skeleton variant="rectangular" height="100%" sx={{ borderRadius: 1, width: '100%' }} />
+          <Skeleton
+            variant="rectangular"
+            height="100%"
+            sx={{ borderRadius: 1, width: "100%" }}
+          />
         ) : (
           <SharedCursorProvider>
             <LineChart
