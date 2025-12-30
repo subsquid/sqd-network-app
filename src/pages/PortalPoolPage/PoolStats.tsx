@@ -1,20 +1,20 @@
-import type { ReactNode } from "react";
-import { Avatar, Box, Link, Stack, Typography } from "@mui/material";
+import type { ReactNode } from 'react';
+import { Avatar, Box, Link, Stack, Typography } from '@mui/material';
 
-import { useTokenPrice } from "@api/price";
-import { HelpTooltip } from "@components/HelpTooltip";
-import { useRewardToken } from "@hooks/useRewardToken";
+import { useTokenPrice } from '@api/price';
+import { HelpTooltip } from '@components/HelpTooltip';
+import { useRewardToken } from '@hooks/useRewardToken';
 import {
   numberCompactFormatter,
   percentFormatter,
   tokenFormatter,
-} from "@lib/formatters/formatters";
-import { fromSqd } from "@lib/network";
-import { useContracts } from "@network/useContracts";
+} from '@lib/formatters/formatters';
+import { fromSqd } from '@lib/network';
+import { useContracts } from '@network/useContracts';
 
-import { usePoolData } from "./hooks";
-import { USDC_LOGO_URL } from "./utils/constants";
-import { calculateApy } from "./utils/poolUtils";
+import { usePoolData } from './hooks';
+import { USDC_LOGO_URL } from './utils/constants';
+import { calculateApy } from './utils/poolUtils';
 
 interface PoolStatsProps {
   poolId: string;
@@ -37,7 +37,7 @@ function StatItem({
           {tooltip && <HelpTooltip title={tooltip} />}
         </Stack>
       </Typography>
-      <Box sx={{ "& > *": { lineHeight: 1.3 } }}>{value}</Box>
+      <Box sx={{ '& > *': { lineHeight: 1.3 } }}>{value}</Box>
     </Box>
   );
 }
@@ -52,35 +52,27 @@ export function PoolStats({ poolId }: PoolStatsProps) {
 
   const currentTvl = fromSqd(pool.tvl.current);
   const maxTvl = fromSqd(pool.tvl.max);
-  const tvlPercent = maxTvl.gt(0)
-    ? currentTvl.div(maxTvl).times(100).toNumber()
-    : 0;
+  const tvlPercent = maxTvl.gt(0) ? currentTvl.div(maxTvl).times(100).toNumber() : 0;
 
   // APY = (Annual Rewards) / (Capacity in USD)
   // Since rewards are constant: Annual = Monthly × 12
-  const calculatedApyRatio =
-    calculateApy(pool.monthlyPayoutUsd, maxTvl.toNumber(), sqdPrice) || 0;
+  const calculatedApyRatio = calculateApy(pool.monthlyPayoutUsd, maxTvl.toNumber(), sqdPrice) || 0;
   const displayApy = calculatedApyRatio * 100;
 
   const apyTooltip =
-    "APY = (Monthly Payout × 12) / (Max Pool Capacity × SQD Price)\nCalculated using current SQD price.";
+    'APY = (Monthly Payout × 12) / (Max Pool Capacity × SQD Price)\nCalculated using current SQD price.';
 
   return (
     <Stack
-      direction={{ xs: "column", sm: "row" }}
+      direction={{ xs: 'column', sm: 'row' }}
       spacing={2}
-      sx={{ justifyContent: "space-between", width: "100%" }}
+      sx={{ justifyContent: 'space-between', width: '100%' }}
     >
       <StatItem
         label="TVL"
         tooltip="Total Value Locked - current deposits relative to maximum pool capacity."
         value={
-          <Stack
-            direction="row"
-            alignItems="baseline"
-            spacing={0.5}
-            flexWrap="wrap"
-          >
+          <Stack direction="row" alignItems="baseline" spacing={0.5} flexWrap="wrap">
             <Typography variant="h6" component="span">
               {numberCompactFormatter(currentTvl.toNumber())}
             </Typography>
@@ -93,26 +85,15 @@ export function PoolStats({ poolId }: PoolStatsProps) {
       <StatItem
         label="APY"
         tooltip={apyTooltip}
-        value={
-          <Typography variant="h6">{percentFormatter(displayApy)}</Typography>
-        }
+        value={<Typography variant="h6">{percentFormatter(displayApy)}</Typography>}
       />
       <StatItem
         label="Monthly Payout"
         value={
           <Typography variant="h6">
-            <Stack
-              direction="row"
-              alignItems="center"
-              spacing={0.5}
-              flexWrap="wrap"
-            >
+            <Stack direction="row" alignItems="center" spacing={0.5} flexWrap="wrap">
               <Typography variant="h6">
-                {tokenFormatter(
-                  pool.monthlyPayoutUsd,
-                  rewardToken?.symbol ?? "USDC",
-                  0,
-                )}
+                {tokenFormatter(pool.monthlyPayoutUsd, rewardToken?.symbol ?? 'USDC', 0)}
               </Typography>
               {rewardTokenAddress && (
                 <Link
@@ -120,11 +101,11 @@ export function PoolStats({ poolId }: PoolStatsProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   underline="hover"
-                  sx={{ display: "flex", alignItems: "center" }}
+                  sx={{ display: 'flex', alignItems: 'center' }}
                 >
                   <Avatar
                     src={USDC_LOGO_URL}
-                    alt={rewardToken?.symbol ?? "USDC"}
+                    alt={rewardToken?.symbol ?? 'USDC'}
                     sx={{ width: 24, height: 24 }}
                   />
                 </Link>

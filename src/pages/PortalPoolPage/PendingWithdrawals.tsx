@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 import {
   Box,
   Button,
@@ -10,20 +10,20 @@ import {
   TableRow,
   Tabs,
   Typography,
-} from "@mui/material";
+} from '@mui/material';
 
-import { portalPoolAbi } from "@api/contracts";
-import { useWriteSQDTransaction } from "@api/contracts/useWriteTransaction";
-import { Card } from "@components/Card";
-import { HelpTooltip } from "@components/HelpTooltip";
-import { DashboardTable, NoItems } from "@components/Table";
-import { useCountdown } from "@hooks/useCountdown";
-import { tokenFormatter } from "@lib/formatters/formatters";
-import { fromSqd } from "@lib/network";
-import { useContracts } from "@network/useContracts";
+import { portalPoolAbi } from '@api/contracts';
+import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
+import { Card } from '@components/Card';
+import { HelpTooltip } from '@components/HelpTooltip';
+import { DashboardTable, NoItems } from '@components/Table';
+import { useCountdown } from '@hooks/useCountdown';
+import { tokenFormatter } from '@lib/formatters/formatters';
+import { fromSqd } from '@lib/network';
+import { useContracts } from '@network/useContracts';
 
-import type { PendingWithdrawal } from "./hooks";
-import { usePoolData, usePoolPendingWithdrawals } from "./hooks";
+import type { PendingWithdrawal } from './hooks';
+import { usePoolData, usePoolPendingWithdrawals } from './hooks';
 
 interface PendingWithdrawalsProps {
   poolId: string;
@@ -47,12 +47,10 @@ function WithdrawalRow({
   return (
     <TableRow>
       <TableCell>{Number(withdrawal.id) + 1}</TableCell>
-      <TableCell>
-        {tokenFormatter(fromSqd(withdrawal.amount), SQD_TOKEN, 2)}
-      </TableCell>
+      <TableCell>{tokenFormatter(fromSqd(withdrawal.amount), SQD_TOKEN, 2)}</TableCell>
       <TableCell>{timeLeft}</TableCell>
       <TableCell>
-        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <Button
             variant="contained"
             onClick={() => onClaim(withdrawal.id)}
@@ -94,7 +92,7 @@ function PendingWithdrawalsTable({
       </TableHead>
       <TableBody>
         {pendingWithdrawals.length ? (
-          pendingWithdrawals.map((withdrawal) => (
+          pendingWithdrawals.map(withdrawal => (
             <WithdrawalRow
               key={withdrawal.id}
               withdrawal={withdrawal}
@@ -124,7 +122,7 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
       await writeTransactionAsync({
         address: poolId as `0x${string}`,
         abi: portalPoolAbi,
-        functionName: "withdrawExit",
+        functionName: 'withdrawExit',
         args: [BigInt(withdrawalId)],
       });
     } catch (error) {

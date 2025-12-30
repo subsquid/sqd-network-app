@@ -1,23 +1,20 @@
-import { Divider, Stack, Typography } from "@mui/material";
-import { formatUnits } from "viem";
-import { useReadContract } from "wagmi";
+import { Divider, Stack, Typography } from '@mui/material';
+import { formatUnits } from 'viem';
+import { useReadContract } from 'wagmi';
 
-import { portalPoolAbi } from "@api/contracts";
-import { Card } from "@components/Card";
-import { HelpTooltip } from "@components/HelpTooltip";
-import { Property, PropertyList } from "@components/Property";
-import { useRewardToken } from "@hooks/useRewardToken";
-import { dollarFormatter, tokenFormatter } from "@lib/formatters/formatters";
-import { fromSqd } from "@lib/network";
-import { useContracts } from "@network/useContracts";
+import { portalPoolAbi } from '@api/contracts';
+import { Card } from '@components/Card';
+import { HelpTooltip } from '@components/HelpTooltip';
+import { Property, PropertyList } from '@components/Property';
+import { useRewardToken } from '@hooks/useRewardToken';
+import { tokenFormatter } from '@lib/formatters/formatters';
+import { fromSqd } from '@lib/network';
+import { useContracts } from '@network/useContracts';
 
-import {
-  EditCapacityButton,
-  EditDistributionRateButton,
-} from "../dialogs/EditSettingsDialog";
-import { TopUpButton } from "../dialogs/TopUpDialog";
-import { usePoolData } from "../hooks";
-import { useMemo } from "react";
+import { EditCapacityButton, EditDistributionRateButton } from '../dialogs/EditSettingsDialog';
+import { TopUpButton } from '../dialogs/TopUpDialog';
+import { usePoolData } from '../hooks';
+import { useMemo } from 'react';
 
 interface ManageTabProps {
   poolId: string;
@@ -31,7 +28,7 @@ export function ManageTab({ poolId }: ManageTabProps) {
   const { data: rewardBalance } = useReadContract({
     address: poolId as `0x${string}`,
     abi: portalPoolAbi,
-    functionName: "getCurrentRewardBalance",
+    functionName: 'getCurrentRewardBalance',
     query: {
       enabled: !!poolId,
     },
@@ -39,23 +36,17 @@ export function ManageTab({ poolId }: ManageTabProps) {
 
   const canEdit = useMemo(() => {
     if (!pool?.phase) return false;
-    return (
-      pool.phase !== "collecting" &&
-      pool.phase !== "debt" &&
-      pool.phase !== "failed"
-    );
+    return pool.phase !== 'collecting' && pool.phase !== 'debt' && pool.phase !== 'failed';
   }, [pool?.phase]);
 
   if (!pool) return null;
 
   const rewardDecimals = rewardToken?.decimals ?? 6;
-  const rewardSymbol = rewardToken?.symbol ?? "USDC";
-  const formattedBalance = rewardBalance
-    ? formatUnits(rewardBalance, rewardDecimals)
-    : "0";
+  const rewardSymbol = rewardToken?.symbol ?? 'USDC';
+  const formattedBalance = rewardBalance ? formatUnits(rewardBalance, rewardDecimals) : '0';
 
   return (
-    <Card sx={{ height: "100%", overflowY: "auto" }}>
+    <Card sx={{ height: '100%', overflowY: 'auto' }}>
       <Stack spacing={3} divider={<Divider />}>
         <Stack spacing={1.5}>
           <Stack direction="row" alignItems="center" spacing={0.5}>
@@ -82,12 +73,7 @@ export function ManageTab({ poolId }: ManageTabProps) {
                 </Stack>
               }
               value={`${(pool.monthlyPayoutUsd / 30).toFixed(2)} ${rewardSymbol}/day`}
-              action={
-                <EditDistributionRateButton
-                  poolId={poolId}
-                  disabled={!canEdit}
-                />
-              }
+              action={<EditDistributionRateButton poolId={poolId} disabled={!canEdit} />}
             />
             <Property
               label={
@@ -97,9 +83,7 @@ export function ManageTab({ poolId }: ManageTabProps) {
                 </Stack>
               }
               value={tokenFormatter(fromSqd(pool.tvl.max), SQD_TOKEN, 0)}
-              action={
-                <EditCapacityButton poolId={poolId} disabled={!canEdit} />
-              }
+              action={<EditCapacityButton poolId={poolId} disabled={!canEdit} />}
             />
           </PropertyList>
         </Stack>

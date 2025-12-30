@@ -1,22 +1,22 @@
-import { useCallback, useMemo } from "react";
-import { Button, Divider, Stack, Tooltip, Typography } from "@mui/material";
-import BigNumber from "bignumber.js";
-import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo } from 'react';
+import { Button, Divider, Stack, Tooltip, Typography } from '@mui/material';
+import BigNumber from 'bignumber.js';
+import { useQueryClient } from '@tanstack/react-query';
 
-import { portalPoolAbi } from "@api/contracts";
-import { useWriteSQDTransaction } from "@api/contracts/useWriteTransaction";
-import { useTokenPrice } from "@api/price";
-import { Card } from "@components/Card";
-import { HelpTooltip } from "@components/HelpTooltip";
-import { useRewardToken } from "@hooks/useRewardToken";
-import { dollarFormatter, tokenFormatter } from "@lib/formatters/formatters";
-import { fromSqd } from "@lib/network";
-import { useContracts } from "@network/useContracts";
+import { portalPoolAbi } from '@api/contracts';
+import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
+import { useTokenPrice } from '@api/price';
+import { Card } from '@components/Card';
+import { HelpTooltip } from '@components/HelpTooltip';
+import { useRewardToken } from '@hooks/useRewardToken';
+import { dollarFormatter, tokenFormatter } from '@lib/formatters/formatters';
+import { fromSqd } from '@lib/network';
+import { useContracts } from '@network/useContracts';
 
-import { ProvideButton } from "../dialogs/ProvideDialog";
-import { WithdrawButton } from "../dialogs/WithdrawDialog";
-import { usePoolData, usePoolUserData, type PoolPhase } from "../hooks";
-import { invalidatePoolQueries } from "../utils/poolUtils";
+import { ProvideButton } from '../dialogs/ProvideDialog';
+import { WithdrawButton } from '../dialogs/WithdrawDialog';
+import { usePoolData, usePoolUserData, type PoolPhase } from '../hooks';
+import { invalidatePoolQueries } from '../utils/poolUtils';
 
 interface DelegateTabProps {
   poolId: string;
@@ -35,19 +35,14 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
   const balanceInUsd = sqdPrice ? balance.toNumber() * sqdPrice : undefined;
 
   const rewards = userData
-    ? new BigNumber(userData.userRewards.toString()).div(
-        10 ** (rewardToken?.decimals ?? 6),
-      )
+    ? new BigNumber(userData.userRewards.toString()).div(10 ** (rewardToken?.decimals ?? 6))
     : BigNumber(0);
 
   const dailyRewardRate = useMemo(() => {
-    if (!pool || !userData || !pool.tvl.current || pool.phase !== "active")
-      return BigNumber(0);
+    if (!pool || !userData || !pool.tvl.current || pool.phase !== 'active') return BigNumber(0);
 
     // Calculate daily distribution rate: rate per second * seconds in a day / decimals
-    const dailyDistribution = new BigNumber(
-      pool.distributionRatePerSecond.toString(),
-    )
+    const dailyDistribution = new BigNumber(pool.distributionRatePerSecond.toString())
       .multipliedBy(86400)
       .div(10 ** (rewardToken?.decimals ?? 6));
 
@@ -64,7 +59,7 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
       await writeTransactionAsync({
         address: poolId as `0x${string}`,
         abi: portalPoolAbi,
-        functionName: "claimRewards",
+        functionName: 'claimRewards',
         args: [],
       });
       await invalidatePoolQueries(queryClient, poolId);
@@ -82,16 +77,12 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
             <HelpTooltip title="Your deposited SQD tokens in this pool." />
           </Stack>
         }
-        sx={{ height: "100%" }}
+        sx={{ height: '100%' }}
       >
         <Stack spacing={2} divider={<Divider />}>
           <Stack spacing={0.5}>
-            <Typography variant="h5">
-              {tokenFormatter(balance, SQD_TOKEN, 2)}
-            </Typography>
-            <Typography variant="body1">
-              ≈ {dollarFormatter(balanceInUsd || 0)}
-            </Typography>
+            <Typography variant="h5">{tokenFormatter(balance, SQD_TOKEN, 2)}</Typography>
+            <Typography variant="body1">≈ {dollarFormatter(balanceInUsd || 0)}</Typography>
           </Stack>
           <Stack spacing={1}>
             <ProvideButton poolId={poolId} />
@@ -107,15 +98,15 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
             <HelpTooltip title="Accumulated rewards ready to claim." />
           </Stack>
         }
-        sx={{ height: "100%" }}
+        sx={{ height: '100%' }}
       >
         <Stack spacing={2} divider={<Divider />}>
           <Stack spacing={0.5}>
             <Typography variant="h5">
-              {tokenFormatter(rewards, rewardToken?.symbol ?? "USDC", 2)}
+              {tokenFormatter(rewards, rewardToken?.symbol ?? 'USDC', 2)}
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              {tokenFormatter(dailyRewardRate, rewardToken?.symbol ?? "", 4)}
+              {tokenFormatter(dailyRewardRate, rewardToken?.symbol ?? '', 4)}
               /day
             </Typography>
           </Stack>
@@ -141,13 +132,13 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
 
 function getClaimRewardsTooltip(phase: PoolPhase): string {
   switch (phase) {
-    case "collecting":
-      return "The reward distribution will start once the pool is active";
-    case "idle":
-      return "The reward distribution is paused because there is insufficient SQD locked in the pool";
-    case "debt":
-      return "The reward distribution is paused because the pool is out of rewards";
+    case 'collecting':
+      return 'The reward distribution will start once the pool is active';
+    case 'idle':
+      return 'The reward distribution is paused because there is insufficient SQD locked in the pool';
+    case 'debt':
+      return 'The reward distribution is paused because the pool is out of rewards';
     default:
-      return "";
+      return '';
   }
 }

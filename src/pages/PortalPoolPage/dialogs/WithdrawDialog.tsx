@@ -1,34 +1,24 @@
-import { useState, useMemo, useCallback } from "react";
-import {
-  Button,
-  Chip,
-  Divider,
-  Stack,
-  Tooltip,
-  Typography,
-} from "@mui/material";
-import { useFormik } from "formik";
-import * as yup from "yup";
-import { useQueryClient } from "@tanstack/react-query";
+import { useState, useMemo, useCallback } from 'react';
+import { Button, Chip, Divider, Stack, Tooltip, Typography } from '@mui/material';
+import { useFormik } from 'formik';
+import * as yup from 'yup';
+import { useQueryClient } from '@tanstack/react-query';
 
-import { portalPoolAbi } from "@api/contracts";
-import { useWriteSQDTransaction } from "@api/contracts/useWriteTransaction";
-import { ContractCallDialog } from "@components/ContractCallDialog";
-import { FormRow, FormikTextInput } from "@components/Form";
-import { HelpTooltip } from "@components/HelpTooltip";
-import { dateFormat } from "@i18n";
-import { tokenFormatter } from "@lib/formatters/formatters";
-import { fromSqd, toSqd } from "@lib/network";
-import { useContracts } from "@network/useContracts";
+import { portalPoolAbi } from '@api/contracts';
+import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
+import { ContractCallDialog } from '@components/ContractCallDialog';
+import { FormRow, FormikTextInput } from '@components/Form';
+import { HelpTooltip } from '@components/HelpTooltip';
+import { dateFormat } from '@i18n';
+import { tokenFormatter } from '@lib/formatters/formatters';
+import { fromSqd, toSqd } from '@lib/network';
+import { useContracts } from '@network/useContracts';
 
-import { usePoolCapacity, usePoolData, usePoolUserData } from "../hooks";
-import {
-  calculateExpectedMonthlyPayout,
-  invalidatePoolQueries,
-} from "../utils/poolUtils";
-import { useReadContract } from "wagmi";
-import toast from "react-hot-toast";
-import { errorMessage } from "@api/contracts/utils";
+import { usePoolCapacity, usePoolData, usePoolUserData } from '../hooks';
+import { calculateExpectedMonthlyPayout, invalidatePoolQueries } from '../utils/poolUtils';
+import { useReadContract } from 'wagmi';
+import toast from 'react-hot-toast';
+import { errorMessage } from '@api/contracts/utils';
 
 interface WithdrawDialogProps {
   open: boolean;
@@ -40,14 +30,14 @@ const createValidationSchema = (maxAmount: string) =>
   yup.object({
     amount: yup
       .string()
-      .required("Amount is required")
-      .test("positive", "Amount must be positive", (value) => {
-        const num = parseFloat(value || "0");
+      .required('Amount is required')
+      .test('positive', 'Amount must be positive', value => {
+        const num = parseFloat(value || '0');
         return num > 0;
       })
-      .test("max", `Insufficient balance`, function (value) {
-        const num = parseFloat(value || "0");
-        const max = parseFloat(this.parent.max || "0");
+      .test('max', `Insufficient balance`, function (value) {
+        const num = parseFloat(value || '0');
+        const max = parseFloat(this.parent.max || '0');
         return num <= max;
       }),
     max: yup.string().required(),
@@ -66,7 +56,7 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
 
   const { currentUserBalance, currentPoolTvl } = capacity || {};
 
-  const typedAmount = parseFloat(formik.values.amount || "0");
+  const typedAmount = parseFloat(formik.values.amount || '0');
 
   const expectedUserDelegation = useMemo(
     () => Math.max(0, (currentUserBalance || 0) - typedAmount),
@@ -79,15 +69,14 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
   );
 
   const userExpectedMonthlyPayout = useMemo(
-    () =>
-      pool ? calculateExpectedMonthlyPayout(pool, expectedUserDelegation) : 0,
+    () => (pool ? calculateExpectedMonthlyPayout(pool, expectedUserDelegation) : 0),
     [pool, expectedUserDelegation],
   );
 
   const { data: withdrawalWaitingTimestamp } = useReadContract({
     address: poolId as `0x${string}`,
     abi: portalPoolAbi,
-    functionName: "getWithdrawalWaitingTimestamp",
+    functionName: 'getWithdrawalWaitingTimestamp',
     args: [BigInt(toSqd(typedAmount))],
     query: {
       enabled: !!poolId && !!typedAmount,
@@ -95,7 +84,7 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
   });
 
   const handleMaxClick = useCallback(() => {
-    formik.setFieldValue("amount", formik.values.max);
+    formik.setFieldValue('amount', formik.values.max);
   }, [formik]);
 
   if (!pool) return null;
@@ -141,7 +130,7 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
               ? `${currentUserBalance?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} → ${expectedUserDelegation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${SQD_TOKEN}`
               : userData
                 ? tokenFormatter(fromSqd(userData.userBalance), SQD_TOKEN, 2)
-                : "0 SQD"}
+                : '0 SQD'}
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">
@@ -149,7 +138,7 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
           <Typography variant="body2">
             {userExpectedMonthlyPayout > 0
               ? `${userExpectedMonthlyPayout.toFixed(2)} USDC`
-              : "0.00 USDC"}
+              : '0.00 USDC'}
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">
@@ -162,8 +151,8 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
               withdrawalWaitingTimestamp
                 ? new Date(Number(withdrawalWaitingTimestamp) * 1000)
                 : undefined,
-              "dateTime",
-            ) || "—"}
+              'dateTime',
+            ) || '—'}
           </Typography>
         </Stack>
       </Stack>
@@ -194,7 +183,7 @@ export function WithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
         await writeTransactionAsync({
           address: poolId as `0x${string}`,
           abi: portalPoolAbi,
-          functionName: "requestExit",
+          functionName: 'requestExit',
           args: [sqdAmount],
         });
 
@@ -209,7 +198,7 @@ export function WithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
 
   const formik = useFormik({
     initialValues: {
-      amount: "",
+      amount: '',
       max: maxWithdraw.toString(),
     },
     validationSchema,
@@ -261,9 +250,9 @@ export function WithdrawButton({ poolId }: WithdrawButtonProps) {
   const button = (
     <Tooltip
       title={
-        pool?.phase === "collecting"
-          ? "You cannot withdraw funds while the pool is still collecting"
-          : ""
+        pool?.phase === 'collecting'
+          ? 'You cannot withdraw funds while the pool is still collecting'
+          : ''
       }
     >
       <span>
@@ -272,7 +261,7 @@ export function WithdrawButton({ poolId }: WithdrawButtonProps) {
           fullWidth
           color="error"
           onClick={handleOpen}
-          disabled={!hasBalance || pool?.phase === "collecting"}
+          disabled={!hasBalance || pool?.phase === 'collecting'}
           loading={dialogOpen}
         >
           WITHDRAW
@@ -283,11 +272,7 @@ export function WithdrawButton({ poolId }: WithdrawButtonProps) {
 
   return (
     <>
-      {pool?.withdrawWaitTime ? (
-        <span style={{ width: "100%" }}>{button}</span>
-      ) : (
-        button
-      )}
+      {pool?.withdrawWaitTime ? <span style={{ width: '100%' }}>{button}</span> : button}
       <WithdrawDialog open={dialogOpen} onClose={handleClose} poolId={poolId} />
     </>
   );

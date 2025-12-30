@@ -1,13 +1,13 @@
-import { Box, LinearProgress, Stack, Tooltip, Typography } from "@mui/material";
-import { AccessTime, CheckCircle, Warning, Error } from "@mui/icons-material";
+import { Box, LinearProgress, Stack, Tooltip, Typography } from '@mui/material';
+import { AccessTime, CheckCircle, Warning, Error } from '@mui/icons-material';
 
-import { useCountdown } from "@hooks/useCountdown";
-import { dateFormat } from "@i18n";
-import { percentFormatter } from "@lib/formatters/formatters";
-import { fromSqd } from "@lib/network";
+import { useCountdown } from '@hooks/useCountdown';
+import { dateFormat } from '@i18n';
+import { percentFormatter } from '@lib/formatters/formatters';
+import { fromSqd } from '@lib/network';
 
-import type { PoolData } from "./hooks";
-import { usePoolData } from "./hooks";
+import type { PoolData } from './hooks';
+import { usePoolData } from './hooks';
 
 interface PoolHealthBarProps {
   poolId: string;
@@ -16,7 +16,7 @@ interface PoolHealthBarProps {
 interface ProgressBarProps {
   label: React.ReactNode;
   value: number;
-  color: "success" | "warning" | "error" | "info";
+  color: 'success' | 'warning' | 'error' | 'info';
 }
 
 function ProgressBar({ label, value, color }: ProgressBarProps) {
@@ -25,12 +25,7 @@ function ProgressBar({ label, value, color }: ProgressBarProps) {
 
   return (
     <Box sx={{ flex: 1 }}>
-      <Stack
-        direction="row"
-        alignItems="center"
-        justifyContent="space-between"
-        sx={{ mb: 1 }}
-      >
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
         <Typography variant="body2" color={`${color}.main`}>
           {label}
         </Typography>
@@ -45,7 +40,7 @@ function ProgressBar({ label, value, color }: ProgressBarProps) {
         sx={{
           height: 8,
           borderRadius: 1,
-          backgroundColor: "action.hover",
+          backgroundColor: 'action.hover',
         }}
       />
     </Box>
@@ -56,38 +51,38 @@ function getCapacityStatus(
   pool: PoolData,
   usagePercent: number,
 ): {
-  color: "success" | "warning" | "error";
+  color: 'success' | 'warning' | 'error';
   icon: React.ReactElement;
   text: string;
   description: string;
 } {
   // Color is based on pool phase/state, not percentage
-  const isHealthy = pool.phase === "active" || pool.phase === "debt";
-  const isCritical = pool.phase === "idle";
+  const isHealthy = pool.phase === 'active' || pool.phase === 'debt';
+  const isCritical = pool.phase === 'idle';
 
-  let color: "success" | "warning" | "error";
+  let color: 'success' | 'warning' | 'error';
   let icon: React.ReactElement;
   let text: string;
   let description: string;
 
   if (isCritical) {
-    color = "error";
-    icon = <Error sx={{ fontSize: 18, color: "error.main" }} />;
-    text = "Critical";
+    color = 'error';
+    icon = <Error sx={{ fontSize: 18, color: 'error.main' }} />;
+    text = 'Critical';
     description =
-      "Pool has insufficient liquidity. Rewards are paused until deposits increase above the minimum threshold required for operations.";
+      'Pool has insufficient liquidity. Rewards are paused until deposits increase above the minimum threshold required for operations.';
   } else if (!isHealthy || usagePercent < 50) {
-    color = "warning";
-    icon = <Warning sx={{ fontSize: 18, color: "warning.main" }} />;
-    text = "Low";
+    color = 'warning';
+    icon = <Warning sx={{ fontSize: 18, color: 'warning.main' }} />;
+    text = 'Low';
     description =
-      "Pool liquidity is below optimal levels. Additional deposits may be needed to maintain stable reward distribution.";
+      'Pool liquidity is below optimal levels. Additional deposits may be needed to maintain stable reward distribution.';
   } else {
-    color = "success";
-    icon = <CheckCircle sx={{ fontSize: 18, color: "success.main" }} />;
-    text = "Healthy";
+    color = 'success';
+    icon = <CheckCircle sx={{ fontSize: 18, color: 'success.main' }} />;
+    text = 'Healthy';
     description =
-      "Pool has sufficient liquidity. Rewards are being distributed normally to all delegators.";
+      'Pool has sufficient liquidity. Rewards are being distributed normally to all delegators.';
   }
 
   return { color, icon, text, description };
@@ -101,10 +96,10 @@ function ActivationProgress({ pool }: { pool: PoolData }) {
   const timeRemaining = useCountdown({ timestamp: pool.depositWindowEndsAt });
 
   const label = (
-    <Tooltip title={dateFormat(pool.depositWindowEndsAt, "dateTime")}>
+    <Tooltip title={dateFormat(pool.depositWindowEndsAt, 'dateTime')}>
       <Stack direction="row" alignItems="center" spacing={0.5}>
         <AccessTime sx={{ fontSize: 16 }} />
-        <span>{timeRemaining || "Deposit Window"}</span>
+        <span>{timeRemaining || 'Deposit Window'}</span>
       </Stack>
     </Tooltip>
   );
@@ -136,9 +131,7 @@ function CapacityUsage({ pool }: { pool: PoolData }) {
     </Tooltip>
   );
 
-  return (
-    <ProgressBar label={label} value={realUsagePercent} color={status.color} />
-  );
+  return <ProgressBar label={label} value={realUsagePercent} color={status.color} />;
 }
 
 export function PoolHealthBar({ poolId }: PoolHealthBarProps) {
@@ -146,7 +139,7 @@ export function PoolHealthBar({ poolId }: PoolHealthBarProps) {
 
   if (!pool) return null;
 
-  if (pool.phase === "collecting") {
+  if (pool.phase === 'collecting') {
     return <ActivationProgress pool={pool} />;
   }
 
