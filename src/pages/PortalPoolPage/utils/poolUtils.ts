@@ -107,13 +107,13 @@ export function getPhaseLabel(phase: PoolPhase): string {
 export function getPhaseTooltip(phase: PoolPhase): string {
   switch (phase) {
     case 'active':
-      return 'Pool is active and earning rewards. Distributing yields to liquidity providers.';
+      return 'Pool is active. Distributing yields to liquidity providers.';
     case 'collecting':
-      return "Accepting deposits to reach activation threshold. Pool will activate once the minimum liquidity is reached. If threshold isn't met, deposits can be fully withdrawn.";
+      return 'Pool is collecting deposits to activate. Pool activates once minimum threshold is met. If not met by deadline, you can withdraw your full deposit.';
     case 'idle':
-      return 'Pool temporarily paused. Rewards have stopped due to insufficient buffer. Will resume once liquidity increases above minimum threshold.';
+      return 'Pool is paused due to insufficient liquidity. Rewards are not being distributed. Pool reactivates when liquidity increases above minimum threshold.';
     case 'debt':
-      return 'Pool is in debt. Rewards emission is paused because the USDC balance has run out. Please report it to the pool owner.';
+      return 'Pool has run out of USDC rewards. No rewards are being distributed. Contact the pool operator to add more USDC to resume rewards.';
     default:
       return phase;
   }

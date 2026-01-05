@@ -47,7 +47,7 @@ function TopUpDialogContent({
     <Stack spacing={2.5}>
       <Typography variant="body2" color="text.secondary">
         Add {rewardToken?.symbol ?? 'USDC'} rewards to the pool. These funds will be distributed to
-        delegators based on their stake.
+        delegators based on their pool share.
       </Typography>
 
       <FormRow>
@@ -129,6 +129,7 @@ export function TopUpDialog({ open, onClose, poolId }: TopUpDialogProps) {
       open={open}
       onResult={handleResult}
       loading={isPending}
+      confirmColor="success"
       disableConfirmButton={!formik.isValid || !formik.values.amount}
     >
       <TopUpDialogContent formik={formik} />

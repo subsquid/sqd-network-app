@@ -8,6 +8,7 @@ import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
+import { HelpTooltip } from '@components/HelpTooltip';
 import { dateFormat } from '@i18n';
 import { tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, toSqd } from '@lib/network';
@@ -136,12 +137,15 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
           <Typography variant="body2">Expected Monthly Payout</Typography>
           <Typography variant="body2">
             {userExpectedMonthlyPayout > 0
-              ? `$${userExpectedMonthlyPayout.toFixed(2)} USDC`
-              : '$0.00 USDC'}
+              ? `${userExpectedMonthlyPayout.toFixed(2)} USDC`
+              : '0.00 USDC'}
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2">Expected Unlock Date</Typography>
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            <Typography variant="body2">Expected Unlock Date</Typography>
+            <HelpTooltip title="Date when withdrawn funds will be available to claim." />
+          </Stack>
           <Typography variant="body2">
             {dateFormat(
               withdrawalWaitingTimestamp
@@ -214,10 +218,11 @@ export function WithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
 
   return (
     <ContractCallDialog
-      title="Withdraw Liquidity"
+      title="Withdraw from Pool"
       open={open}
       onResult={handleResult}
       loading={isPending}
+      confirmColor="error"
       disableConfirmButton={!formik.isValid || !formik.values.amount}
     >
       <WithdrawDialogContent poolId={poolId} formik={formik} />
@@ -246,7 +251,7 @@ export function WithdrawButton({ poolId }: WithdrawButtonProps) {
     <Tooltip
       title={
         pool?.phase === 'collecting'
-          ? "You can't withdraw funds while the pool is still collecting"
+          ? 'You cannot withdraw funds while the pool is still collecting'
           : ''
       }
     >

@@ -7,6 +7,7 @@ import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { useTokenPrice } from '@api/price';
 import { Card } from '@components/Card';
+import { HelpTooltip } from '@components/HelpTooltip';
 import { useRewardToken } from '@hooks/useRewardToken';
 import { dollarFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
@@ -69,7 +70,15 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
 
   return (
     <Stack spacing={2} height="100%">
-      <Card title="Current Balance" sx={{ height: '100%' }}>
+      <Card
+        title={
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            <span>Current Balance</span>
+            <HelpTooltip title="Your deposited SQD tokens in this pool." />
+          </Stack>
+        }
+        sx={{ height: '100%' }}
+      >
         <Stack spacing={2} divider={<Divider />}>
           <Stack spacing={0.5}>
             <Typography variant="h5">{tokenFormatter(balance, SQD_TOKEN, 2)}</Typography>
@@ -82,21 +91,30 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
         </Stack>
       </Card>
 
-      <Card title="Available Rewards" sx={{ height: '100%' }}>
+      <Card
+        title={
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            <span>Available Rewards</span>
+            <HelpTooltip title="Accumulated rewards ready to claim." />
+          </Stack>
+        }
+        sx={{ height: '100%' }}
+      >
         <Stack spacing={2} divider={<Divider />}>
           <Stack spacing={0.5}>
             <Typography variant="h5">
               {tokenFormatter(rewards, rewardToken?.symbol ?? 'USDC', 2)}
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              {tokenFormatter(dailyRewardRate, rewardToken?.symbol ?? '', 4)}/day
+              {tokenFormatter(dailyRewardRate, rewardToken?.symbol ?? '', 4)}
+              /day
             </Typography>
           </Stack>
           <Tooltip title={getClaimRewardsTooltip(pool!.phase)}>
             <span>
               <Button
                 variant="contained"
-                color="info"
+                color="success"
                 fullWidth
                 onClick={handleClaimRewards}
                 disabled={!hasRewards || isPending}
@@ -117,9 +135,9 @@ function getClaimRewardsTooltip(phase: PoolPhase): string {
     case 'collecting':
       return 'The reward distribution will start once the pool is active';
     case 'idle':
-      return 'The reward distribution is paused because there is not enough SQD locked in the pool';
+      return 'The reward distribution is paused because there is insufficient SQD locked in the pool';
     case 'debt':
-      return 'The reward distribution is paused becase pool is out of rewards';
+      return 'The reward distribution is paused because the pool is out of rewards';
     default:
       return '';
   }
