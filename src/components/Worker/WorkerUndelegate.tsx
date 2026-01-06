@@ -1,16 +1,3 @@
-import { useMemo, useState } from 'react';
-
-import { dateFormat } from '@i18n';
-import { percentFormatter } from '@lib/formatters/formatters';
-import { fromSqd, toSqd } from '@lib/network';
-import { Lock } from '@mui/icons-material';
-import { Button, Skeleton, Typography } from '@mui/material';
-import { Box, Chip, Stack, Tooltip } from '@mui/material';
-import * as yup from '@schema';
-import { useFormik } from 'formik';
-import toast from 'react-hot-toast';
-import { useDebounce } from 'use-debounce';
-
 import { stakingAbi, useReadRouterStaking } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
@@ -26,7 +13,17 @@ import { HelpTooltip } from '@components/HelpTooltip';
 import { SourceWalletOption } from '@components/SourceWallet';
 import { useCountdown } from '@hooks/useCountdown';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
+import { dateFormat } from '@i18n';
+import { percentFormatter } from '@lib/formatters/formatters';
+import { fromSqd, toSqd } from '@lib/network';
+import { Lock } from '@mui/icons-material';
+import { Box, Button, Chip, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
 import { useContracts } from '@network/useContracts';
+import * as yup from '@schema';
+import { useFormik } from 'formik';
+import { useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
+import { useDebounce } from 'use-debounce';
 
 import { EXPECTED_APR_TIP, useExpectedAprAfterDelegation } from './WorkerDelegate';
 

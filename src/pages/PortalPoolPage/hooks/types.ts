@@ -45,6 +45,7 @@ export interface PoolData {
   withdrawWaitTime?: string;
   lptTokenSymbol?: string;
   lptToken: string;
+  createdAt: Date;
 }
 
 export interface PoolUserData {

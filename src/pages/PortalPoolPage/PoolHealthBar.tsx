@@ -1,10 +1,9 @@
-import { Box, LinearProgress, Stack, Tooltip, Typography } from '@mui/material';
-import { AccessTime, CheckCircle, Warning, Error } from '@mui/icons-material';
-
 import { useCountdown } from '@hooks/useCountdown';
 import { dateFormat } from '@i18n';
 import { percentFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
+import { AccessTime, CheckCircle, Error, Warning } from '@mui/icons-material';
+import { Box, LinearProgress, Stack, Tooltip, Typography } from '@mui/material';
 
 import type { PoolData } from './hooks';
 import { usePoolData } from './hooks';
@@ -109,7 +108,7 @@ function ActivationProgress({ pool }: { pool: PoolData }) {
 
 // Shows capacity usage when pool is active
 function CapacityUsage({ pool }: { pool: PoolData }) {
-  const current = fromSqd(pool.tvl.total).toNumber();
+  const current = fromSqd(pool.tvl.current).toNumber();
   const max = fromSqd(pool.tvl.max).toNumber();
   const min = fromSqd(pool.tvl.min).toNumber();
 

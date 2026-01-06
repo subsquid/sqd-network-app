@@ -1,38 +1,37 @@
-import { useState, useMemo } from 'react';
-import { Add } from '@mui/icons-material';
-import {
-  Button,
-  SxProps,
-  Box,
-  Typography,
-  Stack,
-  ToggleButton,
-  ToggleButtonGroup,
-  Chip,
-} from '@mui/material';
-import { useFormik } from 'formik';
-import toast from 'react-hot-toast';
-import * as yup from '@schema';
-
-import { SourceWalletWithBalance } from '@api/subsquid-network-squid';
-import { ContractCallDialog } from '@components/ContractCallDialog';
-import { Form, FormikTextInput, FormRow, FormDivider } from '@components/Form';
-import { fromSqd, toSqd } from '@lib/network/utils';
-import { useContracts } from '@network/useContracts';
-import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import BigNumber from 'bignumber.js';
 import {
   portalPoolFactoryAbi,
-  useReadNetworkControllerMinStakeThreshold,
   useReadPortalPoolFactoryCollectionDeadlineSeconds,
   useReadPortalPoolFactoryGetMinCapacity,
-  useReadRouterNetworkController,
 } from '@api/contracts';
-import { toHex } from 'viem';
+import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
-import { dateFormat } from '@i18n';
-import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
+import { SourceWalletWithBalance } from '@api/subsquid-network-squid';
+import { ContractCallDialog } from '@components/ContractCallDialog';
+import { Form, FormDivider, FormikTextInput, FormRow } from '@components/Form';
 import { Loader } from '@components/Loader';
+import { useRewardToken } from '@hooks/useRewardToken.ts';
+import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
+import { dateFormat } from '@i18n';
+import { fromSqd, toSqd } from '@lib/network/utils';
+import { Add } from '@mui/icons-material';
+import {
+  Box,
+  Button,
+  Chip,
+  Stack,
+  SxProps,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from '@mui/material';
+import { useContracts } from '@network/useContracts';
+import { DISTRIBUTION_RATE_BPS, REWARD_TOKEN_DECIMALS } from '@pages/PortalPoolPage/hooks';
+import * as yup from '@schema';
+import BigNumber from 'bignumber.js';
+import { useFormik } from 'formik';
+import { useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
+import { toHex } from 'viem';
 
 export const addPortalSchema = ({ minCapacity }: { minCapacity: BigNumber }) => {
   return yup.object({
@@ -99,14 +98,13 @@ function AddNewPortalDialog({
   sources?: SourceWalletWithBalance[];
 }) {
   const { setWaitHeight } = useSquidHeight();
+  const { PORTAL_POOL_FACTORY } = useContracts();
+  const { data: token, isLoading: isTokenRewardLoading } = useRewardToken();
 
-  const { PORTAL_POOL_FACTORY, ROUTER } = useContracts();
-
-  const { data: minCapacity, isLoading: isMinCapacityLoading } =
-    useReadPortalPoolFactoryGetMinCapacity({
-      address: PORTAL_POOL_FACTORY,
-      query: { enabled: !!PORTAL_POOL_FACTORY },
-    });
+  const { data: minCapacity } = useReadPortalPoolFactoryGetMinCapacity({
+    address: PORTAL_POOL_FACTORY,
+    query: { enabled: !!PORTAL_POOL_FACTORY },
+  });
 
   const validationSchema = useMemo(() => {
     return addPortalSchema({
@@ -114,14 +112,13 @@ function AddNewPortalDialog({
     });
   }, [minCapacity]);
 
-  const { data: collectionDeadlineSeconds, isLoading: isCollectionDeadlineSecondsLoading } =
-    useReadPortalPoolFactoryCollectionDeadlineSeconds({
-      address: PORTAL_POOL_FACTORY,
-    });
+  const { data: collectionDeadlineSeconds } = useReadPortalPoolFactoryCollectionDeadlineSeconds({
+    address: PORTAL_POOL_FACTORY,
+  });
 
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
 
-  const isLoading = false;
+  const isLoading = isTokenRewardLoading;
 
   const initialSource = sources?.[0];
 
@@ -135,7 +132,7 @@ function AddNewPortalDialog({
       description: '',
       capacity: undefined,
       earnings: '',
-      rateType: 'day' as 'day' | 'month',
+      rateType: 'month' as 'day' | 'month',
     } as any,
     validationSchema,
     validateOnChange: true,
@@ -147,9 +144,22 @@ function AddNewPortalDialog({
         const distributionRatePerSecond = BigInt(
           BigNumber(getRate(values.earnings, values.rateType))
             .div(86400)
-            .multipliedBy(10 ** 6)
+            .multipliedBy(REWARD_TOKEN_DECIMALS * DISTRIBUTION_RATE_BPS)
             .toFixed(0),
         );
+
+        console.log({
+          distributionRatePerSecond,
+          capacity: BigInt(toSqd(values.capacity)),
+          tokenSuffix: collapseTokenName(values.name),
+          operator: initialSource?.id as `0x${string}`,
+          peerId: toHex(Date.now()),
+          metadata: JSON.stringify({
+            name: values.name,
+            description: values.description,
+          }),
+          rewardToken: token?.address ?? `0x0000000000000000000000000000000000000000`, // USDC on Tethys
+        });
 
         const receipt = await writeTransactionAsync({
           abi: portalPoolFactoryAbi,
@@ -166,6 +176,7 @@ function AddNewPortalDialog({
                 name: values.name,
                 description: values.description,
               }),
+              rewardToken: token?.address ?? `0x0000000000000000000000000000000000000000`, // USDC on Tethys
             },
           ],
         });

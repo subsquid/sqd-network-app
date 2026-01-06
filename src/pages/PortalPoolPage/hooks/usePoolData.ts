@@ -1,14 +1,16 @@
-import { useMemo } from 'react';
-import { useReadContract, useReadContracts } from 'wagmi';
-import { erc20Abi } from 'viem';
-import { BigNumber } from 'bignumber.js';
-
 import { portalPoolAbi, portalPoolFactoryAbi } from '@api/contracts';
 import { unwrapMulticallResult } from '@lib/network';
 import { useContracts } from '@network/useContracts';
+import { BigNumber } from 'bignumber.js';
+import { useMemo } from 'react';
+import { erc20Abi } from 'viem';
+import { useReadContract, useReadContracts } from 'wagmi';
 
 import { getPhase, parseMetadata } from './helpers';
 import type { PoolData } from './types';
+
+export const DISTRIBUTION_RATE_BPS = 1000;
+export const REWARD_TOKEN_DECIMALS = 10 ** 6;
 
 /**
  * Hook to fetch complete pool data from the blockchain
@@ -142,7 +144,7 @@ export function usePoolData(poolId?: string) {
       phase: getPhase(state, isOutOfMoney),
       monthlyPayoutUsd: Math.round(
         BigNumber(distributionRatePerSecond)
-          .dividedBy(10n ** 6n)
+          .dividedBy(REWARD_TOKEN_DECIMALS * DISTRIBUTION_RATE_BPS)
           .multipliedBy(30)
           .multipliedBy(86400)
           .toNumber(),
@@ -165,6 +167,7 @@ export function usePoolData(poolId?: string) {
       withdrawWaitTime: '2 days',
       lptTokenSymbol: lpTokenSymbol,
       lptToken,
+      createdAt: new Date('2026-01-05T08:00:00Z'),
     };
   }, [poolId, contractData, lpTokenSymbol]);
 

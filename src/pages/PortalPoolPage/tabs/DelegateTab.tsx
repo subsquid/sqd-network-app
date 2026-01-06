@@ -1,8 +1,3 @@
-import { useCallback, useMemo } from 'react';
-import { Button, Divider, Stack, Tooltip, Typography } from '@mui/material';
-import BigNumber from 'bignumber.js';
-import { useQueryClient } from '@tanstack/react-query';
-
 import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { useTokenPrice } from '@api/price';
@@ -11,11 +6,15 @@ import { HelpTooltip } from '@components/HelpTooltip';
 import { useRewardToken } from '@hooks/useRewardToken';
 import { dollarFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
+import { Button, Divider, Stack, Tooltip, Typography } from '@mui/material';
 import { useContracts } from '@network/useContracts';
+import { useQueryClient } from '@tanstack/react-query';
+import BigNumber from 'bignumber.js';
+import { useCallback, useMemo } from 'react';
 
 import { ProvideButton } from '../dialogs/ProvideDialog';
 import { WithdrawButton } from '../dialogs/WithdrawDialog';
-import { usePoolData, usePoolUserData, type PoolPhase } from '../hooks';
+import { type PoolPhase, usePoolData, usePoolUserData } from '../hooks';
 import { invalidatePoolQueries } from '../utils/poolUtils';
 
 interface DelegateTabProps {
