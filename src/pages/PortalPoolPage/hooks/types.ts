@@ -52,4 +52,3 @@ export interface PoolUserData {
   userBalance: bigint;
   userRewards: bigint;
 }
-

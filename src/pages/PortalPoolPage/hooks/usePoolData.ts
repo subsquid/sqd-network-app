@@ -1,5 +1,5 @@
 import { portalPoolAbi, portalPoolFactoryAbi } from '@api/contracts';
-import { unwrapMulticallResult } from '@lib/network';
+import { toSqd, unwrapMulticallResult } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 import { BigNumber } from 'bignumber.js';
 import { useMemo } from 'react';
@@ -163,7 +163,7 @@ export function usePoolData(poolId?: string) {
         windowDuration: '24 hours',
         windowResetIn: '18 hours',
       },
-      maxDepositPerAddress: BigInt(1e36),
+      maxDepositPerAddress: BigInt(toSqd(100_000)),
       withdrawWaitTime: '2 days',
       lptTokenSymbol: lpTokenSymbol,
       lptToken,

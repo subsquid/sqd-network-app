@@ -148,23 +148,19 @@ function AddNewPortalDialog({
             .toFixed(0),
         );
 
-        console.log({
-          distributionRatePerSecond,
-          capacity: BigInt(toSqd(values.capacity)),
-          tokenSuffix: collapseTokenName(values.name),
-          operator: initialSource?.id as `0x${string}`,
-          peerId: toHex(Date.now()),
-          metadata: JSON.stringify({
-            name: values.name,
-            description: values.description,
-          }),
-          rewardToken: token?.address ?? `0x0000000000000000000000000000000000000000`, // USDC on Tethys
-        });
+        const initialDeposit = BigInt(
+          BigNumber(distributionRatePerSecond)
+            .dividedBy(DISTRIBUTION_RATE_BPS)
+            .multipliedBy(86400)
+            .toFixed(0),
+        );
 
         const receipt = await writeTransactionAsync({
           abi: portalPoolFactoryAbi,
           address: PORTAL_POOL_FACTORY,
           functionName: 'createPortalPool',
+          approve: initialDeposit,
+          approveToken: token?.address as `0x${string}`,
           args: [
             {
               distributionRatePerSecond,

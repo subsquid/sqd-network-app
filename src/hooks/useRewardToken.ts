@@ -21,8 +21,6 @@ export function useRewardToken() {
     },
   });
 
-  console.log(data);
-
   const rewardTokenAddress = data?.[0];
 
   // Fetch token metadata

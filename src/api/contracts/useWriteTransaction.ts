@@ -19,7 +19,7 @@ import {
 import { useConfig, useWriteContract } from 'wagmi';
 import { arbitrum } from 'wagmi/chains';
 
-import { portalPoolFactoryAbi, vestingAbi } from './subsquid.generated';
+import { vestingAbi } from './subsquid.generated';
 
 type WriteTransactionParams<TAbi extends Abi, TFunctionName extends ContractFunctionName<TAbi>> = {
   abi: TAbi;
