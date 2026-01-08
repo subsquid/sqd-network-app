@@ -1,6 +1,10 @@
-import { dateFormat } from '@i18n';
-import { percentFormatter } from '@lib/formatters/formatters';
-import { ArrowBackIosNew, ArrowForwardIos, FilterList } from '@mui/icons-material';
+import { dateFormat } from "@i18n";
+import { percentFormatter } from "@lib/formatters/formatters";
+import {
+  ArrowBackIosNew,
+  ArrowForwardIos,
+  FilterList,
+} from "@mui/icons-material";
 import {
   Collapse,
   IconButton,
@@ -12,24 +16,30 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
-} from '@mui/material';
-import { Box } from '@mui/system';
-import { useState } from 'react';
+} from "@mui/material";
+import { Box } from "@mui/system";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { SortDir, useMySources, useWorkers, WorkerSortBy } from '@api/subsquid-network-squid';
-import { Search } from '@components/Search/Search';
-import { SectionHeader } from '@components/SectionHeader';
-import { DashboardTable, NoItems, SortableHeaderCell } from '@components/Table';
+import {
+  SortDir,
+  useMySources,
+  useWorkers,
+  WorkerSortBy,
+} from "@api/subsquid-network-squid";
+import { Search } from "@components/Search/Search";
+import { SectionHeader } from "@components/SectionHeader";
+import { DashboardTable, NoItems, SortableHeaderCell } from "@components/Table";
 import {
   DelegationCapacity,
   WorkerDelegate,
   WorkerName,
   WorkerStatusChip,
   WorkerVersion,
-} from '@components/Worker';
-import { Location, useLocationState } from '@hooks/useLocationState';
-import { WorkersFilters } from './WorkersFilters';
-import { Card } from '@components/Card';
+} from "@components/Worker";
+import { Location, useLocationState } from "@hooks/useLocationState";
+import { WorkersFilters } from "./WorkersFilters";
+import { Card } from "@components/Card";
 
 function TableNavigation({
   totalPages,
@@ -45,7 +55,7 @@ function TableNavigation({
 
   return (
     <Box
-      sx={{ textAlign: 'right' }}
+      sx={{ textAlign: "right" }}
       display="flex"
       alignItems="center"
       flex={1}
@@ -60,7 +70,7 @@ function TableNavigation({
       >
         <ArrowBackIosNew />
       </IconButton>
-      <Typography sx={{ fontVariant: 'tabular-nums' }}>
+      <Typography sx={{ fontVariant: "tabular-nums" }}>
         {page} / {totalPages}
       </Typography>
       <IconButton
@@ -79,27 +89,28 @@ function TableNavigation({
 const PER_PAGE = 15;
 
 export function Workers() {
+  const navigate = useNavigate();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('xs'));
+  const isMobile = useMediaQuery(theme.breakpoints.down("xs"));
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const [query, setQuery] = useLocationState({
     page: new Location.Number(1),
-    search: new Location.String(''),
+    search: new Location.String(""),
     sortBy: new Location.Enum<WorkerSortBy>(WorkerSortBy.StakerAPR),
     sortDir: new Location.Enum<SortDir>(SortDir.Desc),
     status: new Location.Array(new Location.String(), []),
-    minUptime: new Location.String(''),
-    minWorkerAPR: new Location.String(''),
-    minDelegatorAPR: new Location.String(''),
-    maxDelegationCapacity: new Location.String(''),
+    minUptime: new Location.String(""),
+    minWorkerAPR: new Location.String(""),
+    minDelegatorAPR: new Location.String(""),
+    maxDelegationCapacity: new Location.String(""),
   });
 
   const { data: sources, isLoading: isSourcesLoading } = useMySources();
 
   // Helper to parse numeric filter values
   const parseFilterValue = (value: string): number | undefined => {
-    if (!value || value.trim() === '') return undefined;
+    if (!value || value.trim() === "") return undefined;
     const parsed = parseFloat(value);
     return isNaN(parsed) || parsed <= 0 ? undefined : parsed;
   };
@@ -141,9 +152,13 @@ export function Workers() {
               size="small"
               onClick={() => setFiltersOpen(!filtersOpen)}
               sx={{
-                backgroundColor: filtersOpen ? 'action.selected' : 'transparent',
-                '&:hover': {
-                  backgroundColor: filtersOpen ? 'action.selected' : 'action.hover',
+                backgroundColor: filtersOpen
+                  ? "action.selected"
+                  : "transparent",
+                "&:hover": {
+                  backgroundColor: filtersOpen
+                    ? "action.selected"
+                    : "action.hover",
                 },
               }}
             >
@@ -175,20 +190,40 @@ export function Workers() {
         >
           <TableHead>
             <TableRow>
-              <SortableHeaderCell sort={WorkerSortBy.Name} query={query} setQuery={setQuery}>
+              <SortableHeaderCell
+                sort={WorkerSortBy.Name}
+                query={query}
+                setQuery={setQuery}
+              >
                 Worker
               </SortableHeaderCell>
               <TableCell>Status</TableCell>
-              <SortableHeaderCell sort={WorkerSortBy.Version} query={query} setQuery={setQuery}>
+              <SortableHeaderCell
+                sort={WorkerSortBy.Version}
+                query={query}
+                setQuery={setQuery}
+              >
                 Version
               </SortableHeaderCell>
-              <SortableHeaderCell sort={WorkerSortBy.Uptime90d} query={query} setQuery={setQuery}>
+              <SortableHeaderCell
+                sort={WorkerSortBy.Uptime90d}
+                query={query}
+                setQuery={setQuery}
+              >
                 Uptime, 90d
               </SortableHeaderCell>
-              <SortableHeaderCell sort={WorkerSortBy.WorkerAPR} query={query} setQuery={setQuery}>
+              <SortableHeaderCell
+                sort={WorkerSortBy.WorkerAPR}
+                query={query}
+                setQuery={setQuery}
+              >
                 Worker APR
               </SortableHeaderCell>
-              <SortableHeaderCell sort={WorkerSortBy.StakerAPR} query={query} setQuery={setQuery}>
+              <SortableHeaderCell
+                sort={WorkerSortBy.StakerAPR}
+                query={query}
+                setQuery={setQuery}
+              >
                 Delegator APR
               </SortableHeaderCell>
               <SortableHeaderCell
@@ -197,17 +232,21 @@ export function Workers() {
                 setQuery={setQuery}
                 help={
                   <Box>
-                    The Delegator APR decreases significantly once more than 20,000 SQD is delegated
-                    to the worker.
+                    The Delegator APR decreases significantly once more than
+                    20,000 SQD is delegated to the worker.
                     <br />
-                    To maximize delegation rewards, choose workers with high uptime and a low amount
-                    of delegated SQD.
+                    To maximize delegation rewards, choose workers with high
+                    uptime and a low amount of delegated SQD.
                   </Box>
                 }
               >
                 Delegation capacity
               </SortableHeaderCell>
-              <SortableHeaderCell sort={WorkerSortBy.JoinedAt} query={query} setQuery={setQuery}>
+              <SortableHeaderCell
+                sort={WorkerSortBy.JoinedAt}
+                query={query}
+                setQuery={setQuery}
+              >
                 Created
               </SortableHeaderCell>
               <TableCell className="pinned"></TableCell>
@@ -215,10 +254,17 @@ export function Workers() {
           </TableHead>
           <TableBody>
             {workers.length ? (
-              workers.map(worker => (
-                <TableRow key={worker.peerId}>
+              workers.map((worker) => (
+                <TableRow
+                  key={worker.peerId}
+                  onClick={() => navigate(`/worker/${worker.peerId}`)}
+                  sx={{
+                    cursor: "pointer",
+                    "&:hover": { backgroundColor: "action.hover" },
+                  }}
+                >
                   <TableCell className="pinned">
-                    <WorkerName worker={worker} />
+                    <WorkerName worker={worker} showPeerId={false} />
                   </TableCell>
                   <TableCell>
                     <WorkerStatusChip worker={worker} />
@@ -227,16 +273,24 @@ export function Workers() {
                     <WorkerVersion worker={worker} />
                   </TableCell>
                   <TableCell>{percentFormatter(worker.uptime90Days)}</TableCell>
-                  <TableCell>{worker.apr != null ? percentFormatter(worker.apr) : '-'}</TableCell>
                   <TableCell>
-                    {worker.stakerApr != null ? percentFormatter(worker.stakerApr) : '-'}
+                    {worker.apr != null ? percentFormatter(worker.apr) : "-"}
+                  </TableCell>
+                  <TableCell>
+                    {worker.stakerApr != null
+                      ? percentFormatter(worker.stakerApr)
+                      : "-"}
                   </TableCell>
                   <TableCell>
                     <DelegationCapacity worker={worker} />
                   </TableCell>
                   <TableCell>{dateFormat(worker.createdAt)}</TableCell>
                   <TableCell className="pinned">
-                    <Box display="flex" justifyContent="flex-end">
+                    <Box
+                      display="flex"
+                      justifyContent="flex-end"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <WorkerDelegate worker={worker} sources={sources} />
                     </Box>
                   </TableCell>

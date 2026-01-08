@@ -1,15 +1,21 @@
-import React, { PropsWithChildren } from 'react';
+import React, { PropsWithChildren } from "react";
 
-import { Box, Card as MuiCard, styled, Theme, CardProps as MuiCardProps } from '@mui/material';
-import { SxProps } from '@mui/system/styleFunctionSx';
-import { Loader } from '@components/Loader';
-import { SectionHeader } from '@components/SectionHeader';
+import {
+  Box,
+  Card as MuiCard,
+  styled,
+  Theme,
+  CardProps as MuiCardProps,
+} from "@mui/material";
+import { SxProps } from "@mui/system/styleFunctionSx";
+import { Loader } from "@components/Loader";
+import { SectionHeader } from "@components/SectionHeader";
 
-export interface CardProps extends Omit<MuiCardProps, 'title'> {
+export interface CardProps extends Omit<MuiCardProps, "title"> {
   title?: React.ReactNode;
   subtitle?: React.ReactNode;
   tooltip?: string;
-  tooltipPlacement?: 'top' | 'bottom' | 'left' | 'right';
+  tooltipPlacement?: "top" | "bottom" | "left" | "right";
   sx?: SxProps<Theme>;
   loading?: boolean;
   action?: React.ReactNode;
@@ -17,12 +23,12 @@ export interface CardProps extends Omit<MuiCardProps, 'title'> {
 }
 
 const CardContent = styled(Box, {
-  name: 'CardContent',
+  name: "CardContent",
 })(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
+  display: "flex",
+  flexDirection: "column",
   flex: 1,
-  height: '100%',
+  height: "100%",
 }));
 
 export function Card({
@@ -37,12 +43,19 @@ export function Card({
   ...props
 }: PropsWithChildren<CardProps>) {
   const hasHeader = !!(title || subtitle || action);
+  const hasChildren = !!children && children !== null;
 
   return (
     <MuiCard className={className} sx={sx} {...props}>
       <CardContent>
         {hasHeader && (
-          <SectionHeader title={title} subtitle={subtitle} tooltip={tooltip} action={action} sx={{ mb: 2 }} />
+          <SectionHeader
+            title={title}
+            subtitle={subtitle}
+            tooltip={tooltip}
+            action={action}
+            sx={{ mb: hasChildren || loading ? 2 : 0 }}
+          />
         )}
         {loading ? (
           <Box height={1} width={1}>
