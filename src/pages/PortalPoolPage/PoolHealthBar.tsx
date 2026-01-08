@@ -108,7 +108,7 @@ function ActivationProgress({ pool }: { pool: PoolData }) {
 
 // Shows capacity usage when pool is active
 function CapacityUsage({ pool }: { pool: PoolData }) {
-  const current = fromSqd(pool.tvl.current).toNumber();
+  const current = fromSqd(pool.tvl.total).toNumber();
   const max = fromSqd(pool.tvl.max).toNumber();
   const min = fromSqd(pool.tvl.min).toNumber();
 
