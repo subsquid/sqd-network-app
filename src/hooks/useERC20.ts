@@ -1,7 +1,9 @@
-import { unwrapMulticallResult } from '@lib/network';
 import { useMemo } from 'react';
+
 import { erc20Abi } from 'viem';
 import { useReadContracts } from 'wagmi';
+
+import { unwrapMulticallResult } from '@lib/network';
 
 export interface ERC20TokenData {
   address: `0x${string}`;

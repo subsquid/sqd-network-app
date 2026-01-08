@@ -1,3 +1,12 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
+import { Add } from '@mui/icons-material';
+import { Button, SxProps } from '@mui/material';
+import * as yup from '@schema';
+import { useFormik } from 'formik';
+import toast from 'react-hot-toast';
+import useLocalStorageState from 'use-local-storage-state';
+
 import {
   useReadRouterWorkerRegistration,
   useReadWorkerRegistryBondAmount,
@@ -10,22 +19,15 @@ import { AccountType, SourceWalletWithBalance, WorkerStatus } from '@api/subsqui
 import { useWorkerByPeerId } from '@api/subsquid-network-squid/workers-graphql';
 import { ConfirmDialog } from '@components/ConfirmDialog';
 import { ContractCallDialog } from '@components/ContractCallDialog';
-import { Form, FormikCheckBoxInput, FormikTextInput, FormRow } from '@components/Form';
+import { Form, FormRow, FormikCheckBoxInput, FormikTextInput } from '@components/Form';
 import { FormikSelect } from '@components/Form/FormikSelect';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { Loader } from '@components/Loader';
 import { SourceWalletOption } from '@components/SourceWallet';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { fromSqd, peerIdToHex } from '@lib/network/utils';
-import { Add } from '@mui/icons-material';
-import { Button, SxProps } from '@mui/material';
 import { useContracts } from '@network/useContracts';
 import { useWorkersChatUrl } from '@network/useWorkersChat';
-import * as yup from '@schema';
-import { useFormik } from 'formik';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import toast from 'react-hot-toast';
-import useLocalStorageState from 'use-local-storage-state';
 
 export const addWorkerSchema = yup.object({
   name: yup.string().label('Name').max(255).trim().required('Worker name is required'),

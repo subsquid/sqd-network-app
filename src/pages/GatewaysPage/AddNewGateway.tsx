@@ -1,10 +1,18 @@
+import { useMemo, useState } from 'react';
+
+import { Add } from '@mui/icons-material';
+import { Button, SxProps } from '@mui/material';
+import { useFormik } from 'formik';
+import toast from 'react-hot-toast';
+import { useClient } from 'wagmi';
+
 import { gatewayRegistryAbi } from '@api/contracts';
 import { encodeGatewayMetadata } from '@api/contracts/gateway-registration/GatewayMetadata';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
 import { AccountType } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
-import { Form, FormikSwitch, FormikTextInput, FormRow } from '@components/Form';
+import { Form, FormRow, FormikSwitch, FormikTextInput } from '@components/Form';
 import { FormikSelect } from '@components/Form/FormikSelect';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { Loader } from '@components/Loader';
@@ -12,13 +20,7 @@ import { SourceWalletOption } from '@components/SourceWallet';
 import { useSourceContext } from '@contexts/SourceContext';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { peerIdToHex } from '@lib/network';
-import { Add } from '@mui/icons-material';
-import { Button, SxProps } from '@mui/material';
 import { useContracts } from '@network/useContracts';
-import { useFormik } from 'formik';
-import { useMemo, useState } from 'react';
-import toast from 'react-hot-toast';
-import { useClient } from 'wagmi';
 
 import { addGatewaySchema } from './gateway-schema';
 

@@ -1,23 +1,25 @@
-import { useAccount } from '@network/useAccount';
-import { useContracts } from '@network/useContracts';
-import { getSubsquidNetwork, NetworkName } from '@network/useSubsquidNetwork';
+import { useState } from 'react';
+
 import * as Sentry from '@sentry/react';
 import { readContract, waitForTransactionReceipt, writeContract } from '@wagmi/core';
-import { useState } from 'react';
 import {
   Abi,
   Address,
   ContractFunctionArgs,
   ContractFunctionExecutionError,
   ContractFunctionName,
+  TransactionReceipt,
   createPublicClient,
   encodeFunctionData,
   erc20Abi,
   http,
-  TransactionReceipt,
 } from 'viem';
 import { useConfig, useWriteContract } from 'wagmi';
 import { arbitrum } from 'wagmi/chains';
+
+import { useAccount } from '@network/useAccount';
+import { useContracts } from '@network/useContracts';
+import { NetworkName, getSubsquidNetwork } from '@network/useSubsquidNetwork';
 
 import { vestingAbi } from './subsquid.generated';
 
