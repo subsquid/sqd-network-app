@@ -4,7 +4,6 @@ import { errorMessage } from '@api/contracts/utils';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormikTextInput, FormRow } from '@components/Form';
 import { useRewardToken } from '@hooks/useRewardToken';
-import { tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, toSqd } from '@lib/network';
 import { Edit } from '@mui/icons-material';
 import { IconButton } from '@mui/material';

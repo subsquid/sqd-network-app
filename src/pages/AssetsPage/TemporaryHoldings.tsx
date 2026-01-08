@@ -16,7 +16,7 @@ import { useContracts } from '@network/useContracts';
 import { useMemo } from 'react';
 import { CopyToClipboard } from '@components/CopyToClipboard';
 import { Link } from 'react-router-dom';
-import {Card} from '@components/Card';
+import { Card } from '@components/Card';
 
 export function MyTemporaryHoldings() {
   const account = useAccount();

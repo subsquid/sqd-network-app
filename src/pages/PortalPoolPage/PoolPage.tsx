@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Box, Chip, Grid, Stack, Tab, Tabs, Typography } from '@mui/material';
+import { Box, Chip, Grid, Stack, Tab, Tabs } from '@mui/material';
 
 import { Loader } from '@components/Loader';
 import { NotFound } from '@components/NotFound';

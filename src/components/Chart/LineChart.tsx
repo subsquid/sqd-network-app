@@ -22,7 +22,12 @@ import {
 } from './types';
 import { useSharedCursor } from './SharedCursorContext';
 import { LineRenderer } from './LineRenderer';
-import { BarRenderer, GroupedBarRenderer, StackedBarRenderer, calculateOptimalBarWidth } from './BarRenderer';
+import {
+  BarRenderer,
+  GroupedBarRenderer,
+  StackedBarRenderer,
+  calculateOptimalBarWidth,
+} from './BarRenderer';
 import { ChartTooltip } from './ChartTooltip';
 import { CursorLines, CursorPoints } from './ChartCursor';
 import { useTooltipHandler } from './useTooltipHandler';
@@ -47,11 +52,7 @@ interface AxisRange<T> {
   max?: T;
 }
 
-function useChartScales(
-  series: ChartSeries[],
-  xAxis?: AxisRange<Date>,
-  yAxis?: AxisRange<number>,
-) {
+function useChartScales(series: ChartSeries[], xAxis?: AxisRange<Date>, yAxis?: AxisRange<number>) {
   const calculatePadding = useCallback((min: number, max: number, padding: number) => {
     if (min === max) {
       const defaultPadding = Math.abs(max * padding) || 1;

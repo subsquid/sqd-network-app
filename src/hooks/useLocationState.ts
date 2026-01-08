@@ -85,19 +85,20 @@ export namespace Location {
   }
 }
 
-type TypeName<T> = T extends Location.Array<infer U>
-  ? TypeName<U>[]
-  : T extends Location.String
-    ? string
-    : T extends Location.Enum<infer U>
-      ? U
-      : T extends Location.Number
-        ? number
-        : T extends Location.Bool
-          ? boolean
-          : T extends Location.IsoDate
-            ? Date
-            : never;
+type TypeName<T> =
+  T extends Location.Array<infer U>
+    ? TypeName<U>[]
+    : T extends Location.String
+      ? string
+      : T extends Location.Enum<infer U>
+        ? U
+        : T extends Location.Number
+          ? number
+          : T extends Location.Bool
+            ? boolean
+            : T extends Location.IsoDate
+              ? Date
+              : never;
 
 export function useLocationState<
   Query extends Record<string | symbol, Location.Param>,

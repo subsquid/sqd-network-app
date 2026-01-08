@@ -3,9 +3,8 @@ import { Card } from '@components/Card';
 import { LineChart, SharedCursorProvider } from '@components/Chart';
 import { fromSqd } from '@lib/network';
 import { Box, Skeleton, ToggleButton, ToggleButtonGroup } from '@mui/material';
-import { useContracts } from '@network/useContracts';
 import { useMemo, useState } from 'react';
-import { PoolData, usePoolData } from './hooks';
+import { usePoolData } from './hooks';
 import { calculateApyOrZero } from './utils/poolUtils';
 
 type TimePeriod = '1w' | '1m' | '3m';

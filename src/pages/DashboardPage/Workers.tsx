@@ -168,11 +168,7 @@ export function Workers() {
         </Collapse>
       </Box>
       <Card>
-        <DashboardTable
-          loading={isLoading}
-          minHeight={PER_PAGE * 73}
-          sx={{ m: -2, mt: -0.5 }}
-        >
+        <DashboardTable loading={isLoading} minHeight={PER_PAGE * 73} sx={{ m: -2, mt: -0.5 }}>
           <TableHead>
             <TableRow>
               <SortableHeaderCell sort={WorkerSortBy.Name} query={query} setQuery={setQuery}>

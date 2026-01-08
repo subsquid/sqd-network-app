@@ -13,7 +13,8 @@
       "!**/.yarn",
       "!**/build",
       "!**/dist",
-      "!**/*.generated.*"
+      "!**/*.generated.*",
+      "!**/graphql.tsx"
     ]
   },
   "formatter": {

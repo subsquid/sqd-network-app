@@ -61,10 +61,7 @@ export function InfoTab({ poolId }: InfoTabProps) {
             }
             value={pool.lptTokenSymbol}
           />
-          <Property
-            label="Created"
-            value={dateFormat(pool.createdAt, 'dateTime')}
-          />
+          <Property label="Created" value={dateFormat(pool.createdAt, 'dateTime')} />
           {pool.website && (
             <Property
               label="Website"

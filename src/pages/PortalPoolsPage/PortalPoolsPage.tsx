@@ -1,4 +1,4 @@
-import { Box, Button, Stack, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import { Button, Stack, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import { Link, Outlet, Link as RouterLink } from 'react-router-dom';
 import { useMemo } from 'react';
 

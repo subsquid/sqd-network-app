@@ -18,4 +18,3 @@ export function usePoolCapacity(poolId?: string): CapacityInfo | null {
     return calculateCapacity(pool, userData?.userBalance);
   }, [pool, userData?.userBalance]);
 }
-

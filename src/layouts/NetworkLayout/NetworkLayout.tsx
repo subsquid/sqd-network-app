@@ -8,7 +8,6 @@ import {
   useMediaQuery,
   useTheme,
   Typography,
-  Box,
 } from '@mui/material';
 import classnames from 'classnames';
 import { Outlet } from 'react-router-dom';
@@ -24,7 +23,7 @@ import { NetworkMenu } from './NetworkMenu';
 import { UserMenu } from './UserMenu';
 import { useTokenPrice } from '@api/price';
 import { useContracts } from '@network/useContracts';
-import { dollarFormatter, tokenFormatter } from '@lib/formatters/formatters';
+import { dollarFormatter } from '@lib/formatters/formatters';
 
 const APP_BAR_HEIGHT = 60;
 const SIDEBAR_WIDTH = 232;
