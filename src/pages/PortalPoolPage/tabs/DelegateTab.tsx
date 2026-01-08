@@ -1,3 +1,9 @@
+import { useCallback, useMemo } from 'react';
+
+import { Button, Divider, Stack, Tooltip, Typography } from '@mui/material';
+import { useQueryClient } from '@tanstack/react-query';
+import BigNumber from 'bignumber.js';
+
 import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { useTokenPrice } from '@api/price';
@@ -6,15 +12,17 @@ import { HelpTooltip } from '@components/HelpTooltip';
 import { useRewardToken } from '@hooks/useRewardToken';
 import { dollarFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
-import { Button, Divider, Stack, Tooltip, Typography } from '@mui/material';
 import { useContracts } from '@network/useContracts';
-import { useQueryClient } from '@tanstack/react-query';
-import BigNumber from 'bignumber.js';
-import { useCallback, useMemo } from 'react';
 
 import { ProvideButton } from '../dialogs/ProvideDialog';
 import { WithdrawButton } from '../dialogs/WithdrawDialog';
-import { type PoolPhase, usePoolData, usePoolUserData } from '../hooks';
+import {
+  DISTRIBUTION_RATE_BPS,
+  type PoolPhase,
+  REWARD_TOKEN_DECIMALS,
+  usePoolData,
+  usePoolUserData,
+} from '../hooks';
 import { invalidatePoolQueries } from '../utils/poolUtils';
 
 interface DelegateTabProps {
@@ -43,6 +51,7 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
     // Calculate daily distribution rate: rate per second * seconds in a day / decimals
     const dailyDistribution = new BigNumber(pool.distributionRatePerSecond.toString())
       .multipliedBy(86400)
+      .div(DISTRIBUTION_RATE_BPS)
       .div(10 ** (rewardToken?.decimals ?? 6));
 
     // Calculate user's share of daily rewards: daily rate * (user balance / total active stake)
