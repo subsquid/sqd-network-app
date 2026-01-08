@@ -1,10 +1,13 @@
+import { useMemo } from 'react';
+
+import { BigNumber } from 'bignumber.js';
+import { addDays } from 'date-fns/addDays';
+import { erc20Abi } from 'viem';
+import { useReadContract, useReadContracts } from 'wagmi';
+
 import { portalPoolAbi, portalPoolFactoryAbi } from '@api/contracts';
 import { toSqd, unwrapMulticallResult } from '@lib/network';
 import { useContracts } from '@network/useContracts';
-import { BigNumber } from 'bignumber.js';
-import { useMemo } from 'react';
-import { erc20Abi } from 'viem';
-import { useReadContract, useReadContracts } from 'wagmi';
 
 import { getPhase, parseMetadata } from './helpers';
 import type { PoolData } from './types';
@@ -132,6 +135,9 @@ export function usePoolData(poolId?: string) {
       totalStaked,
     } = contractData;
 
+    const depositWindowEndsAt = new Date(Number(depositDeadline) * 1000);
+    const createdAt = addDays(depositWindowEndsAt, -30);
+
     return {
       id: poolId,
       name,
@@ -156,7 +162,7 @@ export function usePoolData(poolId?: string) {
         min: minCapacity || 0n,
         total: totalStaked,
       },
-      depositWindowEndsAt: new Date(Number(depositDeadline) * 1000),
+      depositWindowEndsAt,
       withdrawalQueue: {
         windowLimit: BigInt('100000000000000000000000'),
         windowUsed: BigInt('35000000000000000000000'),
@@ -167,7 +173,7 @@ export function usePoolData(poolId?: string) {
       withdrawWaitTime: '2 days',
       lptTokenSymbol: lpTokenSymbol,
       lptToken,
-      createdAt: new Date('2026-01-05T08:00:00Z'),
+      createdAt,
     };
   }, [poolId, contractData, lpTokenSymbol]);
 
