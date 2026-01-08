@@ -55,7 +55,7 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
       .div(10 ** (rewardToken?.decimals ?? 6));
 
     // Calculate user's share of daily rewards: daily rate * (user balance / total active stake)
-    const userShare = balance.div(fromSqd(pool.tvl.current));
+    const userShare = balance.div(fromSqd(pool.tvl.total));
 
     return dailyDistribution.multipliedBy(userShare);
   }, [pool, userData, balance, rewardToken?.decimals]);
