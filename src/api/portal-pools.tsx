@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from 'react';
 
 // Mock portal data
 export interface MockPortal {
@@ -16,7 +16,7 @@ export interface MockPortal {
   paused: boolean;
   paymentTokens: `0x${string}`[];
   expectedRatePerDay: bigint; // USDC per day (6 decimals)
-  rateType: "day" | "month";
+  rateType: 'day' | 'month';
   createdAt: Date;
   // Gradual distribution mock
   gradualBalance: bigint;
@@ -31,11 +31,10 @@ export interface MockProvider {
   exitRequests: Record<string, { amount: bigint; requestEpoch: bigint; unlockEpoch: bigint }>;
 }
 
-
 // Generate a random address
 const randomAddress = (): `0x${string}` => {
-  const hex = "0123456789abcdef";
-  let addr = "0x";
+  const hex = '0123456789abcdef';
+  let addr = '0x';
   for (let i = 0; i < 40; i++) {
     addr += hex[Math.floor(Math.random() * 16)];
   }
@@ -43,66 +42,66 @@ const randomAddress = (): `0x${string}` => {
 };
 
 // Initial mock data
-const MOCK_USER = "0xd409943eD69aDe02d0B25D0cbc47dc43b7391c34" as `0x${string}`;
-const MOCK_OPERATOR = "0x1234567890123456789012345678901234567890" as `0x${string}`;
-const MOCK_USDC = "0xA911Abb691d1F09DF1063cE28D78Ba5f9E1E66A2" as `0x${string}`;
+const MOCK_USER = '0xd409943eD69aDe02d0B25D0cbc47dc43b7391c34' as `0x${string}`;
+const MOCK_OPERATOR = '0x1234567890123456789012345678901234567890' as `0x${string}`;
+const MOCK_USDC = '0xA911Abb691d1F09DF1063cE28D78Ba5f9E1E66A2' as `0x${string}`;
 
 const INITIAL_PORTALS: MockPortal[] = [
   {
-    address: "0x1111111111111111111111111111111111111111" as `0x${string}`,
-    name: "SQD Portal",
+    address: '0x1111111111111111111111111111111111111111' as `0x${string}`,
+    name: 'SQD Portal',
     operator: MOCK_OPERATOR,
-    description: "This portal is hosted and maintained by SQD",
-    maxCapacity: BigInt("1000000000000000000000000"), // 1M SQD
-    totalStaked: BigInt("750000000000000000000000"), // 750k SQD
+    description: 'This portal is hosted and maintained by SQD',
+    maxCapacity: BigInt('1000000000000000000000000'), // 1M SQD
+    totalStaked: BigInt('750000000000000000000000'), // 750k SQD
     state: 0, // Accepting Tokens (not full yet)
     depositDeadline: BigInt(Date.now() + 30 * 24 * 60 * 60 * 1000),
     activationTime: BigInt(Date.now() - 7 * 24 * 60 * 60 * 1000),
     paused: false,
     paymentTokens: [MOCK_USDC],
-    expectedRatePerDay: BigInt("10000000"), // $10 USDC/day
-    rateType: "day",
+    expectedRatePerDay: BigInt('10000000'), // $10 USDC/day
+    rateType: 'day',
     createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-    gradualBalance: BigInt("300000000"), // 300 USDC
-    gradualRatePerSecond: BigInt("116"), // ~$10 USDC/day
+    gradualBalance: BigInt('300000000'), // 300 USDC
+    gradualRatePerSecond: BigInt('116'), // ~$10 USDC/day
     gradualLastUpdate: Date.now(),
   },
   {
-    address: "0x2222222222222222222222222222222222222222" as `0x${string}`,
-    name: "Lambda Portal",
+    address: '0x2222222222222222222222222222222222222222' as `0x${string}`,
+    name: 'Lambda Portal',
     operator: MOCK_USER,
-    description: "This portal is hosted and maintained by Lambda, an official partner of SQD",
-    maxCapacity: BigInt("500000000000000000000000"), // 500k SQD
-    totalStaked: BigInt("200000000000000000000000"), // 200k SQD
+    description: 'This portal is hosted and maintained by Lambda, an official partner of SQD',
+    maxCapacity: BigInt('500000000000000000000000'), // 500k SQD
+    totalStaked: BigInt('200000000000000000000000'), // 200k SQD
     state: 0, // Collecting
     depositDeadline: BigInt(Date.now() + 14 * 24 * 60 * 60 * 1000),
     activationTime: BigInt(0),
     paused: false,
     paymentTokens: [MOCK_USDC],
-    expectedRatePerDay: BigInt("12000000"), // $12 USDC/day
-    rateType: "day",
+    expectedRatePerDay: BigInt('12000000'), // $12 USDC/day
+    rateType: 'day',
     createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), // 14 days ago
-    gradualBalance: BigInt("0"),
-    gradualRatePerSecond: BigInt("0"),
+    gradualBalance: BigInt('0'),
+    gradualRatePerSecond: BigInt('0'),
     gradualLastUpdate: Date.now(),
   },
   {
-    address: "0x3333333333333333333333333333333333333333" as `0x${string}`,
-    name: "SQD Labs Portal",
+    address: '0x3333333333333333333333333333333333333333' as `0x${string}`,
+    name: 'SQD Labs Portal',
     operator: MOCK_OPERATOR,
-    description: "High-performance portal operated by SQD Labs",
-    maxCapacity: BigInt("1200000000000000000000000"), // 1.2M SQD (12x max)
-    totalStaked: BigInt("1200000000000000000000000"), // 1.2M SQD (full)
+    description: 'High-performance portal operated by SQD Labs',
+    maxCapacity: BigInt('1200000000000000000000000'), // 1.2M SQD (12x max)
+    totalStaked: BigInt('1200000000000000000000000'), // 1.2M SQD (full)
     state: 1, // Active
     depositDeadline: BigInt(Date.now() - 10 * 24 * 60 * 60 * 1000),
     activationTime: BigInt(Date.now() - 5 * 24 * 60 * 60 * 1000),
     paused: false,
     paymentTokens: [MOCK_USDC],
-    expectedRatePerDay: BigInt("16000000"), // $16 USDC/day
-    rateType: "day",
+    expectedRatePerDay: BigInt('16000000'), // $16 USDC/day
+    rateType: 'day',
     createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), // 60 days ago
-    gradualBalance: BigInt("480000000"), // 480 USDC
-    gradualRatePerSecond: BigInt("185"), // ~$16 USDC/day
+    gradualBalance: BigInt('480000000'), // 480 USDC
+    gradualRatePerSecond: BigInt('185'), // ~$16 USDC/day
     gradualLastUpdate: Date.now(),
   },
 ];
@@ -111,15 +110,15 @@ const INITIAL_PROVIDERS: MockProvider[] = [
   {
     address: MOCK_USER,
     stakes: {
-      "0x1111111111111111111111111111111111111111": BigInt("100000000000000000000000"), // 100k SQD
-      "0x3333333333333333333333333333333333333333": BigInt("500000000000000000000000"), // 500k SQD
+      '0x1111111111111111111111111111111111111111': BigInt('100000000000000000000000'), // 100k SQD
+      '0x3333333333333333333333333333333333333333': BigInt('500000000000000000000000'), // 500k SQD
     },
     claimable: {
-      "0x1111111111111111111111111111111111111111": {
-        [MOCK_USDC]: BigInt("25000000"), // 25 USDC
+      '0x1111111111111111111111111111111111111111': {
+        [MOCK_USDC]: BigInt('25000000'), // 25 USDC
       },
-      "0x3333333333333333333333333333333333333333": {
-        [MOCK_USDC]: BigInt("150000000"), // 150 USDC
+      '0x3333333333333333333333333333333333333333': {
+        [MOCK_USDC]: BigInt('150000000'), // 150 USDC
       },
     },
     exitRequests: {},
@@ -146,13 +145,13 @@ export function useMockPortals() {
 
   const setMockMode = (enabled: boolean) => {
     setIsMockMode(enabled);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("mock-mode", enabled ? "true" : "false");
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('mock-mode', enabled ? 'true' : 'false');
     }
   };
 
-  const addMockPortal = (portal: Omit<MockPortal, "address">) => {
-    const MIN_THRESHOLD = BigInt("100000000000000000000000"); // 100k SQD
+  const addMockPortal = (portal: Omit<MockPortal, 'address'>) => {
+    const MIN_THRESHOLD = BigInt('100000000000000000000000'); // 100k SQD
 
     // Determine correct state based on totalStaked
     let state = portal.state;
@@ -169,14 +168,12 @@ export function useMockPortals() {
       address: randomAddress(),
       state,
     };
-    setMockPortals((prev) => [...prev, newPortal]);
+    setMockPortals(prev => [...prev, newPortal]);
   };
 
   const stakeMock = (portalAddress: string, amount: bigint) => {
     // Find the portal and validate capacity
-    const portal = mockPortals.find(
-      (p) => p.address.toLowerCase() === portalAddress.toLowerCase()
-    );
+    const portal = mockPortals.find(p => p.address.toLowerCase() === portalAddress.toLowerCase());
     if (!portal) return;
 
     // Cap amount at available capacity
@@ -188,10 +185,10 @@ export function useMockPortals() {
     // State 2 (Inactive): below 100k SQD
     // State 0 (Accepting Tokens): 100k+ but not full
     // State 1 (Active): full
-    const MIN_THRESHOLD = BigInt("100000000000000000000000"); // 100k SQD
+    const MIN_THRESHOLD = BigInt('100000000000000000000000'); // 100k SQD
 
-    setMockPortals((prev) =>
-      prev.map((p) => {
+    setMockPortals(prev =>
+      prev.map(p => {
         if (p.address.toLowerCase() !== portalAddress.toLowerCase()) return p;
         const newTotalStaked = p.totalStaked + actualAmount;
         const isFull = newTotalStaked >= p.maxCapacity;
@@ -212,13 +209,13 @@ export function useMockPortals() {
           state: newState,
           activationTime: isFull && p.state !== 1 ? BigInt(Date.now()) : p.activationTime,
         };
-      })
+      }),
     );
     // Update provider
-    setMockProviders((prev) => {
-      const existing = prev.find((p) => p.address === MOCK_USER);
+    setMockProviders(prev => {
+      const existing = prev.find(p => p.address === MOCK_USER);
       if (existing) {
-        return prev.map((p) =>
+        return prev.map(p =>
           p.address === MOCK_USER
             ? {
                 ...p,
@@ -227,7 +224,7 @@ export function useMockPortals() {
                   [portalAddress]: (p.stakes[portalAddress] || BigInt(0)) + actualAmount,
                 },
               }
-            : p
+            : p,
         );
       }
       return [
@@ -246,9 +243,7 @@ export function useMockPortals() {
     const portalAddrLower = portalAddress.toLowerCase();
 
     // Get portal's total staked for percentage calculation
-    const portal = portalsRef.current.find(
-      (p) => p.address.toLowerCase() === portalAddrLower
-    );
+    const portal = portalsRef.current.find(p => p.address.toLowerCase() === portalAddrLower);
     const portalTotalStaked = portal?.totalStaked || BigInt(1);
 
     // Get existing exit request amount (if any)
@@ -271,22 +266,22 @@ export function useMockPortals() {
     const requiredEpochs = BigInt(1) + percentage;
     const unlockEpoch = mockCurrentEpoch + requiredEpochs;
 
-    setMockProviders((prev) =>
-      prev.map((p) =>
+    setMockProviders(prev =>
+      prev.map(p =>
         p.address === MOCK_USER
           ? {
               ...p,
               exitRequests: {
                 ...p.exitRequests,
                 [portalAddress]: {
-                  amount: totalExitAmount,  // Add to existing
-                  requestEpoch: mockCurrentEpoch,  // Reset timer
-                  unlockEpoch,  // Recalculate based on new total
+                  amount: totalExitAmount, // Add to existing
+                  requestEpoch: mockCurrentEpoch, // Reset timer
+                  unlockEpoch, // Recalculate based on new total
                 },
               },
             }
-          : p
-      )
+          : p,
+      ),
     );
   };
 
@@ -316,8 +311,8 @@ export function useMockPortals() {
     const withdrawAmount = exitRequest.amount;
 
     // Reduce stake from provider and portal
-    setMockProviders((prev) =>
-      prev.map((p) => {
+    setMockProviders(prev =>
+      prev.map(p => {
         if (p.address !== MOCK_USER) return p;
 
         // Find and reduce stake (case-insensitive)
@@ -339,13 +334,13 @@ export function useMockPortals() {
           stakes: newStakes,
           exitRequests: newExitRequests,
         };
-      })
+      }),
     );
 
     // Reduce total staked on portal and update state
-    const MIN_THRESHOLD = BigInt("100000000000000000000000"); // 100k SQD
-    setMockPortals((prev) =>
-      prev.map((p) => {
+    const MIN_THRESHOLD = BigInt('100000000000000000000000'); // 100k SQD
+    setMockPortals(prev =>
+      prev.map(p => {
         if (p.address.toLowerCase() !== portalAddrLower) return p;
         const newTotalStaked = p.totalStaked - withdrawAmount;
         const isFull = newTotalStaked >= p.maxCapacity;
@@ -361,13 +356,13 @@ export function useMockPortals() {
         }
 
         return { ...p, totalStaked: newTotalStaked, state: newState };
-      })
+      }),
     );
   };
 
   const claimFeesMock = (portalAddress: string, token: string) => {
-    setMockProviders((prev) =>
-      prev.map((p) =>
+    setMockProviders(prev =>
+      prev.map(p =>
         p.address === MOCK_USER
           ? {
               ...p,
@@ -379,15 +374,15 @@ export function useMockPortals() {
                 },
               },
             }
-          : p
-      )
+          : p,
+      ),
     );
   };
 
   const distributeFeesMock = (portalAddress: string, token: string, amount: bigint) => {
     // Use ref to get latest portal state
     const portal = portalsRef.current.find(
-      (p) => p.address.toLowerCase() === portalAddress.toLowerCase()
+      p => p.address.toLowerCase() === portalAddress.toLowerCase(),
     );
     if (!portal || portal.totalStaked === 0n) return;
 
@@ -396,23 +391,23 @@ export function useMockPortals() {
     const totalStaked = portal.totalStaked;
 
     // Update portal gradual balance
-    setMockPortals((prev) =>
-      prev.map((p) =>
+    setMockPortals(prev =>
+      prev.map(p =>
         p.address.toLowerCase() === portalAddress.toLowerCase()
           ? { ...p, gradualBalance: p.gradualBalance + amount }
-          : p
-      )
+          : p,
+      ),
     );
 
     // Distribute to all providers based on their stake share
     // Use providersRef to get latest stakes
     const portalAddrLower = portalAddress.toLowerCase();
 
-    setMockProviders((prev) => {
+    setMockProviders(prev => {
       // Get latest stakes from ref (in case state is stale)
       const latestProviders = providersRef.current;
 
-      return prev.map((provider) => {
+      return prev.map(provider => {
         // Find latest stake info for this provider
         const latestProvider = latestProviders.find(p => p.address === provider.address);
 
@@ -458,15 +453,15 @@ export function useMockPortals() {
   };
 
   const advanceEpochMock = () => {
-    setMockCurrentEpoch((prev) => prev + BigInt(1));
+    setMockCurrentEpoch(prev => prev + BigInt(1));
     // Simulate some rewards accruing
-    setMockProviders((prev) =>
-      prev.map((provider) => {
+    setMockProviders(prev =>
+      prev.map(provider => {
         const newClaimable = { ...provider.claimable };
-        Object.keys(provider.stakes).forEach((portalAddr) => {
+        Object.keys(provider.stakes).forEach(portalAddr => {
           const stake = provider.stakes[portalAddr];
           const portal = mockPortals.find(
-            (p) => p.address.toLowerCase() === portalAddr.toLowerCase()
+            p => p.address.toLowerCase() === portalAddr.toLowerCase(),
           );
           if (portal && portal.state === 1 && stake > BigInt(0)) {
             // Add some rewards proportional to stake
@@ -477,7 +472,7 @@ export function useMockPortals() {
           }
         });
         return { ...provider, claimable: newClaimable };
-      })
+      }),
     );
   };
 
@@ -487,10 +482,10 @@ export function useMockPortals() {
     mockPortals,
     mockProviders,
     mockCurrentEpoch,
-    mockMinStakeThreshold: BigInt("100000000000000000000000"), // 100k SQD
+    mockMinStakeThreshold: BigInt('100000000000000000000000'), // 100k SQD
     mockUserAddress: MOCK_USER,
-    mockSqdBalance: BigInt("10000000000000000000000000"), // 10M SQD
-    mockUsdcBalance: BigInt("100000000000"), // 100k USDC
+    mockSqdBalance: BigInt('10000000000000000000000000'), // 10M SQD
+    mockUsdcBalance: BigInt('100000000000'), // 100k USDC
     addMockPortal,
     stakeMock,
     requestExitMock,
@@ -513,66 +508,68 @@ export function useAprTimeseriesQuery({
   step?: string;
   portalId?: string;
 }) {
-  const [data, setData] = useState<{ 
-    aprTimeseries: { 
-      data: Array<{ timestamp: string; value: number }>;
-      step?: number;
-      from?: string;
-      to?: string;
-    } 
-  } | undefined>(undefined);
+  const [data, setData] = useState<
+    | {
+        aprTimeseries: {
+          data: Array<{ timestamp: string; value: number }>;
+          step?: number;
+          from?: string;
+          to?: string;
+        };
+      }
+    | undefined
+  >(undefined);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Simulate loading
     setIsLoading(true);
-    
+
     const timer = setTimeout(() => {
       // Generate mock APY data
       const fromDate = new Date(from);
       const toDate = new Date(to);
       const diffMs = toDate.getTime() - fromDate.getTime();
-      
+
       // Generate data points based on time range
       const numPoints = Math.min(Math.max(Math.floor(diffMs / (24 * 60 * 60 * 1000)), 7), 90); // 7 to 90 points
       const stepMs = diffMs / numPoints;
-      
+
       const aprData: Array<{ timestamp: string; value: number }> = [];
-      
+
       // Base APY starts at 15% and fluctuates
       let baseApy = 15;
-      
+
       for (let i = 0; i <= numPoints; i++) {
         const timestamp = new Date(fromDate.getTime() + i * stepMs);
-        
+
         // Add some realistic variation
         const variation = Math.sin(i / 5) * 2 + Math.random() * 1.5 - 0.75;
         const apy = Math.max(5, Math.min(30, baseApy + variation));
-        
+
         aprData.push({
           timestamp: timestamp.toISOString(),
           value: apy,
         });
-        
+
         // Slowly trend the base APY
         baseApy += (Math.random() - 0.5) * 0.3;
         baseApy = Math.max(12, Math.min(20, baseApy));
       }
-      
-      setData({ 
+
+      setData({
         aprTimeseries: {
           data: aprData,
           step: stepMs,
           from: fromDate.toISOString(),
           to: toDate.toISOString(),
-        }
+        },
       });
       setIsLoading(false);
     }, 500); // Simulate 500ms loading time
-    
+
     return () => clearTimeout(timer);
   }, [from, to]);
 
   return { data, isLoading };
 }
-
