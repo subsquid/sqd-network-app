@@ -1,15 +1,3 @@
-import { useCallback, useMemo, useState } from 'react';
-
-import { percentFormatter } from '@lib/formatters/formatters';
-import { fromSqd, toSqd } from '@lib/network/utils';
-import { Button, Skeleton, Typography } from '@mui/material';
-import { Chip, Stack } from '@mui/material';
-import * as yup from '@schema';
-import BigNumber from 'bignumber.js';
-import { useFormik } from 'formik';
-import toast from 'react-hot-toast';
-import { useDebounce } from 'use-debounce';
-
 import { stakingAbi, useReadRouterStaking } from '@api/contracts';
 import { useCapedStakeAfterDelegation } from '@api/contracts/staking';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
@@ -26,7 +14,16 @@ import { Form, FormDivider, FormikSelect, FormikTextInput, FormRow } from '@comp
 import { HelpTooltip } from '@components/HelpTooltip';
 import { SourceWalletOption } from '@components/SourceWallet';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
+import { percentFormatter } from '@lib/formatters/formatters';
+import { fromSqd, toSqd } from '@lib/network/utils';
+import { Button, Chip, Skeleton, Stack, Typography } from '@mui/material';
 import { useContracts } from '@network/useContracts';
+import * as yup from '@schema';
+import BigNumber from 'bignumber.js';
+import { useFormik } from 'formik';
+import { useCallback, useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
+import { useDebounce } from 'use-debounce';
 
 export const EXPECTED_APR_TIP = (
   <span>

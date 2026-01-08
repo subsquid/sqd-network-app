@@ -1,24 +1,22 @@
-import { useState, useCallback, useMemo } from 'react';
-import { IconButton } from '@mui/material';
-import { Edit } from '@mui/icons-material';
-import { useFormik } from 'formik';
-import * as yup from 'yup';
-import { useQueryClient } from '@tanstack/react-query';
-import { BigNumber } from 'bignumber.js';
-
 import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
+import { errorMessage } from '@api/contracts/utils';
 import { ContractCallDialog } from '@components/ContractCallDialog';
-import { FormRow, FormikTextInput } from '@components/Form';
+import { FormikTextInput, FormRow } from '@components/Form';
 import { useRewardToken } from '@hooks/useRewardToken';
 import { tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, toSqd } from '@lib/network';
+import { Edit } from '@mui/icons-material';
+import { IconButton } from '@mui/material';
 import { useContracts } from '@network/useContracts';
-
-import { invalidatePoolQueries } from '../utils/poolUtils';
-import { usePoolData } from '../hooks';
+import { useQueryClient } from '@tanstack/react-query';
+import { BigNumber } from 'bignumber.js';
+import { useFormik } from 'formik';
+import { useCallback, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-import { errorMessage } from '@api/contracts/utils';
+import * as yup from 'yup';
+import { usePoolData } from '../hooks';
+import { invalidatePoolQueries } from '../utils/poolUtils';
 
 // Edit Capacity Dialog
 interface EditCapacityDialogProps {

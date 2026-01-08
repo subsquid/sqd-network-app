@@ -63,7 +63,7 @@ export function InfoTab({ poolId }: InfoTabProps) {
           />
           <Property
             label="Created"
-            value={dateFormat(new Date('2025-12-16T12:00:00Z'), 'dateTime')}
+            value={dateFormat(pool.createdAt, 'dateTime')}
           />
           {pool.website && (
             <Property

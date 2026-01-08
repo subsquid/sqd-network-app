@@ -1,11 +1,10 @@
+import { unwrapMulticallResult } from '@lib/network';
 import { useMemo } from 'react';
 import { erc20Abi } from 'viem';
 import { useReadContracts } from 'wagmi';
 
-import { unwrapMulticallResult } from '@lib/network';
-
 export interface ERC20TokenData {
-  address: string;
+  address: `0x${string}`;
   symbol: string;
   decimals: number;
   name: string;
@@ -71,5 +70,3 @@ export function useERC20({ address, enabled = true }: UseERC20Options) {
     isLoading,
   };
 }
-
-

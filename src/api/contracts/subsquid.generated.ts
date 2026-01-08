@@ -1306,23 +1306,7 @@ export const portalPoolAbi = [
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const portalPoolFactoryAbi = [
-  {
-    type: 'constructor',
-    inputs: [
-      { name: '_implementation', internalType: 'address', type: 'address' },
-      { name: '_portalRegistry', internalType: 'address', type: 'address' },
-      { name: '_feeRouter', internalType: 'address', type: 'address' },
-      { name: '_networkController', internalType: 'address', type: 'address' },
-      { name: '_sqd', internalType: 'address', type: 'address' },
-      { name: '_usdc', internalType: 'address', type: 'address' },
-      {
-        name: '_defaultMaxStakePerWallet',
-        internalType: 'uint256',
-        type: 'uint256',
-      },
-    ],
-    stateMutability: 'nonpayable',
-  },
+  { type: 'constructor', inputs: [], stateMutability: 'nonpayable' },
   {
     type: 'function',
     inputs: [],
@@ -1333,15 +1317,15 @@ export const portalPoolFactoryAbi = [
   {
     type: 'function',
     inputs: [],
-    name: 'getMinCapacity',
-    outputs: [{ name: '', internalType: 'uint64', type: 'uint64' }],
+    name: 'PAUSER_ROLE',
+    outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
     stateMutability: 'view',
   },
   {
     type: 'function',
     inputs: [],
-    name: 'PAUSER_ROLE',
-    outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
+    name: 'UPGRADE_INTERFACE_VERSION',
+    outputs: [{ name: '', internalType: 'string', type: 'string' }],
     stateMutability: 'view',
   },
   {
@@ -1392,6 +1376,7 @@ export const portalPoolFactoryAbi = [
             type: 'uint256',
           },
           { name: 'metadata', internalType: 'string', type: 'string' },
+          { name: 'rewardToken', internalType: 'address', type: 'address' },
         ],
       },
     ],
@@ -1404,6 +1389,13 @@ export const portalPoolFactoryAbi = [
     inputs: [],
     name: 'defaultMaxStakePerWallet',
     outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'defaultWhitelistEnabled',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
     stateMutability: 'view',
   },
   {
@@ -1425,6 +1417,13 @@ export const portalPoolFactoryAbi = [
     inputs: [],
     name: 'getAllowedPaymentTokens',
     outputs: [{ name: '', internalType: 'address[]', type: 'address[]' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'getMinCapacity',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
   },
   {
@@ -1481,6 +1480,25 @@ export const portalPoolFactoryAbi = [
   },
   {
     type: 'function',
+    inputs: [
+      { name: '_implementation', internalType: 'address', type: 'address' },
+      { name: '_portalRegistry', internalType: 'address', type: 'address' },
+      { name: '_feeRouter', internalType: 'address', type: 'address' },
+      { name: '_sqd', internalType: 'address', type: 'address' },
+      {
+        name: '_defaultMaxStakePerWallet',
+        internalType: 'uint256',
+        type: 'uint256',
+      },
+      { name: '_minStakeThreshold', internalType: 'uint256', type: 'uint256' },
+      { name: '_workerEpochLength', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'initialize',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
     inputs: [{ name: '', internalType: 'address', type: 'address' }],
     name: 'isAllowedPaymentToken',
     outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
@@ -1496,6 +1514,13 @@ export const portalPoolFactoryAbi = [
   {
     type: 'function',
     inputs: [],
+    name: 'maxDistributionRatePerSecond',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
     name: 'maxPaymentTokens',
     outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
@@ -1503,8 +1528,15 @@ export const portalPoolFactoryAbi = [
   {
     type: 'function',
     inputs: [],
-    name: 'networkController',
-    outputs: [{ name: '', internalType: 'address', type: 'address' }],
+    name: 'minDistributionRatePerSecond',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'minStakeThreshold',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
   },
   {
@@ -1561,6 +1593,13 @@ export const portalPoolFactoryAbi = [
   },
   {
     type: 'function',
+    inputs: [],
+    name: 'proxiableUUID',
+    outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
     inputs: [{ name: 'token', internalType: 'address', type: 'address' }],
     name: 'removePaymentToken',
     outputs: [],
@@ -1602,10 +1641,26 @@ export const portalPoolFactoryAbi = [
   },
   {
     type: 'function',
+    inputs: [{ name: 'enabled', internalType: 'bool', type: 'bool' }],
+    name: 'setDefaultWhitelistEnabled',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
     inputs: [
       { name: 'ratePerSecond', internalType: 'uint256', type: 'uint256' },
     ],
     name: 'setExitUnlockRate',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'ratePerSecond', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'setMaxDistributionRate',
     outputs: [],
     stateMutability: 'nonpayable',
   },
@@ -1618,8 +1673,35 @@ export const portalPoolFactoryAbi = [
   },
   {
     type: 'function',
-    inputs: [{ name: '_usdc', internalType: 'address', type: 'address' }],
-    name: 'setUsdc',
+    inputs: [
+      { name: 'ratePerSecond', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'setMinDistributionRate',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: '_minStakeThreshold', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'setMinStakeThreshold',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'enabled', internalType: 'bool', type: 'bool' }],
+    name: 'setWhitelistFeatureEnabled',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: '_workerEpochLength', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'setWorkerEpochLength',
     outputs: [],
     stateMutability: 'nonpayable',
   },
@@ -1664,9 +1746,26 @@ export const portalPoolFactoryAbi = [
   },
   {
     type: 'function',
+    inputs: [
+      { name: 'newImplementation', internalType: 'address', type: 'address' },
+      { name: 'data', internalType: 'bytes', type: 'bytes' },
+    ],
+    name: 'upgradeToAndCall',
+    outputs: [],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
     inputs: [],
-    name: 'usdc',
-    outputs: [{ name: '', internalType: 'address', type: 'address' }],
+    name: 'whitelistFeatureEnabled',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'workerEpochLength',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
   },
   {
@@ -1731,6 +1830,15 @@ export const portalPoolFactoryAbi = [
     type: 'event',
     anonymous: false,
     inputs: [
+      { name: 'oldValue', internalType: 'bool', type: 'bool', indexed: false },
+      { name: 'newValue', internalType: 'bool', type: 'bool', indexed: false },
+    ],
+    name: 'DefaultWhitelistEnabledUpdated',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
       {
         name: 'oldValue',
         internalType: 'uint256',
@@ -1751,6 +1859,38 @@ export const portalPoolFactoryAbi = [
     anonymous: false,
     inputs: [
       {
+        name: 'version',
+        internalType: 'uint64',
+        type: 'uint64',
+        indexed: false,
+      },
+    ],
+    name: 'Initialized',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'oldValue',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'newValue',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'MaxDistributionRateUpdated',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
         name: 'oldValue',
         internalType: 'uint256',
         type: 'uint256',
@@ -1764,6 +1904,44 @@ export const portalPoolFactoryAbi = [
       },
     ],
     name: 'MaxPaymentTokensUpdated',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'oldValue',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'newValue',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'MinDistributionRateUpdated',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'oldValue',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'newValue',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'MinStakeThresholdUpdated',
   },
   {
     type: 'event',
@@ -1820,7 +1998,30 @@ export const portalPoolFactoryAbi = [
         type: 'address',
         indexed: true,
       },
-      { name: 'peerId', internalType: 'bytes', type: 'bytes', indexed: false },
+      {
+        name: 'capacity',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'distributionRatePerSecond',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'tokenSuffix',
+        internalType: 'string',
+        type: 'string',
+        indexed: false,
+      },
+      {
+        name: 'metadata',
+        internalType: 'string',
+        type: 'string',
+        indexed: false,
+      },
     ],
     name: 'PortalCreated',
   },
@@ -1902,19 +2103,41 @@ export const portalPoolFactoryAbi = [
     anonymous: false,
     inputs: [
       {
-        name: 'oldUsdc',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'newUsdc',
+        name: 'implementation',
         internalType: 'address',
         type: 'address',
         indexed: true,
       },
     ],
-    name: 'UsdcUpdated',
+    name: 'Upgraded',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      { name: 'oldValue', internalType: 'bool', type: 'bool', indexed: false },
+      { name: 'newValue', internalType: 'bool', type: 'bool', indexed: false },
+    ],
+    name: 'WhitelistFeatureEnabledUpdated',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'oldValue',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'newValue',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'WorkerEpochLengthUpdated',
   },
   {
     type: 'event',
@@ -1944,15 +2167,44 @@ export const portalPoolFactoryAbi = [
     ],
     name: 'AccessControlUnauthorizedAccount',
   },
+  {
+    type: 'error',
+    inputs: [{ name: 'target', internalType: 'address', type: 'address' }],
+    name: 'AddressEmptyCode',
+  },
   { type: 'error', inputs: [], name: 'BelowMinimum' },
+  {
+    type: 'error',
+    inputs: [
+      { name: 'implementation', internalType: 'address', type: 'address' },
+    ],
+    name: 'ERC1967InvalidImplementation',
+  },
+  { type: 'error', inputs: [], name: 'ERC1967NonPayable' },
   { type: 'error', inputs: [], name: 'EmptyPeerId' },
   { type: 'error', inputs: [], name: 'EnforcedPause' },
   { type: 'error', inputs: [], name: 'ExpectedPause' },
+  { type: 'error', inputs: [], name: 'FailedCall' },
   { type: 'error', inputs: [], name: 'InvalidAddress' },
-  { type: 'error', inputs: [], name: 'NoPaymentTokens' },
+  { type: 'error', inputs: [], name: 'InvalidInitialization' },
+  { type: 'error', inputs: [], name: 'NotAdmin' },
+  { type: 'error', inputs: [], name: 'NotInitializing' },
+  { type: 'error', inputs: [], name: 'RateBelowMinimum' },
+  { type: 'error', inputs: [], name: 'RateExceedsMaximum' },
+  {
+    type: 'error',
+    inputs: [{ name: 'token', internalType: 'address', type: 'address' }],
+    name: 'SafeERC20FailedOperation',
+  },
   { type: 'error', inputs: [], name: 'TokenAlreadyAdded' },
   { type: 'error', inputs: [], name: 'TokenNotAllowed' },
   { type: 'error', inputs: [], name: 'TooManyTokens' },
+  { type: 'error', inputs: [], name: 'UUPSUnauthorizedCallContext' },
+  {
+    type: 'error',
+    inputs: [{ name: 'slot', internalType: 'bytes32', type: 'bytes32' }],
+    name: 'UUPSUnsupportedProxiableUUID',
+  },
 ] as const
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4427,21 +4679,21 @@ export const useReadPortalPoolFactoryDefaultAdminRole =
   })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"getMinCapacity"`
- */
-export const useReadPortalPoolFactoryGetMinCapacity =
-  /*#__PURE__*/ createUseReadContract({
-    abi: portalPoolFactoryAbi,
-    functionName: 'getMinCapacity',
-  })
-
-/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"PAUSER_ROLE"`
  */
 export const useReadPortalPoolFactoryPauserRole =
   /*#__PURE__*/ createUseReadContract({
     abi: portalPoolFactoryAbi,
     functionName: 'PAUSER_ROLE',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"UPGRADE_INTERFACE_VERSION"`
+ */
+export const useReadPortalPoolFactoryUpgradeInterfaceVersion =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'UPGRADE_INTERFACE_VERSION',
   })
 
 /**
@@ -4481,6 +4733,15 @@ export const useReadPortalPoolFactoryDefaultMaxStakePerWallet =
   })
 
 /**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"defaultWhitelistEnabled"`
+ */
+export const useReadPortalPoolFactoryDefaultWhitelistEnabled =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'defaultWhitelistEnabled',
+  })
+
+/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"exitUnlockRatePerSecond"`
  */
 export const useReadPortalPoolFactoryExitUnlockRatePerSecond =
@@ -4505,6 +4766,15 @@ export const useReadPortalPoolFactoryGetAllowedPaymentTokens =
   /*#__PURE__*/ createUseReadContract({
     abi: portalPoolFactoryAbi,
     functionName: 'getAllowedPaymentTokens',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"getMinCapacity"`
+ */
+export const useReadPortalPoolFactoryGetMinCapacity =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'getMinCapacity',
   })
 
 /**
@@ -4571,6 +4841,15 @@ export const useReadPortalPoolFactoryIsPortal =
   })
 
 /**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"maxDistributionRatePerSecond"`
+ */
+export const useReadPortalPoolFactoryMaxDistributionRatePerSecond =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'maxDistributionRatePerSecond',
+  })
+
+/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"maxPaymentTokens"`
  */
 export const useReadPortalPoolFactoryMaxPaymentTokens =
@@ -4580,12 +4859,21 @@ export const useReadPortalPoolFactoryMaxPaymentTokens =
   })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"networkController"`
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"minDistributionRatePerSecond"`
  */
-export const useReadPortalPoolFactoryNetworkController =
+export const useReadPortalPoolFactoryMinDistributionRatePerSecond =
   /*#__PURE__*/ createUseReadContract({
     abi: portalPoolFactoryAbi,
-    functionName: 'networkController',
+    functionName: 'minDistributionRatePerSecond',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"minStakeThreshold"`
+ */
+export const useReadPortalPoolFactoryMinStakeThreshold =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'minStakeThreshold',
   })
 
 /**
@@ -4643,6 +4931,15 @@ export const useReadPortalPoolFactoryPortalRegistry =
   })
 
 /**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"proxiableUUID"`
+ */
+export const useReadPortalPoolFactoryProxiableUuid =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'proxiableUUID',
+  })
+
+/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"sqd"`
  */
 export const useReadPortalPoolFactorySqd = /*#__PURE__*/ createUseReadContract({
@@ -4660,11 +4957,22 @@ export const useReadPortalPoolFactorySupportsInterface =
   })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"usdc"`
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"whitelistFeatureEnabled"`
  */
-export const useReadPortalPoolFactoryUsdc = /*#__PURE__*/ createUseReadContract(
-  { abi: portalPoolFactoryAbi, functionName: 'usdc' },
-)
+export const useReadPortalPoolFactoryWhitelistFeatureEnabled =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'whitelistFeatureEnabled',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"workerEpochLength"`
+ */
+export const useReadPortalPoolFactoryWorkerEpochLength =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'workerEpochLength',
+  })
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"workerPoolAddress"`
@@ -4707,6 +5015,15 @@ export const useWritePortalPoolFactoryGrantRole =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalPoolFactoryAbi,
     functionName: 'grantRole',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"initialize"`
+ */
+export const useWritePortalPoolFactoryInitialize =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'initialize',
   })
 
 /**
@@ -4764,12 +5081,30 @@ export const useWritePortalPoolFactorySetDefaultMaxStakePerWallet =
   })
 
 /**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setDefaultWhitelistEnabled"`
+ */
+export const useWritePortalPoolFactorySetDefaultWhitelistEnabled =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setDefaultWhitelistEnabled',
+  })
+
+/**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setExitUnlockRate"`
  */
 export const useWritePortalPoolFactorySetExitUnlockRate =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalPoolFactoryAbi,
     functionName: 'setExitUnlockRate',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setMaxDistributionRate"`
+ */
+export const useWritePortalPoolFactorySetMaxDistributionRate =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setMaxDistributionRate',
   })
 
 /**
@@ -4782,12 +5117,39 @@ export const useWritePortalPoolFactorySetMaxPaymentTokens =
   })
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setUsdc"`
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setMinDistributionRate"`
  */
-export const useWritePortalPoolFactorySetUsdc =
+export const useWritePortalPoolFactorySetMinDistributionRate =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalPoolFactoryAbi,
-    functionName: 'setUsdc',
+    functionName: 'setMinDistributionRate',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setMinStakeThreshold"`
+ */
+export const useWritePortalPoolFactorySetMinStakeThreshold =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setMinStakeThreshold',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setWhitelistFeatureEnabled"`
+ */
+export const useWritePortalPoolFactorySetWhitelistFeatureEnabled =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setWhitelistFeatureEnabled',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setWorkerEpochLength"`
+ */
+export const useWritePortalPoolFactorySetWorkerEpochLength =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setWorkerEpochLength',
   })
 
 /**
@@ -4815,6 +5177,15 @@ export const useWritePortalPoolFactoryUpgradeBeacon =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalPoolFactoryAbi,
     functionName: 'upgradeBeacon',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"upgradeToAndCall"`
+ */
+export const useWritePortalPoolFactoryUpgradeToAndCall =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'upgradeToAndCall',
   })
 
 /**
@@ -4848,6 +5219,15 @@ export const useSimulatePortalPoolFactoryGrantRole =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalPoolFactoryAbi,
     functionName: 'grantRole',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"initialize"`
+ */
+export const useSimulatePortalPoolFactoryInitialize =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'initialize',
   })
 
 /**
@@ -4905,12 +5285,30 @@ export const useSimulatePortalPoolFactorySetDefaultMaxStakePerWallet =
   })
 
 /**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setDefaultWhitelistEnabled"`
+ */
+export const useSimulatePortalPoolFactorySetDefaultWhitelistEnabled =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setDefaultWhitelistEnabled',
+  })
+
+/**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setExitUnlockRate"`
  */
 export const useSimulatePortalPoolFactorySetExitUnlockRate =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalPoolFactoryAbi,
     functionName: 'setExitUnlockRate',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setMaxDistributionRate"`
+ */
+export const useSimulatePortalPoolFactorySetMaxDistributionRate =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setMaxDistributionRate',
   })
 
 /**
@@ -4923,12 +5321,39 @@ export const useSimulatePortalPoolFactorySetMaxPaymentTokens =
   })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setUsdc"`
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setMinDistributionRate"`
  */
-export const useSimulatePortalPoolFactorySetUsdc =
+export const useSimulatePortalPoolFactorySetMinDistributionRate =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalPoolFactoryAbi,
-    functionName: 'setUsdc',
+    functionName: 'setMinDistributionRate',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setMinStakeThreshold"`
+ */
+export const useSimulatePortalPoolFactorySetMinStakeThreshold =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setMinStakeThreshold',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setWhitelistFeatureEnabled"`
+ */
+export const useSimulatePortalPoolFactorySetWhitelistFeatureEnabled =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setWhitelistFeatureEnabled',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setWorkerEpochLength"`
+ */
+export const useSimulatePortalPoolFactorySetWorkerEpochLength =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setWorkerEpochLength',
   })
 
 /**
@@ -4956,6 +5381,15 @@ export const useSimulatePortalPoolFactoryUpgradeBeacon =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalPoolFactoryAbi,
     functionName: 'upgradeBeacon',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"upgradeToAndCall"`
+ */
+export const useSimulatePortalPoolFactoryUpgradeToAndCall =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'upgradeToAndCall',
   })
 
 /**
@@ -4992,6 +5426,15 @@ export const useWatchPortalPoolFactoryDefaultMaxStakePerWalletUpdatedEvent =
   })
 
 /**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"DefaultWhitelistEnabledUpdated"`
+ */
+export const useWatchPortalPoolFactoryDefaultWhitelistEnabledUpdatedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolFactoryAbi,
+    eventName: 'DefaultWhitelistEnabledUpdated',
+  })
+
+/**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"ExitUnlockRateUpdated"`
  */
 export const useWatchPortalPoolFactoryExitUnlockRateUpdatedEvent =
@@ -5001,12 +5444,48 @@ export const useWatchPortalPoolFactoryExitUnlockRateUpdatedEvent =
   })
 
 /**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"Initialized"`
+ */
+export const useWatchPortalPoolFactoryInitializedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolFactoryAbi,
+    eventName: 'Initialized',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"MaxDistributionRateUpdated"`
+ */
+export const useWatchPortalPoolFactoryMaxDistributionRateUpdatedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolFactoryAbi,
+    eventName: 'MaxDistributionRateUpdated',
+  })
+
+/**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"MaxPaymentTokensUpdated"`
  */
 export const useWatchPortalPoolFactoryMaxPaymentTokensUpdatedEvent =
   /*#__PURE__*/ createUseWatchContractEvent({
     abi: portalPoolFactoryAbi,
     eventName: 'MaxPaymentTokensUpdated',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"MinDistributionRateUpdated"`
+ */
+export const useWatchPortalPoolFactoryMinDistributionRateUpdatedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolFactoryAbi,
+    eventName: 'MinDistributionRateUpdated',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"MinStakeThresholdUpdated"`
+ */
+export const useWatchPortalPoolFactoryMinStakeThresholdUpdatedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolFactoryAbi,
+    eventName: 'MinStakeThresholdUpdated',
   })
 
 /**
@@ -5082,12 +5561,30 @@ export const useWatchPortalPoolFactoryUnpausedEvent =
   })
 
 /**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"UsdcUpdated"`
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"Upgraded"`
  */
-export const useWatchPortalPoolFactoryUsdcUpdatedEvent =
+export const useWatchPortalPoolFactoryUpgradedEvent =
   /*#__PURE__*/ createUseWatchContractEvent({
     abi: portalPoolFactoryAbi,
-    eventName: 'UsdcUpdated',
+    eventName: 'Upgraded',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"WhitelistFeatureEnabledUpdated"`
+ */
+export const useWatchPortalPoolFactoryWhitelistFeatureEnabledUpdatedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolFactoryAbi,
+    eventName: 'WhitelistFeatureEnabledUpdated',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"WorkerEpochLengthUpdated"`
+ */
+export const useWatchPortalPoolFactoryWorkerEpochLengthUpdatedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolFactoryAbi,
+    eventName: 'WorkerEpochLengthUpdated',
   })
 
 /**

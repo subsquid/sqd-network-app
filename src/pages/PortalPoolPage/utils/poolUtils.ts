@@ -1,6 +1,5 @@
-import type { QueryClient } from '@tanstack/react-query';
-
 import { fromSqd } from '@lib/network';
+import type { QueryClient } from '@tanstack/react-query';
 import type { PoolData, PoolPhase } from '../hooks/types';
 
 export interface CapacityInfo {

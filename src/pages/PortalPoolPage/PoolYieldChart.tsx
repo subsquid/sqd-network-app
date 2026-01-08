@@ -1,13 +1,11 @@
-import { useState, useMemo } from 'react';
-import { Box, Skeleton, ToggleButton, ToggleButtonGroup } from '@mui/material';
-
 import { useHistoricalTokenPrices } from '@api/price';
 import { Card } from '@components/Card';
 import { LineChart, SharedCursorProvider } from '@components/Chart';
-import { useContracts } from '@network/useContracts';
-
-import { usePoolData } from './hooks';
 import { fromSqd } from '@lib/network';
+import { Box, Skeleton, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { useContracts } from '@network/useContracts';
+import { useMemo, useState } from 'react';
+import { PoolData, usePoolData } from './hooks';
 import { calculateApyOrZero } from './utils/poolUtils';
 
 type TimePeriod = '1w' | '1m' | '3m';
@@ -22,10 +20,10 @@ const TIME_PERIODS: Record<TimePeriod, number> = {
   '3m': 90 * 24 * 60 * 60 * 1000,
 };
 
-function getTimeRangeFromPeriod(period: TimePeriod): { from: Date; to: Date } {
+function getTimeRangeFromPeriod(min: Date, period: TimePeriod): { from: Date; to: Date } {
   const now = new Date();
-  const from = new Date(now.getTime() - TIME_PERIODS[period]);
-  return { from, to: now };
+  const from = Math.max(min.getTime(), now.getTime() - TIME_PERIODS[period]);
+  return { from: new Date(from), to: now };
 }
 
 const apyAxisFormatter = (d: number) => `${d.toFixed(1)}%`;
@@ -34,7 +32,6 @@ const apyTooltipFormatter = (d: number) => `${d.toFixed(2)}%`;
 export function PoolYieldChart({ poolId }: PoolYieldChartProps) {
   const { data: pool } = usePoolData(poolId);
   const [period, setPeriod] = useState<TimePeriod>('1m');
-  const { SQD } = useContracts();
 
   const monthlyPayoutUsd = pool?.monthlyPayoutUsd ?? 0;
   const tvlInSqd = pool ? fromSqd(pool.tvl.max).toNumber() : 0;
@@ -45,7 +42,10 @@ export function PoolYieldChart({ poolId }: PoolYieldChartProps) {
     }
   };
 
-  const range = useMemo(() => getTimeRangeFromPeriod(period), [period]);
+  const range = useMemo(
+    () => getTimeRangeFromPeriod(pool?.createdAt || new Date(0), period),
+    [pool, period],
+  );
 
   const { data: chartPrices, isLoading: isChartLoading } = useHistoricalTokenPrices({
     address: '0x1337420ded5adb9980cfc35f8f2b054ea86f8ab1',

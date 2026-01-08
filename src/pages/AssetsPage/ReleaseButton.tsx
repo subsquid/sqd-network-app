@@ -1,13 +1,12 @@
-import { Button } from '@mui/material';
-import { toast } from 'react-hot-toast';
-import * as yup from 'yup';
-
 import { vestingAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
 import { SourceWallet } from '@api/subsquid-network-squid';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
+import { Button } from '@mui/material';
 import { useContracts } from '@network/useContracts';
+import { toast } from 'react-hot-toast';
+import * as yup from 'yup';
 
 export const claimSchema = yup.object({
   source: yup.string().label('Source').trim().required('Source is required'),

@@ -1,12 +1,3 @@
-import { useMemo, useState } from 'react';
-
-import { peerIdToHex } from '@lib/network';
-import { Add } from '@mui/icons-material';
-import { Button, SxProps } from '@mui/material';
-import { useFormik } from 'formik';
-import toast from 'react-hot-toast';
-import { useClient } from 'wagmi';
-
 import { gatewayRegistryAbi } from '@api/contracts';
 import { encodeGatewayMetadata } from '@api/contracts/gateway-registration/GatewayMetadata';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
@@ -20,7 +11,14 @@ import { Loader } from '@components/Loader';
 import { SourceWalletOption } from '@components/SourceWallet';
 import { useSourceContext } from '@contexts/SourceContext';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
+import { peerIdToHex } from '@lib/network';
+import { Add } from '@mui/icons-material';
+import { Button, SxProps } from '@mui/material';
 import { useContracts } from '@network/useContracts';
+import { useFormik } from 'formik';
+import { useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
+import { useClient } from 'wagmi';
 
 import { addGatewaySchema } from './gateway-schema';
 

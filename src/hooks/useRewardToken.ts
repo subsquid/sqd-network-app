@@ -1,7 +1,6 @@
-import { useReadContract } from 'wagmi';
-
 import { portalPoolFactoryAbi } from '@api/contracts';
 import { useContracts } from '@network/useContracts';
+import { useReadContract } from 'wagmi';
 
 import { useERC20 } from './useERC20';
 
@@ -13,29 +12,26 @@ export function useRewardToken() {
   const { PORTAL_POOL_FACTORY } = useContracts();
 
   // Fetch USDC address from pool factory
-  const { data: rewardTokenAddress, isLoading: isLoadingAddress } = useReadContract({
+  const { data, isLoading: isLoadingAddress } = useReadContract({
     address: PORTAL_POOL_FACTORY,
     abi: portalPoolFactoryAbi,
-    functionName: 'usdc',
+    functionName: 'getAllowedPaymentTokens',
     query: {
       staleTime: Infinity, // Factory config doesn't change
     },
   });
 
+  const rewardTokenAddress = data?.[0];
+
   // Fetch token metadata
-  const {
-    data: tokenData,
-    isLoading: isLoadingTokenData,
-  } = useERC20({
-    address: rewardTokenAddress as `0x${string}`,
+  const { data: tokenData, isLoading: isLoadingTokenData } = useERC20({
+    address: rewardTokenAddress ?? `0x`,
     enabled: !!rewardTokenAddress,
   });
 
   return {
-    address: rewardTokenAddress as `0x${string}` | undefined,
+    address: rewardTokenAddress,
     data: tokenData,
     isLoading: isLoadingAddress || isLoadingTokenData,
   };
 }
-
-

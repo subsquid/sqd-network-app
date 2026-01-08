@@ -1,6 +1,6 @@
 import { mainnet, sepolia } from 'viem/chains';
 
-import { NetworkName, getSubsquidNetwork } from './useSubsquidNetwork.ts';
+import { getSubsquidNetwork, NetworkName } from './useSubsquidNetwork.ts';
 
 export function useContracts(): {
   SQD: `0x${string}`;
@@ -34,7 +34,7 @@ export function useContracts(): {
         CHAIN_ID_L1: sepolia.id,
         MULTICALL: '0x7eCfBaa8742fDf5756DAC92fbc8b90a19b8815bF',
         BUYBACK: '0xe34189ad45044e93d3af7d93ac520d02651faf72',
-        PORTAL_POOL_FACTORY: '0x283D026ba166ae73925b622f6665Bd2699811b71',
+        PORTAL_POOL_FACTORY: '0xCA5012986dD7fb473BD846e083C57ABc18817458',
       };
     }
     case NetworkName.Mainnet: {
