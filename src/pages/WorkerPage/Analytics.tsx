@@ -2,6 +2,11 @@
  * Analytics Dashboard with Chart Configurations
  */
 
+import { useMemo } from 'react';
+
+import { Box, Grid, MenuItem, Select } from '@mui/material';
+import { useParams } from 'react-router-dom';
+
 import {
   useAprTimeseriesQuery,
   useQueriesCountTimeseriesQuery,
@@ -13,19 +18,16 @@ import {
 } from '@api/subsquid-network-squid';
 import {
   AnalyticsChart,
+  type AnalyticsChartProps,
   CHART_FORMATTERS,
+  SharedCursorProvider,
   createMultiSeriesChart,
   createSimpleChart,
   createStackedChart,
-  SharedCursorProvider,
-  type AnalyticsChartProps,
 } from '@components/Chart';
 import { Location, useLocationState } from '@hooks/useLocationState';
 import { parseTimeRange } from '@lib/datemath';
 import { fromSqd } from '@lib/network';
-import { Box, Grid, MenuItem, Select } from '@mui/material';
-import { useMemo } from 'react';
-import { useParams } from 'react-router-dom';
 
 // ============================================================================
 // Chart Configuration Factory

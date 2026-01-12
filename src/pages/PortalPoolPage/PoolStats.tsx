@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react';
+
 import { Avatar, Box, Link, Stack, Typography } from '@mui/material';
 
 import { useTokenPrice } from '@api/price';
+import { Card } from '@components/Card';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { useRewardToken } from '@hooks/useRewardToken';
 import {
@@ -66,55 +68,61 @@ export function PoolStats({ poolId }: PoolStatsProps) {
     <Stack
       direction={{ xs: 'column', sm: 'row' }}
       spacing={2}
-      sx={{ justifyContent: 'space-between', width: '100%' }}
+      sx={{ justifyContent: 'stretch', width: '100%' }}
     >
-      <StatItem
-        label="TVL"
-        tooltip="Total Value Locked - current deposits relative to maximum pool capacity."
-        value={
-          <Stack direction="row" alignItems="baseline" spacing={0.5} flexWrap="wrap">
-            <Typography variant="h6" component="span">
-              {numberCompactFormatter(currentTvl.toNumber())}
-            </Typography>
-            <Typography variant="h6" component="span">
-              / {numberCompactFormatter(maxTvl.toNumber())} {SQD_TOKEN}
-            </Typography>
-          </Stack>
-        }
-      />
-      <StatItem
-        label="APY"
-        tooltip={apyTooltip}
-        value={<Typography variant="h6">{percentFormatter(displayApy)}</Typography>}
-      />
-      <StatItem
-        label="Monthly Payout"
-        value={
-          <Typography variant="h6">
-            <Stack direction="row" alignItems="center" spacing={0.5} flexWrap="wrap">
-              <Typography variant="h6">
-                {tokenFormatter(pool.monthlyPayoutUsd, rewardToken?.symbol ?? 'USDC', 0)}
+      <Card sx={{ flex: 1 }}>
+        <StatItem
+          label="TVL"
+          tooltip="Total Value Locked - current deposits relative to maximum pool capacity."
+          value={
+            <Stack direction="row" alignItems="baseline" spacing={0.5} flexWrap="wrap">
+              <Typography variant="h6" component="span">
+                {numberCompactFormatter(currentTvl.toNumber())}
               </Typography>
-              {rewardTokenAddress && (
-                <Link
-                  href={`https://arbiscan.io/token/${rewardTokenAddress}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  underline="hover"
-                  sx={{ display: 'flex', alignItems: 'center' }}
-                >
-                  <Avatar
-                    src={USDC_LOGO_URL}
-                    alt={rewardToken?.symbol ?? 'USDC'}
-                    sx={{ width: 24, height: 24 }}
-                  />
-                </Link>
-              )}
+              <Typography variant="h6" component="span">
+                / {numberCompactFormatter(maxTvl.toNumber())} {SQD_TOKEN}
+              </Typography>
             </Stack>
-          </Typography>
-        }
-        tooltip="Fixed monthly amount paid to SQD liquidity providers"
-      />
+          }
+        />
+      </Card>
+      <Card sx={{ flex: 1 }}>
+        <StatItem
+          label="APY"
+          tooltip={apyTooltip}
+          value={<Typography variant="h6">{percentFormatter(displayApy)}</Typography>}
+        />
+      </Card>
+      <Card sx={{ flex: 1 }}>
+        <StatItem
+          label="Total Funded"
+          value={
+            <Typography variant="h6">
+              <Stack direction="row" alignItems="center" spacing={0.5} flexWrap="wrap">
+                <Typography variant="h6">
+                  {tokenFormatter(pool.monthlyPayoutUsd, rewardToken?.symbol ?? 'USDC', 0)}
+                </Typography>
+                {rewardTokenAddress && (
+                  <Link
+                    href={`https://arbiscan.io/token/${rewardTokenAddress}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    underline="hover"
+                    sx={{ display: 'flex', alignItems: 'center' }}
+                  >
+                    <Avatar
+                      src={USDC_LOGO_URL}
+                      alt={rewardToken?.symbol ?? 'USDC'}
+                      sx={{ width: 24, height: 24 }}
+                    />
+                  </Link>
+                )}
+              </Stack>
+            </Typography>
+          }
+          tooltip="Fixed monthly amount paid to SQD liquidity providers"
+        />
+      </Card>
     </Stack>
   );
 }

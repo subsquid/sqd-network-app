@@ -1,8 +1,8 @@
+import { ConfettiBigIcon } from '@icons/ConfettiBigIcon';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { Box, styled, useMediaQuery, useTheme } from '@mui/material';
 
 import { Card } from '@components/Card';
-import { ConfettiBigIcon } from '@icons/ConfettiBigIcon';
 
 const Line = styled(Box, {
   name: 'Line',

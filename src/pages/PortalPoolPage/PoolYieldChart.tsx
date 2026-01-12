@@ -1,9 +1,12 @@
+import { useMemo, useState } from 'react';
+
+import { Box, Skeleton, ToggleButton, ToggleButtonGroup } from '@mui/material';
+
 import { useHistoricalTokenPrices } from '@api/price';
 import { Card } from '@components/Card';
 import { LineChart, SharedCursorProvider } from '@components/Chart';
 import { fromSqd } from '@lib/network';
-import { Box, Skeleton, ToggleButton, ToggleButtonGroup } from '@mui/material';
-import { useMemo, useState } from 'react';
+
 import { usePoolData } from './hooks';
 import { calculateApyOrZero } from './utils/poolUtils';
 
@@ -71,7 +74,14 @@ export function PoolYieldChart({ poolId }: PoolYieldChartProps) {
 
   return (
     <Card
-      title="APY"
+      title={
+        <ToggleButtonGroup value="apy" exclusive>
+          <ToggleButton value="apy">APY</ToggleButton>
+          <ToggleButton value="tvl" disabled>
+            TVL
+          </ToggleButton>
+        </ToggleButtonGroup>
+      }
       subtitle="Historical APY based on past SQD token prices."
       action={
         <ToggleButtonGroup value={period} exclusive onChange={handlePeriodChange}>
@@ -80,9 +90,8 @@ export function PoolYieldChart({ poolId }: PoolYieldChartProps) {
           <ToggleButton value="3m">3M</ToggleButton>
         </ToggleButtonGroup>
       }
-      sx={{ height: '100%', width: '100%' }}
     >
-      <Box height={218} width={1} display="flex" alignItems="center" justifyContent="center">
+      <Box height={218} display="flex" alignItems="center" justifyContent="center">
         {isChartLoading ? (
           <Skeleton variant="rectangular" height="100%" sx={{ borderRadius: 1, width: '100%' }} />
         ) : (

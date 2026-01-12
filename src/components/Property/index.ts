@@ -1,8 +1,8 @@
+export type { PropertyProps } from './Property';
 export {
   Property,
+  PropertyLabel,
   PropertyList,
   PropertyListGroup,
-  PropertyLabel,
   PropertyValue,
 } from './Property';
-export type { PropertyProps } from './Property';

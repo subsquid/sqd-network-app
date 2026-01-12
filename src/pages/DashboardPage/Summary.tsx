@@ -1,5 +1,12 @@
 import { PropsWithChildren, useEffect, useMemo, useState } from 'react';
 
+import { Box, Divider, Grid, Stack, Typography, useTheme } from '@mui/material';
+
+import { useCurrentEpoch, useNetworkStats } from '@api/subsquid-network-squid';
+import { Card } from '@components/Card/Card';
+import { SquaredChip } from '@components/Chip';
+import { HelpTooltip } from '@components/HelpTooltip';
+import { useCountdown } from '@hooks/useCountdown';
 import {
   bytesFormatter,
   numberCompactFormatter,
@@ -7,16 +14,7 @@ import {
   tokenFormatter,
 } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
-import { Box, Divider, Stack, Typography, useTheme } from '@mui/material';
-import { Grid } from '@mui/material';
-
-import { useNetworkStats } from '@api/subsquid-network-squid';
-import { useCurrentEpoch } from '@api/subsquid-network-squid';
-import { SquaredChip } from '@components/Chip';
-import { HelpTooltip } from '@components/HelpTooltip';
-import { useCountdown } from '@hooks/useCountdown';
 import { useContracts } from '@network/useContracts';
-import { Card } from '@components/Card/Card';
 
 export function ColumnLabel({ children, color }: PropsWithChildren<{ color?: string }>) {
   return (

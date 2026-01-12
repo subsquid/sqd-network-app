@@ -43,7 +43,7 @@ export interface PoolData {
   withdrawalQueue: WithdrawalQueue;
   maxDepositPerAddress: bigint;
   withdrawWaitTime?: string;
-  lptTokenSymbol?: string;
+  lptTokenSymbol: string;
   lptToken: string;
   createdAt: Date;
 }

@@ -1,24 +1,24 @@
-import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
-import { fromSqd, unwrapMulticallResult } from '@lib/network/utils';
+import { useMemo } from 'react';
+
 import { Box, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import { keepPreviousData } from '@tanstack/react-query';
+import BigNumber from 'bignumber.js';
 import chunk from 'lodash-es/chunk';
+import { Link } from 'react-router-dom';
 import { erc20Abi } from 'viem';
 import { useReadContracts } from 'wagmi';
 
 import { vestingAbi } from '@api/contracts';
-import { DashboardTable, NoItems } from '@components/Table';
+import { useVestingsByAccountQuery } from '@api/subsquid-network-squid';
 import { Card } from '@components/Card';
 import { NameWithAvatar } from '@components/SourceWalletName';
+import { DashboardTable, NoItems } from '@components/Table';
+import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
+import { fromSqd, unwrapMulticallResult } from '@lib/network/utils';
 import { useAccount } from '@network/useAccount';
 import { useContracts } from '@network/useContracts';
 
 import { ReleaseButton } from './ReleaseButton';
-import { useMemo } from 'react';
-import { CopyToClipboard } from '@components/CopyToClipboard';
-import { Link } from 'react-router-dom';
-import { useVestingsByAccountQuery } from '@api/subsquid-network-squid';
-import BigNumber from 'bignumber.js';
 
 export function MyVestings() {
   const account = useAccount();
@@ -117,14 +117,9 @@ export function MyVestings() {
                         .join(' ')} contract`}
                       subtitle={
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <CopyToClipboard
-                            text={vesting.id}
-                            content={
-                              <Link to={`/vesting/${vesting.id}`}>
-                                {addressFormatter(vesting.id, true)}
-                              </Link>
-                            }
-                          />
+                          <Link to={`/vesting/${vesting.id}`}>
+                            {addressFormatter(vesting.id, true)}
+                          </Link>
                         </Box>
                       }
                       avatarValue={vesting.id}

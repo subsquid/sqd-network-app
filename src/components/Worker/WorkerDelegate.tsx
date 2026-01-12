@@ -1,3 +1,12 @@
+import { useCallback, useMemo, useState } from 'react';
+
+import { Button, Chip, Skeleton, Stack, Typography } from '@mui/material';
+import * as yup from '@schema';
+import BigNumber from 'bignumber.js';
+import { useFormik } from 'formik';
+import toast from 'react-hot-toast';
+import { useDebounce } from 'use-debounce';
+
 import { stakingAbi, useReadRouterStaking } from '@api/contracts';
 import { useCapedStakeAfterDelegation } from '@api/contracts/staking';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
@@ -5,25 +14,18 @@ import { errorMessage } from '@api/contracts/utils';
 import {
   AccountType,
   SourceWalletWithBalance,
-  useWorkerDelegationInfo,
   Worker,
   WorkerStatus,
+  useWorkerDelegationInfo,
 } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
-import { Form, FormDivider, FormikSelect, FormikTextInput, FormRow } from '@components/Form';
+import { Form, FormDivider, FormRow, FormikSelect, FormikTextInput } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { SourceWalletOption } from '@components/SourceWallet';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { percentFormatter } from '@lib/formatters/formatters';
 import { fromSqd, toSqd } from '@lib/network/utils';
-import { Button, Chip, Skeleton, Stack, Typography } from '@mui/material';
 import { useContracts } from '@network/useContracts';
-import * as yup from '@schema';
-import BigNumber from 'bignumber.js';
-import { useFormik } from 'formik';
-import { useCallback, useMemo, useState } from 'react';
-import toast from 'react-hot-toast';
-import { useDebounce } from 'use-debounce';
 
 export const EXPECTED_APR_TIP = (
   <span>

@@ -1,33 +1,33 @@
-import { percentFormatter, tokenFormatter } from '@lib/formatters/formatters.ts';
-import { fromSqd, isOwned } from '@lib/network';
+import { CenteredPageWrapper } from '@layouts/NetworkLayout';
 import { Box, Button, Stack, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import { Link, Outlet } from 'react-router-dom';
 
 import {
   SortDir,
-  useMySources,
-  useMyWorkers,
   WorkerSortBy,
   WorkerStatus,
+  useMySources,
+  useMyWorkers,
 } from '@api/subsquid-network-squid';
-import { DashboardTable, SortableHeaderCell, NoItems } from '@components/Table';
-import { Location, useLocationState } from '@hooks/useLocationState';
-import { CenteredPageWrapper } from '@layouts/NetworkLayout';
-import { ConnectedWalletRequired } from '@network/ConnectedWalletRequired';
-import { useContracts } from '@network/useContracts';
+import { Card } from '@components/Card';
+import { SquaredChip } from '@components/Chip';
+import { SectionHeader } from '@components/SectionHeader';
+import { DashboardTable, NoItems, SortableHeaderCell } from '@components/Table';
 import {
   WorkerName,
   WorkerStatusChip,
-  WorkerVersion,
   WorkerUnregisterButton,
+  WorkerVersion,
   WorkerWithdrawButton,
 } from '@components/Worker';
+import { Location, useLocationState } from '@hooks/useLocationState';
+import { percentFormatter, tokenFormatter } from '@lib/formatters/formatters.ts';
+import { fromSqd, isOwned } from '@lib/network';
+import { ConnectedWalletRequired } from '@network/ConnectedWalletRequired';
+import { useAccount } from '@network/useAccount';
+import { useContracts } from '@network/useContracts';
 
 import { AddWorkerButton } from './AddNewWorker';
-import { SquaredChip } from '@components/Chip';
-import { SectionHeader } from '@components/SectionHeader';
-import { Card } from '@components/Card';
-import { useAccount } from '@network/useAccount';
 
 export function MyWorkers() {
   const { address } = useAccount();

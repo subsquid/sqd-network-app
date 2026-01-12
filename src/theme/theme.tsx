@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { alpha, AppBarPropsColorOverrides, createTheme as createMuiTheme } from '@mui/material';
+import { AppBarPropsColorOverrides, alpha, createTheme as createMuiTheme } from '@mui/material';
 import { OverridableStringUnion } from '@mui/types';
 
 import { localStorageStringSerializer, useLocalStorageState } from '@hooks/useLocalStorageState';
@@ -459,6 +459,9 @@ export const useCreateTheme = (mode: PaletteType) => {
                   '&:hover': {
                     backgroundColor: colors.divider,
                   },
+                },
+                '&.Mui-disabled': {
+                  border: 'none',
                 },
                 minWidth: '64px',
               }),

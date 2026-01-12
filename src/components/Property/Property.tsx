@@ -1,5 +1,6 @@
+import { createContext, forwardRef, useContext, useId } from 'react';
+
 import { Box, styled } from '@mui/material';
-import { forwardRef, createContext, useContext, useId } from 'react';
 
 /**
  * Property components for displaying label-value pairs in a responsive grid layout.
@@ -136,9 +137,9 @@ export function Property({ label, value, action }: PropertyProps) {
   return (
     <>
       <PropertyLabel>{label}</PropertyLabel>
-      <PropertyValue sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Box sx={{ flex: 1 }}>{value || '-'}</Box>
-        {action && <Box>{action}</Box>}
+      <PropertyValue>
+        <Box display="inline-block">{value || '-'}</Box>
+        {action && <Box display="inline-block">{action}</Box>}
       </PropertyValue>
     </>
   );

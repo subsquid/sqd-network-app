@@ -1,7 +1,9 @@
 import React from 'react';
-import { FormikProps } from 'formik';
-import { DateTimePicker, DateTimePickerProps } from '@mui/x-date-pickers/DateTimePicker';
+
 import { FormControl, InputLabel } from '@mui/material';
+import { DateTimePicker, DateTimePickerProps } from '@mui/x-date-pickers/DateTimePicker';
+import { FormikProps } from 'formik';
+
 import { StyledFormikTextField } from './FormikTextInput';
 
 // A wrapper to make StyledFormikTextField compatible with DateTimePicker

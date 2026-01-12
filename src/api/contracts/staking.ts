@@ -1,27 +1,27 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { calculateDelegationCapacity } from '@lib/network';
 import { logger } from '@logger';
 import BigNumber from 'bignumber.js';
 import { encodeFunctionData } from 'viem';
 import { waitForTransactionReceipt } from 'viem/actions';
 import {
-  useWriteContract,
-  usePublicClient,
   useClient,
+  usePublicClient,
   useReadContract,
   useReadContracts,
+  useWriteContract,
 } from 'wagmi';
 
 import { useApproveSqd } from '@api/contracts/sqd';
-import { AccountType, Worker, SourceWallet } from '@api/subsquid-network-squid';
+import { AccountType, SourceWallet, Worker } from '@api/subsquid-network-squid';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
+import { calculateDelegationCapacity } from '@lib/network';
 import { useAccount } from '@network/useAccount';
 import { useContracts } from '@network/useContracts.ts';
+import { getChain } from '@network/useSubsquidNetwork';
 
 import { softCapAbi, stakingAbi, vestingAbi } from './subsquid.generated';
-import { errorMessage, TxResult, isApproveRequiredError, WriteContractRes } from './utils';
-import { getChain } from '@network/useSubsquidNetwork';
+import { TxResult, WriteContractRes, errorMessage, isApproveRequiredError } from './utils';
 
 type WorkerDepositRequest = {
   worker: Pick<Worker, 'id'>;

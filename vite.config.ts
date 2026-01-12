@@ -1,9 +1,11 @@
+import { createRequire } from 'module';
+
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { createHtmlPlugin } from 'vite-plugin-html';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import { createRequire } from 'module';
+
 const require = createRequire(import.meta.url);
 
 import 'dotenv/config';

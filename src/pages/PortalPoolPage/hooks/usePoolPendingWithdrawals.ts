@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+
 import { useReadContract, useReadContracts } from 'wagmi';
 
 import { portalPoolAbi } from '@api/contracts';

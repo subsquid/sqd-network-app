@@ -7,9 +7,9 @@ import { useAccount } from '@network/useAccount';
 import { useSquid } from './datasource';
 import {
   AccountType,
+  VestingFragmentFragment,
   useSourcesQuery,
   useVestingByAddressQuery,
-  VestingFragmentFragment,
 } from './graphql';
 
 export type SourceWallet = {

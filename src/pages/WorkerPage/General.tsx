@@ -1,7 +1,8 @@
-import { dateFormat } from '@i18n';
+import { useMemo } from 'react';
 
-import { fromSqd, isOwned } from '@lib/network';
+import { dateFormat } from '@i18n';
 import { Grid } from '@mui/material';
+import { useParams } from 'react-router-dom';
 
 import {
   WorkerStatus as ApiWorkerStatus,
@@ -12,12 +13,8 @@ import {
 import { Card } from '@components/Card';
 import { Loader } from '@components/Loader';
 import { NotFound } from '@components/NotFound';
-import { DelegationCapacity } from '@components/Worker';
-import { useAccount } from '@network/useAccount';
-import { useContracts } from '@network/useContracts';
-
 import { Property, PropertyList } from '@components/Property';
-import { useMemo } from 'react';
+import { DelegationCapacity } from '@components/Worker';
 import {
   bytesFormatter,
   numberWithCommasFormatter,
@@ -25,7 +22,9 @@ import {
   tokenFormatter,
   urlFormatter,
 } from '@lib/formatters/formatters';
-import { useParams } from 'react-router-dom';
+import { fromSqd, isOwned } from '@lib/network';
+import { useAccount } from '@network/useAccount';
+import { useContracts } from '@network/useContracts';
 
 export function WorkerGeneral() {
   const { peerId } = useParams<{ peerId: string }>();

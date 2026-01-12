@@ -1,2 +1,2 @@
-export * from './nonNullable';
 export * from './generator';
+export * from './nonNullable';

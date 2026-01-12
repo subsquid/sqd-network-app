@@ -1,5 +1,5 @@
-import { useIsWorkerOperator } from '@api/subsquid-network-squid';
-import { demoFeaturesEnabled } from '@hooks/demoFeaturesEnabled';
+import React, { useRef } from 'react';
+
 import {
   AccountTree,
   AccountTreeOutlined,
@@ -25,9 +25,11 @@ import {
   ListItemText,
   styled,
 } from '@mui/material';
-import { useWorkersChatUrl } from '@network/useWorkersChat';
-import React, { useRef } from 'react';
 import { Link, LinkProps as RouterLinkProps, useLocation } from 'react-router-dom';
+
+import { useIsWorkerOperator } from '@api/subsquid-network-squid';
+import { demoFeaturesEnabled } from '@hooks/demoFeaturesEnabled';
+import { useWorkersChatUrl } from '@network/useWorkersChat';
 
 interface NetworkMenuProps {
   onItemClick: () => void;

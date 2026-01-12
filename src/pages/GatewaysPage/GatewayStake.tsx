@@ -1,3 +1,15 @@
+import { useMemo, useState } from 'react';
+
+import { dateFormat } from '@i18n';
+import { LockOutlined as LockIcon } from '@mui/icons-material';
+import { Box, Button, Chip, InputAdornment, Skeleton, Stack, SxProps } from '@mui/material';
+import * as yup from '@schema';
+import BigNumber from 'bignumber.js';
+import { useFormik } from 'formik';
+import toast from 'react-hot-toast';
+import { useDebounce } from 'use-debounce';
+import { useReadContracts } from 'wagmi';
+
 import {
   gatewayRegistryAbi,
   useReadGatewayRegistryGetStake,
@@ -9,25 +21,15 @@ import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
 import { AccountType, useCurrentEpoch } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
-import { Form, FormDivider, FormikSelect, FormikTextInput, FormRow } from '@components/Form';
+import { Form, FormDivider, FormRow, FormikSelect, FormikTextInput } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { Loader } from '@components/Loader';
 import { SourceWalletOption } from '@components/SourceWallet';
 import { useSourceContext } from '@contexts/SourceContext';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
-import { dateFormat } from '@i18n';
 import { numberWithCommasFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, getBlockTime, toSqd, unwrapMulticallResult } from '@lib/network/utils';
-import { LockOutlined as LockIcon } from '@mui/icons-material';
-import { Box, Button, Chip, InputAdornment, Skeleton, Stack, SxProps } from '@mui/material';
 import { useContracts } from '@network/useContracts';
-import * as yup from '@schema';
-import BigNumber from 'bignumber.js';
-import { useFormik } from 'formik';
-import { useMemo, useState } from 'react';
-import toast from 'react-hot-toast';
-import { useDebounce } from 'use-debounce';
-import { useReadContracts } from 'wagmi';
 
 const MIN_BLOCKS_LOCK = 1000;
 

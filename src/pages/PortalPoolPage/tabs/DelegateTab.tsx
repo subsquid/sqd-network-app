@@ -16,13 +16,7 @@ import { useContracts } from '@network/useContracts';
 
 import { ProvideButton } from '../dialogs/ProvideDialog';
 import { WithdrawButton } from '../dialogs/WithdrawDialog';
-import {
-  DISTRIBUTION_RATE_BPS,
-  type PoolPhase,
-  REWARD_TOKEN_DECIMALS,
-  usePoolData,
-  usePoolUserData,
-} from '../hooks';
+import { DISTRIBUTION_RATE_BPS, type PoolPhase, usePoolData, usePoolUserData } from '../hooks';
 import { invalidatePoolQueries } from '../utils/poolUtils';
 
 interface DelegateTabProps {
@@ -77,7 +71,7 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
   }, [poolId, writeTransactionAsync, queryClient]);
 
   return (
-    <Stack spacing={2} height="100%">
+    <Stack spacing={2}>
       <Card
         title={
           <Stack direction="row" alignItems="center" spacing={0.5}>
@@ -85,7 +79,6 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
             <HelpTooltip title="Your deposited SQD tokens in this pool." />
           </Stack>
         }
-        sx={{ height: '100%' }}
       >
         <Stack spacing={2} divider={<Divider />}>
           <Stack spacing={0.5}>
@@ -106,7 +99,6 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
             <HelpTooltip title="Accumulated rewards ready to claim." />
           </Stack>
         }
-        sx={{ height: '100%' }}
       >
         <Stack spacing={2} divider={<Divider />}>
           <Stack spacing={0.5}>

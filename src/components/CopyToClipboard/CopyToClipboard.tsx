@@ -1,8 +1,7 @@
 import React, { useRef, useState } from 'react';
 
 import { ContentCopyOutlined } from '@mui/icons-material';
-import { Box, IconButton, Stack, styled, SxProps } from '@mui/material';
-import { alpha } from '@mui/system/colorManipulator';
+import { Box, IconButton, Stack, SxProps, styled } from '@mui/material';
 import classNames from 'classnames';
 
 import { CopyToClipboardTooltip } from './CopyToClipboardTooltip';
@@ -36,45 +35,11 @@ export interface CopyToClipboardProps {
   onCopy?: (text: string) => void;
 }
 
-export const Wrapper = styled(Stack)(({ theme }) => ({
-  '& .copyButton': {
-    padding: 0,
-    backgroundColor: 'transparent',
-    fontSize: 'inherit',
-  },
-  '&.gutterBottom': {
-    marginBottom: theme.spacing(1.5),
-  },
-  '&.bordered': {
-    fontFamily: `'JetBrains Mono', monospace`,
-    fontSize: '1rem',
-    position: 'relative',
-    display: 'inline-block',
-    background: alpha(theme.palette.info.main, 0.2),
-    border: `1px solid ${alpha(theme.palette.text.primary, 0.1)}`,
-    borderRadius: theme.shape.borderRadius,
-    marginTop: theme.spacing(1.5),
-    padding: theme.spacing(1, '45px', 1, 1.5),
-    wordBreak: 'break-word',
-    maxWidth: '100%',
-    '& .copyButton': {
-      position: 'absolute',
-      right: theme.spacing(1.5),
-      top: theme.spacing(1.5),
-    },
-  },
-  '&.fullWidth': {
-    display: 'block',
-  },
-  '& .nowrap': {
-    whiteSpace: 'nowrap',
-  },
-}));
+export const Wrapper = styled(Stack)(({ theme }) => ({}));
 
 export const CopyToClipboard = ({
   text,
   content,
-  copyButtonSize = 16,
   bordered = false,
   fullWidth = false,
   gutterBottom = false,
@@ -117,9 +82,11 @@ export const CopyToClipboard = ({
       spacing={1}
       sx={sx}
     >
-      <Box className="content" ref={ref} onClick={handleSelect} sx={contentSx}>
-        {content || text}
-      </Box>
+      {content && (
+        <Box className="content" ref={ref} onClick={handleSelect} sx={contentSx}>
+          {content}
+        </Box>
+      )}
       {showButton && (
         <CopyToClipboardTooltip
           copied={copied}
@@ -132,7 +99,7 @@ export const CopyToClipboard = ({
             className="copyButton"
             color="inherit"
             onClick={handleClick}
-            sx={buttonSx}
+            sx={{ ...buttonSx }}
           >
             <ContentCopyOutlined fontSize="inherit" sx={{ transform: 'scale(1, -1)' }} />
           </IconButton>

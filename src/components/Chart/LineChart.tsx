@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+
 import { Box, Typography, useTheme } from '@mui/material';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import { Group } from '@visx/group';
@@ -9,27 +10,28 @@ import {
   useTooltip,
   useTooltipInPortal,
 } from '@visx/tooltip';
-import {
-  CHART_CONFIG,
-  type ChartProps,
-  type ChartSeries,
-  type ChartDatum,
-  type ChartFormatters,
-  type SingleChartSeries,
-  type StackedChartSeries,
-  isStackedSeries,
-  isSingleSeries,
-} from './types';
-import { useSharedCursor } from './SharedCursorContext';
-import { LineRenderer } from './LineRenderer';
+
 import {
   BarRenderer,
   GroupedBarRenderer,
   StackedBarRenderer,
   calculateOptimalBarWidth,
 } from './BarRenderer';
-import { ChartTooltip } from './ChartTooltip';
 import { CursorLines, CursorPoints } from './ChartCursor';
+import { ChartTooltip } from './ChartTooltip';
+import { LineRenderer } from './LineRenderer';
+import { useSharedCursor } from './SharedCursorContext';
+import {
+  CHART_CONFIG,
+  type ChartDatum,
+  type ChartFormatters,
+  type ChartProps,
+  type ChartSeries,
+  type SingleChartSeries,
+  type StackedChartSeries,
+  isSingleSeries,
+  isStackedSeries,
+} from './types';
 import { useTooltipHandler } from './useTooltipHandler';
 
 export function useChartPalette() {

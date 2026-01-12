@@ -1,25 +1,24 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
-
 import { NetworkLayout } from '@layouts/NetworkLayout';
 import { AssetsPage } from '@pages/AssetsPage/AssetsPage.tsx';
-import { MyVestings } from '@pages/AssetsPage/Vestings.tsx';
 import { MyTemporaryHoldings } from '@pages/AssetsPage/TemporaryHoldings.tsx';
 import { Vesting } from '@pages/AssetsPage/Vesting.tsx';
+import { MyVestings } from '@pages/AssetsPage/Vestings.tsx';
 import { BuyBacksPage } from '@pages/BuyBackPage/BuyBackPage.tsx';
+import { Analytics } from '@pages/DashboardPage/Analytics.tsx';
 import { DashboardPage } from '@pages/DashboardPage/DashboardPage.tsx';
 import { Workers } from '@pages/DashboardPage/Workers.tsx';
-import { Analytics } from '@pages/DashboardPage/Analytics.tsx';
 import { DelegationsPage } from '@pages/DelegationsPage/DelegationsPage.tsx';
 import { Gateway } from '@pages/GatewaysPage/Gateway.tsx';
 import { GatewaysPage } from '@pages/GatewaysPage/GatewaysPage.tsx';
-import { Worker } from '@pages/WorkerPage/Worker.tsx';
-import { WorkersPage } from '@pages/WorkersPage/WorkersPage.tsx';
-
-import { hideLoader } from './index.tsx';
-import { WorkerGeneral } from '@pages/WorkerPage/General.tsx';
-import { WorkerAnalytics } from '@pages/WorkerPage/Analytics.tsx';
 import { PoolPage } from '@pages/PortalPoolPage/PoolPage.tsx';
 import { PortalPoolsPage } from '@pages/PortalPoolsPage/PortalPoolsPage.tsx';
+import { WorkerAnalytics } from '@pages/WorkerPage/Analytics.tsx';
+import { WorkerGeneral } from '@pages/WorkerPage/General.tsx';
+import { Worker } from '@pages/WorkerPage/Worker.tsx';
+import { WorkersPage } from '@pages/WorkersPage/WorkersPage.tsx';
+import { Navigate, Route, Routes } from 'react-router-dom';
+
+import { hideLoader } from './index.tsx';
 
 export const AppRoutes = () => {
   hideLoader(0);

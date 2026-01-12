@@ -1,11 +1,5 @@
-import { portalPoolAbi } from '@api/contracts';
-import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { Card } from '@components/Card';
-import { HelpTooltip } from '@components/HelpTooltip';
-import { DashboardTable, NoItems } from '@components/Table';
-import { useCountdown } from '@hooks/useCountdown';
-import { tokenFormatter } from '@lib/formatters/formatters';
-import { fromSqd } from '@lib/network';
+import { useState } from 'react';
+
 import {
   Box,
   Button,
@@ -18,8 +12,16 @@ import {
   Tabs,
   Typography,
 } from '@mui/material';
+
+import { portalPoolAbi } from '@api/contracts';
+import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
+import { Card } from '@components/Card';
+import { HelpTooltip } from '@components/HelpTooltip';
+import { DashboardTable, NoItems } from '@components/Table';
+import { useCountdown } from '@hooks/useCountdown';
+import { tokenFormatter } from '@lib/formatters/formatters';
+import { fromSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
-import { useState } from 'react';
 
 import type { PendingWithdrawal } from './hooks';
 import { usePoolData, usePoolPendingWithdrawals } from './hooks';
@@ -136,7 +138,7 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
   const readyCount = pendingWithdrawals.length;
 
   return (
-    <Box sx={{ mt: 2 }}>
+    <Box>
       <Tabs value={0} sx={{ mb: 2 }}>
         <Tab label={`Withdrawal Requests`} />
       </Tabs>

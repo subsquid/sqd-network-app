@@ -1,19 +1,22 @@
+import { useCallback, useMemo, useState } from 'react';
+
+import { EditOutlined } from '@mui/icons-material';
+import { IconButton } from '@mui/material';
+import { useQueryClient } from '@tanstack/react-query';
+import { BigNumber } from 'bignumber.js';
+import { useFormik } from 'formik';
+import toast from 'react-hot-toast';
+import * as yup from 'yup';
+
 import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
 import { ContractCallDialog } from '@components/ContractCallDialog';
-import { FormikTextInput, FormRow } from '@components/Form';
+import { FormRow, FormikTextInput } from '@components/Form';
 import { useRewardToken } from '@hooks/useRewardToken';
 import { fromSqd, toSqd } from '@lib/network';
-import { Edit } from '@mui/icons-material';
-import { IconButton } from '@mui/material';
 import { useContracts } from '@network/useContracts';
-import { useQueryClient } from '@tanstack/react-query';
-import { BigNumber } from 'bignumber.js';
-import { useFormik } from 'formik';
-import { useCallback, useMemo, useState } from 'react';
-import toast from 'react-hot-toast';
-import * as yup from 'yup';
+
 import { usePoolData } from '../hooks';
 import { invalidatePoolQueries } from '../utils/poolUtils';
 
@@ -115,7 +118,7 @@ export function EditCapacityButton({ poolId, disabled }: { poolId: string; disab
   return (
     <>
       <IconButton size="small" onClick={handleOpen} disabled={disabled}>
-        <Edit fontSize="small" />
+        <EditOutlined fontSize="small" />
       </IconButton>
       <EditCapacityDialog open={dialogOpen} onClose={handleClose} poolId={poolId} />
     </>
@@ -238,7 +241,7 @@ export function EditDistributionRateButton({
   return (
     <>
       <IconButton size="small" onClick={handleOpen} disabled={disabled}>
-        <Edit fontSize="small" />
+        <EditOutlined fontSize="small" />
       </IconButton>
       <EditDistributionRateDialog open={dialogOpen} onClose={handleClose} poolId={poolId} />
     </>

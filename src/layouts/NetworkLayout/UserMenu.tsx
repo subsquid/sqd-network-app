@@ -1,12 +1,12 @@
 import { useMemo, useRef } from 'react';
 
-import { addressFormatter } from '@lib/formatters/formatters';
 import { AccountBalanceWalletOutlined, ExpandMore } from '@mui/icons-material';
-import { Button, Menu, styled, Typography } from '@mui/material';
+import { Button, Menu, Typography, styled } from '@mui/material';
 import { bindMenu, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
 import { useAccount } from 'wagmi';
 
 import { ConnectButton } from '@components/Button';
+import { addressFormatter } from '@lib/formatters/formatters';
 
 import { LogoutMenuItem } from './LogoutMenuItem';
 

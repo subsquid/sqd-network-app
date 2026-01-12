@@ -1,6 +1,7 @@
 #!/usr/bin/node
 
 import 'dotenv/config';
+
 import { CodegenConfig } from '@graphql-codegen/cli';
 
 export default {

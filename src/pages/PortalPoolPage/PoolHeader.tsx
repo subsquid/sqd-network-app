@@ -4,9 +4,9 @@ import { Avatar } from '@components/Avatar';
 import { Card } from '@components/Card';
 
 import { usePoolData } from './hooks';
-import { getPhaseColor, getPhaseLabel, getPhaseTooltip } from './utils/poolUtils';
 import { PoolHealthBar } from './PoolHealthBar';
 import { PoolStats } from './PoolStats';
+import { getPhaseColor, getPhaseLabel, getPhaseTooltip } from './utils/poolUtils';
 
 interface PoolHeaderProps {
   poolId: string;
@@ -17,31 +17,34 @@ export function PoolHeader({ poolId }: PoolHeaderProps) {
 
   if (!pool) return null;
   return (
-    <Card>
-      <Stack spacing={2} divider={<Divider />}>
-        <Stack direction="row" alignItems="center" spacing={2} justifyContent="space-between">
-          <Box flex={0.5}>
-            <Stack direction="row" alignItems="center" spacing={2}>
-              <Avatar name={pool.name} colorDiscriminator={pool.id} size={64} />
-              <Stack direction="column" alignItems="start" spacing={1}>
-                <Typography variant="h5">{pool.name}</Typography>
-                <Tooltip title={getPhaseTooltip(pool.phase)}>
-                  <Chip
-                    label={getPhaseLabel(pool.phase)}
-                    color={getPhaseColor(pool.phase)}
-                    size="small"
-                  />
-                </Tooltip>
+    <Stack spacing={2}>
+      <Card>
+        <Stack spacing={2} divider={<Divider />}>
+          <Stack direction="row" alignItems="center" spacing={2} justifyContent="space-between">
+            <Box flex={0.5}>
+              <Stack direction="row" alignItems="center" spacing={2}>
+                <Avatar name={pool.name} colorDiscriminator={pool.id} size={64} />
+                <Stack direction="column" alignItems="start" spacing={1}>
+                  <Typography variant="h5">{pool.name}</Typography>
+                  <Tooltip title={getPhaseTooltip(pool.phase)}>
+                    <Chip
+                      label={getPhaseLabel(pool.phase)}
+                      color={getPhaseColor(pool.phase)}
+                      size="small"
+                    />
+                  </Tooltip>
+                </Stack>
               </Stack>
-            </Stack>
-          </Box>
+            </Box>
 
-          <Box flex={0.4}>
-            <PoolHealthBar poolId={poolId} />
-          </Box>
+            <Box flex={0.4}>
+              <PoolHealthBar poolId={poolId} />
+            </Box>
+          </Stack>
+          {/* <PoolStats poolId={poolId} /> */}
         </Stack>
-        <PoolStats poolId={poolId} />
-      </Stack>
-    </Card>
+      </Card>
+      <PoolStats poolId={poolId} />
+    </Stack>
   );
 }

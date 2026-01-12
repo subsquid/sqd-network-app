@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Box, styled, SxProps, Table, TableBody, TableProps } from '@mui/material';
+import { Box, SxProps, Table, TableBody, TableProps, styled } from '@mui/material';
 
 import { Loader } from '@components/Loader';
 

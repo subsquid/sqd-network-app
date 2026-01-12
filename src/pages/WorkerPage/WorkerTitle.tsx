@@ -1,6 +1,8 @@
+import { Stack, Typography, useTheme } from '@mui/material';
+
 import { Account, type Worker as ApiWorker } from '@api/subsquid-network-squid';
 import { CopyToClipboard } from '@components/CopyToClipboard';
-import { Stack, Typography, useTheme } from '@mui/material';
+
 import { WorkerEdit } from './WorkerEdit';
 
 export function WorkerTitle({

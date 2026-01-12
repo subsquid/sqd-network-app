@@ -171,7 +171,7 @@ export function usePoolData(poolId?: string) {
       },
       maxDepositPerAddress: BigInt(toSqd(100_000)),
       withdrawWaitTime: '2 days',
-      lptTokenSymbol: lpTokenSymbol,
+      lptTokenSymbol: lpTokenSymbol!,
       lptToken,
       createdAt,
     };

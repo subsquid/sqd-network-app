@@ -1,9 +1,10 @@
-import { useCountdown } from '@hooks/useCountdown';
 import { dateFormat } from '@i18n';
-import { percentFormatter } from '@lib/formatters/formatters';
-import { fromSqd } from '@lib/network';
 import { AccessTime, CheckCircle, Error, Warning } from '@mui/icons-material';
 import { Box, LinearProgress, Stack, Tooltip, Typography } from '@mui/material';
+
+import { useCountdown } from '@hooks/useCountdown';
+import { percentFormatter } from '@lib/formatters/formatters';
+import { fromSqd } from '@lib/network';
 
 import type { PoolData } from './hooks';
 import { usePoolData } from './hooks';

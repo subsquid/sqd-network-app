@@ -1,6 +1,7 @@
-import { percentFormatter } from '@lib/formatters/formatters';
 import { Box, styled } from '@mui/material';
 import classNames from 'classnames';
+
+import { percentFormatter } from '@lib/formatters/formatters';
 
 export const StyledBar = styled(Box)(({ theme }) => ({
   width: theme.spacing(0.75),

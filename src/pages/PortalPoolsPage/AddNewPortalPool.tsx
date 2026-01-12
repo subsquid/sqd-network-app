@@ -1,18 +1,6 @@
-import {
-  portalPoolFactoryAbi,
-  useReadPortalPoolFactoryCollectionDeadlineSeconds,
-  useReadPortalPoolFactoryGetMinCapacity,
-} from '@api/contracts';
-import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { errorMessage } from '@api/contracts/utils';
-import { SourceWalletWithBalance } from '@api/subsquid-network-squid';
-import { ContractCallDialog } from '@components/ContractCallDialog';
-import { Form, FormDivider, FormikTextInput, FormRow } from '@components/Form';
-import { Loader } from '@components/Loader';
-import { useRewardToken } from '@hooks/useRewardToken.ts';
-import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
+import { useMemo, useState } from 'react';
+
 import { dateFormat } from '@i18n';
-import { fromSqd, toSqd } from '@lib/network/utils';
 import { Add } from '@mui/icons-material';
 import {
   Box,
@@ -24,14 +12,28 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material';
-import { useContracts } from '@network/useContracts';
 import { DISTRIBUTION_RATE_BPS, REWARD_TOKEN_DECIMALS } from '@pages/PortalPoolPage/hooks';
 import * as yup from '@schema';
 import BigNumber from 'bignumber.js';
 import { useFormik } from 'formik';
-import { useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { toHex } from 'viem';
+
+import {
+  portalPoolFactoryAbi,
+  useReadPortalPoolFactoryCollectionDeadlineSeconds,
+  useReadPortalPoolFactoryGetMinCapacity,
+} from '@api/contracts';
+import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
+import { errorMessage } from '@api/contracts/utils';
+import { SourceWalletWithBalance } from '@api/subsquid-network-squid';
+import { ContractCallDialog } from '@components/ContractCallDialog';
+import { Form, FormDivider, FormRow, FormikTextInput } from '@components/Form';
+import { Loader } from '@components/Loader';
+import { useRewardToken } from '@hooks/useRewardToken.ts';
+import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
+import { fromSqd, toSqd } from '@lib/network/utils';
+import { useContracts } from '@network/useContracts';
 
 export const addPortalSchema = ({ minCapacity }: { minCapacity: BigNumber }) => {
   return yup.object({

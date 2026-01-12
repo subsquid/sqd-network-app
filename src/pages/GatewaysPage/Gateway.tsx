@@ -1,5 +1,5 @@
 import { dateFormat } from '@i18n';
-import { urlFormatter } from '@lib/formatters/formatters';
+import { CenteredPageWrapper } from '@layouts/NetworkLayout';
 import { Divider, Stack, styled } from '@mui/material';
 import { Box } from '@mui/system';
 import { useParams, useSearchParams } from 'react-router-dom';
@@ -7,14 +7,14 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { useGatewayByPeerId } from '@api/subsquid-network-squid/gateways-graphql';
 import { BackButton } from '@components/BackButton';
 import { Card } from '@components/Card';
+import { SquaredChip } from '@components/Chip';
 import { CopyToClipboard } from '@components/CopyToClipboard';
 import { Loader } from '@components/Loader';
 import { NotFound } from '@components/NotFound';
-import { CenteredPageWrapper } from '@layouts/NetworkLayout';
+import { urlFormatter } from '@lib/formatters/formatters';
 
 import { GatewayCard } from './GatewayCard';
 import { GatewayUnregisterButton } from './GatewayUnregister';
-import { SquaredChip } from '@components/Chip';
 
 export const DescLabel = styled(Box, {
   name: 'DescLabel',

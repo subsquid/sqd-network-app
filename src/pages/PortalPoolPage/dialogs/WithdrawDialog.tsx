@@ -1,20 +1,23 @@
+import { useCallback, useMemo, useState } from 'react';
+
+import { dateFormat } from '@i18n';
+import { Button, Chip, Divider, Stack, Tooltip, Typography } from '@mui/material';
+import { useQueryClient } from '@tanstack/react-query';
+import { useFormik } from 'formik';
+import toast from 'react-hot-toast';
+import { useReadContract } from 'wagmi';
+import * as yup from 'yup';
+
 import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
 import { ContractCallDialog } from '@components/ContractCallDialog';
-import { FormikTextInput, FormRow } from '@components/Form';
+import { FormRow, FormikTextInput } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
-import { dateFormat } from '@i18n';
 import { tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, toSqd } from '@lib/network';
-import { Button, Chip, Divider, Stack, Tooltip, Typography } from '@mui/material';
 import { useContracts } from '@network/useContracts';
-import { useQueryClient } from '@tanstack/react-query';
-import { useFormik } from 'formik';
-import { useCallback, useMemo, useState } from 'react';
-import toast from 'react-hot-toast';
-import { useReadContract } from 'wagmi';
-import * as yup from 'yup';
+
 import { usePoolCapacity, usePoolData, usePoolUserData } from '../hooks';
 import { calculateExpectedMonthlyPayout, invalidatePoolQueries } from '../utils/poolUtils';
 

@@ -1,29 +1,30 @@
 import '@rainbow-me/rainbowkit/styles.css';
 import { PropsWithChildren, useEffect, useState } from 'react';
+
+import { MenuIcon } from '@icons/MenuIcon';
 import {
   AppBar as AppBarMaterial,
-  IconButton,
-  styled,
   Drawer,
+  IconButton,
+  Typography,
+  styled,
   useMediaQuery,
   useTheme,
-  Typography,
 } from '@mui/material';
 import classnames from 'classnames';
 import { Outlet } from 'react-router-dom';
 import { useDisconnect } from 'wagmi';
 
+import { useTokenPrice } from '@api/price';
 import { Logo } from '@components/Logo';
 import { useBannerHeight } from '@components/TopBanner';
-import { MenuIcon } from '@icons/MenuIcon';
+import { dollarFormatter } from '@lib/formatters/formatters';
 import { useAccount } from '@network/useAccount';
+import { useContracts } from '@network/useContracts';
 import { getChain, getSubsquidNetwork } from '@network/useSubsquidNetwork';
 
 import { NetworkMenu } from './NetworkMenu';
 import { UserMenu } from './UserMenu';
-import { useTokenPrice } from '@api/price';
-import { useContracts } from '@network/useContracts';
-import { dollarFormatter } from '@lib/formatters/formatters';
 
 const APP_BAR_HEIGHT = 60;
 const SIDEBAR_WIDTH = 232;

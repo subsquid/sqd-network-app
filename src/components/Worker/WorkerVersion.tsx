@@ -1,5 +1,5 @@
 import { Report, Warning } from '@mui/icons-material';
-import { Box, Stack, styled, Tooltip } from '@mui/material';
+import { Box, Stack, Tooltip, styled } from '@mui/material';
 import { satisfies } from 'semver';
 
 import { Worker, useNetworkSettings } from '@api/subsquid-network-squid';

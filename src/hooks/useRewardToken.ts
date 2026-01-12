@@ -1,6 +1,7 @@
+import { useReadContract } from 'wagmi';
+
 import { portalPoolFactoryAbi } from '@api/contracts';
 import { useContracts } from '@network/useContracts';
-import { useReadContract } from 'wagmi';
 
 import { useERC20 } from './useERC20';
 

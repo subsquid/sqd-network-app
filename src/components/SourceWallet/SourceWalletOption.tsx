@@ -1,19 +1,19 @@
 import React from 'react';
 
-import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
-import { fromSqd } from '@lib/network';
 import {
   Box,
   Stack,
-  styled,
-  useMediaQuery,
-  useTheme,
   SxProps,
   Theme,
   Tooltip,
+  styled,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 
 import { AccountType, SourceWalletWithBalance } from '@api/subsquid-network-squid';
+import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
+import { fromSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
 export interface SourceWalletOptionProps {

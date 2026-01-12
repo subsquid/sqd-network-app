@@ -7,10 +7,10 @@ import {
   walletConnectWallet,
 } from '@rainbow-me/rainbowkit/wallets';
 import { upperFirst } from 'lodash-es';
-import { arbitrumSepolia, arbitrum } from 'wagmi/chains';
-
-import { getSubsquidNetwork, NetworkName } from './useSubsquidNetwork';
 import { fallback, http } from 'wagmi';
+import { arbitrum, arbitrumSepolia } from 'wagmi/chains';
+
+import { NetworkName, getSubsquidNetwork } from './useSubsquidNetwork';
 
 // export let CHAIN: Chain = arbitrumSepolia;
 // if (process.env.NETWORK === 'hardhat') {

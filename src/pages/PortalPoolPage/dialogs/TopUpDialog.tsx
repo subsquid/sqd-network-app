@@ -1,15 +1,18 @@
+import { useCallback, useState } from 'react';
+
+import { Button, Divider, Stack, Typography } from '@mui/material';
+import { useQueryClient } from '@tanstack/react-query';
+import { useFormik } from 'formik';
+import toast from 'react-hot-toast';
+import * as yup from 'yup';
+
 import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
 import { ContractCallDialog } from '@components/ContractCallDialog';
-import { FormikTextInput, FormRow } from '@components/Form';
+import { FormRow, FormikTextInput } from '@components/Form';
 import { useRewardToken } from '@hooks/useRewardToken';
-import { Button, Divider, Stack, Typography } from '@mui/material';
-import { useQueryClient } from '@tanstack/react-query';
-import { useFormik } from 'formik';
-import { useCallback, useState } from 'react';
-import toast from 'react-hot-toast';
-import * as yup from 'yup';
+
 import { usePoolData } from '../hooks';
 import { invalidatePoolQueries } from '../utils/poolUtils';
 

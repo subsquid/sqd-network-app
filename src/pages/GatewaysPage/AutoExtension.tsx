@@ -1,11 +1,12 @@
+import { Box, FormControlLabel, FormGroup, Switch, Typography } from '@mui/material';
+import toast from 'react-hot-toast';
+import { usePublicClient } from 'wagmi';
+
 import { gatewayRegistryAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
-import { Box, FormControlLabel, FormGroup, Switch, Typography } from '@mui/material';
 import { useContracts } from '@network/useContracts';
-import toast from 'react-hot-toast';
-import { usePublicClient } from 'wagmi';
 
 export function AutoExtension({ value, disabled }: { value?: boolean; disabled?: boolean }) {
   const client = usePublicClient();

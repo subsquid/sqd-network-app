@@ -1,21 +1,23 @@
+import { useState } from 'react';
+
+import { EditOutlined } from '@mui/icons-material';
+import { IconButton, SxProps } from '@mui/material';
+import * as yup from '@schema';
+import { useFormik } from 'formik';
+import toast from 'react-hot-toast';
+import { useClient } from 'wagmi';
+
 import { useReadRouterWorkerRegistration, workerRegistryAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
 import { encodeWorkerMetadata } from '@api/contracts/worker-registration/WorkerMetadata';
 import { Account, AccountType, Worker } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
-import { Form, FormikTextInput, FormRow } from '@components/Form';
+import { Form, FormRow, FormikTextInput } from '@components/Form';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { peerIdToHex } from '@lib/network';
-import { EditOutlined } from '@mui/icons-material';
-import { IconButton, SxProps } from '@mui/material';
 import { useAccount } from '@network/useAccount';
 import { useContracts } from '@network/useContracts';
-import * as yup from '@schema';
-import { useFormik } from 'formik';
-import { useState } from 'react';
-import toast from 'react-hot-toast';
-import { useClient } from 'wagmi';
 
 export const editWorkerSchema = yup.object({
   name: yup.string().label('Name').max(255).trim().required('Worker name is required'),

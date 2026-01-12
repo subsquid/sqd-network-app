@@ -1,8 +1,8 @@
 export {
-  ConfirmDialog,
-  ConfirmWrapper,
-  ConfirmDialogTitle,
-  CloseIconButton,
-  Content,
   Actions,
+  CloseIconButton,
+  ConfirmDialog,
+  ConfirmDialogTitle,
+  ConfirmWrapper,
+  Content,
 } from './ConfirmDialog';

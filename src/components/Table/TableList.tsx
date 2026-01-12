@@ -1,4 +1,4 @@
-import { styled, Table, TableProps } from '@mui/material';
+import { Table, TableProps, styled } from '@mui/material';
 
 interface TableListProps extends TableProps {
   className?: string;

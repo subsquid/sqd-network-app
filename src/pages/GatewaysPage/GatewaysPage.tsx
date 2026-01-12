@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import { FormikSelect } from '@components/Form';
-import { SourceWalletOption } from '@components/SourceWallet';
+
 import { dateFormat } from '@i18n';
-import { numberWithCommasFormatter, tokenFormatter } from '@lib/formatters/formatters';
-import { fromSqd } from '@lib/network';
+import { CenteredPageWrapper } from '@layouts/NetworkLayout';
 import { ExpandMore, Info } from '@mui/icons-material';
 import {
   Alert,
@@ -27,18 +25,24 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { ColumnLabel, ColumnValue } from '@pages/DashboardPage/Summary';
 import { Link, Outlet } from 'react-router-dom';
 
+import { useStakeInfo } from '@api/contracts/useStakeInfo';
 import { useMyGatewaysQuery } from '@api/subsquid-network-squid';
+import { Card } from '@components/Card';
 import { SquaredChip } from '@components/Chip';
+import { FormikSelect } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
+import { SectionHeader } from '@components/SectionHeader';
+import { SourceWalletOption } from '@components/SourceWallet';
 import { DashboardTable, NoItems } from '@components/Table';
+import { SourceProvider, useSourceContext } from '@contexts/SourceContext';
 import { useCountdown } from '@hooks/useCountdown';
-import { CenteredPageWrapper } from '@layouts/NetworkLayout';
+import { numberWithCommasFormatter, tokenFormatter } from '@lib/formatters/formatters';
+import { fromSqd } from '@lib/network';
 import { ConnectedWalletRequired } from '@network/ConnectedWalletRequired';
 import { useContracts } from '@network/useContracts';
-import { ColumnLabel, ColumnValue } from '@pages/DashboardPage/Summary';
-import { SourceProvider, useSourceContext } from '@contexts/SourceContext';
 
 import { AddGatewayButton } from './AddNewGateway';
 import { AutoExtension } from './AutoExtension';
@@ -46,9 +50,6 @@ import { GatewayName } from './GatewayName';
 import { GatewayStakeButton } from './GatewayStake';
 import { GatewayUnregisterButton } from './GatewayUnregister';
 import { GatewayUnstakeButton } from './GatewayUnstake';
-import { useStakeInfo } from '@api/contracts/useStakeInfo';
-import { SectionHeader } from '@components/SectionHeader';
-import { Card } from '@components/Card';
 
 function AppliesTooltip({ timestamp }: { timestamp?: string }) {
   const timeLeft = useCountdown({ timestamp });

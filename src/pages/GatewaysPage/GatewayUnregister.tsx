@@ -1,3 +1,9 @@
+import { useState } from 'react';
+
+import { Button, SxProps } from '@mui/material';
+import toast from 'react-hot-toast';
+import { useClient } from 'wagmi';
+
 import { gatewayRegistryAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
@@ -6,11 +12,7 @@ import { ContractCallDialog } from '@components/ContractCallDialog';
 import { useSourceContext } from '@contexts/SourceContext';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { peerIdToHex } from '@lib/network';
-import { Button, SxProps } from '@mui/material';
 import { useContracts } from '@network/useContracts';
-import { useState } from 'react';
-import toast from 'react-hot-toast';
-import { useClient } from 'wagmi';
 
 export function GatewayUnregisterButton({
   gateway,

@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 
-import { calculateCapacity, type CapacityInfo } from '../utils/poolUtils';
-
+import { type CapacityInfo, calculateCapacity } from '../utils/poolUtils';
 import { usePoolData } from './usePoolData';
 import { usePoolUserData } from './usePoolUserData';
 

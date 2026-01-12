@@ -1,6 +1,6 @@
 import { isArray, isDate, mapValues, pickBy } from 'lodash-es';
 import qs from 'qs';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Location {

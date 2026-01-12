@@ -1,11 +1,11 @@
-import { IconButton, Stack, styled, Typography, useTheme } from '@mui/material';
+import { EditIcon } from '@icons/EditIcon';
+import { IconButton, Stack, Typography, styled, useTheme } from '@mui/material';
 import { Box } from '@mui/system';
 import { Link } from 'react-router-dom';
 
 import { GatewayFragmentFragment } from '@api/subsquid-network-squid';
 import { Avatar } from '@components/Avatar';
 import { CopyToClipboard } from '@components/CopyToClipboard';
-import { EditIcon } from '@icons/EditIcon';
 
 export const PeerIdRow = styled(Box, {
   name: 'PeerIdRow',

@@ -1,7 +1,7 @@
 import { useSquid } from '@api/subsquid-network-squid/datasource';
 import { useAccount } from '@network/useAccount';
 
-import { useGatewayByPeerIdQuery, useMyGatewaysQuery, useMyGatewayStakesQuery } from './graphql';
+import { useGatewayByPeerIdQuery, useMyGatewayStakesQuery, useMyGatewaysQuery } from './graphql';
 
 // inherit API interface for internal class
 // export interface BlockchainGateway extends GatewayFragmentFragment {
