@@ -52,9 +52,8 @@ export function PoolStats({ poolId }: PoolStatsProps) {
 
   if (!pool) return null;
 
-  const currentTvl = fromSqd(pool.tvl.current);
+  const currentTvl = fromSqd(pool.tvl.total);
   const maxTvl = fromSqd(pool.tvl.max);
-  const tvlPercent = maxTvl.gt(0) ? currentTvl.div(maxTvl).times(100).toNumber() : 0;
 
   // APY = (Annual Rewards) / (Capacity in USD)
   // Since rewards are constant: Annual = Monthly × 12
