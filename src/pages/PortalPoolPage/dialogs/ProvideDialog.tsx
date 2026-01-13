@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { Alert, Button, Chip, Divider, Stack, Tooltip, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
+import BigNumber from 'bignumber.js';
 import { useFormik } from 'formik';
 import toast from 'react-hot-toast';
 import * as yup from 'yup';
@@ -15,9 +16,10 @@ import { FormRow, FormikSelect, FormikTextInput } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { SourceWalletOption } from '@components/SourceWallet';
 import { tokenFormatter } from '@lib/formatters/formatters';
-import { fromSqd, toSqd } from '@lib/network';
-import { useAccount } from '@network/useAccount';
+import { toSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
+
+import { useRewardToken } from '@hooks/useRewardToken';
 
 import { usePoolCapacity, usePoolData, usePoolUserData } from '../hooks';
 import { calculateExpectedMonthlyPayout, invalidatePoolQueries } from '../utils/poolUtils';
@@ -29,10 +31,8 @@ interface ProvideDialogProps {
 }
 
 const createValidationSchema = (
-  maxAmount: string,
-  userRemainingCapacity: number,
-  poolRemainingCapacity: number,
-  maxDepositPerAddress: number,
+  userRemainingCapacity: BigNumber,
+  poolRemainingCapacity: BigNumber,
   sqdToken: string,
 ) =>
   yup.object({
@@ -40,31 +40,30 @@ const createValidationSchema = (
       .string()
       .required('Amount is required')
       .test('positive', 'Amount must be positive', value => {
-        const num = parseFloat(value || '0');
-        return num > 0;
+        return BigNumber(value || '0').gt(0);
       })
       .test('max', function (value) {
-        const num = parseFloat(value || '0');
-        const max = parseFloat(this.parent.max || '0');
+        const amount = BigNumber(value || '0');
 
-        if (num <= max) return true;
-
-        if (userRemainingCapacity < poolRemainingCapacity) {
+        if (amount.gt(userRemainingCapacity)) {
           return this.createError({
-            message: `You have reached the maximum deposit limit of ${maxDepositPerAddress.toLocaleString()} ${sqdToken}`,
+            message: `You have reached the maximum deposit limit`,
           });
-        } else {
+        }
+
+        if (amount.gt(poolRemainingCapacity)) {
           return this.createError({
             message: `Pool is at maximum capacity`,
           });
         }
+
+        return true;
       }),
-    max: yup.string().required(),
   });
 
 interface ProvideDialogContentProps {
   poolId: string;
-  formik: ReturnType<typeof useFormik<{ amount: string; max: string }>>;
+  formik: ReturnType<typeof useFormik<{ amount: string }>>;
 }
 
 function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
@@ -72,47 +71,27 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
   const { data: pool } = usePoolData(poolId);
   const { data: userData } = usePoolUserData(poolId);
   const capacity = usePoolCapacity(poolId);
-
-  const { address } = useAccount();
   const { data: sources } = useMySources();
+  const { data: rewardToken } = useRewardToken();
 
-  const {
-    maxDepositPerAddress,
-    currentUserBalance,
-    userRemainingCapacity,
-    currentPoolTvl,
-    poolRemainingCapacity,
-  } = capacity || {};
-
-  const isDepositPhase = pool?.phase === 'collecting';
-  const isPoolFull = poolRemainingCapacity === 0;
-  const isUserAtLimit = userRemainingCapacity === 0;
-
-  const typedAmount = parseFloat(formik.values.amount || '0');
-  const maxAllowedDeposit = parseFloat(formik.values.max || '0');
-
-  const expectedUserDelegation = useMemo(
-    () => (currentUserBalance || 0) + typedAmount,
-    [currentUserBalance, typedAmount],
-  );
-  const expectedTotalDelegation = useMemo(
-    () => (currentPoolTvl || 0) + typedAmount,
-    [currentPoolTvl, typedAmount],
-  );
-
-  const actualDepositAmount = Math.min(typedAmount, maxAllowedDeposit);
-  const cappedUserDelegation = (currentUserBalance || 0) + actualDepositAmount;
-
-  const userExpectedMonthlyPayout = useMemo(
-    () => (pool ? calculateExpectedMonthlyPayout(pool, cappedUserDelegation) : 0),
-    [pool, cappedUserDelegation],
-  );
+  const typedAmount = useMemo(() => BigNumber(formik.values.amount || '0'), [formik.values.amount]);
 
   const handleMaxClick = useCallback(() => {
-    formik.setFieldValue('amount', formik.values.max);
-  }, [formik]);
+    if (capacity) formik.setFieldValue('amount', capacity.effectiveMax.toString());
+  }, [formik, capacity]);
 
-  if (!pool) return null;
+  if (!pool || !capacity) return null;
+
+  const isDepositPhase = pool.phase === 'collecting';
+  const isPoolFull = capacity.poolRemainingCapacity.isZero();
+  const isUserAtLimit = capacity.userRemainingCapacity.isZero();
+
+  const expectedUserDelegation = capacity.currentUserBalance.plus(typedAmount);
+  const expectedTotalDelegation = capacity.currentPoolTvl.plus(typedAmount);
+  const cappedUserDelegation = capacity.currentUserBalance.plus(
+    BigNumber.min(typedAmount, capacity.effectiveMax),
+  );
+  const userExpectedMonthlyPayout = calculateExpectedMonthlyPayout(pool, cappedUserDelegation);
 
   return (
     <Stack spacing={2.5}>
@@ -136,7 +115,7 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
       {!isPoolFull && isUserAtLimit && (
         <Alert severity="info">
           You have reached the maximum deposit limit of{' '}
-          {tokenFormatter(fromSqd(pool.maxDepositPerAddress), SQD_TOKEN, 0)}.
+          {tokenFormatter(pool.maxDepositPerAddress, SQD_TOKEN, 0)}.
         </Alert>
       )}
 
@@ -162,11 +141,14 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
           autoComplete="off"
           placeholder="0"
           disabled={isPoolFull || isUserAtLimit}
+          helperText={`Maximum deposit limit: ${tokenFormatter(capacity.effectiveMax, SQD_TOKEN, 0)}`}
           InputProps={{
             endAdornment: (
               <Chip
                 clickable
-                disabled={isPoolFull || isUserAtLimit || formik.values.max === formik.values.amount}
+                disabled={
+                  isPoolFull || isUserAtLimit || capacity.effectiveMax.eq(formik.values.amount)
+                }
                 onClick={handleMaxClick}
                 label="Max"
               />
@@ -181,18 +163,18 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
         <Stack direction="row" justifyContent="space-between">
           <Typography variant="body2">Total Delegation</Typography>
           <Typography variant="body2">
-            {typedAmount > 0
-              ? `${currentPoolTvl?.toLocaleString(undefined, { maximumFractionDigits: 0 }) || '0'} → ${expectedTotalDelegation.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${SQD_TOKEN}`
-              : tokenFormatter(fromSqd(pool.tvl.current), SQD_TOKEN, 0)}
+            {typedAmount.gt(0)
+              ? `${tokenFormatter(capacity.currentPoolTvl, '', 0).trim()} → ${tokenFormatter(expectedTotalDelegation, SQD_TOKEN, 0)}`
+              : tokenFormatter(pool.tvl.current, SQD_TOKEN, 0)}
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">
           <Typography variant="body2">Your Delegation</Typography>
           <Typography variant="body2">
-            {typedAmount > 0
-              ? `${currentUserBalance?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} → ${expectedUserDelegation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${SQD_TOKEN}`
+            {typedAmount.gt(0)
+              ? `${tokenFormatter(capacity.currentUserBalance, '', 2).trim()} → ${tokenFormatter(expectedUserDelegation, SQD_TOKEN, 2)}`
               : userData
-                ? tokenFormatter(fromSqd(userData.userBalance), SQD_TOKEN, 2)
+                ? tokenFormatter(userData.userBalance, SQD_TOKEN, 2)
                 : '0 SQD'}
           </Typography>
         </Stack>
@@ -202,9 +184,7 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
             <HelpTooltip title="Estimated monthly rewards based on your share of the pool at current APY." />
           </Stack>
           <Typography variant="body2">
-            {userExpectedMonthlyPayout > 0
-              ? `${userExpectedMonthlyPayout.toFixed(2)} USDC`
-              : '0.00 USDC'}
+            {tokenFormatter(userExpectedMonthlyPayout, rewardToken?.symbol ?? 'USDC', 2)}
           </Typography>
         </Stack>
       </Stack>
@@ -219,21 +199,18 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
   const { data: pool } = usePoolData(poolId);
   const capacity = usePoolCapacity(poolId);
 
-  const { effectiveMax, userRemainingCapacity, poolRemainingCapacity, maxDepositPerAddress } =
-    capacity || {};
+  const { userRemainingCapacity, poolRemainingCapacity, maxDepositPerAddress } = capacity || {};
 
   const validationSchema = useMemo(() => {
     return createValidationSchema(
-      effectiveMax?.toString() || '0',
-      userRemainingCapacity || 0,
-      poolRemainingCapacity || 0,
-      maxDepositPerAddress || 0,
+      userRemainingCapacity ?? BigNumber(0),
+      poolRemainingCapacity ?? BigNumber(0),
       SQD_TOKEN,
     );
-  }, [effectiveMax, userRemainingCapacity, poolRemainingCapacity, maxDepositPerAddress, SQD_TOKEN]);
+  }, [userRemainingCapacity, poolRemainingCapacity, SQD_TOKEN]);
 
   const handleSubmit = useCallback(
-    async (values: { amount: string; max: string }) => {
+    async (values: { amount: string }) => {
       if (!pool) return;
 
       try {
@@ -259,12 +236,10 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
   const formik = useFormik({
     initialValues: {
       amount: '',
-      max: effectiveMax?.toString() || '0',
     },
     validationSchema,
     validateOnChange: true,
     validateOnBlur: true,
-    enableReinitialize: true,
     onSubmit: handleSubmit,
   });
 
@@ -308,11 +283,11 @@ function LegalDialog({
 
   return (
     <ContractCallDialog
-      title="Legal Agreement"
+      title="Terms & Conditions"
       open={open}
       onResult={handleResult}
-      confirmButtonText="Accept"
-      cancelButtonText="Reject"
+      confirmButtonText="ACCEPT"
+      cancelButtonText="REJECT"
       hideCancelButton={false}
     >
       Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
@@ -335,7 +310,7 @@ export function ProvideButton({ poolId }: ProvideButtonProps) {
 
   const isDisabled = useMemo(() => {
     if (!pool) return true;
-    return pool.tvl.current >= pool.tvl.max;
+    return pool.tvl.current.gte(pool.tvl.max);
   }, [pool]);
 
   return (

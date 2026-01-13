@@ -14,7 +14,7 @@ import { errorMessage } from '@api/contracts/utils';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
 import { useRewardToken } from '@hooks/useRewardToken';
-import { fromSqd, toSqd } from '@lib/network';
+import { toSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
 import { usePoolData } from '../hooks';
@@ -45,7 +45,7 @@ export function EditCapacityDialog({ open, onClose, poolId }: EditCapacityDialog
 
   const initialCapacity = useMemo(() => {
     if (!pool) return '';
-    return fromSqd(pool.tvl.max).toString();
+    return pool.tvl.max.toString();
   }, [pool]);
 
   const formik = useFormik({

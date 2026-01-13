@@ -1,33 +1,34 @@
 import type { QueryClient } from '@tanstack/react-query';
-
-import { fromSqd } from '@lib/network';
+import BigNumber from 'bignumber.js';
 
 import type { PoolData, PoolPhase } from '../hooks/types';
 
 export interface CapacityInfo {
-  maxDepositPerAddress: number;
-  currentUserBalance: number;
-  userRemainingCapacity: number;
-  currentPoolTvl: number;
-  maxPoolCapacity: number;
-  poolRemainingCapacity: number;
-  effectiveMax: number;
+  maxDepositPerAddress: BigNumber;
+  currentUserBalance: BigNumber;
+  userRemainingCapacity: BigNumber;
+  currentPoolTvl: BigNumber;
+  maxPoolCapacity: BigNumber;
+  poolRemainingCapacity: BigNumber;
+  effectiveMax: BigNumber;
 }
 
-export function calculateCapacity(pool: PoolData, currentUserBalance: bigint = 0n): CapacityInfo {
-  const maxDepositPerAddress = fromSqd(pool.maxDepositPerAddress).toNumber();
-  const userBalance = fromSqd(currentUserBalance).toNumber();
-  const userRemainingCapacity = Math.max(0, maxDepositPerAddress - userBalance);
+export function calculateCapacity(
+  pool: PoolData,
+  currentUserBalance: BigNumber = BigNumber(0),
+): CapacityInfo {
+  const maxDepositPerAddress = pool.maxDepositPerAddress;
+  const userRemainingCapacity = BigNumber.max(0, maxDepositPerAddress.minus(currentUserBalance));
 
-  const currentPoolTvl = fromSqd(pool.tvl.current).toNumber();
-  const maxPoolCapacity = fromSqd(pool.tvl.max).toNumber();
-  const poolRemainingCapacity = Math.max(0, maxPoolCapacity - currentPoolTvl);
+  const currentPoolTvl = pool.tvl.current;
+  const maxPoolCapacity = pool.tvl.max;
+  const poolRemainingCapacity = BigNumber.max(0, maxPoolCapacity.minus(currentPoolTvl));
 
-  const effectiveMax = Math.min(userRemainingCapacity, poolRemainingCapacity);
+  const effectiveMax = BigNumber.min(userRemainingCapacity, poolRemainingCapacity);
 
   return {
     maxDepositPerAddress,
-    currentUserBalance: userBalance,
+    currentUserBalance,
     userRemainingCapacity,
     currentPoolTvl,
     maxPoolCapacity,
@@ -68,10 +69,10 @@ export function calculateApyOrZero(
   return calculateApy(monthlyPayoutUsd, tvlInSqd, sqdPrice) ?? 0;
 }
 
-export function calculateExpectedMonthlyPayout(pool: PoolData, userDelegation: number): number {
-  const maxPoolCapacity = fromSqd(pool.tvl.max).toNumber();
-  const payoutCoefficientPerSqd = maxPoolCapacity > 0 ? pool.monthlyPayoutUsd / maxPoolCapacity : 0;
-  return userDelegation * payoutCoefficientPerSqd;
+export function calculateExpectedMonthlyPayout(pool: PoolData, userDelegation: BigNumber): number {
+  const maxPoolCapacity = pool.tvl.max;
+  if (maxPoolCapacity.isZero()) return 0;
+  return userDelegation.div(maxPoolCapacity).times(pool.monthlyPayoutUsd).toNumber();
 }
 
 export function getPhaseColor(

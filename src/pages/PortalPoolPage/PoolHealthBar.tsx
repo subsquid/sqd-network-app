@@ -1,10 +1,11 @@
+import { useMemo } from 'react';
+
 import { dateFormat } from '@i18n';
 import { AccessTime, CheckCircle, Error, Warning } from '@mui/icons-material';
-import { alpha, Box, LinearProgress, Stack, Tooltip, Typography, useTheme } from '@mui/material';
+import { Box, LinearProgress, Stack, Tooltip, Typography, alpha, useTheme } from '@mui/material';
 
 import { useCountdown } from '@hooks/useCountdown';
 import { percentFormatter } from '@lib/formatters/formatters';
-import { fromSqd } from '@lib/network';
 
 import type { PoolData } from './hooks';
 import { usePoolData } from './hooks';
@@ -23,9 +24,43 @@ interface ProgressBarProps {
 
 function ProgressBar({ label, value, valueBuffer, color, threshold }: ProgressBarProps) {
   const theme = useTheme();
-  const visualProgress = Math.min(value, 100);
-  const bufferProgress = Math.min(valueBuffer || 0, 100);
-  const thresholdLine = Math.min(threshold || 0, 100);
+
+  const { visualProgress, bufferProgress, thresholdLine } = useMemo(
+    () => ({
+      visualProgress: Math.min(value, 100),
+      bufferProgress: Math.min(valueBuffer || 0, 100),
+      thresholdLine: Math.min(threshold || 0, 100),
+    }),
+    [value, valueBuffer, threshold],
+  );
+
+  const progressSx = useMemo(
+    () => ({
+      height: 10,
+      borderRadius: 1,
+      backgroundColor: 'action.hover',
+      '& .MuiLinearProgress-dashed': {
+        display: 'none',
+      },
+      '& .MuiLinearProgress-bar2': {
+        backgroundColor: alpha(theme.palette[color].main, 0.5),
+      },
+    }),
+    [theme, color],
+  );
+
+  const thresholdSx = useMemo(
+    () => ({
+      position: 'absolute',
+      left: `${thresholdLine}%`,
+      top: -2,
+      bottom: -2,
+      width: 2,
+      backgroundColor: theme.palette.text.disabled,
+      zIndex: 1,
+    }),
+    [thresholdLine, theme],
+  );
 
   return (
     <Box sx={{ flex: 1 }}>
@@ -50,31 +85,9 @@ function ProgressBar({ label, value, valueBuffer, color, threshold }: ProgressBa
           value={visualProgress}
           valueBuffer={bufferProgress}
           color={color}
-          sx={{
-            height: 10,
-            borderRadius: 1,
-            backgroundColor: 'action.hover',
-            '& .MuiLinearProgress-dashed': {
-              display: 'none',
-            },
-            '& .MuiLinearProgress-bar2': {
-              backgroundColor: alpha(theme.palette[color].main, 0.5),
-            },
-          }}
+          sx={progressSx}
         />
-        {!!thresholdLine && (
-          <Box
-            sx={{
-              position: 'absolute',
-              left: `${thresholdLine}%`,
-              top: -2,
-              bottom: -2,
-              width: 2,
-              backgroundColor: theme.palette.text.disabled,
-              zIndex: 1,
-            }}
-          />
-        )}
+        {!!thresholdLine && <Box sx={thresholdSx} />}
       </Box>
     </Box>
   );
@@ -123,18 +136,23 @@ function getCapacityStatus(
 
 // Shows activation progress during deposit window phase
 function ActivationProgress({ pool }: { pool: PoolData }) {
-  const current = fromSqd(pool.tvl.total).toNumber();
-  const max = fromSqd(pool.tvl.max).toNumber();
-  const progress = (current / max) * 100;
   const timeRemaining = useCountdown({ timestamp: pool.depositWindowEndsAt });
 
-  const label = (
-    <Tooltip title={dateFormat(pool.depositWindowEndsAt, 'dateTime')}>
-      <Stack direction="row" alignItems="center" spacing={0.5}>
-        <AccessTime sx={{ fontSize: 16 }} />
-        <span>{timeRemaining || 'Deposit Window'}</span>
-      </Stack>
-    </Tooltip>
+  const progress = useMemo(
+    () => pool.tvl.total.div(pool.tvl.max).times(100).toNumber(),
+    [pool.tvl.total, pool.tvl.max],
+  );
+
+  const label = useMemo(
+    () => (
+      <Tooltip title={dateFormat(pool.depositWindowEndsAt, 'dateTime')}>
+        <Stack direction="row" alignItems="center" spacing={0.5}>
+          <AccessTime sx={{ fontSize: 16 }} />
+          <span>{timeRemaining || 'Deposit Window'}</span>
+        </Stack>
+      </Tooltip>
+    ),
+    [pool.depositWindowEndsAt, timeRemaining],
   );
 
   return <ProgressBar label={label} value={progress} color="info" />;
@@ -142,25 +160,27 @@ function ActivationProgress({ pool }: { pool: PoolData }) {
 
 // Shows capacity usage when pool is active
 function CapacityUsage({ pool }: { pool: PoolData }) {
-  const current = fromSqd(pool.tvl.current);
-  const total = fromSqd(pool.tvl.total);
-  const max = fromSqd(pool.tvl.max);
-  const min = fromSqd(pool.tvl.min);
+  const { usagePercent, totalUsagePercent, threshold } = useMemo(
+    () => ({
+      usagePercent: pool.tvl.current.div(pool.tvl.max).times(100).toNumber(),
+      totalUsagePercent: pool.tvl.total.div(pool.tvl.max).times(100).toNumber(),
+      threshold: pool.tvl.min.div(pool.tvl.max).times(100).toNumber(),
+    }),
+    [pool.tvl.current, pool.tvl.total, pool.tvl.max, pool.tvl.min],
+  );
 
-  const usagePercent = current.div(max).times(100).toNumber();
-  const totalUsagePercent = total.div(max).times(100).toNumber();
-  const threshold = min.div(max).times(100).toNumber();
-  const status = getCapacityStatus(pool, usagePercent);
+  const status = useMemo(() => getCapacityStatus(pool, usagePercent), [pool, usagePercent]);
 
-  const label = status.color === 'success' ? null : (
-    <Tooltip title={status.description} arrow>
-      <Stack direction="row" alignItems="center" spacing={0.5}>
-        {status.icon}
-        {/* <Typography variant="body2" color={`${status.color}.main`}>
-          {status.text}
-        </Typography> */}
-      </Stack>
-    </Tooltip>
+  const label = useMemo(
+    () =>
+      status.color === 'success' ? null : (
+        <Tooltip title={status.description} arrow>
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            {status.icon}
+          </Stack>
+        </Tooltip>
+      ),
+    [status],
   );
 
   return (

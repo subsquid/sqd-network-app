@@ -1,11 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { Box, Skeleton, ToggleButton, ToggleButtonGroup } from '@mui/material';
 
 import { useHistoricalTokenPrices } from '@api/price';
 import { Card } from '@components/Card';
 import { LineChart, SharedCursorProvider } from '@components/Chart';
-import { fromSqd } from '@lib/network';
 
 import { usePoolData } from './hooks';
 import { calculateApyOrZero } from './utils/poolUtils';
@@ -35,14 +34,22 @@ export function PoolYieldChart({ poolId }: PoolYieldChartProps) {
   const { data: pool } = usePoolData(poolId);
   const [period, setPeriod] = useState<TimePeriod>('1m');
 
-  const monthlyPayoutUsd = pool?.monthlyPayoutUsd ?? 0;
-  const tvlInSqd = pool ? fromSqd(pool.tvl.max).toNumber() : 0;
+  const { monthlyPayoutUsd, tvlInSqd } = useMemo(
+    () => ({
+      monthlyPayoutUsd: pool?.monthlyPayoutUsd ?? 0,
+      tvlInSqd: pool ? pool.tvl.max.toNumber() : 0,
+    }),
+    [pool],
+  );
 
-  const handlePeriodChange = (_: React.MouseEvent<HTMLElement>, newPeriod: TimePeriod | null) => {
-    if (newPeriod) {
-      setPeriod(newPeriod);
-    }
-  };
+  const handlePeriodChange = useCallback(
+    (_: React.MouseEvent<HTMLElement>, newPeriod: TimePeriod | null) => {
+      if (newPeriod) {
+        setPeriod(newPeriod);
+      }
+    },
+    [],
+  );
 
   const range = useMemo(
     () => getTimeRangeFromPeriod(pool?.createdAt || new Date(0), period),

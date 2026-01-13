@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { useReadContracts } from 'wagmi';
 
 import { portalPoolAbi } from '@api/contracts';
-import { unwrapMulticallResult } from '@lib/network';
+import { fromSqd, unwrapMulticallResult } from '@lib/network';
 import { useAccount } from '@network/useAccount';
 
 import type { PoolUserData } from './types';
@@ -37,7 +37,7 @@ export function usePoolUserData(poolId?: string) {
       unwrapMulticallResult(contractData?.[0]) || [0n, 0n, 0n, 0n, false, 0n, 0n];
 
     return {
-      userBalance: userStake,
+      userBalance: fromSqd(userStake),
       userRewards,
     };
   }, [poolId, address, contractData]);

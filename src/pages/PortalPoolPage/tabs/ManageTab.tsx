@@ -9,7 +9,6 @@ import { Card } from '@components/Card';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { useRewardToken } from '@hooks/useRewardToken';
 import { tokenFormatter } from '@lib/formatters/formatters';
-import { fromSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
 import { EditCapacityButton, EditDistributionRateButton } from '../dialogs/EditSettingsDialog';
@@ -39,11 +38,18 @@ export function ManageTab({ poolId }: ManageTabProps) {
     return pool.phase !== 'collecting' && pool.phase !== 'debt' && pool.phase !== 'failed';
   }, [pool?.phase]);
 
-  if (!pool) return null;
+  const { rewardDecimals, rewardSymbol, formattedBalance } = useMemo(
+    () => ({
+      rewardDecimals: rewardToken?.decimals ?? 6,
+      rewardSymbol: rewardToken?.symbol ?? 'USDC',
+      formattedBalance: rewardBalance
+        ? formatUnits(rewardBalance, rewardToken?.decimals ?? 6)
+        : '0',
+    }),
+    [rewardToken, rewardBalance],
+  );
 
-  const rewardDecimals = rewardToken?.decimals ?? 6;
-  const rewardSymbol = rewardToken?.symbol ?? 'USDC';
-  const formattedBalance = rewardBalance ? formatUnits(rewardBalance, rewardDecimals) : '0';
+  if (!pool) return null;
 
   return (
     <Stack spacing={2}>
@@ -100,7 +106,7 @@ export function ManageTab({ poolId }: ManageTabProps) {
               </Typography>
               <Typography>
                 <Stack direction="row" alignItems="center" spacing={0.5}>
-                  <span>{tokenFormatter(fromSqd(pool.tvl.max), SQD_TOKEN, 0)}</span>
+                  <span>{tokenFormatter(pool.tvl.max, SQD_TOKEN, 0)}</span>
                   <EditCapacityButton poolId={poolId} disabled={!canEdit} />
                 </Stack>
               </Typography>

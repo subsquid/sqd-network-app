@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 
+import BigNumber from 'bignumber.js';
+
 import { type CapacityInfo, calculateCapacity } from '../utils/poolUtils';
 import { usePoolData } from './usePoolData';
 import { usePoolUserData } from './usePoolUserData';
@@ -14,6 +16,6 @@ export function usePoolCapacity(poolId?: string): CapacityInfo | null {
 
   return useMemo(() => {
     if (!pool) return null;
-    return calculateCapacity(pool, userData?.userBalance);
+    return calculateCapacity(pool, userData?.userBalance ?? BigNumber(0));
   }, [pool, userData?.userBalance]);
 }

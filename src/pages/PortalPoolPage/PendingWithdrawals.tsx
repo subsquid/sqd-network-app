@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import {
   Box,
@@ -20,7 +20,6 @@ import { HelpTooltip } from '@components/HelpTooltip';
 import { DashboardTable, NoItems } from '@components/Table';
 import { useCountdown } from '@hooks/useCountdown';
 import { tokenFormatter } from '@lib/formatters/formatters';
-import { fromSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
 import type { PendingWithdrawal } from './hooks';
@@ -48,7 +47,7 @@ function WithdrawalRow({
   return (
     <TableRow>
       <TableCell>{Number(withdrawal.id) + 1}</TableCell>
-      <TableCell>{tokenFormatter(fromSqd(withdrawal.amount), SQD_TOKEN, 2)}</TableCell>
+      <TableCell>{tokenFormatter(withdrawal.amount, SQD_TOKEN, 2)}</TableCell>
       <TableCell>{timeLeft}</TableCell>
       <TableCell>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -117,25 +116,26 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
   const { writeTransactionAsync } = useWriteSQDTransaction();
   const { data: pendingWithdrawals = [] } = usePoolPendingWithdrawals(poolId);
 
-  const handleClaim = async (withdrawalId: string) => {
-    setClaimingId(withdrawalId);
-    try {
-      await writeTransactionAsync({
-        address: poolId as `0x${string}`,
-        abi: portalPoolAbi,
-        functionName: 'withdrawExit',
-        args: [BigInt(withdrawalId)],
-      });
-    } catch (error) {
-      // Error is already handled by useWriteSQDTransaction
-    } finally {
-      setClaimingId(null);
-    }
-  };
+  const handleClaim = useCallback(
+    async (withdrawalId: string) => {
+      setClaimingId(withdrawalId);
+      try {
+        await writeTransactionAsync({
+          address: poolId as `0x${string}`,
+          abi: portalPoolAbi,
+          functionName: 'withdrawExit',
+          args: [BigInt(withdrawalId)],
+        });
+      } catch (error) {
+        // Error is already handled by useWriteSQDTransaction
+      } finally {
+        setClaimingId(null);
+      }
+    },
+    [poolId, writeTransactionAsync],
+  );
 
   if (!pool) return null;
-
-  const readyCount = pendingWithdrawals.length;
 
   return (
     <Box>

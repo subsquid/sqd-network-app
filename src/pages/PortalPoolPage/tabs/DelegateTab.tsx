@@ -11,7 +11,6 @@ import { Card } from '@components/Card';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { useRewardToken } from '@hooks/useRewardToken';
 import { dollarFormatter, tokenFormatter } from '@lib/formatters/formatters';
-import { fromSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
 import { ProvideButton } from '../dialogs/ProvideDialog';
@@ -32,15 +31,20 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
   const queryClient = useQueryClient();
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
 
-  const balance = userData ? fromSqd(userData.userBalance) : BigNumber(0);
+  const balance = userData?.userBalance ?? BigNumber(0);
   const balanceInUsd = sqdPrice ? balance.toNumber() * sqdPrice : undefined;
 
-  const rewards = userData
-    ? new BigNumber(userData.userRewards.toString()).div(10 ** (rewardToken?.decimals ?? 6))
-    : BigNumber(0);
+  const rewards = useMemo(
+    () =>
+      userData
+        ? new BigNumber(userData.userRewards.toString()).div(10 ** (rewardToken?.decimals ?? 6))
+        : BigNumber(0),
+    [userData, rewardToken?.decimals],
+  );
 
   const dailyRewardRate = useMemo(() => {
-    if (!pool || !userData || !pool.tvl.current || pool.phase !== 'active') return BigNumber(0);
+    if (!pool || !userData || pool.tvl.current.isZero() || pool.phase !== 'active')
+      return BigNumber(0);
 
     // Calculate daily distribution rate: rate per second * seconds in a day / decimals
     const dailyDistribution = new BigNumber(pool.distributionRatePerSecond.toString())
@@ -49,7 +53,7 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
       .div(10 ** (rewardToken?.decimals ?? 6));
 
     // Calculate user's share of daily rewards: daily rate * (user balance / total active stake)
-    const userShare = balance.div(fromSqd(pool.tvl.total));
+    const userShare = balance.div(pool.tvl.total);
 
     return dailyDistribution.multipliedBy(userShare);
   }, [pool, userData, balance, rewardToken?.decimals]);

@@ -1,3 +1,5 @@
+import type BigNumber from 'bignumber.js';
+
 // Pool phases:
 // - 'collecting': Pool created, users depositing, portal inactive
 // - 'active': Base (1M SQD) + 20% buffer reached, portal operating
@@ -13,7 +15,7 @@ export interface PoolOperator {
 
 export interface PendingWithdrawal {
   id: string;
-  amount: bigint;
+  amount: BigNumber;
   estimatedCompletionAt: Date;
 }
 
@@ -22,6 +24,13 @@ export interface WithdrawalQueue {
   windowUsed: bigint;
   windowDuration: string;
   windowResetIn?: string;
+}
+
+export interface PoolTvl {
+  current: BigNumber;
+  total: BigNumber;
+  max: BigNumber;
+  min: BigNumber;
 }
 
 export interface PoolData {
@@ -33,15 +42,10 @@ export interface PoolData {
   phase: PoolPhase;
   monthlyPayoutUsd: number;
   distributionRatePerSecond: bigint;
-  tvl: {
-    current: bigint;
-    total: bigint;
-    max: bigint;
-    min: bigint;
-  };
+  tvl: PoolTvl;
   depositWindowEndsAt?: Date;
   withdrawalQueue: WithdrawalQueue;
-  maxDepositPerAddress: bigint;
+  maxDepositPerAddress: BigNumber;
   withdrawWaitTime?: string;
   lptTokenSymbol: string;
   lptToken: string;
@@ -49,6 +53,6 @@ export interface PoolData {
 }
 
 export interface PoolUserData {
-  userBalance: bigint;
+  userBalance: BigNumber;
   userRewards: bigint;
 }

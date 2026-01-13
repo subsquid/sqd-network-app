@@ -3,6 +3,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { dateFormat } from '@i18n';
 import { Button, Chip, Divider, Stack, Tooltip, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
+import BigNumber from 'bignumber.js';
 import { useFormik } from 'formik';
 import toast from 'react-hot-toast';
 import { useReadContract } from 'wagmi';
@@ -15,8 +16,10 @@ import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { tokenFormatter } from '@lib/formatters/formatters';
-import { fromSqd, toSqd } from '@lib/network';
+import { toSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
+
+import { useRewardToken } from '@hooks/useRewardToken';
 
 import { usePoolCapacity, usePoolData, usePoolUserData } from '../hooks';
 import { calculateExpectedMonthlyPayout, invalidatePoolQueries } from '../utils/poolUtils';
@@ -27,26 +30,22 @@ interface WithdrawDialogProps {
   poolId: string;
 }
 
-const createValidationSchema = (maxAmount: string) =>
+const createValidationSchema = (maxWithdraw: BigNumber) =>
   yup.object({
     amount: yup
       .string()
       .required('Amount is required')
       .test('positive', 'Amount must be positive', value => {
-        const num = parseFloat(value || '0');
-        return num > 0;
+        return BigNumber(value || '0').gt(0);
       })
-      .test('max', `Insufficient balance`, function (value) {
-        const num = parseFloat(value || '0');
-        const max = parseFloat(this.parent.max || '0');
-        return num <= max;
+      .test('max', `Insufficient balance`, value => {
+        return BigNumber(value || '0').lte(maxWithdraw);
       }),
-    max: yup.string().required(),
   });
 
 interface WithdrawDialogContentProps {
   poolId: string;
-  formik: ReturnType<typeof useFormik<{ amount: string; max: string }>>;
+  formik: ReturnType<typeof useFormik<{ amount: string }>>;
 }
 
 function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
@@ -54,41 +53,32 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
   const { data: pool } = usePoolData(poolId);
   const { data: userData } = usePoolUserData(poolId);
   const capacity = usePoolCapacity(poolId);
+  const { data: rewardToken } = useRewardToken();
 
-  const { currentUserBalance, currentPoolTvl } = capacity || {};
-
-  const typedAmount = parseFloat(formik.values.amount || '0');
-
-  const expectedUserDelegation = useMemo(
-    () => Math.max(0, (currentUserBalance || 0) - typedAmount),
-    [currentUserBalance, typedAmount],
-  );
-
-  const expectedTotalDelegation = useMemo(
-    () => Math.max(0, (currentPoolTvl || 0) - typedAmount),
-    [currentPoolTvl, typedAmount],
-  );
-
-  const userExpectedMonthlyPayout = useMemo(
-    () => (pool ? calculateExpectedMonthlyPayout(pool, expectedUserDelegation) : 0),
-    [pool, expectedUserDelegation],
-  );
+  const typedAmount = useMemo(() => BigNumber(formik.values.amount || '0'), [formik.values.amount]);
 
   const { data: withdrawalWaitingTimestamp } = useReadContract({
     address: poolId as `0x${string}`,
     abi: portalPoolAbi,
     functionName: 'getWithdrawalWaitingTimestamp',
-    args: [BigInt(toSqd(typedAmount))],
+    args: [BigInt(toSqd(typedAmount.toNumber()))],
     query: {
-      enabled: !!poolId && !!typedAmount,
+      enabled: !!poolId && typedAmount.gt(0),
     },
   });
 
   const handleMaxClick = useCallback(() => {
-    formik.setFieldValue('amount', formik.values.max);
-  }, [formik]);
+    if (userData) formik.setFieldValue('amount', userData.userBalance.toString());
+  }, [formik, userData]);
 
-  if (!pool) return null;
+  if (!pool || !capacity || !userData) return null;
+
+  const expectedUserDelegation = BigNumber.max(
+    0,
+    capacity.currentUserBalance.minus(typedAmount),
+  );
+  const expectedTotalDelegation = BigNumber.max(0, capacity.currentPoolTvl.minus(typedAmount));
+  const userExpectedMonthlyPayout = calculateExpectedMonthlyPayout(pool, expectedUserDelegation);
 
   return (
     <Stack spacing={2.5}>
@@ -104,7 +94,7 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
             endAdornment: (
               <Chip
                 clickable
-                disabled={formik.values.max === formik.values.amount}
+                disabled={userData.userBalance.eq(formik.values.amount)}
                 onClick={handleMaxClick}
                 label="Max"
               />
@@ -119,27 +109,25 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
         <Stack direction="row" justifyContent="space-between">
           <Typography variant="body2">Total Delegation</Typography>
           <Typography variant="body2">
-            {typedAmount > 0
-              ? `${currentPoolTvl?.toLocaleString(undefined, { maximumFractionDigits: 0 })} → ${expectedTotalDelegation.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${SQD_TOKEN}`
-              : tokenFormatter(fromSqd(pool.tvl.current), SQD_TOKEN, 0)}
+            {typedAmount.gt(0)
+              ? `${tokenFormatter(capacity.currentPoolTvl, '', 0).trim()} → ${tokenFormatter(expectedTotalDelegation, SQD_TOKEN, 0)}`
+              : tokenFormatter(pool.tvl.current, SQD_TOKEN, 0)}
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">
           <Typography variant="body2">Your Delegation</Typography>
           <Typography variant="body2">
-            {typedAmount > 0
-              ? `${currentUserBalance?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} → ${expectedUserDelegation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${SQD_TOKEN}`
+            {typedAmount.gt(0)
+              ? `${tokenFormatter(capacity.currentUserBalance, '', 2).trim()} → ${tokenFormatter(expectedUserDelegation, SQD_TOKEN, 2)}`
               : userData
-                ? tokenFormatter(fromSqd(userData.userBalance), SQD_TOKEN, 2)
+                ? tokenFormatter(userData.userBalance, SQD_TOKEN, 2)
                 : '0 SQD'}
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">
           <Typography variant="body2">Expected Monthly Payout</Typography>
           <Typography variant="body2">
-            {userExpectedMonthlyPayout > 0
-              ? `${userExpectedMonthlyPayout.toFixed(2)} USDC`
-              : '0.00 USDC'}
+            {tokenFormatter(userExpectedMonthlyPayout, rewardToken?.symbol ?? 'USDC', 2)}
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">
@@ -166,18 +154,12 @@ export function WithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
   const { data: userData } = usePoolUserData(poolId);
 
-  const maxWithdraw = useMemo(
-    () => (userData ? fromSqd(userData.userBalance).toNumber() : 0),
-    [userData],
-  );
+  const maxWithdraw = userData?.userBalance ?? BigNumber(0);
 
-  const validationSchema = useMemo(
-    () => createValidationSchema(maxWithdraw.toString()),
-    [maxWithdraw],
-  );
+  const validationSchema = useMemo(() => createValidationSchema(maxWithdraw), [maxWithdraw]);
 
   const handleSubmit = useCallback(
-    async (values: { amount: string; max: string }) => {
+    async (values: { amount: string }) => {
       try {
         const sqdAmount = BigInt(toSqd(values.amount));
 
@@ -200,12 +182,10 @@ export function WithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
   const formik = useFormik({
     initialValues: {
       amount: '',
-      max: maxWithdraw.toString(),
     },
     validationSchema,
     validateOnChange: true,
     validateOnBlur: true,
-    enableReinitialize: true,
     onSubmit: handleSubmit,
   });
 
@@ -240,10 +220,7 @@ export function WithdrawButton({ poolId }: WithdrawButtonProps) {
   const { data: pool } = usePoolData(poolId);
   const { data: userData } = usePoolUserData(poolId);
 
-  const hasBalance = useMemo(
-    () => (userData ? userData.userBalance > BigInt(0) : false),
-    [userData],
-  );
+  const hasBalance = useMemo(() => (userData ? userData.userBalance.gt(0) : false), [userData]);
 
   const handleOpen = useCallback(() => setDialogOpen(true), []);
   const handleClose = useCallback(() => setDialogOpen(false), []);

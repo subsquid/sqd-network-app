@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useMemo } from 'react';
 
 import { Avatar, Box, Link, Stack, Typography } from '@mui/material';
 
@@ -11,7 +11,6 @@ import {
   percentFormatter,
   tokenFormatter,
 } from '@lib/formatters/formatters';
-import { fromSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
 import { usePoolData } from './hooks';
@@ -50,15 +49,16 @@ export function PoolStats({ poolId }: PoolStatsProps) {
   const { data: sqdPrice } = useTokenPrice({ address: SQD });
   const { address: rewardTokenAddress, data: rewardToken } = useRewardToken();
 
-  if (!pool) return null;
-
-  const currentTvl = fromSqd(pool.tvl.total);
-  const maxTvl = fromSqd(pool.tvl.max);
-
   // APY = (Annual Rewards) / (Capacity in USD)
   // Since rewards are constant: Annual = Monthly × 12
-  const calculatedApyRatio = calculateApy(pool.monthlyPayoutUsd, maxTvl.toNumber(), sqdPrice) || 0;
-  const displayApy = calculatedApyRatio * 100;
+  const displayApy = useMemo(() => {
+    if (!pool) return 0;
+    const calculatedApyRatio =
+      calculateApy(pool.monthlyPayoutUsd, pool.tvl.max.toNumber(), sqdPrice) || 0;
+    return calculatedApyRatio * 100;
+  }, [pool, sqdPrice]);
+
+  if (!pool) return null;
 
   const apyTooltip =
     'APY = (Monthly Payout × 12) / (Max Pool Capacity × SQD Price)\nCalculated using current SQD price.';
@@ -76,10 +76,10 @@ export function PoolStats({ poolId }: PoolStatsProps) {
           value={
             <Stack direction="row" alignItems="baseline" spacing={0.5} flexWrap="wrap">
               <Typography variant="h6" component="span">
-                {numberCompactFormatter(currentTvl.toNumber())}
+                {numberCompactFormatter(pool.tvl.total.toNumber())}
               </Typography>
               <Typography variant="h6" component="span">
-                / {numberCompactFormatter(maxTvl.toNumber())} {SQD_TOKEN}
+                / {numberCompactFormatter(pool.tvl.max.toNumber())} {SQD_TOKEN}
               </Typography>
             </Stack>
           }

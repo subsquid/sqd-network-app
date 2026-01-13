@@ -1,3 +1,5 @@
+import { useCallback } from 'react';
+
 import { dateFormat } from '@i18n';
 import {
   LanguageOutlined as ExplorerIcon,
@@ -26,7 +28,7 @@ export function InfoTab({ poolId }: InfoTabProps) {
   const { watchAssetAsync } = useWatchAsset();
   const explorer = useExplorer();
 
-  const handleAddTokenToWallet = async () => {
+  const handleAddTokenToWallet = useCallback(async () => {
     if (!pool) return;
 
     try {
@@ -46,7 +48,7 @@ export function InfoTab({ poolId }: InfoTabProps) {
     } catch (error) {
       toast.error('Failed to add token to wallet: ' + errorMessage(error));
     }
-  };
+  }, [pool, watchAssetAsync]);
 
   if (!pool) return null;
   return (

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { CenteredPageWrapper, PageTitle } from '@layouts/NetworkLayout';
 import { Box, Chip, Grid, Stack, Tab, Tabs } from '@mui/material';
@@ -21,12 +21,19 @@ function PoolInfoCard({ poolId }: { poolId: string }) {
   const { address } = useAccount();
   const [activeTab, setActiveTab] = useState(0);
 
-  const isOperator = pool && address?.toLowerCase() === pool.operator.address.toLowerCase();
+  const isOperator = useMemo(
+    () => pool && address?.toLowerCase() === pool.operator.address.toLowerCase(),
+    [pool, address],
+  );
+
+  const handleTabChange = useCallback((_: React.SyntheticEvent, value: number) => {
+    setActiveTab(value);
+  }, []);
 
   return (
     <Stack spacing={2}>
       {isOperator && (
-        <Tabs value={activeTab} onChange={(_, value) => setActiveTab(value)}>
+        <Tabs value={activeTab} onChange={handleTabChange}>
           <Tab label="General" value={0} />
           <Tab label="Manage" value={1} />
         </Tabs>

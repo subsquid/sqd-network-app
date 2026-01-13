@@ -6,7 +6,7 @@ import { erc20Abi } from 'viem';
 import { useReadContract, useReadContracts } from 'wagmi';
 
 import { portalPoolAbi, portalPoolFactoryAbi } from '@api/contracts';
-import { toSqd, unwrapMulticallResult } from '@lib/network';
+import { fromSqd, toSqd, unwrapMulticallResult } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
 import { getPhase, parseMetadata } from './helpers';
@@ -157,10 +157,10 @@ export function usePoolData(poolId?: string) {
       ),
       distributionRatePerSecond,
       tvl: {
-        current: activeStake,
-        max: capacity,
-        min: minCapacity || 0n,
-        total: totalStaked,
+        current: fromSqd(activeStake),
+        max: fromSqd(capacity),
+        min: fromSqd(minCapacity || 0n),
+        total: fromSqd(totalStaked),
       },
       depositWindowEndsAt,
       withdrawalQueue: {
@@ -169,7 +169,7 @@ export function usePoolData(poolId?: string) {
         windowDuration: '24 hours',
         windowResetIn: '18 hours',
       },
-      maxDepositPerAddress: BigInt(toSqd(100_000)),
+      maxDepositPerAddress: fromSqd(BigInt(toSqd(100_000))),
       withdrawWaitTime: '2 days',
       lptTokenSymbol: lpTokenSymbol!,
       lptToken,
