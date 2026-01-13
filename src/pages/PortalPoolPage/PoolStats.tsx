@@ -111,8 +111,8 @@ export function PoolStats({ poolId }: PoolStatsProps) {
                   >
                     <Avatar
                       src={USDC_LOGO_URL}
-                      alt={rewardToken?.symbol ?? 'USDC'}
-                      sx={{ width: 24, height: 24 }}
+                      alt={rewardToken?.symbol}
+                      sx={{ width: '1.5rem', height: '1.5rem' }}
                     />
                   </Link>
                 )}

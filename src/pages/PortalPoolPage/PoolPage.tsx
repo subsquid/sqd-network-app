@@ -54,26 +54,24 @@ function PoolPageContent({ poolId }: { poolId?: string }) {
   }
 
   return (
-    <>
-      <Stack spacing={2} direction="row">
-        <Box flex={0.7}>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12 }}>
-              <PoolHeader poolId={poolId} />
-            </Grid>
-            <Grid size={{ xs: 12 }}>
-              <PoolYieldChart poolId={poolId} />
-            </Grid>
-            <Grid size={{ xs: 12 }}>
-              <PendingWithdrawals poolId={poolId} />
-            </Grid>
+    <Grid container spacing={2}>
+      <Grid size={{ xs: 12, md: 8 }}>
+        <Grid container spacing={2}>
+          <Grid size={12}>
+            <PoolHeader poolId={poolId} />
           </Grid>
-        </Box>
-        <Box flex={0.3}>
-          <PoolInfoCard poolId={poolId} />
-        </Box>
-      </Stack>
-    </>
+          <Grid size={12} sx={{ display: { xs: 'none', md: 'block' } }}>
+            <PoolYieldChart poolId={poolId} />
+          </Grid>
+          <Grid size={12}>
+            <PendingWithdrawals poolId={poolId} />
+          </Grid>
+        </Grid>
+      </Grid>
+      <Grid size={{ xs: 12, md: 4 }}>
+        <PoolInfoCard poolId={poolId} />
+      </Grid>
+    </Grid>
   );
 }
 

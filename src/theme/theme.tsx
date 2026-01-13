@@ -72,8 +72,8 @@ export const useCreateTheme = (mode: PaletteType) => {
       createMuiTheme({
         breakpoints: {
           values: {
-            xs: 600,
-            sm: 800,
+            xs: 0,
+            sm: 700,
             md: 1000,
             lg: 1200,
             xl: 1510,

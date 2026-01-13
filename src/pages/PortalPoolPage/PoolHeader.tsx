@@ -20,24 +20,27 @@ export function PoolHeader({ poolId }: PoolHeaderProps) {
     <Stack spacing={2}>
       <Card>
         <Stack spacing={2} divider={<Divider />}>
-          <Stack direction="row" alignItems="center" spacing={2} justifyContent="space-between">
-            <Box flex={0.5}>
-              <Stack direction="row" alignItems="center" spacing={2}>
-                <Avatar name={pool.name} colorDiscriminator={pool.id} size={64} />
-                <Stack direction="column" alignItems="start" spacing={1}>
-                  <Typography variant="h5">{pool.name}</Typography>
-                  <Tooltip title={getPhaseTooltip(pool.phase)}>
-                    <Chip
-                      label={getPhaseLabel(pool.phase)}
-                      color={getPhaseColor(pool.phase)}
-                      size="small"
-                    />
-                  </Tooltip>
-                </Stack>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            alignItems={{ xs: 'stretch', sm: 'center' }}
+            spacing={2}
+            justifyContent="space-between"
+          >
+            <Stack direction="row" alignItems="center" spacing={2}>
+              <Avatar name={pool.name} colorDiscriminator={pool.id} size={64} />
+              <Stack direction="column" alignItems="start" spacing={1}>
+                <Typography variant="h5">{pool.name}</Typography>
+                <Tooltip title={getPhaseTooltip(pool.phase)}>
+                  <Chip
+                    label={getPhaseLabel(pool.phase)}
+                    color={getPhaseColor(pool.phase)}
+                    size="small"
+                  />
+                </Tooltip>
               </Stack>
-            </Box>
+            </Stack>
 
-            <Box flex={0.4}>
+            <Box sx={{ flex: 1, maxWidth: { sm: 300 } }}>
               <PoolHealthBar poolId={poolId} />
             </Box>
           </Stack>
