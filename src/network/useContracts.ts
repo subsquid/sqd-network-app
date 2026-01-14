@@ -34,7 +34,7 @@ export function useContracts(): {
         CHAIN_ID_L1: sepolia.id,
         MULTICALL: '0x7eCfBaa8742fDf5756DAC92fbc8b90a19b8815bF',
         BUYBACK: '0xe34189ad45044e93d3af7d93ac520d02651faf72',
-        PORTAL_POOL_FACTORY: '0x73c59524622fd55CDaf10F962002FCF5f1A89b61',
+        PORTAL_POOL_FACTORY: '0x16d11052CDbD9872f02260925741280bB113F834',
       };
     }
     case NetworkName.Mainnet: {
