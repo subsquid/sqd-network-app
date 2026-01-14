@@ -15,11 +15,10 @@ import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikSelect, FormikTextInput } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { SourceWalletOption } from '@components/SourceWallet';
+import { useRewardToken } from '@hooks/useRewardToken';
 import { tokenFormatter } from '@lib/formatters/formatters';
 import { toSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
-
-import { useRewardToken } from '@hooks/useRewardToken';
 
 import { usePoolCapacity, usePoolData, usePoolUserData } from '../hooks';
 import { calculateExpectedMonthlyPayout, invalidatePoolQueries } from '../utils/poolUtils';

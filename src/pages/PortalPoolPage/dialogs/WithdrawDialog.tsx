@@ -15,11 +15,10 @@ import { errorMessage } from '@api/contracts/utils';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
+import { useRewardToken } from '@hooks/useRewardToken';
 import { tokenFormatter } from '@lib/formatters/formatters';
 import { toSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
-
-import { useRewardToken } from '@hooks/useRewardToken';
 
 import { usePoolCapacity, usePoolData, usePoolUserData } from '../hooks';
 import { calculateExpectedMonthlyPayout, invalidatePoolQueries } from '../utils/poolUtils';
@@ -73,10 +72,7 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
 
   if (!pool || !capacity || !userData) return null;
 
-  const expectedUserDelegation = BigNumber.max(
-    0,
-    capacity.currentUserBalance.minus(typedAmount),
-  );
+  const expectedUserDelegation = BigNumber.max(0, capacity.currentUserBalance.minus(typedAmount));
   const expectedTotalDelegation = BigNumber.max(0, capacity.currentPoolTvl.minus(typedAmount));
   const userExpectedMonthlyPayout = calculateExpectedMonthlyPayout(pool, expectedUserDelegation);
 
