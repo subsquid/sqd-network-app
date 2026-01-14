@@ -890,106 +890,61 @@ export default defineConfig({
     {
       name: 'PortalPoolFactory',
       abi: [
-        {
-          type: 'constructor',
-          inputs: [],
-          stateMutability: 'nonpayable',
-        },
+        { type: 'constructor', inputs: [], stateMutability: 'nonpayable' },
         {
           type: 'function',
           name: 'DEFAULT_ADMIN_ROLE',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'bytes32',
-              internalType: 'bytes32',
-            },
-          ],
+          outputs: [{ name: '', type: 'bytes32', internalType: 'bytes32' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'PAUSER_ROLE',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'bytes32',
-              internalType: 'bytes32',
-            },
-          ],
+          outputs: [{ name: '', type: 'bytes32', internalType: 'bytes32' }],
+          stateMutability: 'view',
+        },
+        {
+          type: 'function',
+          name: 'POOL_DEPLOYER_ROLE',
+          inputs: [],
+          outputs: [{ name: '', type: 'bytes32', internalType: 'bytes32' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'UPGRADE_INTERFACE_VERSION',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'string',
-              internalType: 'string',
-            },
-          ],
+          outputs: [{ name: '', type: 'string', internalType: 'string' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'addPaymentToken',
-          inputs: [
-            {
-              name: 'token',
-              type: 'address',
-              internalType: 'address',
-            },
-          ],
+          inputs: [{ name: 'token', type: 'address', internalType: 'address' }],
           outputs: [],
           stateMutability: 'nonpayable',
         },
         {
           type: 'function',
           name: 'allPortals',
-          inputs: [
-            {
-              name: '',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
-          outputs: [
-            {
-              name: '',
-              type: 'address',
-              internalType: 'address',
-            },
-          ],
+          inputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+          outputs: [{ name: '', type: 'address', internalType: 'address' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'beacon',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'address',
-              internalType: 'contract PortalPoolBeacon',
-            },
-          ],
+          outputs: [{ name: '', type: 'address', internalType: 'contract PortalPoolBeacon' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'collectionDeadlineSeconds',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
+          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
           stateMutability: 'view',
         },
         {
@@ -1001,225 +956,99 @@ export default defineConfig({
               type: 'tuple',
               internalType: 'struct IPortalFactory.CreatePortalPoolParams',
               components: [
-                {
-                  name: 'operator',
-                  type: 'address',
-                  internalType: 'address',
-                },
-                {
-                  name: 'capacity',
-                  type: 'uint256',
-                  internalType: 'uint256',
-                },
-                {
-                  name: 'peerId',
-                  type: 'bytes',
-                  internalType: 'bytes',
-                },
-                {
-                  name: 'tokenSuffix',
-                  type: 'string',
-                  internalType: 'string',
-                },
-                {
-                  name: 'distributionRatePerSecond',
-                  type: 'uint256',
-                  internalType: 'uint256',
-                },
-                {
-                  name: 'metadata',
-                  type: 'string',
-                  internalType: 'string',
-                },
-                {
-                  name: 'rewardToken',
-                  type: 'address',
-                  internalType: 'address',
-                },
+                { name: 'operator', type: 'address', internalType: 'address' },
+                { name: 'capacity', type: 'uint256', internalType: 'uint256' },
+                { name: 'tokenSuffix', type: 'string', internalType: 'string' },
+                { name: 'distributionRatePerSecond', type: 'uint256', internalType: 'uint256' },
+                { name: 'initialDeposit', type: 'uint256', internalType: 'uint256' },
+                { name: 'metadata', type: 'string', internalType: 'string' },
+                { name: 'rewardToken', type: 'address', internalType: 'address' },
               ],
             },
           ],
-          outputs: [
-            {
-              name: 'portal',
-              type: 'address',
-              internalType: 'address',
-            },
-          ],
+          outputs: [{ name: 'portal', type: 'address', internalType: 'address' }],
           stateMutability: 'nonpayable',
         },
         {
           type: 'function',
           name: 'defaultMaxStakePerWallet',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
+          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'defaultWhitelistEnabled',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'bool',
-              internalType: 'bool',
-            },
-          ],
+          outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'exitUnlockRatePerSecond',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
+          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'feeRouter',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'address',
-              internalType: 'address',
-            },
-          ],
+          outputs: [{ name: '', type: 'address', internalType: 'address' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'getAllowedPaymentTokens',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'address[]',
-              internalType: 'address[]',
-            },
-          ],
+          outputs: [{ name: '', type: 'address[]', internalType: 'address[]' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'getMinCapacity',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
+          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'getOperatorPortals',
-          inputs: [
-            {
-              name: 'operator',
-              type: 'address',
-              internalType: 'address',
-            },
-          ],
-          outputs: [
-            {
-              name: '',
-              type: 'address[]',
-              internalType: 'address[]',
-            },
-          ],
+          inputs: [{ name: 'operator', type: 'address', internalType: 'address' }],
+          outputs: [{ name: '', type: 'address[]', internalType: 'address[]' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'getOperatorPortalsPaginated',
           inputs: [
-            {
-              name: 'operator',
-              type: 'address',
-              internalType: 'address',
-            },
-            {
-              name: 'offset',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-            {
-              name: 'limit',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
+            { name: 'operator', type: 'address', internalType: 'address' },
+            { name: 'offset', type: 'uint256', internalType: 'uint256' },
+            { name: 'limit', type: 'uint256', internalType: 'uint256' },
           ],
-          outputs: [
-            {
-              name: '',
-              type: 'address[]',
-              internalType: 'address[]',
-            },
-          ],
+          outputs: [{ name: '', type: 'address[]', internalType: 'address[]' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'getPortalCount',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
+          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'getRoleAdmin',
-          inputs: [
-            {
-              name: 'role',
-              type: 'bytes32',
-              internalType: 'bytes32',
-            },
-          ],
-          outputs: [
-            {
-              name: '',
-              type: 'bytes32',
-              internalType: 'bytes32',
-            },
-          ],
+          inputs: [{ name: 'role', type: 'bytes32', internalType: 'bytes32' }],
+          outputs: [{ name: '', type: 'bytes32', internalType: 'bytes32' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'grantRole',
           inputs: [
-            {
-              name: 'role',
-              type: 'bytes32',
-              internalType: 'bytes32',
-            },
-            {
-              name: 'account',
-              type: 'address',
-              internalType: 'address',
-            },
+            { name: 'role', type: 'bytes32', internalType: 'bytes32' },
+            { name: 'account', type: 'address', internalType: 'address' },
           ],
           outputs: [],
           stateMutability: 'nonpayable',
@@ -1228,65 +1057,23 @@ export default defineConfig({
           type: 'function',
           name: 'hasRole',
           inputs: [
-            {
-              name: 'role',
-              type: 'bytes32',
-              internalType: 'bytes32',
-            },
-            {
-              name: 'account',
-              type: 'address',
-              internalType: 'address',
-            },
+            { name: 'role', type: 'bytes32', internalType: 'bytes32' },
+            { name: 'account', type: 'address', internalType: 'address' },
           ],
-          outputs: [
-            {
-              name: '',
-              type: 'bool',
-              internalType: 'bool',
-            },
-          ],
+          outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'initialize',
           inputs: [
-            {
-              name: '_implementation',
-              type: 'address',
-              internalType: 'address',
-            },
-            {
-              name: '_portalRegistry',
-              type: 'address',
-              internalType: 'address',
-            },
-            {
-              name: '_feeRouter',
-              type: 'address',
-              internalType: 'address',
-            },
-            {
-              name: '_sqd',
-              type: 'address',
-              internalType: 'address',
-            },
-            {
-              name: '_defaultMaxStakePerWallet',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-            {
-              name: '_minStakeThreshold',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-            {
-              name: '_workerEpochLength',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
+            { name: '_implementation', type: 'address', internalType: 'address' },
+            { name: '_portalRegistry', type: 'address', internalType: 'address' },
+            { name: '_feeRouter', type: 'address', internalType: 'address' },
+            { name: '_sqd', type: 'address', internalType: 'address' },
+            { name: '_defaultMaxStakePerWallet', type: 'uint256', internalType: 'uint256' },
+            { name: '_minStakeThreshold', type: 'uint256', internalType: 'uint256' },
+            { name: '_workerEpochLength', type: 'uint256', internalType: 'uint256' },
           ],
           outputs: [],
           stateMutability: 'nonpayable',
@@ -1294,224 +1081,109 @@ export default defineConfig({
         {
           type: 'function',
           name: 'isAllowedPaymentToken',
-          inputs: [
-            {
-              name: '',
-              type: 'address',
-              internalType: 'address',
-            },
-          ],
-          outputs: [
-            {
-              name: '',
-              type: 'bool',
-              internalType: 'bool',
-            },
-          ],
+          inputs: [{ name: '', type: 'address', internalType: 'address' }],
+          outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'isPortal',
-          inputs: [
-            {
-              name: '',
-              type: 'address',
-              internalType: 'address',
-            },
-          ],
-          outputs: [
-            {
-              name: '',
-              type: 'bool',
-              internalType: 'bool',
-            },
-          ],
+          inputs: [{ name: '', type: 'address', internalType: 'address' }],
+          outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'maxDistributionRatePerSecond',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
+          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'maxPaymentTokens',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
+          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'minDistributionRatePerSecond',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
+          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'minStakeThreshold',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
+          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'operatorPortalCount',
-          inputs: [
-            {
-              name: '',
-              type: 'address',
-              internalType: 'address',
-            },
-          ],
-          outputs: [
-            {
-              name: '',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
+          inputs: [{ name: '', type: 'address', internalType: 'address' }],
+          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'operatorPortalPools',
           inputs: [
-            {
-              name: '',
-              type: 'address',
-              internalType: 'address',
-            },
-            {
-              name: '',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
+            { name: '', type: 'address', internalType: 'address' },
+            { name: '', type: 'uint256', internalType: 'uint256' },
           ],
-          outputs: [
-            {
-              name: '',
-              type: 'address',
-              internalType: 'address',
-            },
-          ],
+          outputs: [{ name: '', type: 'address', internalType: 'address' }],
           stateMutability: 'view',
         },
-        {
-          type: 'function',
-          name: 'pause',
-          inputs: [],
-          outputs: [],
-          stateMutability: 'nonpayable',
-        },
+        { type: 'function', name: 'pause', inputs: [], outputs: [], stateMutability: 'nonpayable' },
         {
           type: 'function',
           name: 'paused',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'bool',
-              internalType: 'bool',
-            },
-          ],
+          outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'paymentTokensList',
-          inputs: [
-            {
-              name: '',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
-          outputs: [
-            {
-              name: '',
-              type: 'address',
-              internalType: 'address',
-            },
-          ],
+          inputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+          outputs: [{ name: '', type: 'address', internalType: 'address' }],
+          stateMutability: 'view',
+        },
+        {
+          type: 'function',
+          name: 'poolDeploymentOpen',
+          inputs: [],
+          outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'portalCount',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
+          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'portalRegistry',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'address',
-              internalType: 'address',
-            },
-          ],
+          outputs: [{ name: '', type: 'address', internalType: 'address' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'proxiableUUID',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'bytes32',
-              internalType: 'bytes32',
-            },
-          ],
+          outputs: [{ name: '', type: 'bytes32', internalType: 'bytes32' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'removePaymentToken',
-          inputs: [
-            {
-              name: 'token',
-              type: 'address',
-              internalType: 'address',
-            },
-          ],
+          inputs: [{ name: 'token', type: 'address', internalType: 'address' }],
           outputs: [],
           stateMutability: 'nonpayable',
         },
@@ -1519,16 +1191,8 @@ export default defineConfig({
           type: 'function',
           name: 'renounceRole',
           inputs: [
-            {
-              name: 'role',
-              type: 'bytes32',
-              internalType: 'bytes32',
-            },
-            {
-              name: 'callerConfirmation',
-              type: 'address',
-              internalType: 'address',
-            },
+            { name: 'role', type: 'bytes32', internalType: 'bytes32' },
+            { name: 'callerConfirmation', type: 'address', internalType: 'address' },
           ],
           outputs: [],
           stateMutability: 'nonpayable',
@@ -1537,16 +1201,8 @@ export default defineConfig({
           type: 'function',
           name: 'revokeRole',
           inputs: [
-            {
-              name: 'role',
-              type: 'bytes32',
-              internalType: 'bytes32',
-            },
-            {
-              name: 'account',
-              type: 'address',
-              internalType: 'address',
-            },
+            { name: 'role', type: 'bytes32', internalType: 'bytes32' },
+            { name: 'account', type: 'address', internalType: 'address' },
           ],
           outputs: [],
           stateMutability: 'nonpayable',
@@ -1554,143 +1210,91 @@ export default defineConfig({
         {
           type: 'function',
           name: 'setCollectionDeadline',
-          inputs: [
-            {
-              name: 'seconds_',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
+          inputs: [{ name: 'seconds_', type: 'uint256', internalType: 'uint256' }],
           outputs: [],
           stateMutability: 'nonpayable',
         },
         {
           type: 'function',
           name: 'setDefaultMaxStakePerWallet',
-          inputs: [
-            {
-              name: '_maxStake',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
+          inputs: [{ name: '_maxStake', type: 'uint256', internalType: 'uint256' }],
           outputs: [],
           stateMutability: 'nonpayable',
         },
         {
           type: 'function',
           name: 'setDefaultWhitelistEnabled',
-          inputs: [
-            {
-              name: 'enabled',
-              type: 'bool',
-              internalType: 'bool',
-            },
-          ],
+          inputs: [{ name: 'enabled', type: 'bool', internalType: 'bool' }],
           outputs: [],
           stateMutability: 'nonpayable',
         },
         {
           type: 'function',
           name: 'setExitUnlockRate',
-          inputs: [
-            {
-              name: 'ratePerSecond',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
+          inputs: [{ name: 'ratePerSecond', type: 'uint256', internalType: 'uint256' }],
+          outputs: [],
+          stateMutability: 'nonpayable',
+        },
+        {
+          type: 'function',
+          name: 'setFeeRouter',
+          inputs: [{ name: '_feeRouter', type: 'address', internalType: 'address' }],
           outputs: [],
           stateMutability: 'nonpayable',
         },
         {
           type: 'function',
           name: 'setMaxDistributionRate',
-          inputs: [
-            {
-              name: 'ratePerSecond',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
+          inputs: [{ name: 'ratePerSecond', type: 'uint256', internalType: 'uint256' }],
           outputs: [],
           stateMutability: 'nonpayable',
         },
         {
           type: 'function',
           name: 'setMaxPaymentTokens',
-          inputs: [
-            {
-              name: 'value',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
+          inputs: [{ name: 'value', type: 'uint256', internalType: 'uint256' }],
           outputs: [],
           stateMutability: 'nonpayable',
         },
         {
           type: 'function',
           name: 'setMinDistributionRate',
-          inputs: [
-            {
-              name: 'ratePerSecond',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
+          inputs: [{ name: 'ratePerSecond', type: 'uint256', internalType: 'uint256' }],
           outputs: [],
           stateMutability: 'nonpayable',
         },
         {
           type: 'function',
           name: 'setMinStakeThreshold',
-          inputs: [
-            {
-              name: '_minStakeThreshold',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
+          inputs: [{ name: '_minStakeThreshold', type: 'uint256', internalType: 'uint256' }],
+          outputs: [],
+          stateMutability: 'nonpayable',
+        },
+        {
+          type: 'function',
+          name: 'setPoolDeploymentOpen',
+          inputs: [{ name: 'open', type: 'bool', internalType: 'bool' }],
           outputs: [],
           stateMutability: 'nonpayable',
         },
         {
           type: 'function',
           name: 'setWhitelistFeatureEnabled',
-          inputs: [
-            {
-              name: 'enabled',
-              type: 'bool',
-              internalType: 'bool',
-            },
-          ],
+          inputs: [{ name: 'enabled', type: 'bool', internalType: 'bool' }],
           outputs: [],
           stateMutability: 'nonpayable',
         },
         {
           type: 'function',
           name: 'setWorkerEpochLength',
-          inputs: [
-            {
-              name: '_workerEpochLength',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
+          inputs: [{ name: '_workerEpochLength', type: 'uint256', internalType: 'uint256' }],
           outputs: [],
           stateMutability: 'nonpayable',
         },
         {
           type: 'function',
           name: 'setWorkerPoolAddress',
-          inputs: [
-            {
-              name: '_workerPoolAddress',
-              type: 'address',
-              internalType: 'address',
-            },
-          ],
+          inputs: [{ name: '_workerPoolAddress', type: 'address', internalType: 'address' }],
           outputs: [],
           stateMutability: 'nonpayable',
         },
@@ -1698,32 +1302,14 @@ export default defineConfig({
           type: 'function',
           name: 'sqd',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'address',
-              internalType: 'address',
-            },
-          ],
+          outputs: [{ name: '', type: 'address', internalType: 'address' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'supportsInterface',
-          inputs: [
-            {
-              name: 'interfaceId',
-              type: 'bytes4',
-              internalType: 'bytes4',
-            },
-          ],
-          outputs: [
-            {
-              name: '',
-              type: 'bool',
-              internalType: 'bool',
-            },
-          ],
+          inputs: [{ name: 'interfaceId', type: 'bytes4', internalType: 'bytes4' }],
+          outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
           stateMutability: 'view',
         },
         {
@@ -1736,13 +1322,7 @@ export default defineConfig({
         {
           type: 'function',
           name: 'upgradeBeacon',
-          inputs: [
-            {
-              name: 'newImplementation',
-              type: 'address',
-              internalType: 'address',
-            },
-          ],
+          inputs: [{ name: 'newImplementation', type: 'address', internalType: 'address' }],
           outputs: [],
           stateMutability: 'nonpayable',
         },
@@ -1750,16 +1330,8 @@ export default defineConfig({
           type: 'function',
           name: 'upgradeToAndCall',
           inputs: [
-            {
-              name: 'newImplementation',
-              type: 'address',
-              internalType: 'address',
-            },
-            {
-              name: 'data',
-              type: 'bytes',
-              internalType: 'bytes',
-            },
+            { name: 'newImplementation', type: 'address', internalType: 'address' },
+            { name: 'data', type: 'bytes', internalType: 'bytes' },
           ],
           outputs: [],
           stateMutability: 'payable',
@@ -1768,51 +1340,28 @@ export default defineConfig({
           type: 'function',
           name: 'whitelistFeatureEnabled',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'bool',
-              internalType: 'bool',
-            },
-          ],
+          outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'workerEpochLength',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'uint256',
-              internalType: 'uint256',
-            },
-          ],
+          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
           stateMutability: 'view',
         },
         {
           type: 'function',
           name: 'workerPoolAddress',
           inputs: [],
-          outputs: [
-            {
-              name: '',
-              type: 'address',
-              internalType: 'address',
-            },
-          ],
+          outputs: [{ name: '', type: 'address', internalType: 'address' }],
           stateMutability: 'view',
         },
         {
           type: 'event',
           name: 'BeaconUpgraded',
           inputs: [
-            {
-              name: 'newImplementation',
-              type: 'address',
-              indexed: true,
-              internalType: 'address',
-            },
+            { name: 'newImplementation', type: 'address', indexed: true, internalType: 'address' },
           ],
           anonymous: false,
         },
@@ -1820,18 +1369,8 @@ export default defineConfig({
           type: 'event',
           name: 'CollectionDeadlineUpdated',
           inputs: [
-            {
-              name: 'oldValue',
-              type: 'uint256',
-              indexed: false,
-              internalType: 'uint256',
-            },
-            {
-              name: 'newValue',
-              type: 'uint256',
-              indexed: false,
-              internalType: 'uint256',
-            },
+            { name: 'oldValue', type: 'uint256', indexed: false, internalType: 'uint256' },
+            { name: 'newValue', type: 'uint256', indexed: false, internalType: 'uint256' },
           ],
           anonymous: false,
         },
@@ -1839,18 +1378,8 @@ export default defineConfig({
           type: 'event',
           name: 'DefaultMaxStakePerWalletUpdated',
           inputs: [
-            {
-              name: 'oldValue',
-              type: 'uint256',
-              indexed: false,
-              internalType: 'uint256',
-            },
-            {
-              name: 'newValue',
-              type: 'uint256',
-              indexed: false,
-              internalType: 'uint256',
-            },
+            { name: 'oldValue', type: 'uint256', indexed: false, internalType: 'uint256' },
+            { name: 'newValue', type: 'uint256', indexed: false, internalType: 'uint256' },
           ],
           anonymous: false,
         },
@@ -1858,18 +1387,8 @@ export default defineConfig({
           type: 'event',
           name: 'DefaultWhitelistEnabledUpdated',
           inputs: [
-            {
-              name: 'oldValue',
-              type: 'bool',
-              indexed: false,
-              internalType: 'bool',
-            },
-            {
-              name: 'newValue',
-              type: 'bool',
-              indexed: false,
-              internalType: 'bool',
-            },
+            { name: 'oldValue', type: 'bool', indexed: false, internalType: 'bool' },
+            { name: 'newValue', type: 'bool', indexed: false, internalType: 'bool' },
           ],
           anonymous: false,
         },
@@ -1877,50 +1396,32 @@ export default defineConfig({
           type: 'event',
           name: 'ExitUnlockRateUpdated',
           inputs: [
-            {
-              name: 'oldValue',
-              type: 'uint256',
-              indexed: false,
-              internalType: 'uint256',
-            },
-            {
-              name: 'newValue',
-              type: 'uint256',
-              indexed: false,
-              internalType: 'uint256',
-            },
+            { name: 'oldValue', type: 'uint256', indexed: false, internalType: 'uint256' },
+            { name: 'newValue', type: 'uint256', indexed: false, internalType: 'uint256' },
+          ],
+          anonymous: false,
+        },
+        {
+          type: 'event',
+          name: 'FeeRouterUpdated',
+          inputs: [
+            { name: 'oldValue', type: 'address', indexed: true, internalType: 'address' },
+            { name: 'newValue', type: 'address', indexed: true, internalType: 'address' },
           ],
           anonymous: false,
         },
         {
           type: 'event',
           name: 'Initialized',
-          inputs: [
-            {
-              name: 'version',
-              type: 'uint64',
-              indexed: false,
-              internalType: 'uint64',
-            },
-          ],
+          inputs: [{ name: 'version', type: 'uint64', indexed: false, internalType: 'uint64' }],
           anonymous: false,
         },
         {
           type: 'event',
           name: 'MaxDistributionRateUpdated',
           inputs: [
-            {
-              name: 'oldValue',
-              type: 'uint256',
-              indexed: false,
-              internalType: 'uint256',
-            },
-            {
-              name: 'newValue',
-              type: 'uint256',
-              indexed: false,
-              internalType: 'uint256',
-            },
+            { name: 'oldValue', type: 'uint256', indexed: false, internalType: 'uint256' },
+            { name: 'newValue', type: 'uint256', indexed: false, internalType: 'uint256' },
           ],
           anonymous: false,
         },
@@ -1928,18 +1429,8 @@ export default defineConfig({
           type: 'event',
           name: 'MaxPaymentTokensUpdated',
           inputs: [
-            {
-              name: 'oldValue',
-              type: 'uint256',
-              indexed: false,
-              internalType: 'uint256',
-            },
-            {
-              name: 'newValue',
-              type: 'uint256',
-              indexed: false,
-              internalType: 'uint256',
-            },
+            { name: 'oldValue', type: 'uint256', indexed: false, internalType: 'uint256' },
+            { name: 'newValue', type: 'uint256', indexed: false, internalType: 'uint256' },
           ],
           anonymous: false,
         },
@@ -1947,18 +1438,8 @@ export default defineConfig({
           type: 'event',
           name: 'MinDistributionRateUpdated',
           inputs: [
-            {
-              name: 'oldValue',
-              type: 'uint256',
-              indexed: false,
-              internalType: 'uint256',
-            },
-            {
-              name: 'newValue',
-              type: 'uint256',
-              indexed: false,
-              internalType: 'uint256',
-            },
+            { name: 'oldValue', type: 'uint256', indexed: false, internalType: 'uint256' },
+            { name: 'newValue', type: 'uint256', indexed: false, internalType: 'uint256' },
           ],
           anonymous: false,
         },
@@ -1966,100 +1447,55 @@ export default defineConfig({
           type: 'event',
           name: 'MinStakeThresholdUpdated',
           inputs: [
-            {
-              name: 'oldValue',
-              type: 'uint256',
-              indexed: false,
-              internalType: 'uint256',
-            },
-            {
-              name: 'newValue',
-              type: 'uint256',
-              indexed: false,
-              internalType: 'uint256',
-            },
+            { name: 'oldValue', type: 'uint256', indexed: false, internalType: 'uint256' },
+            { name: 'newValue', type: 'uint256', indexed: false, internalType: 'uint256' },
           ],
           anonymous: false,
         },
         {
           type: 'event',
           name: 'Paused',
-          inputs: [
-            {
-              name: 'account',
-              type: 'address',
-              indexed: false,
-              internalType: 'address',
-            },
-          ],
+          inputs: [{ name: 'account', type: 'address', indexed: false, internalType: 'address' }],
           anonymous: false,
         },
         {
           type: 'event',
           name: 'PaymentTokenAdded',
-          inputs: [
-            {
-              name: 'token',
-              type: 'address',
-              indexed: true,
-              internalType: 'address',
-            },
-          ],
+          inputs: [{ name: 'token', type: 'address', indexed: true, internalType: 'address' }],
           anonymous: false,
         },
         {
           type: 'event',
           name: 'PaymentTokenRemoved',
-          inputs: [
-            {
-              name: 'token',
-              type: 'address',
-              indexed: true,
-              internalType: 'address',
-            },
-          ],
+          inputs: [{ name: 'token', type: 'address', indexed: true, internalType: 'address' }],
           anonymous: false,
         },
         {
           type: 'event',
-          name: 'PortalCreated',
+          name: 'PoolCreated',
           inputs: [
-            {
-              name: 'portal',
-              type: 'address',
-              indexed: true,
-              internalType: 'address',
-            },
-            {
-              name: 'operator',
-              type: 'address',
-              indexed: true,
-              internalType: 'address',
-            },
-            {
-              name: 'capacity',
-              type: 'uint256',
-              indexed: false,
-              internalType: 'uint256',
-            },
+            { name: 'portal', type: 'address', indexed: true, internalType: 'address' },
+            { name: 'operator', type: 'address', indexed: true, internalType: 'address' },
+            { name: 'rewardToken', type: 'address', indexed: true, internalType: 'address' },
+            { name: 'capacity', type: 'uint256', indexed: false, internalType: 'uint256' },
             {
               name: 'distributionRatePerSecond',
               type: 'uint256',
               indexed: false,
               internalType: 'uint256',
             },
-            {
-              name: 'tokenSuffix',
-              type: 'string',
-              indexed: false,
-              internalType: 'string',
-            },
-            {
-              name: 'metadata',
-              type: 'string',
-              indexed: false,
-              internalType: 'string',
-            },
+            { name: 'initialDeposit', type: 'uint256', indexed: false, internalType: 'uint256' },
+            { name: 'tokenSuffix', type: 'string', indexed: false, internalType: 'string' },
+            { name: 'metadata', type: 'string', indexed: false, internalType: 'string' },
+          ],
+          anonymous: false,
+        },
+        {
+          type: 'event',
+          name: 'PoolDeploymentOpenUpdated',
+          inputs: [
+            { name: 'oldValue', type: 'bool', indexed: false, internalType: 'bool' },
+            { name: 'newValue', type: 'bool', indexed: false, internalType: 'bool' },
           ],
           anonymous: false,
         },
@@ -2067,24 +1503,9 @@ export default defineConfig({
           type: 'event',
           name: 'RoleAdminChanged',
           inputs: [
-            {
-              name: 'role',
-              type: 'bytes32',
-              indexed: true,
-              internalType: 'bytes32',
-            },
-            {
-              name: 'previousAdminRole',
-              type: 'bytes32',
-              indexed: true,
-              internalType: 'bytes32',
-            },
-            {
-              name: 'newAdminRole',
-              type: 'bytes32',
-              indexed: true,
-              internalType: 'bytes32',
-            },
+            { name: 'role', type: 'bytes32', indexed: true, internalType: 'bytes32' },
+            { name: 'previousAdminRole', type: 'bytes32', indexed: true, internalType: 'bytes32' },
+            { name: 'newAdminRole', type: 'bytes32', indexed: true, internalType: 'bytes32' },
           ],
           anonymous: false,
         },
@@ -2092,24 +1513,9 @@ export default defineConfig({
           type: 'event',
           name: 'RoleGranted',
           inputs: [
-            {
-              name: 'role',
-              type: 'bytes32',
-              indexed: true,
-              internalType: 'bytes32',
-            },
-            {
-              name: 'account',
-              type: 'address',
-              indexed: true,
-              internalType: 'address',
-            },
-            {
-              name: 'sender',
-              type: 'address',
-              indexed: true,
-              internalType: 'address',
-            },
+            { name: 'role', type: 'bytes32', indexed: true, internalType: 'bytes32' },
+            { name: 'account', type: 'address', indexed: true, internalType: 'address' },
+            { name: 'sender', type: 'address', indexed: true, internalType: 'address' },
           ],
           anonymous: false,
         },
@@ -2117,50 +1523,23 @@ export default defineConfig({
           type: 'event',
           name: 'RoleRevoked',
           inputs: [
-            {
-              name: 'role',
-              type: 'bytes32',
-              indexed: true,
-              internalType: 'bytes32',
-            },
-            {
-              name: 'account',
-              type: 'address',
-              indexed: true,
-              internalType: 'address',
-            },
-            {
-              name: 'sender',
-              type: 'address',
-              indexed: true,
-              internalType: 'address',
-            },
+            { name: 'role', type: 'bytes32', indexed: true, internalType: 'bytes32' },
+            { name: 'account', type: 'address', indexed: true, internalType: 'address' },
+            { name: 'sender', type: 'address', indexed: true, internalType: 'address' },
           ],
           anonymous: false,
         },
         {
           type: 'event',
           name: 'Unpaused',
-          inputs: [
-            {
-              name: 'account',
-              type: 'address',
-              indexed: false,
-              internalType: 'address',
-            },
-          ],
+          inputs: [{ name: 'account', type: 'address', indexed: false, internalType: 'address' }],
           anonymous: false,
         },
         {
           type: 'event',
           name: 'Upgraded',
           inputs: [
-            {
-              name: 'implementation',
-              type: 'address',
-              indexed: true,
-              internalType: 'address',
-            },
+            { name: 'implementation', type: 'address', indexed: true, internalType: 'address' },
           ],
           anonymous: false,
         },
@@ -2168,18 +1547,8 @@ export default defineConfig({
           type: 'event',
           name: 'WhitelistFeatureEnabledUpdated',
           inputs: [
-            {
-              name: 'oldValue',
-              type: 'bool',
-              indexed: false,
-              internalType: 'bool',
-            },
-            {
-              name: 'newValue',
-              type: 'bool',
-              indexed: false,
-              internalType: 'bool',
-            },
+            { name: 'oldValue', type: 'bool', indexed: false, internalType: 'bool' },
+            { name: 'newValue', type: 'bool', indexed: false, internalType: 'bool' },
           ],
           anonymous: false,
         },
@@ -2187,18 +1556,8 @@ export default defineConfig({
           type: 'event',
           name: 'WorkerEpochLengthUpdated',
           inputs: [
-            {
-              name: 'oldValue',
-              type: 'uint256',
-              indexed: false,
-              internalType: 'uint256',
-            },
-            {
-              name: 'newValue',
-              type: 'uint256',
-              indexed: false,
-              internalType: 'uint256',
-            },
+            { name: 'oldValue', type: 'uint256', indexed: false, internalType: 'uint256' },
+            { name: 'newValue', type: 'uint256', indexed: false, internalType: 'uint256' },
           ],
           anonymous: false,
         },
@@ -2206,165 +1565,56 @@ export default defineConfig({
           type: 'event',
           name: 'WorkerPoolAddressUpdated',
           inputs: [
-            {
-              name: 'oldValue',
-              type: 'address',
-              indexed: true,
-              internalType: 'address',
-            },
-            {
-              name: 'newValue',
-              type: 'address',
-              indexed: true,
-              internalType: 'address',
-            },
+            { name: 'oldValue', type: 'address', indexed: true, internalType: 'address' },
+            { name: 'newValue', type: 'address', indexed: true, internalType: 'address' },
           ],
           anonymous: false,
         },
-        {
-          type: 'error',
-          name: 'AccessControlBadConfirmation',
-          inputs: [],
-        },
+        { type: 'error', name: 'AccessControlBadConfirmation', inputs: [] },
         {
           type: 'error',
           name: 'AccessControlUnauthorizedAccount',
           inputs: [
-            {
-              name: 'account',
-              type: 'address',
-              internalType: 'address',
-            },
-            {
-              name: 'neededRole',
-              type: 'bytes32',
-              internalType: 'bytes32',
-            },
+            { name: 'account', type: 'address', internalType: 'address' },
+            { name: 'neededRole', type: 'bytes32', internalType: 'bytes32' },
           ],
         },
         {
           type: 'error',
           name: 'AddressEmptyCode',
-          inputs: [
-            {
-              name: 'target',
-              type: 'address',
-              internalType: 'address',
-            },
-          ],
+          inputs: [{ name: 'target', type: 'address', internalType: 'address' }],
         },
-        {
-          type: 'error',
-          name: 'BelowMinimum',
-          inputs: [],
-        },
+        { type: 'error', name: 'BelowMinimum', inputs: [] },
         {
           type: 'error',
           name: 'ERC1967InvalidImplementation',
-          inputs: [
-            {
-              name: 'implementation',
-              type: 'address',
-              internalType: 'address',
-            },
-          ],
+          inputs: [{ name: 'implementation', type: 'address', internalType: 'address' }],
         },
-        {
-          type: 'error',
-          name: 'ERC1967NonPayable',
-          inputs: [],
-        },
-        {
-          type: 'error',
-          name: 'EmptyPeerId',
-          inputs: [],
-        },
-        {
-          type: 'error',
-          name: 'EnforcedPause',
-          inputs: [],
-        },
-        {
-          type: 'error',
-          name: 'ExpectedPause',
-          inputs: [],
-        },
-        {
-          type: 'error',
-          name: 'FailedCall',
-          inputs: [],
-        },
-        {
-          type: 'error',
-          name: 'InvalidAddress',
-          inputs: [],
-        },
-        {
-          type: 'error',
-          name: 'InvalidInitialization',
-          inputs: [],
-        },
-        {
-          type: 'error',
-          name: 'NotAdmin',
-          inputs: [],
-        },
-        {
-          type: 'error',
-          name: 'NotInitializing',
-          inputs: [],
-        },
-        {
-          type: 'error',
-          name: 'RateBelowMinimum',
-          inputs: [],
-        },
-        {
-          type: 'error',
-          name: 'RateExceedsMaximum',
-          inputs: [],
-        },
+        { type: 'error', name: 'ERC1967NonPayable', inputs: [] },
+        { type: 'error', name: 'EnforcedPause', inputs: [] },
+        { type: 'error', name: 'ExpectedPause', inputs: [] },
+        { type: 'error', name: 'FailedCall', inputs: [] },
+        { type: 'error', name: 'InsufficientRewardPrecision', inputs: [] },
+        { type: 'error', name: 'InvalidAddress', inputs: [] },
+        { type: 'error', name: 'InvalidExitRate', inputs: [] },
+        { type: 'error', name: 'InvalidInitialization', inputs: [] },
+        { type: 'error', name: 'NotAuthorized', inputs: [] },
+        { type: 'error', name: 'NotInitializing', inputs: [] },
+        { type: 'error', name: 'RateBelowMinimum', inputs: [] },
+        { type: 'error', name: 'RateExceedsMaximum', inputs: [] },
         {
           type: 'error',
           name: 'SafeERC20FailedOperation',
-          inputs: [
-            {
-              name: 'token',
-              type: 'address',
-              internalType: 'address',
-            },
-          ],
+          inputs: [{ name: 'token', type: 'address', internalType: 'address' }],
         },
-        {
-          type: 'error',
-          name: 'TokenAlreadyAdded',
-          inputs: [],
-        },
-        {
-          type: 'error',
-          name: 'TokenNotAllowed',
-          inputs: [],
-        },
-        {
-          type: 'error',
-          name: 'TooManyTokens',
-          inputs: [],
-        },
-        {
-          type: 'error',
-          name: 'UUPSUnauthorizedCallContext',
-          inputs: [],
-        },
+        { type: 'error', name: 'TokenAlreadyAdded', inputs: [] },
+        { type: 'error', name: 'TokenNotAllowed', inputs: [] },
+        { type: 'error', name: 'TooManyTokens', inputs: [] },
+        { type: 'error', name: 'UUPSUnauthorizedCallContext', inputs: [] },
         {
           type: 'error',
           name: 'UUPSUnsupportedProxiableUUID',
-          inputs: [
-            {
-              name: 'slot',
-              type: 'bytes32',
-              internalType: 'bytes32',
-            },
-          ],
+          inputs: [{ name: 'slot', type: 'bytes32', internalType: 'bytes32' }],
         },
       ],
     },
@@ -2384,13 +1634,6 @@ export default defineConfig({
           name: 'DEFAULT_ADMIN_ROLE',
           inputs: [],
           outputs: [{ name: '', type: 'bytes32', internalType: 'bytes32' }],
-          stateMutability: 'view',
-        },
-        {
-          type: 'function',
-          name: 'getWithdrawalWaitingTimestamp',
-          inputs: [{ name: 'amount', type: 'uint256', internalType: 'uint256' }],
-          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
           stateMutability: 'view',
         },
         {
@@ -2416,10 +1659,17 @@ export default defineConfig({
         },
         {
           type: 'function',
-          name: 'getMinCapacity',
+          name: 'RATE_PRECISION',
           inputs: [],
-          outputs: [{ name: '', type: 'uint64', internalType: 'uint64' }],
+          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
           stateMutability: 'view',
+        },
+        {
+          type: 'function',
+          name: 'addToWhitelist',
+          inputs: [{ name: 'users', type: 'address[]', internalType: 'address[]' }],
+          outputs: [],
+          stateMutability: 'nonpayable',
         },
         {
           type: 'function',
@@ -2444,16 +1694,23 @@ export default defineConfig({
         },
         {
           type: 'function',
-          name: 'claimFees',
-          inputs: [{ name: 'token', type: 'address', internalType: 'address' }],
-          outputs: [{ name: 'claimed', type: 'uint256', internalType: 'uint256' }],
+          name: 'claimRewards',
+          inputs: [],
+          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
           stateMutability: 'nonpayable',
         },
         {
           type: 'function',
-          name: 'claimRewards',
+          name: 'claimRewardsFromClosed',
           inputs: [],
           outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+          stateMutability: 'nonpayable',
+        },
+        {
+          type: 'function',
+          name: 'closePool',
+          inputs: [],
+          outputs: [],
           stateMutability: 'nonpayable',
         },
         {
@@ -2479,13 +1736,6 @@ export default defineConfig({
         },
         {
           type: 'function',
-          name: 'delegatorRatePerSec',
-          inputs: [],
-          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-          stateMutability: 'view',
-        },
-        {
-          type: 'function',
           name: 'deposit',
           inputs: [{ name: 'amount', type: 'uint256', internalType: 'uint256' }],
           outputs: [],
@@ -2493,11 +1743,8 @@ export default defineConfig({
         },
         {
           type: 'function',
-          name: 'distributeFees',
-          inputs: [
-            { name: 'token', type: 'address', internalType: 'address' },
-            { name: 'amount', type: 'uint256', internalType: 'uint256' },
-          ],
+          name: 'emergencyWithdraw',
+          inputs: [],
           outputs: [],
           stateMutability: 'nonpayable',
         },
@@ -2510,25 +1757,8 @@ export default defineConfig({
         },
         {
           type: 'function',
-          name: 'getAllowedPaymentTokens',
-          inputs: [],
-          outputs: [{ name: '', type: 'address[]', internalType: 'address[]' }],
-          stateMutability: 'view',
-        },
-        {
-          type: 'function',
-          name: 'getClaimableFees',
-          inputs: [
-            { name: 'provider', type: 'address', internalType: 'address' },
-            { name: 'token', type: 'address', internalType: 'address' },
-          ],
-          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-          stateMutability: 'view',
-        },
-        {
-          type: 'function',
           name: 'getClaimableRewards',
-          inputs: [{ name: 'delegator', type: 'address', internalType: 'address' }],
+          inputs: [{ name: 'provider', type: 'address', internalType: 'address' }],
           outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
           stateMutability: 'view',
         },
@@ -2597,46 +1827,39 @@ export default defineConfig({
         },
         {
           type: 'function',
-          name: 'getPeerId',
-          inputs: [],
-          outputs: [{ name: '', type: 'bytes', internalType: 'bytes' }],
-          stateMutability: 'view',
-        },
-        {
-          type: 'function',
-          name: 'getPoolStatusWithRewards',
-          inputs: [{ name: 'user', type: 'address', internalType: 'address' }],
-          outputs: [
-            { name: 'poolCredit', type: 'uint256', internalType: 'uint256' },
-            { name: 'poolDebt', type: 'uint256', internalType: 'uint256' },
-            { name: 'poolBalance', type: 'int256', internalType: 'int256' },
-            { name: 'runway', type: 'int256', internalType: 'int256' },
-            { name: 'outOfMoney', type: 'bool', internalType: 'bool' },
-            { name: 'userRewards', type: 'uint256', internalType: 'uint256' },
-            { name: 'userStake', type: 'uint256', internalType: 'uint256' },
-          ],
-          stateMutability: 'view',
-        },
-        {
-          type: 'function',
-          name: 'getPortalInfo',
+          name: 'getPoolInfo',
           inputs: [],
           outputs: [
             {
               name: '',
               type: 'tuple',
-              internalType: 'struct IPortalPool.PortalInfo',
+              internalType: 'struct IPortalPool.PoolInfo',
               components: [
                 { name: 'operator', type: 'address', internalType: 'address' },
                 { name: 'capacity', type: 'uint256', internalType: 'uint256' },
                 { name: 'totalStaked', type: 'uint256', internalType: 'uint256' },
                 { name: 'depositDeadline', type: 'uint64', internalType: 'uint64' },
                 { name: 'activationTime', type: 'uint64', internalType: 'uint64' },
-                { name: 'state', type: 'uint8', internalType: 'enum IPortalPool.PortalState' },
+                { name: 'state', type: 'uint8', internalType: 'enum IPortalPool.PoolState' },
                 { name: 'paused', type: 'bool', internalType: 'bool' },
                 { name: 'firstActivated', type: 'bool', internalType: 'bool' },
               ],
             },
+          ],
+          stateMutability: 'view',
+        },
+        {
+          type: 'function',
+          name: 'getPoolStatusWithRewards',
+          inputs: [{ name: 'provider', type: 'address', internalType: 'address' }],
+          outputs: [
+            { name: 'poolCredit', type: 'uint256', internalType: 'uint256' },
+            { name: 'poolDebt', type: 'uint256', internalType: 'uint256' },
+            { name: 'poolBalance', type: 'int256', internalType: 'int256' },
+            { name: 'runway', type: 'int256', internalType: 'int256' },
+            { name: 'outOfMoney', type: 'bool', internalType: 'bool' },
+            { name: 'providerRewards', type: 'uint256', internalType: 'uint256' },
+            { name: 'providerStake', type: 'uint256', internalType: 'uint256' },
           ],
           stateMutability: 'view',
         },
@@ -2651,12 +1874,12 @@ export default defineConfig({
           type: 'function',
           name: 'getQueueStatus',
           inputs: [
-            { name: 'user', type: 'address', internalType: 'address' },
+            { name: 'provider', type: 'address', internalType: 'address' },
             { name: 'ticketId', type: 'uint256', internalType: 'uint256' },
           ],
           outputs: [
             { name: 'processed', type: 'uint256', internalType: 'uint256' },
-            { name: 'userEndPos', type: 'uint256', internalType: 'uint256' },
+            { name: 'providerEndPos', type: 'uint256', internalType: 'uint256' },
             { name: 'secondsRemaining', type: 'uint256', internalType: 'uint256' },
             { name: 'ready', type: 'bool', internalType: 'bool' },
           ],
@@ -2666,23 +1889,16 @@ export default defineConfig({
           type: 'function',
           name: 'getQueueStatusWithTimestamp',
           inputs: [
-            { name: 'user', type: 'address', internalType: 'address' },
+            { name: 'provider', type: 'address', internalType: 'address' },
             { name: 'ticketId', type: 'uint256', internalType: 'uint256' },
           ],
           outputs: [
             { name: 'processed', type: 'uint256', internalType: 'uint256' },
-            { name: 'userEndPos', type: 'uint256', internalType: 'uint256' },
+            { name: 'providerEndPos', type: 'uint256', internalType: 'uint256' },
             { name: 'secondsRemaining', type: 'uint256', internalType: 'uint256' },
             { name: 'ready', type: 'bool', internalType: 'bool' },
             { name: 'unlockTimestamp', type: 'uint256', internalType: 'uint256' },
           ],
-          stateMutability: 'view',
-        },
-        {
-          type: 'function',
-          name: 'getRewardDebt',
-          inputs: [],
-          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
           stateMutability: 'view',
         },
         {
@@ -2695,6 +1911,13 @@ export default defineConfig({
             { name: 'runwayTimestamp', type: 'int256', internalType: 'int256' },
             { name: 'isDry', type: 'bool', internalType: 'bool' },
           ],
+          stateMutability: 'view',
+        },
+        {
+          type: 'function',
+          name: 'getRewardToken',
+          inputs: [],
+          outputs: [{ name: '', type: 'address', internalType: 'address' }],
           stateMutability: 'view',
         },
         {
@@ -2715,7 +1938,7 @@ export default defineConfig({
           type: 'function',
           name: 'getState',
           inputs: [],
-          outputs: [{ name: '', type: 'uint8', internalType: 'enum IPortalPool.PortalState' }],
+          outputs: [{ name: '', type: 'uint8', internalType: 'enum IPortalPool.PoolState' }],
           stateMutability: 'view',
         },
         {
@@ -2741,9 +1964,9 @@ export default defineConfig({
         },
         {
           type: 'function',
-          name: 'getUserRewards',
-          inputs: [{ name: 'user', type: 'address', internalType: 'address' }],
-          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+          name: 'getWithdrawalWaitingTimestamp',
+          inputs: [{ name: 'amount', type: 'uint256', internalType: 'uint256' }],
+          outputs: [{ name: 'unlockTimestamp', type: 'uint256', internalType: 'uint256' }],
           stateMutability: 'view',
         },
         {
@@ -2778,18 +2001,24 @@ export default defineConfig({
                 { name: 'operator', type: 'address', internalType: 'address' },
                 { name: 'capacity', type: 'uint256', internalType: 'uint256' },
                 { name: 'depositDeadline', type: 'uint256', internalType: 'uint256' },
-                { name: 'peerId', type: 'bytes', internalType: 'bytes' },
                 { name: 'tokenSuffix', type: 'string', internalType: 'string' },
                 { name: 'sqd', type: 'address', internalType: 'address' },
-                { name: 'usdc', type: 'address', internalType: 'address' },
+                { name: 'rewardToken', type: 'address', internalType: 'address' },
                 { name: 'portalRegistry', type: 'address', internalType: 'address' },
                 { name: 'feeRouter', type: 'address', internalType: 'address' },
-                { name: 'networkController', type: 'address', internalType: 'address' },
+                { name: 'minStakeThreshold', type: 'uint256', internalType: 'uint256' },
                 { name: 'distributionRatePerSecond', type: 'uint256', internalType: 'uint256' },
                 { name: 'metadata', type: 'string', internalType: 'string' },
               ],
             },
           ],
+          outputs: [],
+          stateMutability: 'nonpayable',
+        },
+        {
+          type: 'function',
+          name: 'initializeCredit',
+          inputs: [{ name: 'amount', type: 'uint256', internalType: 'uint256' }],
           outputs: [],
           stateMutability: 'nonpayable',
         },
@@ -2802,9 +2031,9 @@ export default defineConfig({
         },
         {
           type: 'function',
-          name: 'lastDistributionTime',
-          inputs: [{ name: '', type: 'address', internalType: 'address' }],
-          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+          name: 'isWhitelisted',
+          inputs: [{ name: 'user', type: 'address', internalType: 'address' }],
+          outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
           stateMutability: 'view',
         },
         {
@@ -2823,12 +2052,9 @@ export default defineConfig({
         },
         {
           type: 'function',
-          name: 'onAllocationReduced',
-          inputs: [
-            { name: 'provider', type: 'address', internalType: 'address' },
-            { name: 'amount', type: 'uint256', internalType: 'uint256' },
-          ],
-          outputs: [],
+          name: 'multicall',
+          inputs: [{ name: 'data', type: 'bytes[]', internalType: 'bytes[]' }],
+          outputs: [{ name: 'results', type: 'bytes[]', internalType: 'bytes[]' }],
           stateMutability: 'nonpayable',
         },
         {
@@ -2856,6 +2082,27 @@ export default defineConfig({
           inputs: [],
           outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
           stateMutability: 'view',
+        },
+        {
+          type: 'function',
+          name: 'providerRatePerSec',
+          inputs: [],
+          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+          stateMutability: 'view',
+        },
+        {
+          type: 'function',
+          name: 'recoverRewardsFromFailed',
+          inputs: [],
+          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
+          stateMutability: 'nonpayable',
+        },
+        {
+          type: 'function',
+          name: 'removeFromWhitelist',
+          inputs: [{ name: 'users', type: 'address[]', internalType: 'address[]' }],
+          outputs: [],
+          stateMutability: 'nonpayable',
         },
         {
           type: 'function',
@@ -2893,13 +2140,6 @@ export default defineConfig({
         },
         {
           type: 'function',
-          name: 'setBurnAddress',
-          inputs: [{ name: 'newBurnAddress', type: 'address', internalType: 'address' }],
-          outputs: [],
-          stateMutability: 'nonpayable',
-        },
-        {
-          type: 'function',
           name: 'setCapacity',
           inputs: [{ name: 'newCapacity', type: 'uint256', internalType: 'uint256' }],
           outputs: [],
@@ -2909,6 +2149,13 @@ export default defineConfig({
           type: 'function',
           name: 'setDistributionRate',
           inputs: [{ name: 'newRatePerSecond', type: 'uint256', internalType: 'uint256' }],
+          outputs: [],
+          stateMutability: 'nonpayable',
+        },
+        {
+          type: 'function',
+          name: 'setWhitelistEnabled',
+          inputs: [{ name: 'enabled', type: 'bool', internalType: 'bool' }],
           outputs: [],
           stateMutability: 'nonpayable',
         },
@@ -2935,13 +2182,6 @@ export default defineConfig({
         },
         {
           type: 'function',
-          name: 'totalFeesDistributed',
-          inputs: [{ name: '', type: 'address', internalType: 'address' }],
-          outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
-          stateMutability: 'view',
-        },
-        {
-          type: 'function',
           name: 'treasuryAccumulated',
           inputs: [],
           outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],
@@ -2956,10 +2196,34 @@ export default defineConfig({
         },
         {
           type: 'function',
+          name: 'tryMulticall',
+          inputs: [{ name: 'data', type: 'bytes[]', internalType: 'bytes[]' }],
+          outputs: [
+            { name: 'successes', type: 'bool[]', internalType: 'bool[]' },
+            { name: 'results', type: 'bytes[]', internalType: 'bytes[]' },
+          ],
+          stateMutability: 'nonpayable',
+        },
+        {
+          type: 'function',
           name: 'unpause',
           inputs: [],
           outputs: [],
           stateMutability: 'nonpayable',
+        },
+        {
+          type: 'function',
+          name: 'whitelist',
+          inputs: [{ name: '', type: 'address', internalType: 'address' }],
+          outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
+          stateMutability: 'view',
+        },
+        {
+          type: 'function',
+          name: 'whitelistEnabled',
+          inputs: [],
+          outputs: [{ name: '', type: 'bool', internalType: 'bool' }],
+          stateMutability: 'view',
         },
         {
           type: 'function',
@@ -2981,23 +2245,6 @@ export default defineConfig({
           inputs: [],
           outputs: [{ name: '', type: 'address', internalType: 'address' }],
           stateMutability: 'view',
-        },
-        {
-          type: 'event',
-          name: 'AllocationReduced',
-          inputs: [
-            { name: 'provider', type: 'address', indexed: true, internalType: 'address' },
-            { name: 'amount', type: 'uint256', indexed: false, internalType: 'uint256' },
-          ],
-          anonymous: false,
-        },
-        {
-          type: 'event',
-          name: 'BurnAddressUpdated',
-          inputs: [
-            { name: 'burnAddress', type: 'address', indexed: false, internalType: 'address' },
-          ],
-          anonymous: false,
         },
         {
           type: 'event',
@@ -3048,28 +2295,6 @@ export default defineConfig({
         },
         {
           type: 'event',
-          name: 'FeesClaimed',
-          inputs: [
-            { name: 'provider', type: 'address', indexed: true, internalType: 'address' },
-            { name: 'token', type: 'address', indexed: true, internalType: 'address' },
-            { name: 'amount', type: 'uint256', indexed: false, internalType: 'uint256' },
-          ],
-          anonymous: false,
-        },
-        {
-          type: 'event',
-          name: 'FeesDistributed',
-          inputs: [
-            { name: 'token', type: 'address', indexed: true, internalType: 'address' },
-            { name: 'totalAmount', type: 'uint256', indexed: false, internalType: 'uint256' },
-            { name: 'toProviders', type: 'uint256', indexed: false, internalType: 'uint256' },
-            { name: 'toWorkers', type: 'uint256', indexed: false, internalType: 'uint256' },
-            { name: 'toBurn', type: 'uint256', indexed: false, internalType: 'uint256' },
-          ],
-          anonymous: false,
-        },
-        {
-          type: 'event',
           name: 'Initialized',
           inputs: [{ name: 'version', type: 'uint64', indexed: false, internalType: 'uint64' }],
           anonymous: false,
@@ -3082,9 +2307,27 @@ export default defineConfig({
         },
         {
           type: 'event',
+          name: 'PoolClosed',
+          inputs: [
+            { name: 'closedBy', type: 'address', indexed: true, internalType: 'address' },
+            { name: 'timestamp', type: 'uint256', indexed: false, internalType: 'uint256' },
+          ],
+          anonymous: false,
+        },
+        {
+          type: 'event',
           name: 'RewardsClaimed',
           inputs: [
-            { name: 'delegator', type: 'address', indexed: true, internalType: 'address' },
+            { name: 'provider', type: 'address', indexed: true, internalType: 'address' },
+            { name: 'amount', type: 'uint256', indexed: false, internalType: 'uint256' },
+          ],
+          anonymous: false,
+        },
+        {
+          type: 'event',
+          name: 'RewardsRecovered',
+          inputs: [
+            { name: 'operator', type: 'address', indexed: true, internalType: 'address' },
             { name: 'amount', type: 'uint256', indexed: false, internalType: 'uint256' },
           ],
           anonymous: false,
@@ -3094,8 +2337,10 @@ export default defineConfig({
           name: 'RewardsToppedUp',
           inputs: [
             { name: 'operator', type: 'address', indexed: true, internalType: 'address' },
-            { name: 'amount', type: 'uint256', indexed: false, internalType: 'uint256' },
-            { name: 'newBalanceScaled', type: 'uint256', indexed: false, internalType: 'uint256' },
+            { name: 'received', type: 'uint256', indexed: false, internalType: 'uint256' },
+            { name: 'toProviders', type: 'uint256', indexed: false, internalType: 'uint256' },
+            { name: 'toWorkerPool', type: 'uint256', indexed: false, internalType: 'uint256' },
+            { name: 'toBurn', type: 'uint256', indexed: false, internalType: 'uint256' },
           ],
           anonymous: false,
         },
@@ -3147,13 +2392,13 @@ export default defineConfig({
               name: 'oldState',
               type: 'uint8',
               indexed: false,
-              internalType: 'enum IPortalPool.PortalState',
+              internalType: 'enum IPortalPool.PoolState',
             },
             {
               name: 'newState',
               type: 'uint8',
               indexed: false,
-              internalType: 'enum IPortalPool.PortalState',
+              internalType: 'enum IPortalPool.PoolState',
             },
           ],
           anonymous: false,
@@ -3162,6 +2407,21 @@ export default defineConfig({
           type: 'event',
           name: 'Unpaused',
           inputs: [{ name: 'account', type: 'address', indexed: false, internalType: 'address' }],
+          anonymous: false,
+        },
+        {
+          type: 'event',
+          name: 'WhitelistEnabledChanged',
+          inputs: [{ name: 'enabled', type: 'bool', indexed: false, internalType: 'bool' }],
+          anonymous: false,
+        },
+        {
+          type: 'event',
+          name: 'WhitelistUpdated',
+          inputs: [
+            { name: 'user', type: 'address', indexed: true, internalType: 'address' },
+            { name: 'added', type: 'bool', indexed: false, internalType: 'bool' },
+          ],
           anonymous: false,
         },
         {
@@ -3182,6 +2442,7 @@ export default defineConfig({
             { name: 'neededRole', type: 'bytes32', internalType: 'bytes32' },
           ],
         },
+        { type: 'error', name: 'AlreadyInitialized', inputs: [] },
         { type: 'error', name: 'AlreadyWithdrawn', inputs: [] },
         { type: 'error', name: 'BelowCurrentStake', inputs: [] },
         { type: 'error', name: 'BelowMinimum', inputs: [] },
@@ -3191,23 +2452,31 @@ export default defineConfig({
         { type: 'error', name: 'EnforcedPause', inputs: [] },
         { type: 'error', name: 'ExceedsWalletLimit', inputs: [] },
         { type: 'error', name: 'ExpectedPause', inputs: [] },
+        { type: 'error', name: 'InsufficientRewardPrecision', inputs: [] },
         { type: 'error', name: 'InsufficientStake', inputs: [] },
         { type: 'error', name: 'InsufficientTransferableStake', inputs: [] },
         { type: 'error', name: 'InvalidAddress', inputs: [] },
         { type: 'error', name: 'InvalidAmount', inputs: [] },
+        { type: 'error', name: 'InvalidDecimals', inputs: [] },
         { type: 'error', name: 'InvalidInitialization', inputs: [] },
         { type: 'error', name: 'InvalidState', inputs: [] },
         { type: 'error', name: 'NoActiveExitRequest', inputs: [] },
         { type: 'error', name: 'NoChange', inputs: [] },
         { type: 'error', name: 'NoStakeToWithdraw', inputs: [] },
         { type: 'error', name: 'NotActivated', inputs: [] },
+        { type: 'error', name: 'NotAdmin', inputs: [] },
+        { type: 'error', name: 'NotFactory', inputs: [] },
         { type: 'error', name: 'NotInitializing', inputs: [] },
         { type: 'error', name: 'NotLPTToken', inputs: [] },
         { type: 'error', name: 'NotOperator', inputs: [] },
-        { type: 'error', name: 'NotPortalRegistry', inputs: [] },
+        { type: 'error', name: 'NotWhitelisted', inputs: [] },
         { type: 'error', name: 'NothingToClaim', inputs: [] },
+        { type: 'error', name: 'PoolClosed', inputs: [] },
         { type: 'error', name: 'PoolHasDebt', inputs: [] },
-        { type: 'error', name: 'PortalNotFailed', inputs: [] },
+        { type: 'error', name: 'PoolNotClosed', inputs: [] },
+        { type: 'error', name: 'PoolNotFailed', inputs: [] },
+        { type: 'error', name: 'RateBelowMinimum', inputs: [] },
+        { type: 'error', name: 'RateExceedsMaximum', inputs: [] },
         { type: 'error', name: 'ReentrancyGuardReentrantCall', inputs: [] },
         {
           type: 'error',
@@ -3215,9 +2484,9 @@ export default defineConfig({
           inputs: [{ name: 'token', type: 'address', internalType: 'address' }],
         },
         { type: 'error', name: 'StillInQueue', inputs: [] },
-        { type: 'error', name: 'TokenNotAllowed', inputs: [] },
         { type: 'error', name: 'UseWithdrawFromFailed', inputs: [] },
         { type: 'error', name: 'WaitForActivationOrDeadline', inputs: [] },
+        { type: 'error', name: 'WhitelistFeatureDisabled', inputs: [] },
       ],
     },
     {

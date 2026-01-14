@@ -15,7 +15,6 @@ import { errorMessage } from '@api/contracts/utils';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
-import { useRewardToken } from '@hooks/useRewardToken';
 import { tokenFormatter } from '@lib/formatters/formatters';
 import { toSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
@@ -52,7 +51,6 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
   const { data: pool } = usePoolData(poolId);
   const { data: userData } = usePoolUserData(poolId);
   const capacity = usePoolCapacity(poolId);
-  const { data: rewardToken } = useRewardToken();
 
   const typedAmount = useMemo(() => BigNumber(formik.values.amount || '0'), [formik.values.amount]);
 
@@ -123,7 +121,7 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
         <Stack direction="row" justifyContent="space-between">
           <Typography variant="body2">Expected Monthly Payout</Typography>
           <Typography variant="body2">
-            {tokenFormatter(userExpectedMonthlyPayout, rewardToken?.symbol ?? 'USDC', 2)}
+            {tokenFormatter(userExpectedMonthlyPayout, pool.rewardToken.symbol, 2)}
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">

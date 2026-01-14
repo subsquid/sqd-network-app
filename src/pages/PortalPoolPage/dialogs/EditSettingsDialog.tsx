@@ -13,7 +13,6 @@ import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
-import { useRewardToken } from '@hooks/useRewardToken';
 import { toSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
@@ -150,7 +149,6 @@ export function EditDistributionRateDialog({
   const queryClient = useQueryClient();
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
   const { data: pool } = usePoolData(poolId);
-  const { data: rewardToken } = useRewardToken();
 
   const initialDistributionRate = useMemo(() => {
     if (!pool) return '';
@@ -167,7 +165,9 @@ export function EditDistributionRateDialog({
     enableReinitialize: true,
     onSubmit: async values => {
       try {
-        const rewardDecimals = rewardToken?.decimals ?? 6;
+        if (!pool) return;
+
+        const rewardDecimals = pool.rewardToken.decimals;
 
         // Convert daily rate to per-second rate with reward token decimals
         const distributionRatePerSecond = BigInt(
@@ -215,7 +215,7 @@ export function EditDistributionRateDialog({
       <FormRow>
         <FormikTextInput
           id="distributionRate"
-          label={`Distribution Rate (${rewardToken?.symbol ?? 'USDC'}/day)`}
+          label={`Distribution Rate (${pool?.rewardToken.symbol}/day)`}
           formik={formik}
           showErrorOnlyOfTouched
           autoComplete="off"

@@ -5,7 +5,6 @@ import { Avatar, Box, Link, Stack, Typography } from '@mui/material';
 import { useTokenPrice } from '@api/price';
 import { Card } from '@components/Card';
 import { HelpTooltip } from '@components/HelpTooltip';
-import { useRewardToken } from '@hooks/useRewardToken';
 import {
   numberCompactFormatter,
   percentFormatter,
@@ -47,7 +46,6 @@ export function PoolStats({ poolId }: PoolStatsProps) {
   const { data: pool } = usePoolData(poolId);
   const { SQD_TOKEN, SQD } = useContracts();
   const { data: sqdPrice } = useTokenPrice({ address: SQD });
-  const { address: rewardTokenAddress, data: rewardToken } = useRewardToken();
 
   // APY = (Annual Rewards) / (Capacity in USD)
   // Since rewards are constant: Annual = Monthly × 12
@@ -99,11 +97,11 @@ export function PoolStats({ poolId }: PoolStatsProps) {
             <Typography variant="h6">
               <Stack direction="row" alignItems="center" spacing={0.5} flexWrap="wrap">
                 <Typography variant="h6">
-                  {tokenFormatter(pool.monthlyPayoutUsd, rewardToken?.symbol ?? 'USDC', 0)}
+                  {tokenFormatter(pool.monthlyPayoutUsd, pool.rewardToken.symbol, 0)}
                 </Typography>
-                {rewardTokenAddress && (
+                {pool.rewardToken && (
                   <Link
-                    href={`https://arbiscan.io/token/${rewardTokenAddress}`}
+                    href={`https://arbiscan.io/token/${pool.rewardToken.address}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     underline="hover"
@@ -111,7 +109,7 @@ export function PoolStats({ poolId }: PoolStatsProps) {
                   >
                     <Avatar
                       src={USDC_LOGO_URL}
-                      alt={rewardToken?.symbol}
+                      alt={pool.rewardToken.symbol}
                       sx={{ width: '1.5rem', height: '1.5rem' }}
                     />
                   </Link>

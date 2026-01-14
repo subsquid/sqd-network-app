@@ -3,17 +3,13 @@ import { useReadContract } from 'wagmi';
 import { portalPoolFactoryAbi } from '@api/contracts';
 import { useContracts } from '@network/useContracts';
 
-import { useERC20 } from './useERC20';
+import { useERC20Tokens } from '../../hooks/useERC20';
 
-/**
- * Hook to get the reward token (USDC) configuration from the pool factory
- * Fetches the USDC address from the factory and then loads token metadata
- */
-export function useRewardToken() {
+export function useRewardTokens() {
   const { PORTAL_POOL_FACTORY } = useContracts();
 
   // Fetch USDC address from pool factory
-  const { data, isLoading: isLoadingAddress } = useReadContract({
+  const { data: addresses, isLoading: isLoadingAddress } = useReadContract({
     address: PORTAL_POOL_FACTORY,
     abi: portalPoolFactoryAbi,
     functionName: 'getAllowedPaymentTokens',
@@ -22,16 +18,13 @@ export function useRewardToken() {
     },
   });
 
-  const rewardTokenAddress = data?.[0];
-
   // Fetch token metadata
-  const { data: tokenData, isLoading: isLoadingTokenData } = useERC20({
-    address: rewardTokenAddress ?? `0x`,
-    enabled: !!rewardTokenAddress,
+  const { data: tokenData, isLoading: isLoadingTokenData } = useERC20Tokens({
+    addresses,
+    enabled: !!addresses,
   });
 
   return {
-    address: rewardTokenAddress,
     data: tokenData,
     isLoading: isLoadingAddress || isLoadingTokenData,
   };

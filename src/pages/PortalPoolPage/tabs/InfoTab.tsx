@@ -35,9 +35,9 @@ export function InfoTab({ poolId }: InfoTabProps) {
       const result = await watchAssetAsync({
         type: 'ERC20',
         options: {
-          address: pool.lptToken as `0x${string}`,
-          symbol: pool.lptTokenSymbol,
-          decimals: 18,
+          address: pool.lptToken.address as `0x${string}`,
+          symbol: pool.lptToken.symbol,
+          decimals: pool.lptToken.decimals,
         },
       });
       if (result) {
@@ -112,15 +112,15 @@ export function InfoTab({ poolId }: InfoTabProps) {
             </Typography>
             <Typography>
               <Stack direction="row" alignItems="center" spacing={0.5}>
-                <span>{pool.lptTokenSymbol}</span>
+                <span>{pool.lptToken.symbol}</span>
                 <Stack direction="row" alignItems="center">
-                  <CopyToClipboard text={pool.lptToken} content="" showButton={true} />
+                  <CopyToClipboard text={pool.lptToken.address} content="" showButton={true} />
                   <Tooltip title="Open in Explorer">
                     <IconButton
                       size="small"
                       color="inherit"
                       component={Link}
-                      to={explorer.getAddressUrl(pool.lptToken)}
+                      to={explorer.getAddressUrl(pool.lptToken.address)}
                     >
                       <ExplorerIcon fontSize="inherit" />
                     </IconButton>

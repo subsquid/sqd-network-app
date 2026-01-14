@@ -15,7 +15,6 @@ import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikSelect, FormikTextInput } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { SourceWalletOption } from '@components/SourceWallet';
-import { useRewardToken } from '@hooks/useRewardToken';
 import { tokenFormatter } from '@lib/formatters/formatters';
 import { toSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
@@ -71,7 +70,6 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
   const { data: userData } = usePoolUserData(poolId);
   const capacity = usePoolCapacity(poolId);
   const { data: sources } = useMySources();
-  const { data: rewardToken } = useRewardToken();
 
   const typedAmount = useMemo(() => BigNumber(formik.values.amount || '0'), [formik.values.amount]);
 
@@ -183,7 +181,7 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
             <HelpTooltip title="Estimated monthly rewards based on your share of the pool at current APY." />
           </Stack>
           <Typography variant="body2">
-            {tokenFormatter(userExpectedMonthlyPayout, rewardToken?.symbol ?? 'USDC', 2)}
+            {tokenFormatter(userExpectedMonthlyPayout, pool.rewardToken.symbol, 2)}
           </Typography>
         </Stack>
       </Stack>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { dateFormat } from '@i18n';
 import { Add } from '@mui/icons-material';
@@ -17,7 +17,6 @@ import * as yup from '@schema';
 import BigNumber from 'bignumber.js';
 import { useFormik } from 'formik';
 import toast from 'react-hot-toast';
-import { toHex } from 'viem';
 
 import {
   portalPoolFactoryAbi,
@@ -30,7 +29,7 @@ import { SourceWalletWithBalance } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { Form, FormDivider, FormRow, FormikTextInput } from '@components/Form';
 import { Loader } from '@components/Loader';
-import { useRewardToken } from '@hooks/useRewardToken.ts';
+import { useRewardTokens } from '@pages/PortalPoolsPage/useRewardToken';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { fromSqd, toSqd } from '@lib/network/utils';
 import { useContracts } from '@network/useContracts';
@@ -101,7 +100,21 @@ function AddNewPortalDialog({
 }) {
   const { setWaitHeight } = useSquidHeight();
   const { PORTAL_POOL_FACTORY } = useContracts();
-  const { data: token, isLoading: isTokenRewardLoading } = useRewardToken();
+  const { data: tokens, isLoading: isTokenRewardLoading } = useRewardTokens();
+
+  const [selectedTokenAddress, setSelectedTokenAddress] = useState<`0x${string}` | undefined>();
+
+  // Auto-select the first token when tokens are loaded
+  useEffect(() => {
+    if (tokens && tokens.length > 0 && !selectedTokenAddress) {
+      setSelectedTokenAddress(tokens[0].address);
+    }
+  }, [tokens, selectedTokenAddress]);
+
+  const selectedToken = useMemo(() => {
+    if (!tokens || tokens.length === 0) return undefined;
+    return tokens.find(t => t.address === selectedTokenAddress);
+  }, [tokens, selectedTokenAddress]);
 
   const { data: minCapacity } = useReadPortalPoolFactoryGetMinCapacity({
     address: PORTAL_POOL_FACTORY,
@@ -143,6 +156,11 @@ function AddNewPortalDialog({
     enableReinitialize: true,
     onSubmit: async values => {
       try {
+        if (!selectedToken) {
+          toast.error('Please select a reward token');
+          return;
+        }
+
         const distributionRatePerSecond = BigInt(
           BigNumber(getRate(values.earnings, values.rateType))
             .div(86400)
@@ -162,19 +180,19 @@ function AddNewPortalDialog({
           address: PORTAL_POOL_FACTORY,
           functionName: 'createPortalPool',
           approve: initialDeposit,
-          approveToken: token?.address as `0x${string}`,
+          approveToken: selectedToken.address,
           args: [
             {
-              distributionRatePerSecond,
+              operator: initialSource?.id as `0x${string}`,
               capacity: BigInt(toSqd(values.capacity)),
               tokenSuffix: collapseTokenName(values.name),
-              operator: initialSource?.id as `0x${string}`,
-              peerId: toHex(Date.now()),
+              distributionRatePerSecond,
+              initialDeposit,
               metadata: JSON.stringify({
                 name: values.name,
                 description: values.description,
               }),
-              rewardToken: token?.address ?? `0x0000000000000000000000000000000000000000`, // USDC on Tethys
+              rewardToken: selectedToken.address,
             },
           ],
         });
@@ -208,7 +226,7 @@ function AddNewPortalDialog({
         formik.handleSubmit();
       }}
       loading={isPending}
-      disableConfirmButton={!formik.isValid}
+      disableConfirmButton={!formik.isValid || !selectedToken}
     >
       {isLoading ? (
         <Loader />
@@ -278,18 +296,25 @@ function AddNewPortalDialog({
           <FormRow>
             <Box>
               <Typography variant="body2" mb={1}>
-                Payment Tokens (for fee distribution)
+                Payment Token (for fee distribution)
               </Typography>
-              <Stack direction="row" spacing={1}>
-                <Button variant="contained" size="small" disabled={false}>
-                  USDC
-                </Button>
-                <Button variant="outlined" size="small" disabled>
-                  DAI (Coming soon)
-                </Button>
-                <Button variant="outlined" size="small" disabled>
-                  USDT (Coming soon)
-                </Button>
+              <Stack direction="row" spacing={1} flexWrap="wrap">
+                {tokens && tokens.length > 0 ? (
+                  tokens.map(token => (
+                    <Button
+                      key={token.address}
+                      variant={selectedToken?.address === token.address ? 'contained' : 'outlined'}
+                      size="small"
+                      onClick={() => setSelectedTokenAddress(token.address)}
+                    >
+                      {token.symbol}
+                    </Button>
+                  ))
+                ) : (
+                  <Typography variant="caption" color="error">
+                    No payment tokens available
+                  </Typography>
+                )}
               </Stack>
             </Box>
           </FormRow>
@@ -297,7 +322,7 @@ function AddNewPortalDialog({
             <Stack direction="row" spacing={1} alignItems="baseline">
               <FormikTextInput
                 id="earnings"
-                label="Expected Provider Earnings (USDC)"
+                label={`Expected Provider Earnings (${selectedToken?.symbol || 'Token'})`}
                 placeholder="0"
                 formik={formik}
                 showErrorOnlyOfTouched
@@ -329,7 +354,8 @@ function AddNewPortalDialog({
             <Stack direction="row" justifyContent="space-between" alignContent="center">
               <Typography variant="body2">Payment Rate</Typography>
               <Typography variant="body2">
-                {getRate(formik.values.earnings, formik.values.rateType).toFixed(2)} USDC/d
+                {getRate(formik.values.earnings, formik.values.rateType).toFixed(2)}{' '}
+                {selectedToken?.symbol || 'Token'}/d
               </Typography>
             </Stack>
           </Stack>

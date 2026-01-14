@@ -9,7 +9,6 @@ import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { useTokenPrice } from '@api/price';
 import { Card } from '@components/Card';
 import { HelpTooltip } from '@components/HelpTooltip';
-import { useRewardToken } from '@hooks/useRewardToken';
 import { dollarFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { useContracts } from '@network/useContracts';
 
@@ -27,7 +26,6 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
   const { data: userData } = usePoolUserData(poolId);
   const { SQD_TOKEN, SQD } = useContracts();
   const { data: sqdPrice } = useTokenPrice({ address: SQD });
-  const { data: rewardToken } = useRewardToken();
   const queryClient = useQueryClient();
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
 
@@ -37,9 +35,11 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
   const rewards = useMemo(
     () =>
       userData
-        ? new BigNumber(userData.userRewards.toString()).div(10 ** (rewardToken?.decimals ?? 6))
+        ? new BigNumber(userData.userRewards.toString()).div(
+            10 ** (pool?.rewardToken.decimals ?? 6),
+          )
         : BigNumber(0),
-    [userData, rewardToken?.decimals],
+    [userData, pool?.rewardToken.decimals],
   );
 
   const dailyRewardRate = useMemo(() => {
@@ -50,13 +50,13 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
     const dailyDistribution = new BigNumber(pool.distributionRatePerSecond.toString())
       .multipliedBy(86400)
       .div(DISTRIBUTION_RATE_BPS)
-      .div(10 ** (rewardToken?.decimals ?? 6));
+      .div(10 ** (pool?.rewardToken.decimals ?? 6));
 
     // Calculate user's share of daily rewards: daily rate * (user balance / total active stake)
     const userShare = balance.div(pool.tvl.total);
 
     return dailyDistribution.multipliedBy(userShare);
-  }, [pool, userData, balance, rewardToken?.decimals]);
+  }, [pool, userData, balance, pool?.rewardToken.decimals]);
 
   const hasRewards = userData ? userData.userRewards > BigInt(0) : false;
 
@@ -73,6 +73,8 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
       // Error handling is done by useWriteSQDTransaction
     }
   }, [poolId, writeTransactionAsync, queryClient]);
+
+  if (!pool) return null;
 
   return (
     <Stack spacing={2}>
@@ -107,10 +109,10 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
         <Stack spacing={2} divider={<Divider />}>
           <Stack spacing={0.5}>
             <Typography variant="h5">
-              {tokenFormatter(rewards, rewardToken?.symbol ?? 'USDC', 2)}
+              {tokenFormatter(rewards, pool?.rewardToken.symbol, 2)}
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              {tokenFormatter(dailyRewardRate, rewardToken?.symbol ?? '', 4)}
+              {tokenFormatter(dailyRewardRate, pool?.rewardToken.symbol, 4)}
               /day
             </Typography>
           </Stack>

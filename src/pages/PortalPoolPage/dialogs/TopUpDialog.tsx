@@ -11,9 +11,8 @@ import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
-import { useRewardToken } from '@hooks/useRewardToken';
 
-import { usePoolData } from '../hooks';
+import { usePoolData, type PoolData } from '../hooks';
 import { invalidatePoolQueries } from '../utils/poolUtils';
 
 interface TopUpDialogProps {
@@ -34,27 +33,29 @@ const validationSchema = yup.object({
 
 function TopUpDialogContent({
   formik,
+  pool,
 }: {
   formik: ReturnType<typeof useFormik<{ amount: string }>>;
+  pool?: PoolData;
 }) {
-  const { data: rewardToken } = useRewardToken();
-
   const handleMaxClick = useCallback(() => {
     // For now, no max limit - operator can top up any amount
     // Could add wallet balance check here if needed
   }, []);
 
+  if (!pool) return null;
+
   return (
     <Stack spacing={2.5}>
       <Typography variant="body2" color="text.secondary">
-        Add {rewardToken?.symbol ?? 'USDC'} rewards to the pool. These funds will be distributed to
+        Add {pool.rewardToken.symbol} rewards to the pool. These funds will be distributed to
         delegators based on their pool share.
       </Typography>
 
       <FormRow>
         <FormikTextInput
           id="amount"
-          label={`Amount (${rewardToken?.symbol ?? 'USDC'})`}
+          label={`Amount (${pool.rewardToken.symbol})`}
           formik={formik}
           showErrorOnlyOfTouched
           autoComplete="off"
@@ -68,7 +69,7 @@ function TopUpDialogContent({
         <Stack direction="row" justifyContent="space-between">
           <Typography variant="body2">Amount to Add</Typography>
           <Typography variant="body2">
-            {formik.values.amount || '0'} {rewardToken?.symbol ?? 'USDC'}
+            {formik.values.amount || '0'} {pool.rewardToken.symbol}
           </Typography>
         </Stack>
       </Stack>
@@ -79,7 +80,7 @@ function TopUpDialogContent({
 export function TopUpDialog({ open, onClose, poolId }: TopUpDialogProps) {
   const queryClient = useQueryClient();
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
-  const { address: rewardTokenAddress, data: rewardToken } = useRewardToken();
+  const { data: pool } = usePoolData(poolId);
 
   const formik = useFormik({
     initialValues: {
@@ -89,10 +90,10 @@ export function TopUpDialog({ open, onClose, poolId }: TopUpDialogProps) {
     validateOnChange: true,
     validateOnBlur: true,
     onSubmit: async values => {
-      if (!rewardTokenAddress) return;
+      if (!pool) return;
 
       try {
-        const decimals = rewardToken?.decimals ?? 6;
+        const decimals = pool.rewardToken.decimals;
         const rewardAmount = BigInt(Math.floor(parseFloat(values.amount) * 10 ** decimals));
 
         await writeTransactionAsync({
@@ -101,7 +102,7 @@ export function TopUpDialog({ open, onClose, poolId }: TopUpDialogProps) {
           functionName: 'topUpRewards',
           args: [rewardAmount],
           approve: rewardAmount,
-          approveToken: rewardTokenAddress,
+          approveToken: pool.rewardToken.address,
         });
 
         await invalidatePoolQueries(queryClient, poolId);
@@ -133,7 +134,7 @@ export function TopUpDialog({ open, onClose, poolId }: TopUpDialogProps) {
       confirmColor="success"
       disableConfirmButton={!formik.isValid || !formik.values.amount}
     >
-      <TopUpDialogContent formik={formik} />
+      <TopUpDialogContent formik={formik} pool={pool} />
     </ContractCallDialog>
   );
 }

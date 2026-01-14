@@ -1,5 +1,7 @@
 import type BigNumber from 'bignumber.js';
 
+import type { ERC20TokenData } from '@hooks/useERC20';
+
 // Pool phases:
 // - 'collecting': Pool created, users depositing, portal inactive
 // - 'active': Base (1M SQD) + 20% buffer reached, portal operating
@@ -47,8 +49,8 @@ export interface PoolData {
   withdrawalQueue: WithdrawalQueue;
   maxDepositPerAddress: BigNumber;
   withdrawWaitTime?: string;
-  lptTokenSymbol: string;
-  lptToken: string;
+  lptToken: ERC20TokenData;
+  rewardToken: ERC20TokenData;
   createdAt: Date;
 }
 
