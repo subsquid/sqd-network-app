@@ -16,14 +16,17 @@ import { CopyToClipboard } from '@components/CopyToClipboard';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { useExplorer } from '@hooks/useExplorer';
 import { addressFormatter, urlFormatter } from '@lib/formatters/formatters';
+import { useContracts } from '@network/useContracts';
 
 import { usePoolData } from '../hooks';
+import { INFO_TEXTS } from '../texts';
 
 interface InfoTabProps {
   poolId: string;
 }
 
 export function InfoTab({ poolId }: InfoTabProps) {
+  const { SQD_TOKEN } = useContracts();
   const { data: pool } = usePoolData(poolId);
   const { watchAssetAsync } = useWatchAsset();
   const explorer = useExplorer();
@@ -41,30 +44,30 @@ export function InfoTab({ poolId }: InfoTabProps) {
         },
       });
       if (result) {
-        toast.success('Token added to wallet');
+        toast.success(INFO_TEXTS.notifications.tokenAddedSuccess);
       } else {
-        toast.error('Failed to add token to wallet');
+        toast.error(INFO_TEXTS.notifications.tokenAddedError);
       }
     } catch (error) {
-      toast.error('Failed to add token to wallet: ' + errorMessage(error));
+      toast.error(INFO_TEXTS.notifications.tokenAddedErrorWithReason(errorMessage(error)));
     }
   }, [pool, watchAssetAsync]);
 
   if (!pool) return null;
   return (
-    <Card sx={{}} title={<span>Information</span>}>
+    <Card sx={{}} title={<span>{INFO_TEXTS.title}</span>}>
       <Stack spacing={2} divider={<Divider />}>
         <Stack spacing={1.5}>
           <Stack spacing={0.5}>
             <Typography variant="body2" color="text.secondary">
-              Pool Contract
+              {INFO_TEXTS.contract}
             </Typography>
             <Typography>
               <Stack direction="row" alignItems="center" spacing={0.5}>
                 <span>{addressFormatter(pool.id, true)}</span>
                 <Stack direction="row" alignItems="center">
                   <CopyToClipboard text={pool.id} content="" showButton={true} />
-                  <Tooltip title="Open in Explorer">
+                  <Tooltip title={INFO_TEXTS.actions.openInExplorer}>
                     <IconButton
                       size="small"
                       color="inherit"
@@ -81,14 +84,14 @@ export function InfoTab({ poolId }: InfoTabProps) {
 
           <Stack spacing={0.5}>
             <Typography variant="body2" color="text.secondary">
-              Operator
+              {INFO_TEXTS.operator}
             </Typography>
             <Typography>
               <Stack direction="row" alignItems="center" spacing={0.5}>
                 <span>{addressFormatter(pool.operator.address, true)}</span>
                 <Stack direction="row" alignItems="center">
                   <CopyToClipboard text={pool.operator.address} content="" showButton={true} />
-                  <Tooltip title="Open in Explorer">
+                  <Tooltip title={INFO_TEXTS.actions.openInExplorer}>
                     <IconButton
                       size="small"
                       color="inherit"
@@ -106,8 +109,8 @@ export function InfoTab({ poolId }: InfoTabProps) {
           <Stack spacing={0.5}>
             <Typography variant="body2" color="text.secondary">
               <Stack direction="row" alignItems="center" spacing={0.5}>
-                <span>LP-Token</span>
-                <HelpTooltip title="Liquidity Provider token representing your share in the pool. You receive LP tokens when you deposit SQD." />
+                <span>{INFO_TEXTS.lpToken.label}</span>
+                <HelpTooltip title={INFO_TEXTS.lpToken.tooltip(SQD_TOKEN)} />
               </Stack>
             </Typography>
             <Typography>
@@ -115,7 +118,7 @@ export function InfoTab({ poolId }: InfoTabProps) {
                 <span>{pool.lptToken.symbol}</span>
                 <Stack direction="row" alignItems="center">
                   <CopyToClipboard text={pool.lptToken.address} content="" showButton={true} />
-                  <Tooltip title="Open in Explorer">
+                  <Tooltip title={INFO_TEXTS.actions.openInExplorer}>
                     <IconButton
                       size="small"
                       color="inherit"
@@ -125,7 +128,7 @@ export function InfoTab({ poolId }: InfoTabProps) {
                       <ExplorerIcon fontSize="inherit" />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="Add to Wallet">
+                  <Tooltip title={INFO_TEXTS.actions.addToWallet}>
                     <IconButton size="small" color="inherit" onClick={handleAddTokenToWallet}>
                       <WalletIcon fontSize="inherit" />
                     </IconButton>
@@ -137,7 +140,7 @@ export function InfoTab({ poolId }: InfoTabProps) {
 
           <Stack spacing={0.5}>
             <Typography variant="body2" color="text.secondary">
-              Created
+              {INFO_TEXTS.created}
             </Typography>
             <Typography>{dateFormat(pool.createdAt, 'dateTime')}</Typography>
           </Stack>
@@ -145,7 +148,7 @@ export function InfoTab({ poolId }: InfoTabProps) {
           {pool.website && (
             <Stack spacing={0.5}>
               <Typography variant="body2" color="text.secondary">
-                Website
+                {INFO_TEXTS.website}
               </Typography>
               <Typography>
                 <a href={urlFormatter(pool.website)} target="_blank" rel="noreferrer">

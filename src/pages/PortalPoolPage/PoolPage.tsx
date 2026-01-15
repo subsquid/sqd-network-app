@@ -15,6 +15,7 @@ import { PoolYieldChart } from './PoolYieldChart';
 import { DelegateTab } from './tabs/DelegateTab';
 import { InfoTab } from './tabs/InfoTab';
 import { ManageTab } from './tabs/ManageTab';
+import { PAGE_TEXTS } from './texts';
 
 function PoolInfoCard({ poolId }: { poolId: string }) {
   const { data: pool } = usePoolData(poolId);
@@ -34,8 +35,8 @@ function PoolInfoCard({ poolId }: { poolId: string }) {
     <Stack spacing={2}>
       {isOperator && (
         <Tabs value={activeTab} onChange={handleTabChange}>
-          <Tab label="General" value={0} />
-          <Tab label="Manage" value={1} />
+          <Tab label={PAGE_TEXTS.tabs.general} value={0} />
+          <Tab label={PAGE_TEXTS.tabs.manage} value={1} />
         </Tabs>
       )}
       {activeTab === 0 && (
@@ -57,7 +58,7 @@ function PoolPageContent({ poolId }: { poolId?: string }) {
   }
 
   if (!pool || !poolId) {
-    return <NotFound item="portal pool" id={poolId} />;
+    return <NotFound item={PAGE_TEXTS.notFoundItem} id={poolId} />;
   }
 
   return (
@@ -90,8 +91,8 @@ export function PoolPage() {
         backButton={false}
         title={
           <Box display="flex" alignItems="center" gap={1}>
-            Portal Pool
-            <Chip label="Beta" size="small" color="info" variant="outlined" />
+            {PAGE_TEXTS.title}
+            <Chip label={PAGE_TEXTS.betaLabel} size="small" color="info" variant="outlined" />
           </Box>
         }
       />

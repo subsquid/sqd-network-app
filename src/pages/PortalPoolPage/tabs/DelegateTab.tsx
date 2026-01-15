@@ -15,6 +15,7 @@ import { useContracts } from '@network/useContracts';
 import { ProvideButton } from '../dialogs/ProvideDialog';
 import { WithdrawButton } from '../dialogs/WithdrawDialog';
 import { DISTRIBUTION_RATE_BPS, type PoolPhase, usePoolData, usePoolUserData } from '../hooks';
+import { DELEGATE_TEXTS } from '../texts';
 import { invalidatePoolQueries } from '../utils/poolUtils';
 
 interface DelegateTabProps {
@@ -81,8 +82,8 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
       <Card
         title={
           <Stack direction="row" alignItems="center" spacing={0.5}>
-            <span>Current Balance</span>
-            <HelpTooltip title="Your deposited SQD tokens in this pool." />
+            <span>{DELEGATE_TEXTS.currentBalance.label}</span>
+            <HelpTooltip title={DELEGATE_TEXTS.currentBalance.tooltip(SQD_TOKEN)} />
           </Stack>
         }
       >
@@ -101,8 +102,8 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
       <Card
         title={
           <Stack direction="row" alignItems="center" spacing={0.5}>
-            <span>Available Rewards</span>
-            <HelpTooltip title="Accumulated rewards ready to claim." />
+            <span>{DELEGATE_TEXTS.availableRewards.label}</span>
+            <HelpTooltip title={DELEGATE_TEXTS.availableRewards.tooltip} />
           </Stack>
         }
       >
@@ -113,10 +114,10 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
             </Typography>
             <Typography variant="body1" color="text.secondary">
               {tokenFormatter(dailyRewardRate, pool?.rewardToken.symbol, 4)}
-              /day
+              {DELEGATE_TEXTS.rewardRateUnit}
             </Typography>
           </Stack>
-          <Tooltip title={getClaimRewardsTooltip(pool!.phase)}>
+          <Tooltip title={getClaimRewardsTooltip(pool!.phase, SQD_TOKEN)}>
             <span>
               <Button
                 variant="contained"
@@ -136,14 +137,14 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
   );
 }
 
-function getClaimRewardsTooltip(phase: PoolPhase): string {
+function getClaimRewardsTooltip(phase: PoolPhase, tokenSymbol: string): string {
   switch (phase) {
     case 'collecting':
-      return 'The reward distribution will start once the pool is active';
+      return DELEGATE_TEXTS.claimButtonTooltip;
     case 'idle':
-      return 'The reward distribution is paused because there is insufficient SQD locked in the pool';
+      return DELEGATE_TEXTS.alerts.idle(tokenSymbol);
     case 'debt':
-      return 'The reward distribution is paused because the pool is out of rewards';
+      return DELEGATE_TEXTS.alerts.debt;
     default:
       return '';
   }

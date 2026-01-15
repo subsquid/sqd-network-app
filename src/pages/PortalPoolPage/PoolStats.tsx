@@ -12,7 +12,10 @@ import {
 } from '@lib/formatters/formatters';
 import { useContracts } from '@network/useContracts';
 
+import { SQD_TOKEN } from '@api/contracts/consts';
+
 import { usePoolData } from './hooks';
+import { STATS_TEXTS } from './texts';
 import { USDC_LOGO_URL } from './utils/constants';
 import { calculateApy } from './utils/poolUtils';
 
@@ -62,8 +65,8 @@ export function PoolStats({ poolId }: PoolStatsProps) {
 
   if (!pool) return null;
 
-  const apyTooltip =
-    'APY = (Monthly Payout × 12) / (Max Pool Capacity × SQD Price)\nCalculated using current SQD price.';
+  const apyTooltip = STATS_TEXTS.apy.tooltip(SQD_TOKEN);
+  const monthlyPayoutTooltip = STATS_TEXTS.monthlyPayout.tooltip(SQD_TOKEN);
 
   return (
     <Stack
@@ -73,8 +76,8 @@ export function PoolStats({ poolId }: PoolStatsProps) {
     >
       <Card sx={{ flex: 1 }}>
         <StatItem
-          label="TVL"
-          tooltip="Total Value Locked - current deposits relative to maximum pool capacity."
+          label={STATS_TEXTS.tvl.label}
+          tooltip={STATS_TEXTS.tvl.tooltip}
           value={
             <Stack direction="row" alignItems="baseline" spacing={0.5} flexWrap="wrap">
               <Typography variant="h6" component="span">
@@ -89,14 +92,14 @@ export function PoolStats({ poolId }: PoolStatsProps) {
       </Card>
       <Card sx={{ flex: 1 }}>
         <StatItem
-          label="APY"
+          label={STATS_TEXTS.apy.label}
           tooltip={apyTooltip}
           value={<Typography variant="h6">{percentFormatter(displayApy)}</Typography>}
         />
       </Card>
       <Card sx={{ flex: 1 }}>
         <StatItem
-          label="Total Funded"
+          label={STATS_TEXTS.monthlyPayout.label}
           value={
             <Typography variant="h6">
               <Stack direction="row" alignItems="center" spacing={0.5} flexWrap="wrap">
@@ -121,7 +124,7 @@ export function PoolStats({ poolId }: PoolStatsProps) {
               </Stack>
             </Typography>
           }
-          tooltip="Fixed monthly amount paid to SQD liquidity providers"
+          tooltip={monthlyPayoutTooltip}
         />
       </Card>
     </Stack>

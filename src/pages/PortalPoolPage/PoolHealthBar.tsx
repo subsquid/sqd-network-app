@@ -10,6 +10,7 @@ import { useContracts } from '@network/useContracts';
 
 import type { PoolData } from './hooks';
 import { usePoolData } from './hooks';
+import { HEALTH_TEXTS } from './texts';
 
 type PoolStatus = 'collecting' | 'critical' | 'low' | 'healthy';
 
@@ -19,23 +20,19 @@ const STATUS_CONFIG: Record<
 > = {
   collecting: {
     color: 'info',
-    description:
-      'Pool is collecting deposits to activate. Pool activates once minimum threshold is met. If not met by deadline, you can withdraw your full deposit.',
+    description: HEALTH_TEXTS.status.collecting,
   },
   critical: {
     color: 'error',
-    description:
-      'Pool has insufficient liquidity. Rewards are paused until deposits increase above the minimum threshold required for operations.',
+    description: HEALTH_TEXTS.bar.critical,
   },
   low: {
     color: 'warning',
-    description:
-      'Stable pool liquidity is below minimum level. Additional deposits may be needed to maintain stable reward distribution.',
+    description: HEALTH_TEXTS.bar.warning,
   },
   healthy: {
     color: 'success',
-    description:
-      'Pool has sufficient liquidity. Rewards are being distributed normally to all delegators.',
+    description: HEALTH_TEXTS.bar.healthy,
   },
 };
 
@@ -58,7 +55,7 @@ function ActivationCountdown({ pool }: { pool: PoolData }) {
         sx={{ color: `${STATUS_CONFIG.collecting.color}.main` }}
       >
         <AccessTime sx={{ fontSize: 16 }} />
-        <span>{timeRemaining || 'Deposit Window'}</span>
+        <span>{timeRemaining || HEALTH_TEXTS.bar.depositWindowLabel}</span>
       </Stack>
     </Tooltip>
   );
@@ -123,11 +120,11 @@ function ProgressBar({ pool }: { pool: PoolData }) {
         <Stack direction="row" spacing={1}>
           {showBuffer && (
             <Typography variant="body2" fontWeight="medium">
-              Stable: {percentFormatter(progress.main)}
+              {HEALTH_TEXTS.bar.stable.label}: {percentFormatter(progress.main)}
             </Typography>
           )}
           <Typography variant="body2" color={`${color}.main`} fontWeight="medium">
-            Total: {percentFormatter(progress.buffer)}
+            {HEALTH_TEXTS.bar.total.label}: {percentFormatter(progress.buffer)}
           </Typography>
         </Stack>
       </Stack>
@@ -142,7 +139,7 @@ function ProgressBar({ pool }: { pool: PoolData }) {
             overflow: 'hidden',
           }}
         >
-          <Tooltip title={`Stable: ${tokenFormatter(tvl.current, SQD_TOKEN)}`}>
+          <Tooltip title={HEALTH_TEXTS.bar.stable.tooltip(tokenFormatter(tvl.current, SQD_TOKEN))}>
             <Box
               sx={{
                 position: 'absolute',
@@ -155,7 +152,9 @@ function ProgressBar({ pool }: { pool: PoolData }) {
             />
           </Tooltip>
           <Tooltip
-            title={`Pending withdrawals: ${tokenFormatter(tvl.total.minus(tvl.current), SQD_TOKEN)}`}
+            title={HEALTH_TEXTS.bar.pendingWithdrawals.tooltip(
+              tokenFormatter(tvl.total.minus(tvl.current), SQD_TOKEN),
+            )}
           >
             <Box
               sx={{
@@ -171,7 +170,9 @@ function ProgressBar({ pool }: { pool: PoolData }) {
         </Box>
 
         {showThreshold && (
-          <Tooltip title={`Minimum threshold: ${tokenFormatter(tvl.min, SQD_TOKEN)}`}>
+          <Tooltip
+            title={HEALTH_TEXTS.bar.minimumThreshold.tooltip(tokenFormatter(tvl.min, SQD_TOKEN))}
+          >
             <Box
               sx={{
                 position: 'absolute',

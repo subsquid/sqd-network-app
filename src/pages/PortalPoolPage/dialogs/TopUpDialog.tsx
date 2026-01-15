@@ -13,6 +13,7 @@ import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
 
 import { type PoolData, usePoolData } from '../hooks';
+import { TOP_UP_DIALOG_TEXTS } from '../texts';
 import { invalidatePoolQueries } from '../utils/poolUtils';
 
 interface TopUpDialogProps {
@@ -48,14 +49,13 @@ function TopUpDialogContent({
   return (
     <Stack spacing={2.5}>
       <Typography variant="body2" color="text.secondary">
-        Add {pool.rewardToken.symbol} rewards to the pool. These funds will be distributed to
-        delegators based on their pool share.
+        {TOP_UP_DIALOG_TEXTS.description(pool.rewardToken.symbol)}
       </Typography>
 
       <FormRow>
         <FormikTextInput
           id="amount"
-          label={`Amount (${pool.rewardToken.symbol})`}
+          label={TOP_UP_DIALOG_TEXTS.amountLabel}
           formik={formik}
           showErrorOnlyOfTouched
           autoComplete="off"
@@ -127,7 +127,7 @@ export function TopUpDialog({ open, onClose, poolId }: TopUpDialogProps) {
 
   return (
     <ContractCallDialog
-      title="Top Up Pool Rewards"
+      title={TOP_UP_DIALOG_TEXTS.title}
       open={open}
       onResult={handleResult}
       loading={isPending}

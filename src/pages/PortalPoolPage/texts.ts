@@ -1,0 +1,225 @@
+// Page
+export const PAGE_TEXTS = {
+  title: 'Portal Pool',
+  betaLabel: 'Beta',
+  notFoundItem: 'portal pool',
+  tabs: {
+    general: 'General',
+    manage: 'Manage',
+  },
+} as const;
+
+// Pool Health (Status + Bar)
+export const HEALTH_TEXTS = {
+  status: {
+    active: 'Pool is active and earning rewards. Distributing yields to liquidity providers.',
+    collecting:
+      'Accepting deposits to activate the pool. Pool activates once minimum threshold is met. If not met by deadline, you can withdraw your full deposit.',
+    idle: 'Pool is paused due to insufficient liquidity. Rewards are not being distributed. Pool reactivates when liquidity increases above minimum threshold.',
+    debt: 'Pool has run out of USDC rewards. No rewards are being distributed. Contact the pool operator to add more USDC to resume rewards.',
+  },
+  bar: {
+    depositWindowLabel: 'Deposit window closes in',
+    depositWindowTooltip:
+      'Time remaining to deposit funds during the collection phase. Pool activates if the minimum threshold is met before this deadline.',
+    critical:
+      'Pool has insufficient liquidity. Rewards are paused until deposits increase above the minimum threshold required for operations.',
+    warning:
+      'Pool liquidity is below optimal levels. Additional deposits may be needed to maintain stable reward distribution.',
+    healthy:
+      'Pool has sufficient liquidity. Rewards are being distributed normally to all delegators.',
+    stable: {
+      label: 'Stable',
+      tooltip: (amount: string) => `Stable: ${amount}`,
+    },
+    total: {
+      label: 'Total',
+    },
+    pendingWithdrawals: {
+      tooltip: (amount: string) => `Pending withdrawals: ${amount}`,
+    },
+    minimumThreshold: {
+      tooltip: (amount: string) => `Minimum threshold: ${amount}`,
+    },
+  },
+} as const;
+
+// Pool Stats
+export const STATS_TEXTS = {
+  tvl: {
+    label: 'TVL',
+    tooltip: 'Total Value Locked - current deposits relative to maximum pool capacity.',
+  },
+  apy: {
+    label: 'APY',
+    tooltip: (symbol: string) =>
+      `APY = (Monthly Payout × 12) / (Max Pool Capacity × ${symbol} Price)\nBased on full pool capacity and live ${symbol} price.`,
+  },
+  monthlyPayout: {
+    label: 'Monthly Payout',
+    tooltip: (symbol: string) => `Fixed monthly amount paid to ${symbol} liquidity providers`,
+  },
+} as const;
+
+// Pool Yield Chart
+export const CHART_TEXTS = {
+  labels: {
+    apy: 'APY',
+    tvl: 'TVL',
+  },
+  periods: {
+    oneWeek: '1W',
+    oneMonth: '1M',
+    threeMonths: '3M',
+  },
+  subtitle: (symbol: string) => `Historical APY based on past ${symbol} token prices.`,
+} as const;
+
+// Pending Withdrawals
+export const WITHDRAWALS_TEXTS = {
+  tabTitle: 'Withdrawal Requests',
+  table: {
+    withdrawalId: 'Withdrawal ID',
+    amount: 'Amount',
+    timeLeft: {
+      label: 'Time Left',
+      tooltip: 'Remaining time before this withdrawal can be claimed.',
+    },
+  },
+  noRequests: 'No withdrawal requests',
+} as const;
+
+// Manage Tab
+export const MANAGE_TEXTS = {
+  rewardPoolBalance: {
+    label: 'Reward Pool Balance',
+    tooltip: 'Total rewards available for distribution to delegators.',
+  },
+  poolSettings: 'Pool Settings',
+  distributionRate: {
+    label: 'Distribution Rate',
+    tooltip: 'Daily reward amount distributed to delegators. Monthly payout = rate × 30 days.',
+    unit: '/day',
+  },
+  maxPoolCapacity: {
+    label: 'Max Pool Capacity',
+    tooltip: (symbol: string) =>
+      `Maximum ${symbol} that can be deposited. Higher capacity allows more delegators to participate.`,
+  },
+} as const;
+
+// Info Tab
+export const INFO_TEXTS = {
+  title: 'Information',
+  contract: 'Pool Contract',
+  operator: 'Operator',
+  lpToken: {
+    label: 'LP-Token',
+    tooltip: (symbol: string) =>
+      `Liquidity Provider token representing your share in the pool. You receive LP tokens when you deposit ${symbol}.`,
+  },
+  created: 'Created',
+  website: 'Website',
+  description: 'Description',
+  actions: {
+    openInExplorer: 'Open in Explorer',
+    addToWallet: 'Add to Wallet',
+  },
+  notifications: {
+    tokenAddedSuccess: 'Token added to wallet',
+    tokenAddedError: 'Failed to add token to wallet',
+    tokenAddedErrorWithReason: (reason: string) => `Failed to add token to wallet: ${reason}`,
+  },
+} as const;
+
+// Delegate Tab
+export const DELEGATE_TEXTS = {
+  currentBalance: {
+    label: 'Current Balance',
+    tooltip: (symbol: string) => `Your deposited ${symbol} tokens in this pool.`,
+  },
+  availableRewards: {
+    label: 'Available Rewards',
+    tooltip: 'Accumulated rewards ready to claim.',
+  },
+  rewardRateUnit: '/day',
+  claimButtonTooltip:
+    'Claim your accumulated rewards. Rewards are distributed daily based on your pool share.',
+  alerts: {
+    idle: (symbol: string) =>
+      `The reward distribution is paused because there is insufficient ${symbol} locked in the pool`,
+    debt: 'The reward distribution is paused because the pool is out of rewards',
+  },
+} as const;
+
+// Top Up Dialog
+export const TOP_UP_DIALOG_TEXTS = {
+  title: 'Top Up Pool Rewards',
+  description: (symbol: string) =>
+    `Add ${symbol} rewards to the pool. These funds will be distributed to delegators based on their pool share.`,
+  amountLabel: 'Amount',
+} as const;
+
+// Withdraw Dialog
+export const WITHDRAW_DIALOG_TEXTS = {
+  title: 'Withdraw from Pool',
+  amountLabel: 'Amount',
+  fields: {
+    totalDelegation: 'Total Delegation',
+    yourDelegation: 'Your Delegation',
+    expectedMonthlyPayout: 'Expected Monthly Payout',
+    expectedUnlockDate: {
+      label: 'Expected Unlock Date',
+      tooltip:
+        'Date when withdrawn funds will be available to claim. Withdrawal requests require a waiting period for pool security.',
+    },
+  },
+  tooltips: {
+    collecting: 'You cannot withdraw funds while the pool is still collecting',
+    nothingToWithdraw: 'Nothing to withdraw',
+  },
+} as const;
+
+// Provide Dialog
+export const PROVIDE_DIALOG_TEXTS = {
+  title: 'Deposit to Pool',
+  sourceLabel: 'Source',
+  amountLabel: 'Amount',
+  fields: {
+    totalDelegation: 'Total Delegation',
+    yourDelegation: 'Your Delegation',
+    expectedMonthlyPayout: {
+      label: 'Expected Monthly Payout',
+      tooltip: 'Estimated monthly rewards based on your share of the pool at current APY.',
+    },
+  },
+  alerts: {
+    collecting:
+      'Pool is collecting deposits to activate. Your deposit is locked until the pool activates or the deposit window closes. If activation fails, you can withdraw in full.',
+    idle: 'Pool is paused due to low liquidity. Rewards are not being distributed.',
+    poolFull: 'Pool is at maximum capacity. No more deposits accepted.',
+    userAtLimit: (amount: string) => `You have reached the maximum deposit limit of ${amount}.`,
+  },
+  tooltips: {
+    poolAtCapacity: 'Pool is at maximum capacity',
+  },
+} as const;
+
+// Legal Dialog
+export const LEGAL_DIALOG_TEXTS = {
+  title: 'Legal Agreement',
+  content:
+    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum',
+} as const;
+
+// Edit Settings Dialog
+export const EDIT_SETTINGS_DIALOG_TEXTS = {
+  editCapacity: {
+    title: 'Edit Max Pool Capacity',
+    label: (symbol: string) => `Max Pool Capacity (${symbol})`,
+  },
+  editDistributionRate: {
+    title: 'Edit Distribution Rate',
+    label: (symbol: string) => `Distribution Rate (${symbol}/day)`,
+  },
+} as const;

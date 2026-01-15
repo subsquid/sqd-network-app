@@ -20,6 +20,7 @@ import { toSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
 import { usePoolCapacity, usePoolData, usePoolUserData } from '../hooks';
+import { WITHDRAW_DIALOG_TEXTS } from '../texts';
 import { calculateExpectedMonthlyPayout, invalidatePoolQueries } from '../utils/poolUtils';
 
 interface WithdrawDialogProps {
@@ -36,7 +37,7 @@ const createValidationSchema = (maxWithdraw: BigNumber) =>
       .test('positive', 'Amount must be positive', value => {
         return BigNumber(value || '0').gt(0);
       })
-      .test('max', `Insufficient balance`, value => {
+      .test('max', 'Insufficient balance', value => {
         return BigNumber(value || '0').lte(maxWithdraw);
       }),
   });
@@ -79,7 +80,7 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
       <FormRow>
         <FormikTextInput
           id="amount"
-          label="Amount"
+          label={WITHDRAW_DIALOG_TEXTS.amountLabel}
           formik={formik}
           showErrorOnlyOfTouched
           autoComplete="off"
@@ -101,7 +102,7 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
 
       <Stack spacing={1.5}>
         <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2">Total deposit</Typography>
+          <Typography variant="body2">{WITHDRAW_DIALOG_TEXTS.fields.totalDelegation}</Typography>
           <Typography variant="body2">
             {typedAmount.gt(0)
               ? `${tokenFormatter(capacity.currentPoolTvl, '', 0).trim()} → ${tokenFormatter(expectedTotalDelegation, SQD_TOKEN, 0)}`
@@ -109,7 +110,7 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2">Your deposit</Typography>
+          <Typography variant="body2">{WITHDRAW_DIALOG_TEXTS.fields.yourDelegation}</Typography>
           <Typography variant="body2">
             {typedAmount.gt(0)
               ? `${tokenFormatter(capacity.currentUserBalance, '', 2).trim()} → ${tokenFormatter(expectedUserDelegation, SQD_TOKEN, 2)}`
@@ -119,15 +120,19 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2">Expected monthly payout</Typography>
+          <Typography variant="body2">
+            {WITHDRAW_DIALOG_TEXTS.fields.expectedMonthlyPayout}
+          </Typography>
           <Typography variant="body2">
             {tokenFormatter(userExpectedMonthlyPayout, pool.rewardToken.symbol, 2)}
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">
           <Stack direction="row" alignItems="center" spacing={0.5}>
-            <Typography variant="body2">Expected Unlock Date</Typography>
-            <HelpTooltip title="Date when withdrawn funds will be available to claim." />
+            <Typography variant="body2">
+              {WITHDRAW_DIALOG_TEXTS.fields.expectedUnlockDate.label}
+            </Typography>
+            <HelpTooltip title={WITHDRAW_DIALOG_TEXTS.fields.expectedUnlockDate.tooltip} />
           </Stack>
           <Typography variant="body2">
             {dateFormat(
@@ -193,7 +198,7 @@ export function WithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
 
   return (
     <ContractCallDialog
-      title="Withdraw from Pool"
+      title={WITHDRAW_DIALOG_TEXTS.title}
       open={open}
       onResult={handleResult}
       loading={isPending}
@@ -224,8 +229,8 @@ export function WithdrawButton({ poolId }: WithdrawButtonProps) {
       <Tooltip
         title={
           pool?.phase === 'collecting'
-            ? 'You cannot withdraw funds while the pool is still collecting'
-            : 'Nothing to withdraw'
+            ? WITHDRAW_DIALOG_TEXTS.tooltips.collecting
+            : WITHDRAW_DIALOG_TEXTS.tooltips.nothingToWithdraw
         }
       >
         <span>

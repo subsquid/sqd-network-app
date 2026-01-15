@@ -24,6 +24,7 @@ import { useContracts } from '@network/useContracts';
 
 import type { PendingWithdrawal } from './hooks';
 import { usePoolData, usePoolPendingWithdrawals } from './hooks';
+import { WITHDRAWALS_TEXTS } from './texts';
 
 interface PendingWithdrawalsProps {
   poolId: string;
@@ -79,12 +80,12 @@ function PendingWithdrawalsTable({
     <DashboardTable>
       <TableHead>
         <TableRow>
-          <TableCell>Withdrawal ID</TableCell>
-          <TableCell>Amount</TableCell>
+          <TableCell>{WITHDRAWALS_TEXTS.table.withdrawalId}</TableCell>
+          <TableCell>{WITHDRAWALS_TEXTS.table.amount}</TableCell>
           <TableCell>
             <Stack direction="row" alignItems="center" spacing={0.5}>
-              <span>Time Left</span>
-              <HelpTooltip title="Remaining time before this withdrawal can be claimed." />
+              <span>{WITHDRAWALS_TEXTS.table.timeLeft.label}</span>
+              <HelpTooltip title={WITHDRAWALS_TEXTS.table.timeLeft.tooltip} />
             </Stack>
           </TableCell>
           <TableCell></TableCell>
@@ -102,7 +103,7 @@ function PendingWithdrawalsTable({
           ))
         ) : (
           <NoItems>
-            <Typography>No withdrawal requests</Typography>
+            <Typography>{WITHDRAWALS_TEXTS.noRequests}</Typography>
           </NoItems>
         )}
       </TableBody>
@@ -140,7 +141,7 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
   return (
     <Box>
       <Tabs value={0} sx={{ mb: 2 }}>
-        <Tab label={`Withdrawal Requests`} />
+        <Tab label={WITHDRAWALS_TEXTS.tabTitle} />
       </Tabs>
       <Card>
         <PendingWithdrawalsTable

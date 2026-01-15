@@ -5,8 +5,10 @@ import { Box, Skeleton, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { useHistoricalTokenPrices } from '@api/price';
 import { Card } from '@components/Card';
 import { LineChart, SharedCursorProvider } from '@components/Chart';
+import { useContracts } from '@network/useContracts';
 
 import { usePoolData } from './hooks';
+import { CHART_TEXTS } from './texts';
 import { calculateApyOrZero } from './utils/poolUtils';
 
 type TimePeriod = '1w' | '1m' | '3m';
@@ -31,6 +33,7 @@ const apyAxisFormatter = (d: number) => `${d.toFixed(1)}%`;
 const apyTooltipFormatter = (d: number) => `${d.toFixed(2)}%`;
 
 export function PoolYieldChart({ poolId }: PoolYieldChartProps) {
+  const { SQD_TOKEN } = useContracts();
   const { data: pool } = usePoolData(poolId);
   const [period, setPeriod] = useState<TimePeriod>('1m');
 
@@ -68,7 +71,7 @@ export function PoolYieldChart({ poolId }: PoolYieldChartProps) {
 
     return [
       {
-        name: 'APY',
+        name: CHART_TEXTS.labels.apy,
         type: 'line' as const,
         color: '#4A90E2',
         data: chartPrices.map(({ timestamp, price }) => ({
@@ -83,18 +86,18 @@ export function PoolYieldChart({ poolId }: PoolYieldChartProps) {
     <Card
       title={
         <ToggleButtonGroup value="apy" exclusive>
-          <ToggleButton value="apy">APY</ToggleButton>
+          <ToggleButton value="apy">{CHART_TEXTS.labels.apy}</ToggleButton>
           <ToggleButton value="tvl" disabled>
-            TVL
+            {CHART_TEXTS.labels.tvl}
           </ToggleButton>
         </ToggleButtonGroup>
       }
-      subtitle="Historical APY based on past SQD token prices."
+      subtitle={CHART_TEXTS.subtitle(SQD_TOKEN)}
       action={
         <ToggleButtonGroup value={period} exclusive onChange={handlePeriodChange}>
-          <ToggleButton value="1w">1W</ToggleButton>
-          <ToggleButton value="1m">1M</ToggleButton>
-          <ToggleButton value="3m">3M</ToggleButton>
+          <ToggleButton value="1w">{CHART_TEXTS.periods.oneWeek}</ToggleButton>
+          <ToggleButton value="1m">{CHART_TEXTS.periods.oneMonth}</ToggleButton>
+          <ToggleButton value="3m">{CHART_TEXTS.periods.threeMonths}</ToggleButton>
         </ToggleButtonGroup>
       }
     >

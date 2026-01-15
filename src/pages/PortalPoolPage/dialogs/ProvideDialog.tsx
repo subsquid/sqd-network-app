@@ -20,6 +20,7 @@ import { toSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
 import { usePoolCapacity, usePoolData, usePoolUserData } from '../hooks';
+import { LEGAL_DIALOG_TEXTS, PROVIDE_DIALOG_TEXTS } from '../texts';
 import { calculateExpectedMonthlyPayout, invalidatePoolQueries } from '../utils/poolUtils';
 
 interface ProvideDialogProps {
@@ -45,13 +46,13 @@ const createValidationSchema = (
 
         if (amount.gt(userRemainingCapacity)) {
           return this.createError({
-            message: `You have reached the maximum deposit limit`,
+            message: 'You have reached the maximum deposit limit',
           });
         }
 
         if (amount.gt(poolRemainingCapacity)) {
           return this.createError({
-            message: `Pool is at maximum capacity`,
+            message: 'Pool is at maximum capacity',
           });
         }
 
@@ -92,27 +93,19 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
 
   return (
     <Stack spacing={2.5}>
-      {isDepositPhase && (
-        <Alert severity="info">
-          Pool is collecting deposits to activate. Your deposit is locked until the pool activates
-          or the deposit window closes. If activation fails, you can withdraw your full deposit.
-        </Alert>
-      )}
+      {isDepositPhase && <Alert severity="info">{PROVIDE_DIALOG_TEXTS.alerts.collecting}</Alert>}
 
       {pool.phase === 'idle' && (
-        <Alert severity="warning">
-          Pool is paused due to low liquidity. Rewards are not being distributed.
-        </Alert>
+        <Alert severity="warning">{PROVIDE_DIALOG_TEXTS.alerts.idle}</Alert>
       )}
 
-      {isPoolFull && (
-        <Alert severity="warning">Pool is at maximum capacity. No more deposits accepted.</Alert>
-      )}
+      {isPoolFull && <Alert severity="warning">{PROVIDE_DIALOG_TEXTS.alerts.poolFull}</Alert>}
 
       {!isPoolFull && isUserAtLimit && (
         <Alert severity="info">
-          You have reached the maximum deposit limit of{' '}
-          {tokenFormatter(pool.maxDepositPerAddress, SQD_TOKEN, 0)}.
+          {PROVIDE_DIALOG_TEXTS.alerts.userAtLimit(
+            tokenFormatter(pool.maxDepositPerAddress, SQD_TOKEN, 0),
+          )}
         </Alert>
       )}
 
@@ -132,13 +125,12 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
       <FormRow>
         <FormikTextInput
           id="amount"
-          label="Amount"
+          label={PROVIDE_DIALOG_TEXTS.amountLabel}
           formik={formik}
           showErrorOnlyOfTouched
           autoComplete="off"
           placeholder="0"
           disabled={isPoolFull || isUserAtLimit}
-          helperText={`Maximum deposit limit: ${tokenFormatter(capacity.maxDepositPerAddress, SQD_TOKEN, 0)}`}
           InputProps={{
             endAdornment: (
               <Chip
@@ -158,7 +150,7 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
 
       <Stack spacing={1.5}>
         <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2">Total deposit</Typography>
+          <Typography variant="body2">{PROVIDE_DIALOG_TEXTS.fields.totalDelegation}</Typography>
           <Typography variant="body2">
             {typedAmount.gt(0)
               ? `${tokenFormatter(capacity.currentPoolTvl, '', 0).trim()} → ${tokenFormatter(expectedTotalDelegation, SQD_TOKEN, 0)}`
@@ -166,7 +158,7 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2">Your deposit</Typography>
+          <Typography variant="body2">{PROVIDE_DIALOG_TEXTS.fields.yourDelegation}</Typography>
           <Typography variant="body2">
             {typedAmount.gt(0)
               ? `${tokenFormatter(capacity.currentUserBalance, '', 2).trim()} → ${tokenFormatter(expectedUserDelegation, SQD_TOKEN, 2)}`
@@ -177,8 +169,10 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
         </Stack>
         <Stack direction="row" justifyContent="space-between">
           <Stack direction="row" alignItems="center" spacing={0.5}>
-            <Typography variant="body2">Expected monthly payout</Typography>
-            <HelpTooltip title="Estimated monthly rewards based on your share of the pool at current APY." />
+            <Typography variant="body2">
+              {PROVIDE_DIALOG_TEXTS.fields.expectedMonthlyPayout.label}
+            </Typography>
+            <HelpTooltip title={PROVIDE_DIALOG_TEXTS.fields.expectedMonthlyPayout.tooltip} />
           </Stack>
           <Typography variant="body2">
             {tokenFormatter(userExpectedMonthlyPayout, pool.rewardToken.symbol, 2)}
@@ -250,7 +244,7 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
 
   return (
     <ContractCallDialog
-      title="Deposit to Pool"
+      title={PROVIDE_DIALOG_TEXTS.title}
       open={open}
       onResult={handleResult}
       loading={isPending}
@@ -280,18 +274,14 @@ function LegalDialog({
 
   return (
     <ContractCallDialog
-      title="Terms & Conditions"
+      title={LEGAL_DIALOG_TEXTS.title}
       open={open}
       onResult={handleResult}
       confirmButtonText="ACCEPT"
       cancelButtonText="REJECT"
       hideCancelButton={false}
     >
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-      labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-      laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
-      voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat
-      non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+      {LEGAL_DIALOG_TEXTS.content}
     </ContractCallDialog>
   );
 }
@@ -312,7 +302,7 @@ export function ProvideButton({ poolId }: ProvideButtonProps) {
 
   return (
     <>
-      <Tooltip title={isDisabled ? 'Pool is at maximum capacity' : ''}>
+      <Tooltip title={isDisabled ? PROVIDE_DIALOG_TEXTS.tooltips.poolAtCapacity : ''}>
         <span>
           <Button
             variant="contained"
