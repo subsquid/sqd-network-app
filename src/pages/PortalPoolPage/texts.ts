@@ -202,6 +202,7 @@ export const PROVIDE_DIALOG_TEXTS = {
   },
   tooltips: {
     poolAtCapacity: 'Pool is at maximum capacity',
+    notWhitelisted: 'You are not whitelisted for this pool',
   },
 } as const;
 

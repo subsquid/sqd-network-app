@@ -294,15 +294,27 @@ export function ProvideButton({ poolId }: ProvideButtonProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [legalOpen, setLegalOpen] = useState(false);
   const { data: pool } = usePoolData(poolId);
+  const { data: userData } = usePoolUserData(poolId);
 
-  const isDisabled = useMemo(() => {
-    if (!pool) return true;
-    return pool.tvl.current.gte(pool.tvl.max);
-  }, [pool]);
+  const { isDisabled, disabledReason } = useMemo(() => {
+    if (!pool) return { isDisabled: true, disabledReason: '' };
+
+    const isNotWhitelisted = userData?.whitelistEnabled && !userData?.isWhitelisted;
+    if (isNotWhitelisted) {
+      return { isDisabled: true, disabledReason: PROVIDE_DIALOG_TEXTS.tooltips.notWhitelisted };
+    }
+
+    const isPoolFull = pool.tvl.current.gte(pool.tvl.max);
+    if (isPoolFull) {
+      return { isDisabled: true, disabledReason: PROVIDE_DIALOG_TEXTS.tooltips.poolAtCapacity };
+    }
+
+    return { isDisabled: false, disabledReason: '' };
+  }, [pool, userData]);
 
   return (
     <>
-      <Tooltip title={isDisabled ? PROVIDE_DIALOG_TEXTS.tooltips.poolAtCapacity : ''}>
+      <Tooltip title={disabledReason}>
         <span>
           <Button
             variant="contained"

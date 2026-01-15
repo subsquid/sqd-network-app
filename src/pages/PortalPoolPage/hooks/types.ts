@@ -54,4 +54,6 @@ export interface PoolData {
 export interface PoolUserData {
   userBalance: BigNumber;
   userRewards: bigint;
+  isWhitelisted: boolean;
+  whitelistEnabled: boolean;
 }
