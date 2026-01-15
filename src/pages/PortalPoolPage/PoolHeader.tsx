@@ -1,4 +1,4 @@
-import { Box, Chip, Divider, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, Chip, Divider, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
 
 import { Avatar } from '@components/Avatar';
 import { Card } from '@components/Card';
@@ -13,9 +13,8 @@ interface PoolHeaderProps {
 }
 
 export function PoolHeader({ poolId }: PoolHeaderProps) {
-  const { data: pool } = usePoolData(poolId);
+  const { data: pool, isLoading } = usePoolData(poolId);
 
-  if (!pool) return null;
   return (
     <Stack spacing={2}>
       <Card>
@@ -27,21 +26,38 @@ export function PoolHeader({ poolId }: PoolHeaderProps) {
             justifyContent="space-between"
           >
             <Stack direction="row" alignItems="center" spacing={2}>
-              <Avatar name={pool.name} colorDiscriminator={pool.id} size={64} />
+              {isLoading ? (
+                <Skeleton variant="circular" width={64} height={64} />
+              ) : (
+                <Avatar name={pool?.name ?? ''} colorDiscriminator={pool?.id ?? ''} size={64} />
+              )}
               <Stack direction="column" alignItems="start" spacing={1}>
-                <Typography variant="h5">{pool.name}</Typography>
-                <Tooltip title={getPhaseTooltip(pool.phase)}>
-                  <Chip
-                    label={getPhaseLabel(pool.phase)}
-                    color={getPhaseColor(pool.phase)}
-                    size="small"
-                  />
-                </Tooltip>
+                <Typography variant="h5">
+                  {isLoading ? <Skeleton width="50%" /> : pool?.name}
+                </Typography>
+                {isLoading ? (
+                  <Skeleton variant="rounded" width={80} height={24} />
+                ) : pool ? (
+                  <Tooltip title={getPhaseTooltip(pool.phase)}>
+                    <Chip
+                      label={getPhaseLabel(pool.phase)}
+                      color={getPhaseColor(pool.phase)}
+                      size="small"
+                    />
+                  </Tooltip>
+                ) : null}
               </Stack>
             </Stack>
 
             <Box sx={{ flex: 1, maxWidth: { sm: 300 } }}>
-              <PoolHealthBar poolId={poolId} />
+              {isLoading ? (
+                <Stack spacing={0.5}>
+                  <Skeleton variant="text" width="100%" />
+                  <Skeleton variant="rounded" width="100%" height={10} />
+                </Stack>
+              ) : (
+                <PoolHealthBar poolId={poolId} />
+              )}
             </Box>
           </Stack>
           {/* <PoolStats poolId={poolId} /> */}

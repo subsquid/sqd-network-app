@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { Divider, Stack, Typography } from '@mui/material';
+import { Divider, Skeleton, Stack, Typography } from '@mui/material';
 import BigNumber from 'bignumber.js';
 import { useReadContract } from 'wagmi';
 
@@ -20,10 +20,10 @@ interface ManageTabProps {
 }
 
 export function ManageTab({ poolId }: ManageTabProps) {
-  const { data: pool } = usePoolData(poolId);
+  const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
   const { SQD_TOKEN } = useContracts();
 
-  const { data: rewardBalance } = useReadContract({
+  const { data: rewardBalance, isLoading: rewardBalanceLoading } = useReadContract({
     address: poolId as `0x${string}`,
     abi: portalPoolAbi,
     functionName: 'getCurrentRewardBalance',
@@ -37,7 +37,7 @@ export function ManageTab({ poolId }: ManageTabProps) {
     return pool.phase !== 'collecting' && pool.phase !== 'debt' && pool.phase !== 'failed';
   }, [pool?.phase]);
 
-  if (!pool) return null;
+  if (!pool && !poolLoading) return null;
 
   return (
     <Stack spacing={2}>
@@ -52,10 +52,14 @@ export function ManageTab({ poolId }: ManageTabProps) {
         <Stack spacing={2} divider={<Divider />}>
           <Stack spacing={0.5}>
             <Typography variant="h5">
-              {tokenFormatter(
-                BigNumber(rewardBalance || 0).div(10 ** pool.rewardToken.decimals),
-                pool.rewardToken.symbol,
-                6,
+              {poolLoading || rewardBalanceLoading ? (
+                <Skeleton width="50%" />
+              ) : (
+                tokenFormatter(
+                  BigNumber(rewardBalance || 0).div(10 ** pool!.rewardToken.decimals),
+                  pool!.rewardToken.symbol,
+                  6,
+                )
               )}
             </Typography>
           </Stack>
@@ -83,8 +87,16 @@ export function ManageTab({ poolId }: ManageTabProps) {
               </Typography>
               <Typography>
                 <Stack direction="row" alignItems="center" spacing={0.5}>
-                  <span>{`${pool.distributionRatePerSecond.times(86400).toFixed(2)} ${pool.rewardToken.symbol}${MANAGE_TEXTS.distributionRate.unit}`}</span>
-                  <EditDistributionRateButton poolId={poolId} disabled={!canEdit} />
+                  <span>
+                    {poolLoading ? (
+                      <Skeleton width={100} />
+                    ) : (
+                      `${pool!.distributionRatePerSecond.times(86400).toFixed(2)} ${pool!.rewardToken.symbol}${MANAGE_TEXTS.distributionRate.unit}`
+                    )}
+                  </span>
+                  {!poolLoading && (
+                    <EditDistributionRateButton poolId={poolId} disabled={!canEdit} />
+                  )}
                 </Stack>
               </Typography>
             </Stack>
@@ -98,8 +110,10 @@ export function ManageTab({ poolId }: ManageTabProps) {
               </Typography>
               <Typography>
                 <Stack direction="row" alignItems="center" spacing={0.5}>
-                  <span>{tokenFormatter(pool.tvl.max, SQD_TOKEN, 0)}</span>
-                  <EditCapacityButton poolId={poolId} disabled={!canEdit} />
+                  <span>
+                    {poolLoading ? <Skeleton width={100} /> : tokenFormatter(pool!.tvl.max, SQD_TOKEN, 0)}
+                  </span>
+                  {!poolLoading && <EditCapacityButton poolId={poolId} disabled={!canEdit} />}
                 </Stack>
               </Typography>
             </Stack>

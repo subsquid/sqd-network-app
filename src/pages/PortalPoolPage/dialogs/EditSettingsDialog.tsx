@@ -13,6 +13,7 @@ import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
+import { Loader } from '@components/Loader';
 import { toSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
@@ -40,7 +41,7 @@ const capacityValidationSchema = yup.object({
 export function EditCapacityDialog({ open, onClose, poolId }: EditCapacityDialogProps) {
   const queryClient = useQueryClient();
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
-  const { data: pool } = usePoolData(poolId);
+  const { data: pool, isLoading } = usePoolData(poolId);
   const { SQD_TOKEN } = useContracts();
 
   const initialCapacity = useMemo(() => {
@@ -95,16 +96,20 @@ export function EditCapacityDialog({ open, onClose, poolId }: EditCapacityDialog
       loading={isPending}
       disableConfirmButton={!formik.isValid}
     >
-      <FormRow>
-        <FormikTextInput
-          id="capacity"
-          label={EDIT_SETTINGS_DIALOG_TEXTS.editCapacity.label(SQD_TOKEN)}
-          formik={formik}
-          showErrorOnlyOfTouched
-          autoComplete="off"
-          placeholder="0"
-        />
-      </FormRow>
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <FormRow>
+          <FormikTextInput
+            id="capacity"
+            label={EDIT_SETTINGS_DIALOG_TEXTS.editCapacity.label(SQD_TOKEN)}
+            formik={formik}
+            showErrorOnlyOfTouched
+            autoComplete="off"
+            placeholder="0"
+          />
+        </FormRow>
+      )}
     </ContractCallDialog>
   );
 }
@@ -149,7 +154,7 @@ export function EditDistributionRateDialog({
 }: EditDistributionRateDialogProps) {
   const queryClient = useQueryClient();
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
-  const { data: pool } = usePoolData(poolId);
+  const { data: pool, isLoading } = usePoolData(poolId);
 
   const initialDistributionRate = useMemo(() => {
     if (!pool) return '';
@@ -213,18 +218,22 @@ export function EditDistributionRateDialog({
       loading={isPending}
       disableConfirmButton={!formik.isValid}
     >
-      <FormRow>
-        <FormikTextInput
-          id="distributionRate"
-          label={EDIT_SETTINGS_DIALOG_TEXTS.editDistributionRate.label(
-            pool?.rewardToken.symbol || '',
-          )}
-          formik={formik}
-          showErrorOnlyOfTouched
-          autoComplete="off"
-          placeholder="0"
-        />
-      </FormRow>
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <FormRow>
+          <FormikTextInput
+            id="distributionRate"
+            label={EDIT_SETTINGS_DIALOG_TEXTS.editDistributionRate.label(
+              pool?.rewardToken.symbol || '',
+            )}
+            formik={formik}
+            showErrorOnlyOfTouched
+            autoComplete="off"
+            placeholder="0"
+          />
+        </FormRow>
+      )}
     </ContractCallDialog>
   );
 }

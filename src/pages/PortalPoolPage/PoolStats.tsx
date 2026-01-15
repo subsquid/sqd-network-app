@@ -1,6 +1,6 @@
 import { type ReactNode, useMemo } from 'react';
 
-import { Box, Stack, Typography } from '@mui/material';
+import { Box, Skeleton, Stack, Typography } from '@mui/material';
 
 import { useTokenPrice } from '@api/price';
 import { Card } from '@components/Card';
@@ -43,7 +43,7 @@ function StatItem({
 }
 
 export function PoolStats({ poolId }: PoolStatsProps) {
-  const { data: pool } = usePoolData(poolId);
+  const { data: pool, isLoading } = usePoolData(poolId);
   const { SQD_TOKEN, SQD } = useContracts();
   const { data: sqdPrice } = useTokenPrice({ address: SQD });
 
@@ -59,8 +59,6 @@ export function PoolStats({ poolId }: PoolStatsProps) {
       ) || 0;
     return calculatedApyRatio * 100;
   }, [pool, sqdPrice]);
-
-  if (!pool) return null;
 
   const apyTooltip = STATS_TEXTS.apy.tooltip(SQD_TOKEN);
   const monthlyPayoutTooltip = STATS_TEXTS.monthlyPayout.tooltip(SQD_TOKEN);
@@ -78,10 +76,18 @@ export function PoolStats({ poolId }: PoolStatsProps) {
           value={
             <Stack direction="row" alignItems="baseline" spacing={0.5} flexWrap="wrap">
               <Typography variant="h6" component="span">
-                {numberCompactFormatter(pool.tvl.total.toNumber())}
+                {isLoading ? (
+                  <Skeleton width="50%" />
+                ) : (
+                  numberCompactFormatter(pool!.tvl.total.toNumber())
+                )}
               </Typography>
               <Typography variant="h6" component="span">
-                / {numberCompactFormatter(pool.tvl.max.toNumber())} {SQD_TOKEN}
+                {isLoading ? (
+                  <Skeleton width="50%" />
+                ) : (
+                  `/ ${numberCompactFormatter(pool!.tvl.max.toNumber())} ${SQD_TOKEN}`
+                )}
               </Typography>
             </Stack>
           }
@@ -91,7 +97,11 @@ export function PoolStats({ poolId }: PoolStatsProps) {
         <StatItem
           label={STATS_TEXTS.apy.label}
           tooltip={apyTooltip}
-          value={<Typography variant="h6">{percentFormatter(displayApy)}</Typography>}
+          value={
+            <Typography variant="h6">
+              {isLoading ? <Skeleton width="50%" /> : percentFormatter(displayApy)}
+            </Typography>
+          }
         />
       </Card>
       <Card sx={{ flex: 1 }}>
@@ -101,7 +111,11 @@ export function PoolStats({ poolId }: PoolStatsProps) {
             <Typography variant="h6">
               <Stack direction="row" alignItems="center" spacing={0.5} flexWrap="wrap">
                 <Typography variant="h6">
-                  {tokenFormatter(0, pool.rewardToken.symbol, 0)}
+                  {isLoading ? (
+                    <Skeleton width="50%" />
+                  ) : (
+                    tokenFormatter(0, pool!.rewardToken.symbol, 0)
+                  )}
                 </Typography>
                 {/* {pool.rewardToken && (
                   <Link

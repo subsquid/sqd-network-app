@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 
-import { Button, Divider, Stack, Tooltip, Typography } from '@mui/material';
+import { Button, Divider, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import BigNumber from 'bignumber.js';
 
@@ -23,12 +23,14 @@ interface DelegateTabProps {
 }
 
 export function DelegateTab({ poolId }: DelegateTabProps) {
-  const { data: pool } = usePoolData(poolId);
-  const { data: userData } = usePoolUserData(poolId);
+  const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
+  const { data: userData, isLoading: userDataLoading } = usePoolUserData(poolId);
   const { SQD_TOKEN, SQD } = useContracts();
   const { data: sqdPrice } = useTokenPrice({ address: SQD });
   const queryClient = useQueryClient();
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
+
+  const isLoading = poolLoading || userDataLoading;
 
   const balance = userData?.userBalance ?? BigNumber(0);
   const balanceInUsd = sqdPrice ? balance.toNumber() * sqdPrice : undefined;
@@ -75,7 +77,7 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
     }
   }, [poolId, writeTransactionAsync, queryClient]);
 
-  if (!pool) return null;
+  if (!pool && !isLoading) return null;
 
   return (
     <Stack spacing={2}>
@@ -89,8 +91,12 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
       >
         <Stack spacing={2} divider={<Divider />}>
           <Stack spacing={0.5}>
-            <Typography variant="h5">{tokenFormatter(balance, SQD_TOKEN, 2)}</Typography>
-            <Typography variant="body1">≈ {dollarFormatter(balanceInUsd || 0)}</Typography>
+            <Typography variant="h5">
+              {isLoading ? <Skeleton width="50%" /> : tokenFormatter(balance, SQD_TOKEN, 2)}
+            </Typography>
+            <Typography variant="body1">
+              {isLoading ? <Skeleton width="50%" /> : `≈ ${dollarFormatter(balanceInUsd || 0)}`}
+            </Typography>
           </Stack>
           <Stack spacing={1}>
             <ProvideButton poolId={poolId} />
@@ -110,21 +116,28 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
         <Stack spacing={2} divider={<Divider />}>
           <Stack spacing={0.5}>
             <Typography variant="h5">
-              {tokenFormatter(rewards, pool?.rewardToken.symbol, 2)}
+              {isLoading ? (
+                <Skeleton width="50%" />
+              ) : (
+                tokenFormatter(rewards, pool?.rewardToken.symbol ?? '', 2)
+              )}
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              {tokenFormatter(dailyRewardRate, pool?.rewardToken.symbol, 4)}
-              {DELEGATE_TEXTS.rewardRateUnit}
+              {isLoading ? (
+                <Skeleton width="50%" />
+              ) : (
+                `${tokenFormatter(dailyRewardRate, pool?.rewardToken.symbol ?? '', 4)}${DELEGATE_TEXTS.rewardRateUnit}`
+              )}
             </Typography>
           </Stack>
-          <Tooltip title={getClaimRewardsTooltip(pool!.phase, SQD_TOKEN)}>
+          <Tooltip title={pool ? getClaimRewardsTooltip(pool.phase, SQD_TOKEN) : ''}>
             <span>
               <Button
                 variant="contained"
                 color="success"
                 fullWidth
                 onClick={handleClaimRewards}
-                disabled={!hasRewards || isPending}
+                disabled={!hasRewards || isPending || isLoading}
                 loading={isPending}
               >
                 CLAIM

@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 import {
   Box,
   Button,
+  Skeleton,
   Stack,
   Tab,
   TableBody,
@@ -71,10 +72,12 @@ function PendingWithdrawalsTable({
   pendingWithdrawals,
   claimingId,
   onClaim,
+  isLoading,
 }: {
   pendingWithdrawals: PendingWithdrawal[];
   claimingId: string | null;
   onClaim: (id: string) => void;
+  isLoading: boolean;
 }) {
   return (
     <DashboardTable>
@@ -92,7 +95,24 @@ function PendingWithdrawalsTable({
         </TableRow>
       </TableHead>
       <TableBody>
-        {pendingWithdrawals.length ? (
+        {isLoading ? (
+          <TableRow>
+            <TableCell>
+              <Skeleton width="50%" />
+            </TableCell>
+            <TableCell>
+              <Skeleton width="50%" />
+            </TableCell>
+            <TableCell>
+              <Skeleton width="50%" />
+            </TableCell>
+            <TableCell>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Skeleton variant="rounded" width={80} height={36} />
+              </Box>
+            </TableCell>
+          </TableRow>
+        ) : pendingWithdrawals.length ? (
           pendingWithdrawals.map(withdrawal => (
             <WithdrawalRow
               key={withdrawal.id}
@@ -112,10 +132,11 @@ function PendingWithdrawalsTable({
 }
 
 export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
-  const { data: pool } = usePoolData(poolId);
+  const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
   const [claimingId, setClaimingId] = useState<string | null>(null);
   const { writeTransactionAsync } = useWriteSQDTransaction();
-  const { data: pendingWithdrawals = [] } = usePoolPendingWithdrawals(poolId);
+  const { data: pendingWithdrawals = [], isLoading: withdrawalsLoading } =
+    usePoolPendingWithdrawals(poolId);
 
   const handleClaim = useCallback(
     async (withdrawalId: string) => {
@@ -136,7 +157,7 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
     [poolId, writeTransactionAsync],
   );
 
-  if (!pool) return null;
+  if (!pool && !poolLoading) return null;
 
   return (
     <Box>
@@ -148,6 +169,7 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
           pendingWithdrawals={pendingWithdrawals}
           claimingId={claimingId}
           onClaim={handleClaim}
+          isLoading={poolLoading || withdrawalsLoading}
         />
       </Card>
     </Box>

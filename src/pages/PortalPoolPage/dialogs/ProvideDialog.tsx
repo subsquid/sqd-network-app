@@ -14,6 +14,7 @@ import { AccountType, useMySources } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikSelect, FormikTextInput } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
+import { Loader } from '@components/Loader';
 import { SourceWalletOption } from '@components/SourceWallet';
 import { tokenFormatter } from '@lib/formatters/formatters';
 import { toSqd } from '@lib/network';
@@ -67,8 +68,8 @@ interface ProvideDialogContentProps {
 
 function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
   const { SQD_TOKEN } = useContracts();
-  const { data: pool } = usePoolData(poolId);
-  const { data: userData } = usePoolUserData(poolId);
+  const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
+  const { data: userData, isLoading: userDataLoading } = usePoolUserData(poolId);
   const capacity = usePoolCapacity(poolId);
   const { data: sources } = useMySources();
 
@@ -78,6 +79,7 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
     if (capacity) formik.setFieldValue('amount', capacity.effectiveMax.toString());
   }, [formik, capacity]);
 
+  if (poolLoading || userDataLoading) return <Loader />;
   if (!pool || !capacity) return null;
 
   const isDepositPhase = pool.phase === 'collecting';

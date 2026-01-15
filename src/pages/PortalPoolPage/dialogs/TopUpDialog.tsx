@@ -11,6 +11,7 @@ import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
+import { Loader } from '@components/Loader';
 
 import { type PoolData, usePoolData } from '../hooks';
 import { TOP_UP_DIALOG_TEXTS } from '../texts';
@@ -35,15 +36,18 @@ const validationSchema = yup.object({
 function TopUpDialogContent({
   formik,
   pool,
+  isLoading,
 }: {
   formik: ReturnType<typeof useFormik<{ amount: string }>>;
   pool?: PoolData;
+  isLoading: boolean;
 }) {
   const handleMaxClick = useCallback(() => {
     // For now, no max limit - operator can top up any amount
     // Could add wallet balance check here if needed
   }, []);
 
+  if (isLoading) return <Loader />;
   if (!pool) return null;
 
   return (
@@ -80,7 +84,7 @@ function TopUpDialogContent({
 export function TopUpDialog({ open, onClose, poolId }: TopUpDialogProps) {
   const queryClient = useQueryClient();
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
-  const { data: pool } = usePoolData(poolId);
+  const { data: pool, isLoading } = usePoolData(poolId);
 
   const formik = useFormik({
     initialValues: {
@@ -134,7 +138,7 @@ export function TopUpDialog({ open, onClose, poolId }: TopUpDialogProps) {
       confirmColor="success"
       disableConfirmButton={!formik.isValid || !formik.values.amount}
     >
-      <TopUpDialogContent formik={formik} pool={pool} />
+      <TopUpDialogContent formik={formik} pool={pool} isLoading={isLoading} />
     </ContractCallDialog>
   );
 }

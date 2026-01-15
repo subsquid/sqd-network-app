@@ -15,6 +15,7 @@ import { errorMessage } from '@api/contracts/utils';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
+import { Loader } from '@components/Loader';
 import { tokenFormatter } from '@lib/formatters/formatters';
 import { toSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
@@ -49,8 +50,8 @@ interface WithdrawDialogContentProps {
 
 function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
   const { SQD_TOKEN } = useContracts();
-  const { data: pool } = usePoolData(poolId);
-  const { data: userData } = usePoolUserData(poolId);
+  const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
+  const { data: userData, isLoading: userDataLoading } = usePoolUserData(poolId);
   const capacity = usePoolCapacity(poolId);
 
   const typedAmount = useMemo(() => BigNumber(formik.values.amount || '0'), [formik.values.amount]);
@@ -69,6 +70,7 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
     if (userData) formik.setFieldValue('amount', userData.userBalance.toString());
   }, [formik, userData]);
 
+  if (poolLoading || userDataLoading) return <Loader />;
   if (!pool || !capacity || !userData) return null;
 
   const expectedUserDelegation = BigNumber.max(0, capacity.currentUserBalance.minus(typedAmount));
