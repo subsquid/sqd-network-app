@@ -1,5 +1,6 @@
-import React, { useRef } from 'react';
-
+import { useIsWorkerOperator } from '@api/subsquid-network-squid';
+import { demoFeaturesEnabled } from '@hooks/demoFeaturesEnabled';
+import { BuySqdIcon } from '@icons/BuySqdIcon.tsx';
 import {
   AccountTree,
   AccountTreeOutlined,
@@ -12,26 +13,20 @@ import {
   LanOutlined,
   Savings,
   SavingsOutlined,
-  Sensors,
-  SensorsOutlined,
-  SensorDoor,
-  SensorDoorOutlined,
   SmsOutlined,
 } from '@mui/icons-material';
 import {
   List,
   ListItem,
   ListItemButton,
+  ListItemButtonProps,
   ListItemIcon,
   ListItemText,
   styled,
-  ListItemButtonProps,
 } from '@mui/material';
-import { Link, LinkProps as RouterLinkProps, useLocation } from 'react-router-dom';
-
-import { useIsWorkerOperator } from '@api/subsquid-network-squid';
-import { demoFeaturesEnabled } from '@hooks/demoFeaturesEnabled';
 import { useWorkersChatUrl } from '@network/useWorkersChat';
+import React, { useRef } from 'react';
+import { Link, LinkProps as RouterLinkProps, useLocation } from 'react-router-dom';
 
 interface NetworkMenuProps {
   onItemClick: () => void;
@@ -97,6 +92,7 @@ interface ItemProps {
   RightIcon?: React.ReactNode | ((active: boolean) => React.ReactNode);
   label?: string;
   onClick?: () => void;
+  textSx?: Record<string, unknown>;
 }
 
 export const Item = ({
@@ -107,6 +103,7 @@ export const Item = ({
   disabled,
   LeftIcon,
   RightIcon,
+  textSx,
   onClick,
 }: ItemProps) => {
   const startIcon = typeof LeftIcon === 'function' ? LeftIcon(selected) : LeftIcon;
@@ -124,7 +121,14 @@ export const Item = ({
         rel={target ? 'noreferrer' : undefined}
       >
         <MenuListItemIcon>{startIcon}</MenuListItemIcon>
-        <ListItemText primary={label} />
+        <ListItemText
+          slotProps={{
+            primary: {
+              sx: textSx,
+            },
+          }}
+          primary={label}
+        />
         {endIcon && <MenuListItemSecondaryIcon>{endIcon}</MenuListItemSecondaryIcon>}
       </MenuListItemButton>
     </MenuListItem>
@@ -225,6 +229,18 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
         path={process.env.DISCORD_API_URL || '/null'}
         target="_blank"
         LeftIcon={<SmsOutlined />}
+        RightIcon={<ArrowOutwardOutlined />}
+        onClick={onItemClick}
+        selected={false}
+      />
+      <Item
+        label="Purchase SQD Token"
+        path="https://1inch.com/swap?src=42161:USDC&dst=42161:0x1337420ded5adb9980cfc35f8f2b054ea86f8ab1"
+        target="_blank"
+        textSx={{
+          fontSize: '0.95rem',
+        }}
+        LeftIcon={<BuySqdIcon />}
         RightIcon={<ArrowOutwardOutlined />}
         onClick={onItemClick}
         selected={false}
