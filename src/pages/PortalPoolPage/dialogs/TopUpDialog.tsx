@@ -12,7 +12,7 @@ import { errorMessage } from '@api/contracts/utils';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
 
-import { usePoolData, type PoolData } from '../hooks';
+import { type PoolData, usePoolData } from '../hooks';
 import { invalidatePoolQueries } from '../utils/poolUtils';
 
 interface TopUpDialogProps {

@@ -138,7 +138,7 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
           autoComplete="off"
           placeholder="0"
           disabled={isPoolFull || isUserAtLimit}
-          helperText={`Maximum deposit limit: ${tokenFormatter(capacity.effectiveMax, SQD_TOKEN, 0)}`}
+          helperText={`Maximum deposit limit: ${tokenFormatter(capacity.maxDepositPerAddress, SQD_TOKEN, 0)}`}
           InputProps={{
             endAdornment: (
               <Chip
@@ -158,7 +158,7 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
 
       <Stack spacing={1.5}>
         <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2">Total Delegation</Typography>
+          <Typography variant="body2">Total deposit</Typography>
           <Typography variant="body2">
             {typedAmount.gt(0)
               ? `${tokenFormatter(capacity.currentPoolTvl, '', 0).trim()} → ${tokenFormatter(expectedTotalDelegation, SQD_TOKEN, 0)}`
@@ -166,7 +166,7 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2">Your Delegation</Typography>
+          <Typography variant="body2">Your deposit</Typography>
           <Typography variant="body2">
             {typedAmount.gt(0)
               ? `${tokenFormatter(capacity.currentUserBalance, '', 2).trim()} → ${tokenFormatter(expectedUserDelegation, SQD_TOKEN, 2)}`
@@ -177,7 +177,7 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
         </Stack>
         <Stack direction="row" justifyContent="space-between">
           <Stack direction="row" alignItems="center" spacing={0.5}>
-            <Typography variant="body2">Expected Monthly Payout</Typography>
+            <Typography variant="body2">Expected monthly payout</Typography>
             <HelpTooltip title="Estimated monthly rewards based on your share of the pool at current APY." />
           </Stack>
           <Typography variant="body2">

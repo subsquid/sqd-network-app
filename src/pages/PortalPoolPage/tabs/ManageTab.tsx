@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import { Divider, Stack, Typography } from '@mui/material';
-import { formatUnits } from 'viem';
+import BigNumber from 'bignumber.js';
 import { useReadContract } from 'wagmi';
 
 import { portalPoolAbi } from '@api/contracts';
@@ -13,7 +13,6 @@ import { useContracts } from '@network/useContracts';
 import { EditCapacityButton, EditDistributionRateButton } from '../dialogs/EditSettingsDialog';
 import { TopUpButton } from '../dialogs/TopUpDialog';
 import { usePoolData } from '../hooks';
-import { fromSqd } from '@lib/network';
 
 interface ManageTabProps {
   poolId: string;
@@ -52,7 +51,11 @@ export function ManageTab({ poolId }: ManageTabProps) {
         <Stack spacing={2} divider={<Divider />}>
           <Stack spacing={0.5}>
             <Typography variant="h5">
-              {tokenFormatter(fromSqd(rewardBalance), pool.rewardToken.symbol, 6)}
+              {tokenFormatter(
+                BigNumber(rewardBalance || 0).div(10 ** pool.rewardToken.decimals),
+                pool.rewardToken.symbol,
+                6,
+              )}
             </Typography>
           </Stack>
           <Stack spacing={1}>
@@ -79,7 +82,7 @@ export function ManageTab({ poolId }: ManageTabProps) {
               </Typography>
               <Typography>
                 <Stack direction="row" alignItems="center" spacing={0.5}>
-                  <span>{`${(pool.monthlyPayoutUsd / 30).toFixed(2)} ${pool.rewardToken.symbol}/day`}</span>
+                  <span>{`${pool.distributionRatePerSecond.times(86400).toFixed(2)} ${pool.rewardToken.symbol}/day`}</span>
                   <EditDistributionRateButton poolId={poolId} disabled={!canEdit} />
                 </Stack>
               </Typography>

@@ -152,7 +152,7 @@ export function EditDistributionRateDialog({
 
   const initialDistributionRate = useMemo(() => {
     if (!pool) return '';
-    return (pool.monthlyPayoutUsd / 30).toFixed(2);
+    return pool.distributionRatePerSecond.times(86400).toFixed(2);
   }, [pool]);
 
   const formik = useFormik({

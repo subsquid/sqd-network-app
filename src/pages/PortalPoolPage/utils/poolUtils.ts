@@ -72,7 +72,10 @@ export function calculateApyOrZero(
 export function calculateExpectedMonthlyPayout(pool: PoolData, userDelegation: BigNumber): number {
   const maxPoolCapacity = pool.tvl.max;
   if (maxPoolCapacity.isZero()) return 0;
-  return userDelegation.div(maxPoolCapacity).times(pool.monthlyPayoutUsd).toNumber();
+  return userDelegation
+    .div(maxPoolCapacity)
+    .times(pool.distributionRatePerSecond.times(30 * 86400))
+    .toNumber();
 }
 
 export function getPhaseColor(

@@ -36,7 +36,7 @@ export function PoolYieldChart({ poolId }: PoolYieldChartProps) {
 
   const { monthlyPayoutUsd, tvlInSqd } = useMemo(
     () => ({
-      monthlyPayoutUsd: pool?.monthlyPayoutUsd ?? 0,
+      monthlyPayoutUsd: pool?.distributionRatePerSecond.times(30 * 86400).toNumber() ?? 0,
       tvlInSqd: pool ? pool.tvl.max.toNumber() : 0,
     }),
     [pool],

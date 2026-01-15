@@ -52,7 +52,11 @@ export function PoolStats({ poolId }: PoolStatsProps) {
   const displayApy = useMemo(() => {
     if (!pool) return 0;
     const calculatedApyRatio =
-      calculateApy(pool.monthlyPayoutUsd, pool.tvl.max.toNumber(), sqdPrice) || 0;
+      calculateApy(
+        pool.distributionRatePerSecond.times(86400).toNumber(),
+        pool.tvl.max.toNumber(),
+        sqdPrice,
+      ) || 0;
     return calculatedApyRatio * 100;
   }, [pool, sqdPrice]);
 
@@ -97,9 +101,9 @@ export function PoolStats({ poolId }: PoolStatsProps) {
             <Typography variant="h6">
               <Stack direction="row" alignItems="center" spacing={0.5} flexWrap="wrap">
                 <Typography variant="h6">
-                  {tokenFormatter(pool.monthlyPayoutUsd, pool.rewardToken.symbol, 0)}
+                  {tokenFormatter(0, pool.rewardToken.symbol, 0)}
                 </Typography>
-                {pool.rewardToken && (
+                {/* {pool.rewardToken && (
                   <Link
                     href={`https://arbiscan.io/token/${pool.rewardToken.address}`}
                     target="_blank"
@@ -113,7 +117,7 @@ export function PoolStats({ poolId }: PoolStatsProps) {
                       sx={{ width: '1.5rem', height: '1.5rem' }}
                     />
                   </Link>
-                )}
+                )} */}
               </Stack>
             </Typography>
           }

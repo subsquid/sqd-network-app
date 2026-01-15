@@ -42,13 +42,10 @@ export interface PoolData {
   website?: string;
   operator: PoolOperator;
   phase: PoolPhase;
-  monthlyPayoutUsd: number;
-  distributionRatePerSecond: bigint;
+  distributionRatePerSecond: BigNumber;
   tvl: PoolTvl;
   depositWindowEndsAt?: Date;
-  withdrawalQueue: WithdrawalQueue;
   maxDepositPerAddress: BigNumber;
-  withdrawWaitTime?: string;
   lptToken: ERC20TokenData;
   rewardToken: ERC20TokenData;
   createdAt: Date;

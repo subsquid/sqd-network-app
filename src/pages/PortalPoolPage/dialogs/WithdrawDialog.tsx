@@ -101,7 +101,7 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
 
       <Stack spacing={1.5}>
         <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2">Total Delegation</Typography>
+          <Typography variant="body2">Total deposit</Typography>
           <Typography variant="body2">
             {typedAmount.gt(0)
               ? `${tokenFormatter(capacity.currentPoolTvl, '', 0).trim()} → ${tokenFormatter(expectedTotalDelegation, SQD_TOKEN, 0)}`
@@ -109,7 +109,7 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2">Your Delegation</Typography>
+          <Typography variant="body2">Your deposit</Typography>
           <Typography variant="body2">
             {typedAmount.gt(0)
               ? `${tokenFormatter(capacity.currentUserBalance, '', 2).trim()} → ${tokenFormatter(expectedUserDelegation, SQD_TOKEN, 2)}`
@@ -119,7 +119,7 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2">Expected Monthly Payout</Typography>
+          <Typography variant="body2">Expected monthly payout</Typography>
           <Typography variant="body2">
             {tokenFormatter(userExpectedMonthlyPayout, pool.rewardToken.symbol, 2)}
           </Typography>
@@ -219,32 +219,28 @@ export function WithdrawButton({ poolId }: WithdrawButtonProps) {
   const handleOpen = useCallback(() => setDialogOpen(true), []);
   const handleClose = useCallback(() => setDialogOpen(false), []);
 
-  const button = (
-    <Tooltip
-      title={
-        pool?.phase === 'collecting'
-          ? 'You cannot withdraw funds while the pool is still collecting'
-          : ''
-      }
-    >
-      <span>
-        <Button
-          variant="outlined"
-          fullWidth
-          color="error"
-          onClick={handleOpen}
-          disabled={!hasBalance || pool?.phase === 'collecting'}
-          loading={dialogOpen}
-        >
-          WITHDRAW
-        </Button>
-      </span>
-    </Tooltip>
-  );
-
   return (
     <>
-      {pool?.withdrawWaitTime ? <span style={{ width: '100%' }}>{button}</span> : button}
+      <Tooltip
+        title={
+          pool?.phase === 'collecting'
+            ? 'You cannot withdraw funds while the pool is still collecting'
+            : 'Nothing to withdraw'
+        }
+      >
+        <span>
+          <Button
+            variant="outlined"
+            fullWidth
+            color="error"
+            onClick={handleOpen}
+            disabled={!hasBalance || pool?.phase === 'collecting'}
+            loading={dialogOpen}
+          >
+            WITHDRAW
+          </Button>
+        </span>
+      </Tooltip>
       <WithdrawDialog open={dialogOpen} onClose={handleClose} poolId={poolId} />
     </>
   );

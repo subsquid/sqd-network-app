@@ -12,7 +12,8 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material';
-import { DISTRIBUTION_RATE_BPS, REWARD_TOKEN_DECIMALS } from '@pages/PortalPoolPage/hooks';
+import { DISTRIBUTION_RATE_BPS } from '@pages/PortalPoolPage/hooks';
+import { useRewardTokens } from '@pages/PortalPoolsPage/useRewardToken';
 import * as yup from '@schema';
 import BigNumber from 'bignumber.js';
 import { useFormik } from 'formik';
@@ -29,7 +30,6 @@ import { SourceWalletWithBalance } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { Form, FormDivider, FormRow, FormikTextInput } from '@components/Form';
 import { Loader } from '@components/Loader';
-import { useRewardTokens } from '@pages/PortalPoolsPage/useRewardToken';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { fromSqd, toSqd } from '@lib/network/utils';
 import { useContracts } from '@network/useContracts';
@@ -162,17 +162,15 @@ function AddNewPortalDialog({
         }
 
         const distributionRatePerSecond = BigInt(
-          BigNumber(getRate(values.earnings, values.rateType))
+          getRate(values.earnings, values.rateType)
             .div(86400)
-            .multipliedBy(REWARD_TOKEN_DECIMALS * DISTRIBUTION_RATE_BPS)
+            .times(10 ** selectedToken.decimals)
+            .times(DISTRIBUTION_RATE_BPS)
             .toFixed(0),
         );
 
         const initialDeposit = BigInt(
-          BigNumber(distributionRatePerSecond)
-            .dividedBy(DISTRIBUTION_RATE_BPS)
-            .multipliedBy(86400)
-            .toFixed(0),
+          BigNumber(distributionRatePerSecond).div(DISTRIBUTION_RATE_BPS).times(86400).toFixed(0),
         );
 
         const receipt = await writeTransactionAsync({
@@ -366,7 +364,7 @@ function AddNewPortalDialog({
 }
 
 function getRate(earnings: string, rateType: 'day' | 'month') {
-  return rateType === 'month' ? Number(earnings) / 30 : Number(earnings);
+  return rateType === 'month' ? BigNumber(earnings).div(30) : BigNumber(earnings);
 }
 
 function collapseTokenName(name: string): string {

@@ -57,11 +57,13 @@ export function usePoolData(poolId?: string) {
     query: queryOptions,
   });
 
-  const { data: distributionRatePerSecond, isLoading: isLoadingDistributionRate } = useReadContract({
-    ...portalPoolContract,
-    functionName: 'providerRatePerSec',
-    query: queryOptions,
-  });
+  const { data: distributionRatePerSecond, isLoading: isLoadingDistributionRate } = useReadContract(
+    {
+      ...portalPoolContract,
+      functionName: 'providerRatePerSec',
+      query: queryOptions,
+    },
+  );
 
   const { data: metadataRaw, isLoading: isLoadingMetadata } = useReadContract({
     ...portalPoolContract,
@@ -188,14 +190,9 @@ export function usePoolData(poolId?: string) {
         address: operator,
       },
       phase: getPhase(state, isOutOfMoney),
-      monthlyPayoutUsd: Math.round(
-        BigNumber(distributionRatePerSecond)
-          .dividedBy(REWARD_TOKEN_DECIMALS * DISTRIBUTION_RATE_BPS)
-          .multipliedBy(30)
-          .multipliedBy(86400)
-          .toNumber(),
-      ),
-      distributionRatePerSecond,
+      distributionRatePerSecond: BigNumber(distributionRatePerSecond)
+        .div(DISTRIBUTION_RATE_BPS)
+        .div(10 ** rewardToken.decimals),
       tvl: {
         current: fromSqd(activeStake),
         max: fromSqd(capacity),
@@ -203,14 +200,7 @@ export function usePoolData(poolId?: string) {
         total: fromSqd(totalStaked),
       },
       depositWindowEndsAt,
-      withdrawalQueue: {
-        windowLimit: BigInt('100000000000000000000000'),
-        windowUsed: BigInt('35000000000000000000000'),
-        windowDuration: '24 hours',
-        windowResetIn: '18 hours',
-      },
       maxDepositPerAddress: fromSqd(BigInt(toSqd(100_000))),
-      withdrawWaitTime: '2 days',
       lptToken,
       rewardToken,
       createdAt,
