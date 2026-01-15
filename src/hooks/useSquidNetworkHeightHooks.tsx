@@ -107,7 +107,7 @@ export function SquidHeightProvider({ children }: PropsWithChildren) {
 
     if (isToastHidden) return;
 
-    if (syncing || maxWaitHeight > currentHeight) {
+    if (maxWaitHeight > currentHeight) {
       toast.loading(`Syncing ${currentHeight} block of ${syncing ? chainHeight : maxWaitHeight}`, {
         id: 'squid-sync',
         duration: Infinity,
