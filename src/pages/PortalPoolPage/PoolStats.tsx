@@ -1,6 +1,6 @@
 import { type ReactNode, useMemo } from 'react';
 
-import { Avatar, Box, Link, Stack, Typography } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 
 import { useTokenPrice } from '@api/price';
 import { Card } from '@components/Card';
@@ -12,11 +12,8 @@ import {
 } from '@lib/formatters/formatters';
 import { useContracts } from '@network/useContracts';
 
-import { SQD_TOKEN } from '@api/contracts/consts';
-
 import { usePoolData } from './hooks';
 import { STATS_TEXTS } from './texts';
-import { USDC_LOGO_URL } from './utils/constants';
 import { calculateApy } from './utils/poolUtils';
 
 interface PoolStatsProps {

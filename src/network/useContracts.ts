@@ -51,7 +51,7 @@ export function useContracts(): {
         CHAIN_ID_L1: mainnet.id,
         MULTICALL: '0x7eCfBaa8742fDf5756DAC92fbc8b90a19b8815bF',
         BUYBACK: '0x4efab28e320ef16907930a06e2a5aaadb7425b48',
-        PORTAL_POOL_FACTORY: '0x8baf8707861a84e3d978aC067447de9AAd862FAc',
+        PORTAL_POOL_FACTORY: '0x0071c49D99136609bcCeDcc0f9a27E941D1Bf5Ad',
       };
     }
   }
