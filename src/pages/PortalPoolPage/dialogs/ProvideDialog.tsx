@@ -326,7 +326,7 @@ export function ProvideButton({ poolId }: ProvideButtonProps) {
             loading={dialogOpen || legalOpen}
             disabled={isDisabled}
           >
-            DEPOSIT
+            LOCK-UP TOKENS
           </Button>
         </span>
       </Tooltip>

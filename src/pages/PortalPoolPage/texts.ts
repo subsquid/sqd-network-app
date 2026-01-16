@@ -14,18 +14,18 @@ export const HEALTH_TEXTS = {
   status: {
     active: 'Pool is active and earning rewards. Distributing yields to liquidity providers.',
     collecting:
-      'Accepting deposits to activate the pool. Pool activates once minimum threshold is met. If not met by deadline, you can withdraw your full deposit.',
+      'Accepting lock-ups to activate the pool. Pool activates once minimum threshold is met. If not met by deadline, you can withdraw your full lock-up.',
     idle: 'Pool is paused due to insufficient liquidity. Rewards are not being distributed. Pool reactivates when liquidity increases above minimum threshold.',
     debt: 'Pool has run out of USDC rewards. No rewards are being distributed. Contact the pool operator to add more USDC to resume rewards.',
   },
   bar: {
-    depositWindowLabel: 'Deposit window closes in',
+    depositWindowLabel: 'Lock-up window closes in',
     depositWindowTooltip:
-      'Time remaining to deposit funds during the collection phase. Pool activates if the minimum threshold is met before this deadline.',
+      'Time remaining to lock up funds during the collection phase. Pool activates if the minimum threshold is met before this deadline.',
     critical:
-      'Pool has insufficient liquidity. Rewards are paused until deposits increase above the minimum threshold required for operations.',
+      'Pool has insufficient liquidity. Rewards are paused until lock-ups increase above the minimum threshold required for operations.',
     warning:
-      'Pool liquidity is below optimal levels. Additional deposits may be needed to maintain stable reward distribution.',
+      'Pool liquidity is below optimal levels. Additional lock-ups may be needed to maintain stable reward distribution.',
     healthy:
       'Pool has sufficient liquidity. Rewards are being distributed normally to all delegators.',
     stable: {
@@ -48,7 +48,7 @@ export const HEALTH_TEXTS = {
 export const STATS_TEXTS = {
   tvl: {
     label: 'TVL',
-    tooltip: 'Total Value Locked - current deposits relative to maximum pool capacity.',
+    tooltip: 'Total Value Locked - current lock-ups relative to maximum pool capacity.',
   },
   apy: {
     label: 'APY',
@@ -104,7 +104,7 @@ export const MANAGE_TEXTS = {
   maxPoolCapacity: {
     label: 'Max Pool Capacity',
     tooltip: (symbol: string) =>
-      `Maximum ${symbol} that can be deposited. Higher capacity allows more delegators to participate.`,
+      `Maximum ${symbol} that can be locked up. Higher capacity allows more delegators to participate.`,
   },
 } as const;
 
@@ -116,7 +116,7 @@ export const INFO_TEXTS = {
   lpToken: {
     label: 'LP-Token',
     tooltip: (symbol: string) =>
-      `Liquidity Provider token representing your share in the pool. You receive LP tokens when you deposit ${symbol}.`,
+      `Liquidity Provider token representing your share in the pool. You receive LP tokens when you lock up ${symbol}.`,
   },
   created: 'Created',
   website: 'Website',
@@ -136,7 +136,7 @@ export const INFO_TEXTS = {
 export const DELEGATE_TEXTS = {
   currentBalance: {
     label: 'Current Balance',
-    tooltip: (symbol: string) => `Your deposited ${symbol} tokens in this pool.`,
+    tooltip: (symbol: string) => `Your locked up ${symbol} tokens in this pool.`,
   },
   availableRewards: {
     label: 'Available Rewards',
@@ -165,8 +165,8 @@ export const WITHDRAW_DIALOG_TEXTS = {
   title: 'Withdraw from Pool',
   amountLabel: 'Amount',
   fields: {
-    totalDelegation: 'Total Delegation',
-    yourDelegation: 'Your Delegation',
+    totalDelegation: 'Total Lock-up',
+    yourDelegation: 'Your Lock-up',
     expectedMonthlyPayout: 'Expected Monthly Payout',
     expectedUnlockDate: {
       label: 'Expected Unlock Date',
@@ -182,12 +182,12 @@ export const WITHDRAW_DIALOG_TEXTS = {
 
 // Provide Dialog
 export const PROVIDE_DIALOG_TEXTS = {
-  title: 'Deposit to Pool',
+  title: 'Lock up to Pool',
   sourceLabel: 'Source',
   amountLabel: 'Amount',
   fields: {
-    totalDelegation: 'Total Delegation',
-    yourDelegation: 'Your Delegation',
+    totalDelegation: 'Total Lock-up',
+    yourDelegation: 'Your Lock-up',
     expectedMonthlyPayout: {
       label: 'Expected Monthly Payout',
       tooltip: 'Estimated monthly rewards based on your share of the pool at current APY.',
@@ -195,10 +195,10 @@ export const PROVIDE_DIALOG_TEXTS = {
   },
   alerts: {
     collecting:
-      'Pool is collecting deposits to activate. Your deposit is locked until the pool activates or the deposit window closes. If activation fails, you can withdraw in full.',
+      'Pool is collecting lock-ups to activate. Your lock-up is locked until the pool activates or the lock-up window closes. If activation fails, you can withdraw in full.',
     idle: 'Pool is paused due to low liquidity. Rewards are not being distributed.',
-    poolFull: 'Pool is at maximum capacity. No more deposits accepted.',
-    userAtLimit: (amount: string) => `You have reached the maximum deposit limit of ${amount}.`,
+    poolFull: 'Pool is at maximum capacity. No more lock-ups accepted.',
+    userAtLimit: (amount: string) => `You have reached the maximum lock-up limit of ${amount}.`,
   },
   tooltips: {
     poolAtCapacity: 'Pool is at maximum capacity',
