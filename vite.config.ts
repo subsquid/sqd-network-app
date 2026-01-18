@@ -41,6 +41,12 @@ export default defineConfig({
     'process.env.NETWORK': encode(process.env.NETWORK || 'mainnet'),
     'process.env.SENTRY_DSN': encode(process.env.SENTRY_DSN || ''),
     'process.env.HOST_URL': encode(process.env.HOST_URL || ''),
+    'process.env.TESTNET_POOL_SQUID_API_URL': encode(
+      process.env.TESTNET_POOL_SQUID_API_URL || 'http://localhost:4350',
+    ),
+    'process.env.MAINNET_POOL_SQUID_API_URL': encode(
+      process.env.MAINNET_POOL_SQUID_API_URL || 'http://localhost:4350',
+    ),
   },
 
   optimizeDeps: {

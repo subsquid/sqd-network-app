@@ -56,8 +56,8 @@ export const STATS_TEXTS = {
       `APY = (Monthly Payout × 12) / (Max Pool Capacity × ${symbol} Price)\nBased on full pool capacity and live ${symbol} price.`,
   },
   monthlyPayout: {
-    label: 'Monthly Payout',
-    tooltip: (symbol: string) => `Fixed monthly amount paid to ${symbol} liquidity providers`,
+    label: 'Total Funding',
+    tooltip: (symbol: string) => `Total amount of rewards funded to the pool`,
   },
 } as const;
 
@@ -72,7 +72,10 @@ export const CHART_TEXTS = {
     oneMonth: '1M',
     threeMonths: '3M',
   },
-  subtitle: (symbol: string) => `Historical APY based on past ${symbol} token prices.`,
+  subtitle: {
+    apy: (symbol: string) => `Historical APY based on past ${symbol} token prices.`,
+    tvl: (symbol: string) => `Historical TVL showing locked ${symbol} tokens over time.`,
+  },
 } as const;
 
 // Pending Withdrawals

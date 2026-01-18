@@ -1,0 +1,33 @@
+query apyTimeseries($from: DateTime!, $poolId: String!, $to: DateTime!) {
+  apyTimeseries(from: $from, poolId: $poolId, to: $to) {
+    data {
+      value
+      timestamp
+    }
+    from
+    step
+    to
+  }
+}
+
+query tvlTimeseries($from: DateTime!, $poolId: String!, $to: DateTime!) {
+  tvlTimeseries(from: $from, poolId: $poolId, to: $to) {
+    data {
+      value {
+        tvlStable
+        tvlTotal
+      }
+      timestamp
+    }
+    from
+    step
+    to
+  }
+}
+
+query poolById($id: String!) {
+  poolById(id: $id) {
+    totalRewardsToppedUp
+    createdAt
+  }
+}

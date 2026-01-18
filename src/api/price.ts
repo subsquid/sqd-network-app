@@ -61,11 +61,7 @@ export function useHistoricalTokenPrices({
   const { data, isPending, isLoading } = useQuery({
     queryKey: ['historicalTokenPrices', address, fromTimestamp, toTimestamp],
     queryFn: async () => {
-      // Use the chart endpoint which supports CORS and returns all historical prices
-      // API only accepts start OR end, not both. Use start with span to get data points from that time.
-      // period determines how far apart each point is (in seconds)
-      const periodSeconds = Math.floor((toTimestamp - fromTimestamp) / 50);
-      const url = `https://coins.llama.fi/chart/${coin}?start=${fromTimestamp}&span=50&period=${periodSeconds}`;
+      const url = `https://coins.llama.fi/chart/${coin}?start=${fromTimestamp}&span=${100}&period=1h`;
       const res = await fetch(url);
       const json = (await res.json()) as ChartPriceResponse;
       const coinData = json.coins[coin];
@@ -74,10 +70,7 @@ export function useHistoricalTokenPrices({
         return [];
       }
 
-      // Filter to only include prices within our desired range
-      return coinData.prices
-        .filter(p => p.timestamp >= fromTimestamp && p.timestamp <= toTimestamp)
-        .sort((a, b) => a.timestamp - b.timestamp);
+      return coinData.prices;
     },
     enabled: !!address,
     staleTime: 10 * 60 * 1000, // 10 minutes - historical data doesn't change

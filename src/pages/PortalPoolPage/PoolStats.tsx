@@ -53,7 +53,7 @@ export function PoolStats({ poolId }: PoolStatsProps) {
     if (!pool) return 0;
     const calculatedApyRatio =
       calculateApy(
-        pool.distributionRatePerSecond.times(86400).toNumber(),
+        pool.distributionRatePerSecond.times(30 * 86400).toNumber(),
         pool.tvl.max.toNumber(),
         sqdPrice,
       ) || 0;
@@ -114,7 +114,7 @@ export function PoolStats({ poolId }: PoolStatsProps) {
                   {isLoading ? (
                     <Skeleton width="50%" />
                   ) : (
-                    tokenFormatter(0, pool!.rewardToken.symbol, 0)
+                    tokenFormatter(pool!.totalRewardsToppedUp, pool!.rewardToken.symbol, 0)
                   )}
                 </Typography>
                 {/* {pool.rewardToken && (

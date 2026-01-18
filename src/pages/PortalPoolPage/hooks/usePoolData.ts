@@ -11,6 +11,7 @@ import { useContracts } from '@network/useContracts';
 
 import { getPhase, parseMetadata } from './helpers';
 import type { PoolData } from './types';
+import { usePoolByIdQuery } from '@api/pool-squid/graphql';
 
 export const DISTRIBUTION_RATE_BPS = 1000;
 export const REWARD_TOKEN_DECIMALS = 10 ** 6;
@@ -95,6 +96,15 @@ export function usePoolData(poolId?: string) {
     query: queryOptions,
   });
 
+  const { data: poolIndexedData, isLoading: isLoadingPoolIndexedData } = usePoolByIdQuery(
+    {
+      id: poolId?.toLowerCase() as string,
+    },
+    {
+      enabled: !!poolId,
+    },
+  );
+
   // Combine loading states
   const isLoadingData =
     isLoadingActiveStake ||
@@ -104,7 +114,8 @@ export function usePoolData(poolId?: string) {
     isLoadingLptToken ||
     isLoadingOutOfMoney ||
     isLoadingMinCapacity ||
-    isLoadingRewardToken;
+    isLoadingRewardToken ||
+    isLoadingPoolIndexedData;
 
   // Combine contract data
   const contractData = useMemo(() => {
@@ -178,7 +189,7 @@ export function usePoolData(poolId?: string) {
     if (!lptToken || !rewardTokenAddress || !rewardToken) return undefined;
 
     const depositWindowEndsAt = new Date(Number(depositDeadline) * 1000);
-    const createdAt = addDays(depositWindowEndsAt, -30);
+    const createdAt = new Date(poolIndexedData?.poolById?.createdAt ?? 0);
 
     return {
       id: poolId,
@@ -204,8 +215,11 @@ export function usePoolData(poolId?: string) {
       lptToken,
       rewardToken,
       createdAt,
+      totalRewardsToppedUp: BigNumber(
+        poolIndexedData?.poolById?.totalRewardsToppedUp ?? 0n,
+      ).dividedBy(10 ** rewardToken.decimals),
     };
-  }, [poolId, contractData, tokenData]);
+  }, [poolId, contractData, tokenData, poolIndexedData]);
 
   return {
     data,

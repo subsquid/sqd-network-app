@@ -49,6 +49,7 @@ export interface PoolData {
   lptToken: ERC20TokenData;
   rewardToken: ERC20TokenData;
   createdAt: Date;
+  totalRewardsToppedUp: BigNumber;
 }
 
 export interface PoolUserData {
