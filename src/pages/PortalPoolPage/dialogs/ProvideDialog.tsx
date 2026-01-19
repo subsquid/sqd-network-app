@@ -24,6 +24,26 @@ import { usePoolCapacity, usePoolData, usePoolUserData } from '../hooks';
 import { PROVIDE_DIALOG_TEXTS } from '../texts';
 import { calculateExpectedMonthlyPayout, invalidatePoolQueries } from '../utils/poolUtils';
 
+const TERMS_ACCEPTANCE_KEY = 'sqd-terms-accepted';
+const TERMS_VERSION = '2026-01-15';
+
+const hasAcceptedTerms = (): boolean => {
+  try {
+    const accepted = localStorage.getItem(TERMS_ACCEPTANCE_KEY);
+    return accepted === TERMS_VERSION;
+  } catch {
+    return false;
+  }
+};
+
+const setTermsAccepted = (): void => {
+  try {
+    localStorage.setItem(TERMS_ACCEPTANCE_KEY, TERMS_VERSION);
+  } catch {
+    // Ignore localStorage errors
+  }
+};
+
 interface ProvideDialogProps {
   open: boolean;
   onClose: () => void;
@@ -647,9 +667,10 @@ interface ProvideButtonProps {
   poolId: string;
 }
 
+type DialogState = 'closed' | 'legal' | 'provide';
+
 export function ProvideButton({ poolId }: ProvideButtonProps) {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [legalOpen, setLegalOpen] = useState(false);
+  const [dialogState, setDialogState] = useState<DialogState>('closed');
   const { data: pool } = usePoolData(poolId);
   const { data: userData } = usePoolUserData(poolId);
 
@@ -669,6 +690,23 @@ export function ProvideButton({ poolId }: ProvideButtonProps) {
     return { isDisabled: false, disabledReason: '' };
   }, [pool, userData]);
 
+  const handleButtonClick = useCallback(() => {
+    if (hasAcceptedTerms()) {
+      setDialogState('provide');
+    } else {
+      setDialogState('legal');
+    }
+  }, []);
+
+  const handleAcceptTerms = useCallback(() => {
+    setTermsAccepted();
+    setDialogState('provide');
+  }, []);
+
+  const handleCloseDialog = useCallback(() => {
+    setDialogState('closed');
+  }, []);
+
   return (
     <>
       <Tooltip title={disabledReason}>
@@ -677,8 +715,8 @@ export function ProvideButton({ poolId }: ProvideButtonProps) {
             variant="contained"
             color="info"
             fullWidth
-            onClick={() => setLegalOpen(true)}
-            loading={dialogOpen || legalOpen}
+            onClick={handleButtonClick}
+            loading={dialogState !== 'closed'}
             disabled={isDisabled}
           >
             LOCK-UP TOKENS
@@ -687,14 +725,15 @@ export function ProvideButton({ poolId }: ProvideButtonProps) {
       </Tooltip>
 
       <LegalDialog
-        open={legalOpen}
-        onAccept={() => {
-          setLegalOpen(false);
-          setDialogOpen(true);
-        }}
-        onReject={() => setLegalOpen(false)}
+        open={dialogState === 'legal'}
+        onAccept={handleAcceptTerms}
+        onReject={handleCloseDialog}
       />
-      <ProvideDialog open={dialogOpen} onClose={() => setDialogOpen(false)} poolId={poolId} />
+      <ProvideDialog
+        open={dialogState === 'provide'}
+        onClose={handleCloseDialog}
+        poolId={poolId}
+      />
     </>
   );
 }
