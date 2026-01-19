@@ -1297,6 +1297,38 @@ export type PoolByIdQuery = {
   };
 };
 
+export type LiquidityEventsQueryVariables = Exact<{
+  limit: Scalars["Int"]["input"];
+  poolId: Scalars["String"]["input"];
+}>;
+
+export type LiquidityEventsQuery = {
+  __typename?: "Query";
+  liquidityEvents: Array<{
+    __typename?: "LiquidityEvent";
+    eventType: LiquidityEventType;
+    txHash: string;
+    timestamp: string;
+    providerId?: string;
+    amount: string;
+  }>;
+};
+
+export type TopUpsQueryVariables = Exact<{
+  limit: Scalars["Int"]["input"];
+  poolId: Scalars["String"]["input"];
+}>;
+
+export type TopUpsQuery = {
+  __typename?: "Query";
+  topUps: Array<{
+    __typename?: "TopUp";
+    txHash: string;
+    timestamp: string;
+    amount: string;
+  }>;
+};
+
 export const ApyTimeseriesDocument = `
     query apyTimeseries($from: DateTime!, $poolId: String!, $to: DateTime!) {
   apyTimeseries(from: $from, poolId: $poolId, to: $to) {
@@ -1391,6 +1423,70 @@ export const usePoolByIdQuery = <TData = PoolByIdQuery, TError = unknown>(
     queryKey: ["poolById", variables],
     queryFn: fetcher<PoolByIdQuery, PoolByIdQueryVariables>(
       PoolByIdDocument,
+      variables,
+    ),
+    ...options,
+  });
+};
+
+export const LiquidityEventsDocument = `
+    query liquidityEvents($limit: Int!, $poolId: String!) {
+  liquidityEvents(
+    limit: $limit
+    orderBy: id_DESC
+    where: {pool: {id_eq: $poolId}}
+  ) {
+    eventType
+    txHash
+    timestamp
+    providerId
+    amount
+  }
+}
+    `;
+
+export const useLiquidityEventsQuery = <
+  TData = LiquidityEventsQuery,
+  TError = unknown,
+>(
+  variables: LiquidityEventsQueryVariables,
+  options?: Omit<
+    UseQueryOptions<LiquidityEventsQuery, TError, TData>,
+    "queryKey"
+  > & {
+    queryKey?: UseQueryOptions<LiquidityEventsQuery, TError, TData>["queryKey"];
+  },
+) => {
+  return useQuery<LiquidityEventsQuery, TError, TData>({
+    queryKey: ["liquidityEvents", variables],
+    queryFn: fetcher<LiquidityEventsQuery, LiquidityEventsQueryVariables>(
+      LiquidityEventsDocument,
+      variables,
+    ),
+    ...options,
+  });
+};
+
+export const TopUpsDocument = `
+    query topUps($limit: Int!, $poolId: String!) {
+  topUps(limit: $limit, orderBy: id_DESC, where: {pool: {id_eq: $poolId}}) {
+    txHash
+    timestamp
+    amount
+  }
+}
+    `;
+
+export const useTopUpsQuery = <TData = TopUpsQuery, TError = unknown>(
+  variables: TopUpsQueryVariables,
+  options?: Omit<UseQueryOptions<TopUpsQuery, TError, TData>, "queryKey"> & {
+    queryKey?: UseQueryOptions<TopUpsQuery, TError, TData>["queryKey"];
+  },
+) => {
+  return useQuery<TopUpsQuery, TError, TData>({
+    queryKey: ["topUps", variables],
+    queryFn: fetcher<TopUpsQuery, TopUpsQueryVariables>(
+      TopUpsDocument,
       variables,
     ),
     ...options,

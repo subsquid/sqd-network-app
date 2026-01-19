@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 
 import { dateFormat } from '@i18n';
 import {
-  LanguageOutlined as ExplorerIcon,
+  OpenInNewOutlined as ExplorerIcon,
   AddBoxOutlined as WalletIcon,
 } from '@mui/icons-material';
 import { Box, Divider, IconButton, Stack, Tooltip, Typography } from '@mui/material';

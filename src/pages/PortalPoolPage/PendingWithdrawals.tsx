@@ -1,8 +1,11 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
+import { OpenInNewOutlined as ExplorerIcon } from '@mui/icons-material';
 import {
   Box,
   Button,
+  Chip,
+  IconButton,
   Skeleton,
   Stack,
   Tab,
@@ -11,21 +14,29 @@ import {
   TableHead,
   TableRow,
   Tabs,
+  Tooltip,
   Typography,
 } from '@mui/material';
+import BigNumber from 'bignumber.js';
+import { Link } from 'react-router-dom';
 
 import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
+import { LiquidityEventType } from '@api/pool-squid/graphql';
 import { Card } from '@components/Card';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { DashboardTable, NoItems } from '@components/Table';
 import { useCountdown } from '@hooks/useCountdown';
-import { tokenFormatter } from '@lib/formatters/formatters';
+import { useExplorer } from '@hooks/useExplorer';
+import { dateFormat } from '@i18n';
+import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { useContracts } from '@network/useContracts';
 
 import type { PendingWithdrawal } from './hooks';
 import { usePoolData, usePoolPendingWithdrawals } from './hooks';
-import { WITHDRAWALS_TEXTS } from './texts';
+import { useLiquidityEvents } from './hooks/useLiquidityEvents';
+import { useTopUps } from './hooks/useTopUps';
+import { ACTIVITY_TEXTS, TOP_UPS_TEXTS, WITHDRAWALS_TEXTS } from './texts';
 
 interface PendingWithdrawalsProps {
   poolId: string;
@@ -131,9 +142,221 @@ function PendingWithdrawalsTable({
   );
 }
 
+function formatTimeAgo(timestamp: string): string {
+  const now = new Date().getTime();
+  const time = new Date(timestamp).getTime();
+  const diffSeconds = Math.floor((now - time) / 1000);
+
+  if (diffSeconds < 60) return `${diffSeconds}s ago`;
+
+  const diffMinutes = Math.floor(diffSeconds / 60);
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d ago`;
+}
+
+function getEventTypeLabel(eventType: LiquidityEventType): string {
+  switch (eventType) {
+    case LiquidityEventType.Deposit:
+      return ACTIVITY_TEXTS.eventTypes.deposit;
+    case LiquidityEventType.Withdrawal:
+      return ACTIVITY_TEXTS.eventTypes.withdrawal;
+    case LiquidityEventType.Exit:
+      return ACTIVITY_TEXTS.eventTypes.exit;
+    default:
+      return eventType;
+  }
+}
+
+function getEventTypeColor(
+  eventType: LiquidityEventType,
+): 'success' | 'error' | 'default' | 'primary' | 'secondary' | 'info' | 'warning' {
+  switch (eventType) {
+    case LiquidityEventType.Deposit:
+      return 'success';
+    case LiquidityEventType.Withdrawal:
+    case LiquidityEventType.Exit:
+      return 'error';
+    default:
+      return 'default';
+  }
+}
+
+function ActivityTable({ poolId }: { poolId: string }) {
+  const { events, isLoading: isLoadingEvents } = useLiquidityEvents({ poolId });
+  const { data: pool, isLoading: isLoadingPool } = usePoolData(poolId);
+  const explorer = useExplorer();
+  const { SQD_TOKEN } = useContracts();
+
+  const isLoading = isLoadingEvents || isLoadingPool;
+
+  const sortedEvents = useMemo(() => {
+    return [...events].sort((a, b) => {
+      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    });
+  }, [events]);
+
+  if (!pool) return null;
+
+  return (
+    <DashboardTable loading={isLoading}>
+      <>
+        <TableHead>
+          <TableRow>
+            <TableCell>{ACTIVITY_TEXTS.table.account}</TableCell>
+            <TableCell>{ACTIVITY_TEXTS.table.type}</TableCell>
+            <TableCell>{ACTIVITY_TEXTS.table.amount}</TableCell>
+            <TableCell>{ACTIVITY_TEXTS.table.time}</TableCell>
+            <TableCell align="center"></TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {sortedEvents.length === 0 && !isLoading ? (
+            <NoItems>
+              <Typography>{ACTIVITY_TEXTS.noActivity}</Typography>
+            </NoItems>
+          ) : (
+            sortedEvents.map((event, index) => (
+              <TableRow key={`${event.txHash}-${index}`}>
+                <TableCell>
+                  <Typography variant="body1" fontWeight={500}>
+                    {event.providerId
+                      ? addressFormatter(event.providerId, true)
+                      : addressFormatter(undefined, true)}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={getEventTypeLabel(event.eventType)}
+                    size="small"
+                    variant="outlined"
+                    color={getEventTypeColor(event.eventType)}
+                    sx={{ minWidth: 60 }}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body1" fontWeight={500}>
+                    {tokenFormatter(
+                      BigNumber(event.amount || 0).div(10 ** pool.lptToken.decimals),
+                      SQD_TOKEN,
+                      2,
+                    )}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Tooltip title={dateFormat(event.timestamp, 'dateTime')}>
+                    <Typography
+                      variant="body1"
+                      component="span"
+                      sx={{ cursor: 'default', display: 'inline-block' }}
+                    >
+                      {formatTimeAgo(event.timestamp)}
+                    </Typography>
+                  </Tooltip>
+                </TableCell>
+                <TableCell align="center">
+                  <Tooltip title={`Open in Explorer`}>
+                    <IconButton
+                      size="small"
+                      component={Link}
+                      to={explorer.getTxUrl(event.txHash)}
+                      target="_blank"
+                    >
+                      <ExplorerIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </>
+    </DashboardTable>
+  );
+}
+
+function TopUpsTable({ poolId }: { poolId: string }) {
+  const { topUps, isLoading: isLoadingTopUps } = useTopUps({ poolId });
+  const { data: pool, isLoading: isLoadingPool } = usePoolData(poolId);
+  const explorer = useExplorer();
+
+  const isLoading = isLoadingTopUps || isLoadingPool;
+
+  const sortedTopUps = useMemo(() => {
+    return [...topUps].sort((a, b) => {
+      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    });
+  }, [topUps]);
+
+  if (!pool) return null;
+
+  return (
+    <DashboardTable loading={isLoading}>
+      <>
+        <TableHead>
+          <TableRow>
+            <TableCell>{TOP_UPS_TEXTS.table.amount}</TableCell>
+            <TableCell>{TOP_UPS_TEXTS.table.time}</TableCell>
+            <TableCell align="center"></TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {sortedTopUps.length === 0 && !isLoading ? (
+            <NoItems>
+              <Typography>{TOP_UPS_TEXTS.noTopUps}</Typography>
+            </NoItems>
+          ) : (
+            sortedTopUps.map((topUp, index) => (
+              <TableRow key={`${topUp.txHash}-${index}`}>
+                <TableCell>
+                  <Typography variant="body1" fontWeight={500}>
+                    {tokenFormatter(
+                      BigNumber(topUp.amount || 0).div(10 ** pool.rewardToken.decimals),
+                      pool.rewardToken.symbol,
+                      2,
+                    )}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <Tooltip title={dateFormat(topUp.timestamp, 'dateTime')}>
+                    <Typography
+                      variant="body1"
+                      component="span"
+                      sx={{ cursor: 'default', display: 'inline-block' }}
+                    >
+                      {formatTimeAgo(topUp.timestamp)}
+                    </Typography>
+                  </Tooltip>
+                </TableCell>
+                <TableCell align="center">
+                  <Tooltip title={`Open in Explorer`}>
+                    <IconButton
+                      size="small"
+                      component={Link}
+                      to={explorer.getTxUrl(topUp.txHash)}
+                      target="_blank"
+                    >
+                      <ExplorerIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </>
+    </DashboardTable>
+  );
+}
+
 export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
   const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
   const [claimingId, setClaimingId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState(0);
   const { writeTransactionAsync } = useWriteSQDTransaction();
   const { data: pendingWithdrawals = [], isLoading: withdrawalsLoading } =
     usePoolPendingWithdrawals(poolId);
@@ -157,20 +380,30 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
     [poolId, writeTransactionAsync],
   );
 
+  const handleTabChange = useCallback((_: React.SyntheticEvent, value: number) => {
+    setActiveTab(value);
+  }, []);
+
   if (!pool && !poolLoading) return null;
 
   return (
     <Box>
-      <Tabs value={0} sx={{ mb: 2 }}>
+      <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 2 }}>
+        <Tab label={ACTIVITY_TEXTS.title} />
+        <Tab label={TOP_UPS_TEXTS.title} />
         <Tab label={WITHDRAWALS_TEXTS.tabTitle} />
       </Tabs>
       <Card>
-        <PendingWithdrawalsTable
-          pendingWithdrawals={pendingWithdrawals}
-          claimingId={claimingId}
-          onClaim={handleClaim}
-          isLoading={poolLoading || withdrawalsLoading}
-        />
+        {activeTab === 0 && <ActivityTable poolId={poolId} />}
+        {activeTab === 1 && <TopUpsTable poolId={poolId} />}
+        {activeTab === 2 && (
+          <PendingWithdrawalsTable
+            pendingWithdrawals={pendingWithdrawals}
+            claimingId={claimingId}
+            onClaim={handleClaim}
+            isLoading={poolLoading || withdrawalsLoading}
+          />
+        )}
       </Card>
     </Box>
   );

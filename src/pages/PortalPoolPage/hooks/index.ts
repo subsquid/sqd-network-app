@@ -10,3 +10,5 @@ export * from './usePoolCapacity';
 export * from './usePoolData';
 export * from './usePoolPendingWithdrawals';
 export * from './usePoolUserData';
+export * from './useLiquidityEvents';
+export * from './useTopUps';

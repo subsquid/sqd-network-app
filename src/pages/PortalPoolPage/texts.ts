@@ -80,7 +80,7 @@ export const CHART_TEXTS = {
 
 // Pending Withdrawals
 export const WITHDRAWALS_TEXTS = {
-  tabTitle: 'Withdrawal Requests',
+  tabTitle: 'Withdrawals',
   table: {
     withdrawalId: 'Withdrawal ID',
     amount: 'Amount',
@@ -226,4 +226,33 @@ export const EDIT_SETTINGS_DIALOG_TEXTS = {
     title: 'Edit Distribution Rate',
     label: (symbol: string) => `Distribution Rate (${symbol}/day)`,
   },
+} as const;
+
+// Activity Tab
+export const ACTIVITY_TEXTS = {
+  title: 'Activity',
+  table: {
+    account: 'Account',
+    type: 'Type',
+    amount: 'Amount',
+    time: 'Time',
+    txn: 'Txn',
+  },
+  eventTypes: {
+    deposit: 'Deposit',
+    withdrawal: 'Withdrawal',
+    exit: 'Exit',
+  },
+  noActivity: 'No activity yet',
+} as const;
+
+// Top Ups Tab
+export const TOP_UPS_TEXTS = {
+  title: 'Top Ups',
+  table: {
+    amount: 'Amount',
+    time: 'Time',
+    txn: 'Txn',
+  },
+  noTopUps: 'No top-ups yet',
 } as const;
