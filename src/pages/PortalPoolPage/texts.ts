@@ -113,8 +113,8 @@ export const MANAGE_TEXTS = {
 
 // Info Tab
 export const INFO_TEXTS = {
-  title: 'Information',
-  contract: 'Pool Contract',
+  title: 'Pool Info',
+  contract: 'Contract',
   operator: 'Operator',
   lpToken: {
     label: 'LP-Token',

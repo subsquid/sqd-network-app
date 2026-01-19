@@ -159,7 +159,7 @@ export function InfoTab({ poolId }: InfoTabProps) {
           )}
         </Stack>
 
-        <Box>{pool.description}</Box>
+        <Box>{pool.description || '-'}</Box>
       </Stack>
     </Card>
   );
