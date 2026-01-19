@@ -610,10 +610,6 @@ function LegalDialog({
     [onAccept, onReject],
   );
 
-  const handleOpenPdf = useCallback(() => {
-    window.open(LEGAL_DIALOG_TEXTS.pdfUrl, '_blank', 'noopener,noreferrer');
-  }, []);
-
   return (
     <ContractCallDialog
       title="Terms of Use"

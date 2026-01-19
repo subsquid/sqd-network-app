@@ -121,6 +121,10 @@ export const INFO_TEXTS = {
     tooltip: (symbol: string) =>
       `Liquidity Provider token representing your share in the pool. You receive LP tokens when you lock up ${symbol}.`,
   },
+  rewardToken: {
+    label: 'Reward Token',
+    tooltip: 'The token used to distribute rewards to pool participants.',
+  },
   created: 'Created',
   website: 'Website',
   description: 'Description',

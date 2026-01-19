@@ -31,27 +31,39 @@ export function InfoTab({ poolId }: InfoTabProps) {
   const { watchAssetAsync } = useWatchAsset();
   const explorer = useExplorer();
 
-  const handleAddTokenToWallet = useCallback(async () => {
-    if (!pool) return;
+  const handleAddTokenToWallet = useCallback(
+    async (tokenType: 'lp' | 'reward') => {
+      if (!pool) return;
 
-    try {
-      const result = await watchAssetAsync({
-        type: 'ERC20',
-        options: {
-          address: pool.lptToken.address as `0x${string}`,
-          symbol: pool.lptToken.symbol,
-          decimals: pool.lptToken.decimals,
-        },
-      });
-      if (result) {
-        toast.success(INFO_TEXTS.notifications.tokenAddedSuccess);
-      } else {
-        toast.error(INFO_TEXTS.notifications.tokenAddedError);
+      const tokenConfig =
+        tokenType === 'lp'
+          ? {
+              address: pool.lptToken.address as `0x${string}`,
+              symbol: pool.lptToken.symbol,
+              decimals: pool.lptToken.decimals,
+            }
+          : {
+              address: pool.rewardToken.address as `0x${string}`,
+              symbol: pool.rewardToken.symbol,
+              decimals: pool.rewardToken.decimals,
+            };
+
+      try {
+        const result = await watchAssetAsync({
+          type: 'ERC20',
+          options: tokenConfig,
+        });
+        if (result) {
+          toast.success(INFO_TEXTS.notifications.tokenAddedSuccess);
+        } else {
+          toast.error(INFO_TEXTS.notifications.tokenAddedError);
+        }
+      } catch (error) {
+        toast.error(INFO_TEXTS.notifications.tokenAddedErrorWithReason(errorMessage(error)));
       }
-    } catch (error) {
-      toast.error(INFO_TEXTS.notifications.tokenAddedErrorWithReason(errorMessage(error)));
-    }
-  }, [pool, watchAssetAsync]);
+    },
+    [pool, watchAssetAsync],
+  );
 
   if (!pool) return null;
   return (
@@ -129,7 +141,47 @@ export function InfoTab({ poolId }: InfoTabProps) {
                     </IconButton>
                   </Tooltip>
                   <Tooltip title={INFO_TEXTS.actions.addToWallet}>
-                    <IconButton size="small" color="inherit" onClick={handleAddTokenToWallet}>
+                    <IconButton
+                      size="small"
+                      color="inherit"
+                      onClick={() => handleAddTokenToWallet('lp')}
+                    >
+                      <WalletIcon fontSize="inherit" />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+              </Stack>
+            </Typography>
+          </Stack>
+
+          <Stack spacing={0.5}>
+            <Typography variant="body2" color="text.secondary">
+              <Stack direction="row" alignItems="center" spacing={0.5}>
+                <span>{INFO_TEXTS.rewardToken.label}</span>
+                <HelpTooltip title={INFO_TEXTS.rewardToken.tooltip} />
+              </Stack>
+            </Typography>
+            <Typography>
+              <Stack direction="row" alignItems="center" spacing={0.5}>
+                <span>{pool.rewardToken.symbol}</span>
+                <Stack direction="row" alignItems="center">
+                  <CopyToClipboard text={pool.rewardToken.address} content="" showButton={true} />
+                  <Tooltip title={INFO_TEXTS.actions.openInExplorer}>
+                    <IconButton
+                      size="small"
+                      color="inherit"
+                      component={Link}
+                      to={explorer.getAddressUrl(pool.rewardToken.address)}
+                    >
+                      <ExplorerIcon fontSize="inherit" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title={INFO_TEXTS.actions.addToWallet}>
+                    <IconButton
+                      size="small"
+                      color="inherit"
+                      onClick={() => handleAddTokenToWallet('reward')}
+                    >
                       <WalletIcon fontSize="inherit" />
                     </IconButton>
                   </Tooltip>
