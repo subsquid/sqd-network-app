@@ -4,7 +4,7 @@ import { waitForTransactionReceipt } from 'viem/actions';
 import { useClient, useWriteContract } from 'wagmi';
 import { WriteContractData } from 'wagmi/query';
 
-import { useContracts } from '@network/useContracts.ts';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { WriteContractRes, errorMessage } from './utils';
 

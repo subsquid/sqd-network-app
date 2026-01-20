@@ -15,7 +15,7 @@ import { ContractCallDialog } from '@components/ContractCallDialog';
 import { useSourceContext } from '@contexts/SourceContext';
 import { useCountdown } from '@hooks/useCountdown';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 export const stakeSchema = yup.object({
   source: yup.string().label('Source').trim().required('Source is required'),

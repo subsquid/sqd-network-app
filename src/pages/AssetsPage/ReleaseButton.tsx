@@ -7,7 +7,7 @@ import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
 import { SourceWallet } from '@api/subsquid-network-squid';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 export const claimSchema = yup.object({
   source: yup.string().label('Source').trim().required('Source is required'),

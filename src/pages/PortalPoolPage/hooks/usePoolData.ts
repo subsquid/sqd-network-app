@@ -5,9 +5,9 @@ import { useReadContract } from 'wagmi';
 
 import { portalPoolAbi, portalPoolFactoryAbi } from '@api/contracts';
 import { usePoolByIdQuery } from '@api/pool-squid/graphql';
-import { useERC20Tokens } from '@hooks/useERC20';
+import { useERC20Tokens } from '@hooks/network/useERC20';
 import { fromSqd, toSqd } from '@lib/network';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { getPhase, parseMetadata } from './helpers';
 import type { PoolData } from './types';

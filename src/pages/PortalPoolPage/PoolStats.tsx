@@ -10,7 +10,7 @@ import {
   percentFormatter,
   tokenFormatter,
 } from '@lib/formatters/formatters';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { usePoolData } from './hooks';
 import { STATS_TEXTS } from './texts';

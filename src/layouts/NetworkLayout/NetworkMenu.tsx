@@ -29,7 +29,7 @@ import { Link, LinkProps as RouterLinkProps, useLocation } from 'react-router-do
 
 import { useIsWorkerOperator } from '@api/subsquid-network-squid';
 import { demoFeaturesEnabled } from '@hooks/demoFeaturesEnabled';
-import { useWorkersChatUrl } from '@network/useWorkersChat';
+import { useWorkersChatUrl } from '@hooks/network/useWorkersChat';
 
 interface NetworkMenuProps {
   onItemClick: () => void;

@@ -1,6 +1,6 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import {
-  coinbaseWallet,
+  baseAccount,
   metaMaskWallet,
   rainbowWallet,
   safeWallet,
@@ -10,7 +10,7 @@ import { upperFirst } from 'lodash-es';
 import { fallback, http } from 'wagmi';
 import { arbitrum, arbitrumSepolia } from 'wagmi/chains';
 
-import { NetworkName, getSubsquidNetwork } from './useSubsquidNetwork';
+import { NetworkName, getSubsquidNetwork } from './hooks/network/useSubsquidNetwork';
 
 // export let CHAIN: Chain = arbitrumSepolia;
 // if (process.env.NETWORK === 'hardhat') {
@@ -37,7 +37,7 @@ export const rainbowConfig = getDefaultConfig({
   wallets: [
     {
       groupName: 'Recommended',
-      wallets: [safeWallet, rainbowWallet, coinbaseWallet, metaMaskWallet, walletConnectWallet],
+      wallets: [safeWallet, rainbowWallet, baseAccount, metaMaskWallet, walletConnectWallet],
     },
   ],
 });

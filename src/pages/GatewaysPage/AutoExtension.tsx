@@ -6,7 +6,7 @@ import { gatewayRegistryAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 export function AutoExtension({ value, disabled }: { value?: boolean; disabled?: boolean }) {
   const client = usePublicClient();

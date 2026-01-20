@@ -6,7 +6,7 @@ import { PartialDeep, SimplifyDeep } from 'type-fest';
 
 import { getWorkerStatus } from '@components/Worker';
 import { calculateDelegationCapacity } from '@lib/network';
-import { useAccount } from '@network/useAccount.ts';
+import { useAccount } from '@hooks/network/useAccount';
 
 import { useSquid } from './datasource';
 import {

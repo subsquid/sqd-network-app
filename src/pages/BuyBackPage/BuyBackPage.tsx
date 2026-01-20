@@ -7,9 +7,9 @@ import { useSourcesQuery, useSquid } from '@api/subsquid-network-squid';
 import { SectionHeader } from '@components/SectionHeader';
 import { NameWithAvatar } from '@components/SourceWalletName';
 import { DashboardTable, NoItems } from '@components/Table';
-import { ConnectedWalletRequired } from '@network/ConnectedWalletRequired';
-import { useAccount } from '@network/useAccount';
-import { useContracts } from '@network/useContracts';
+import { ConnectedWalletRequired } from '@components/ConnectedWalletRequired';
+import { useAccount } from '@hooks/network/useAccount';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { DepositButton } from './DepositButton';
 

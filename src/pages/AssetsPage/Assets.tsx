@@ -19,8 +19,8 @@ import { Property, PropertyList } from '@components/Property';
 import { demoFeaturesEnabled } from '@hooks/demoFeaturesEnabled';
 import { dollarFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network/utils';
-import { useAccount } from '@network/useAccount';
-import { useContracts } from '@network/useContracts';
+import { useAccount } from '@hooks/network/useAccount';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { ClaimButton } from './ClaimButton';
 

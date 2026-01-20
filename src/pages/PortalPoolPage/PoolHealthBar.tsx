@@ -6,7 +6,7 @@ import { Box, Stack, Tooltip, Typography, alpha, useTheme } from '@mui/material'
 
 import { useCountdown } from '@hooks/useCountdown';
 import { percentFormatter, tokenFormatter } from '@lib/formatters/formatters';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 import type { PoolData } from './hooks';
 import { usePoolData } from './hooks';

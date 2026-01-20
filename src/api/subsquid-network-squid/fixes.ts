@@ -5,7 +5,7 @@ import { useBlock, useReadContracts } from 'wagmi';
 
 import { Worker, WorkerStatus } from '@api/subsquid-network-squid';
 import { getBlockTime } from '@lib/network';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 import {
   stakingAbi,

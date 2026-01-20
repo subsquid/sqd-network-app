@@ -16,8 +16,8 @@ import { ContractCallDialog } from '@components/ContractCallDialog';
 import { Form, FormRow, FormikTextInput } from '@components/Form';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { peerIdToHex } from '@lib/network';
-import { useAccount } from '@network/useAccount';
-import { useContracts } from '@network/useContracts';
+import { useAccount } from '@hooks/network/useAccount';
+import { useContracts } from '@hooks/network/useContracts';
 
 export const editWorkerSchema = yup.object({
   name: yup.string().label('Name').max(255).trim().required('Worker name is required'),

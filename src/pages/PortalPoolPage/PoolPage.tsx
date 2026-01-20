@@ -6,7 +6,7 @@ import { useParams } from 'react-router-dom';
 
 import { Loader } from '@components/Loader';
 import { NotFound } from '@components/NotFound';
-import { useAccount } from '@network/useAccount';
+import { useAccount } from '@hooks/network/useAccount';
 
 import { usePoolData } from './hooks';
 import { PendingWithdrawals } from './PendingWithdrawals';

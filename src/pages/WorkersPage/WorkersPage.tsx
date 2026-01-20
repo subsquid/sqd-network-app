@@ -23,9 +23,9 @@ import {
 import { Location, useLocationState } from '@hooks/useLocationState';
 import { percentFormatter, tokenFormatter } from '@lib/formatters/formatters.ts';
 import { fromSqd, isOwned } from '@lib/network';
-import { ConnectedWalletRequired } from '@network/ConnectedWalletRequired';
-import { useAccount } from '@network/useAccount';
-import { useContracts } from '@network/useContracts';
+import { ConnectedWalletRequired } from '@components/ConnectedWalletRequired';
+import { useAccount } from '@hooks/network/useAccount';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { AddWorkerButton } from './AddNewWorker';
 

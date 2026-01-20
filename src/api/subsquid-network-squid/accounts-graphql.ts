@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import { UseQueryOptions } from '@tanstack/react-query';
 
-import { useAccount } from '@network/useAccount';
+import { useAccount } from '@hooks/network/useAccount';
 
 import { useSquid } from './datasource';
 import {

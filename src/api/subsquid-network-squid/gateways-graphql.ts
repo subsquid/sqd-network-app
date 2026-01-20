@@ -1,5 +1,5 @@
 import { useSquid } from '@api/subsquid-network-squid/datasource';
-import { useAccount } from '@network/useAccount';
+import { useAccount } from '@hooks/network/useAccount';
 
 import { useGatewayByPeerIdQuery, useMyGatewayStakesQuery, useMyGatewaysQuery } from './graphql';
 

@@ -14,7 +14,7 @@ import {
 import { AccountType, SourceWalletWithBalance } from '@api/subsquid-network-squid';
 import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 export interface SourceWalletOptionProps {
   /** The source wallet data */

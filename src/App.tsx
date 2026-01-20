@@ -8,8 +8,8 @@ import { queryClient } from '@api/client';
 import { Toaster } from '@components/Toaster';
 import { SquidHeightProvider } from '@hooks/useSquidNetworkHeightHooks';
 import { TickerProvider } from '@hooks/useTicker';
-import { rainbowConfig } from '@network/config';
-import { getChain } from '@network/useSubsquidNetwork';
+import { rainbowConfig } from './config';
+import { getChain } from '@hooks/network/useSubsquidNetwork';
 
 import { AppRoutes } from './AppRoutes';
 import { useCreateRainbowKitTheme, useCreateTheme, useThemeState } from './theme';

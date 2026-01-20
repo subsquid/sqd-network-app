@@ -8,7 +8,7 @@ import { portalPoolAbi } from '@api/contracts';
 import { Card } from '@components/Card';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { tokenFormatter } from '@lib/formatters/formatters';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { EditCapacityButton, EditDistributionRateButton } from '../dialogs/EditSettingsDialog';
 import { TopUpButton } from '../dialogs/TopUpDialog';

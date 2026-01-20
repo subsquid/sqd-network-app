@@ -15,8 +15,8 @@ import { NameWithAvatar } from '@components/SourceWalletName';
 import { DashboardTable, NoItems } from '@components/Table';
 import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, unwrapMulticallResult } from '@lib/network/utils';
-import { useAccount } from '@network/useAccount';
-import { useContracts } from '@network/useContracts';
+import { useAccount } from '@hooks/network/useAccount';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { ReleaseButton } from './ReleaseButton';
 

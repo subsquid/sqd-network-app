@@ -19,9 +19,9 @@ import { useTokenPrice } from '@api/price';
 import { Logo } from '@components/Logo';
 import { useBannerHeight } from '@components/TopBanner';
 import { dollarFormatter } from '@lib/formatters/formatters';
-import { useAccount } from '@network/useAccount';
-import { useContracts } from '@network/useContracts';
-import { getChain, getSubsquidNetwork } from '@network/useSubsquidNetwork';
+import { useAccount } from '@hooks/network/useAccount';
+import { useContracts } from '@hooks/network/useContracts';
+import { getChain, getSubsquidNetwork } from '@hooks/network/useSubsquidNetwork';
 
 import { NetworkMenu } from './NetworkMenu';
 import { UserMenu } from './UserMenu';

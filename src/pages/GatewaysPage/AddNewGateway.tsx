@@ -20,7 +20,7 @@ import { SourceWalletOption } from '@components/SourceWallet';
 import { useSourceContext } from '@contexts/SourceContext';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { peerIdToHex } from '@lib/network';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { addGatewaySchema } from './gateway-schema';
 

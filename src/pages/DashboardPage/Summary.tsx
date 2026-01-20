@@ -14,7 +14,7 @@ import {
   tokenFormatter,
 } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 export function ColumnLabel({ children, color }: PropsWithChildren<{ color?: string }>) {
   return (

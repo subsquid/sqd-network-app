@@ -15,9 +15,9 @@ import { NameWithAvatar } from '@components/SourceWalletName';
 import { DashboardTable, NoItems, SortableHeaderCell } from '@components/Table';
 import { Location, useLocationState } from '@hooks/useLocationState';
 import { unwrapMulticallResult } from '@lib/network';
-import { ConnectedWalletRequired } from '@network/ConnectedWalletRequired';
-import { useAccount } from '@network/useAccount';
-import { useContracts } from '@network/useContracts';
+import { ConnectedWalletRequired } from '@components/ConnectedWalletRequired';
+import { useAccount } from '@hooks/network/useAccount';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { AddPortalButton } from './AddNewPortalPool';
 

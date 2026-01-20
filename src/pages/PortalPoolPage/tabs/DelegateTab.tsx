@@ -10,7 +10,7 @@ import { useTokenPrice } from '@api/price';
 import { Card } from '@components/Card';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { dollarFormatter, tokenFormatter } from '@lib/formatters/formatters';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { ProvideButton } from '../dialogs/ProvideDialog';
 import { WithdrawButton } from '../dialogs/WithdrawDialog';

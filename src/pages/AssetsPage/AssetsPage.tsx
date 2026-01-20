@@ -2,7 +2,7 @@ import { CenteredPageWrapper } from '@layouts/NetworkLayout';
 import { Tab, Tabs } from '@mui/material';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
-import { ConnectedWalletRequired } from '@network/ConnectedWalletRequired';
+import { ConnectedWalletRequired } from '@components/ConnectedWalletRequired';
 
 import { MyAssets } from './Assets';
 

@@ -16,9 +16,9 @@ import { useApproveSqd } from '@api/contracts/sqd';
 import { AccountType, SourceWallet, Worker } from '@api/subsquid-network-squid';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { calculateDelegationCapacity } from '@lib/network';
-import { useAccount } from '@network/useAccount';
-import { useContracts } from '@network/useContracts.ts';
-import { getChain } from '@network/useSubsquidNetwork';
+import { useAccount } from '@hooks/network/useAccount';
+import { useContracts } from '@hooks/network/useContracts';
+import { getChain } from '@hooks/network/useSubsquidNetwork';
 
 import { softCapAbi, stakingAbi, vestingAbi } from './subsquid.generated';
 import { TxResult, WriteContractRes, errorMessage, isApproveRequiredError } from './utils';

@@ -9,7 +9,7 @@ import { Card } from '@components/Card';
 import { LineChart, SharedCursorProvider } from '@components/Chart';
 import { tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { usePoolData } from './hooks';
 import { CHART_TEXTS } from './texts';

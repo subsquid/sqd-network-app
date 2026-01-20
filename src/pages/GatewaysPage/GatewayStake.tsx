@@ -29,7 +29,7 @@ import { useSourceContext } from '@contexts/SourceContext';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { numberWithCommasFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, getBlockTime, toSqd, unwrapMulticallResult } from '@lib/network/utils';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 const MIN_BLOCKS_LOCK = 1000;
 

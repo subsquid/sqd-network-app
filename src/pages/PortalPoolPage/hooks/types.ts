@@ -1,6 +1,6 @@
 import type BigNumber from 'bignumber.js';
 
-import type { ERC20TokenData } from '@hooks/useERC20';
+import type { ERC20TokenData } from '@hooks/network/useERC20';
 
 // Pool phases:
 // - 'collecting': Pool created, users depositing, portal inactive

@@ -18,7 +18,7 @@ import { Loader } from '@components/Loader';
 import { SourceWalletOption } from '@components/SourceWallet';
 import { tokenFormatter } from '@lib/formatters/formatters';
 import { toSqd } from '@lib/network';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { usePoolCapacity, usePoolData, usePoolUserData } from '../hooks';
 import { PROVIDE_DIALOG_TEXTS } from '../texts';

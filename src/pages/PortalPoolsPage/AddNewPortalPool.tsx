@@ -32,7 +32,7 @@ import { Form, FormDivider, FormRow, FormikTextInput } from '@components/Form';
 import { Loader } from '@components/Loader';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { fromSqd, toSqd } from '@lib/network/utils';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 export const addPortalSchema = ({ minCapacity }: { minCapacity: BigNumber }) => {
   return yup.object({

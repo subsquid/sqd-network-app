@@ -12,7 +12,7 @@ import { ContractCallDialog } from '@components/ContractCallDialog';
 import { useSourceContext } from '@contexts/SourceContext';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { peerIdToHex } from '@lib/network';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 export function GatewayUnregisterButton({
   gateway,

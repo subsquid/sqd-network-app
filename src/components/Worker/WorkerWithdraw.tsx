@@ -14,8 +14,8 @@ import { ContractCallDialog } from '@components/ContractCallDialog';
 import { useCountdown } from '@hooks/useCountdown';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { peerIdToHex } from '@lib/network';
-import { useAccount } from '@network/useAccount';
-import { useContracts } from '@network/useContracts';
+import { useAccount } from '@hooks/network/useAccount';
+import { useContracts } from '@hooks/network/useContracts';
 
 function UnlocksTooltip({ timestamp }: { timestamp?: number }) {
   const timeLeft = useCountdown({ timestamp });

@@ -1,5 +1,5 @@
-import { useAccount } from '@network/useAccount';
-import { NetworkName, getNetworkName } from '@network/useSubsquidNetwork';
+import { useAccount } from '@hooks/network/useAccount';
+import { NetworkName, getNetworkName } from '@hooks/network/useSubsquidNetwork';
 
 interface ExplorerUrls {
   baseUrl: string;

@@ -30,7 +30,7 @@ import { DashboardTable, NoItems } from '@components/Table';
 import { useCountdown } from '@hooks/useCountdown';
 import { useExplorer } from '@hooks/useExplorer';
 import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 import type { PendingWithdrawal } from './hooks';
 import { usePoolData, usePoolPendingWithdrawals } from './hooks';

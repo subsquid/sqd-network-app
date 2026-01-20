@@ -18,7 +18,7 @@ import { HelpTooltip } from '@components/HelpTooltip';
 import { Loader } from '@components/Loader';
 import { tokenFormatter } from '@lib/formatters/formatters';
 import { toSqd } from '@lib/network';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { usePoolCapacity, usePoolData, usePoolUserData } from '../hooks';
 import { WITHDRAW_DIALOG_TEXTS } from '../texts';

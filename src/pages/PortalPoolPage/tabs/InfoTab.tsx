@@ -16,7 +16,7 @@ import { CopyToClipboard } from '@components/CopyToClipboard';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { useExplorer } from '@hooks/useExplorer';
 import { addressFormatter, urlFormatter } from '@lib/formatters/formatters';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { usePoolData } from '../hooks';
 import { INFO_TEXTS } from '../texts';

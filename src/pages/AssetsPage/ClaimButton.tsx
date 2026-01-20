@@ -20,8 +20,8 @@ import { WorkerName } from '@components/Worker';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network/utils';
-import { useAccount } from '@network/useAccount';
-import { useContracts } from '@network/useContracts';
+import { useAccount } from '@hooks/network/useAccount';
+import { useContracts } from '@hooks/network/useContracts';
 
 export const claimSchema = yup.object({
   source: yup.string().label('Source').trim().required('Source is required'),

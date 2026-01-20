@@ -25,8 +25,8 @@ import {
   WorkerWithdrawButton,
 } from '@components/Worker';
 import { isOwned } from '@lib/network';
-import { useAccount } from '@network/useAccount';
-import { useContracts } from '@network/useContracts';
+import { useAccount } from '@hooks/network/useAccount';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { WorkerTitle } from './WorkerTitle';
 

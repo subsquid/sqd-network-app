@@ -16,7 +16,7 @@ import { NotFound } from '@components/NotFound';
 import { Property, PropertyList } from '@components/Property';
 import { addressFormatter, percentFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, unwrapMulticallResult } from '@lib/network/utils';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { ReleaseButton } from './ReleaseButton';
 

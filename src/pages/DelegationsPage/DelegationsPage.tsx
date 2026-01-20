@@ -16,8 +16,8 @@ import {
 import { Location, useLocationState } from '@hooks/useLocationState';
 import { percentFormatter, tokenFormatter } from '@lib/formatters/formatters.ts';
 import { fromSqd } from '@lib/network';
-import { ConnectedWalletRequired } from '@network/ConnectedWalletRequired';
-import { useContracts } from '@network/useContracts';
+import { ConnectedWalletRequired } from '@components/ConnectedWalletRequired';
+import { useContracts } from '@hooks/network/useContracts';
 
 export function MyDelegations() {
   const [query, setQuery] = useLocationState({

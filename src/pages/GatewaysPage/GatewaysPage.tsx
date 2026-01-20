@@ -41,8 +41,8 @@ import { SourceProvider, useSourceContext } from '@contexts/SourceContext';
 import { useCountdown } from '@hooks/useCountdown';
 import { numberWithCommasFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
-import { ConnectedWalletRequired } from '@network/ConnectedWalletRequired';
-import { useContracts } from '@network/useContracts';
+import { ConnectedWalletRequired } from '@components/ConnectedWalletRequired';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { AddGatewayButton } from './AddNewGateway';
 import { AutoExtension } from './AutoExtension';

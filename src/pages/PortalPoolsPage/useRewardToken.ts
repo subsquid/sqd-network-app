@@ -1,9 +1,9 @@
 import { useReadContract } from 'wagmi';
 
 import { portalPoolFactoryAbi } from '@api/contracts';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
-import { useERC20Tokens } from '../../hooks/useERC20';
+import { useERC20Tokens } from '../../hooks/network/useERC20';
 
 export function useRewardTokens() {
   const { PORTAL_POOL_FACTORY } = useContracts();

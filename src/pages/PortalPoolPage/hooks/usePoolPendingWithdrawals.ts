@@ -4,7 +4,7 @@ import { useReadContract, useReadContracts } from 'wagmi';
 
 import { portalPoolAbi } from '@api/contracts';
 import { fromSqd, unwrapMulticallResult } from '@lib/network';
-import { useAccount } from '@network/useAccount';
+import { useAccount } from '@hooks/network/useAccount';
 
 import type { PendingWithdrawal } from './types';
 

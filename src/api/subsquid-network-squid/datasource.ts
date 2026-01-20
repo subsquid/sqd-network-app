@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { NetworkName, getSubsquidNetwork } from '@network/useSubsquidNetwork';
+import { NetworkName, getSubsquidNetwork } from '@hooks/network/useSubsquidNetwork';
 
 export function useSquid() {
   const network = getSubsquidNetwork();

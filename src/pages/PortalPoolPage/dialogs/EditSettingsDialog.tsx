@@ -15,7 +15,7 @@ import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
 import { Loader } from '@components/Loader';
 import { toSqd } from '@lib/network';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { usePoolData } from '../hooks';
 import { EDIT_SETTINGS_DIALOG_TEXTS } from '../texts';

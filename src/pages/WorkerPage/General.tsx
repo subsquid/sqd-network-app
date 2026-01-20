@@ -23,8 +23,8 @@ import {
   urlFormatter,
 } from '@lib/formatters/formatters';
 import { fromSqd, isOwned } from '@lib/network';
-import { useAccount } from '@network/useAccount';
-import { useContracts } from '@network/useContracts';
+import { useAccount } from '@hooks/network/useAccount';
+import { useContracts } from '@hooks/network/useContracts';
 
 export function WorkerGeneral() {
   const { peerId } = useParams<{ peerId: string }>();

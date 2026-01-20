@@ -26,8 +26,8 @@ import { Loader } from '@components/Loader';
 import { SourceWalletOption } from '@components/SourceWallet';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { fromSqd, peerIdToHex } from '@lib/network/utils';
-import { useContracts } from '@network/useContracts';
-import { useWorkersChatUrl } from '@network/useWorkersChat';
+import { useContracts } from '@hooks/network/useContracts';
+import { useWorkersChatUrl } from '@hooks/network/useWorkersChat';
 
 export const addWorkerSchema = yup.object({
   name: yup.string().label('Name').max(255).trim().required('Worker name is required'),
