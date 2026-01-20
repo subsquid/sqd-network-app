@@ -1,8 +1,12 @@
+import { useMemo } from 'react';
+
 import { Box, Chip, Divider, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
 
 import { Avatar } from '@components/Avatar';
 import { Card } from '@components/Card';
+import { useAccount } from '@network/useAccount';
 
+import { EditMetadataButton } from './dialogs/EditMetadataDialog';
 import { usePoolData } from './hooks';
 import { PoolHealthBar } from './PoolHealthBar';
 import { PoolStats } from './PoolStats';
@@ -14,6 +18,12 @@ interface PoolHeaderProps {
 
 export function PoolHeader({ poolId }: PoolHeaderProps) {
   const { data: pool, isLoading } = usePoolData(poolId);
+  const { address } = useAccount();
+
+  const isOperator = useMemo(
+    () => pool && address?.toLowerCase() === pool.operator.address.toLowerCase(),
+    [pool, address],
+  );
 
   return (
     <Stack spacing={2}>
@@ -32,9 +42,12 @@ export function PoolHeader({ poolId }: PoolHeaderProps) {
                 <Avatar name={pool?.name ?? ''} colorDiscriminator={pool?.id ?? ''} size={64} />
               )}
               <Stack direction="column" alignItems="start" spacing={1}>
-                <Typography variant="h5">
-                  {isLoading ? <Skeleton width="50%" /> : pool?.name}
-                </Typography>
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <Typography variant="h5">
+                    {isLoading ? <Skeleton width="50%" /> : pool?.name}
+                  </Typography>
+                  {!isLoading && pool && isOperator && <EditMetadataButton poolId={poolId} />}
+                </Stack>
                 {isLoading ? (
                   <Skeleton variant="rounded" width={80} height={24} />
                 ) : pool ? (

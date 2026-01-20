@@ -194,7 +194,7 @@ export function InfoTab({ poolId }: InfoTabProps) {
             <Typography variant="body2" color="text.secondary">
               {INFO_TEXTS.created}
             </Typography>
-            <Typography>{dateFormat(pool.createdAt, 'dateTime')}</Typography>
+            <Typography>{dateFormat(pool.createdAt, 'dateTime') || '-'}</Typography>
           </Stack>
 
           {pool.website && (

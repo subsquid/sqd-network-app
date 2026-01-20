@@ -225,6 +225,14 @@ export const EDIT_SETTINGS_DIALOG_TEXTS = {
   },
 } as const;
 
+// Edit Metadata Dialog
+export const EDIT_METADATA_DIALOG_TEXTS = {
+  title: 'Edit Pool Metadata',
+  nameLabel: 'Pool Name',
+  descriptionLabel: 'Description',
+  websiteLabel: 'Website',
+} as const;
+
 // Activity Tab
 export const ACTIVITY_TEXTS = {
   title: 'Activity',
