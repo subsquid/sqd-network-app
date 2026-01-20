@@ -282,6 +282,15 @@ function TermsContent() {
     <Stack spacing={2}>
       <Box>
         <Typography variant="h6" gutterBottom>
+          SQD Revenue Pools Terms of Use
+        </Typography>
+        <Typography variant="body2" gutterBottom>
+          Last updated January 15, 2026
+        </Typography>
+      </Box>
+
+      <Box>
+        <Typography variant="h6" gutterBottom>
           1. The Interface
         </Typography>
         <Typography variant="body2" paragraph>
