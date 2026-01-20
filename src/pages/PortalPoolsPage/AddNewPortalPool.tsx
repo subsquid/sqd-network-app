@@ -51,6 +51,17 @@ export const addPortalSchema = ({ minCapacity }: { minCapacity: BigNumber }) => 
       .min('0')
       .typeError('${path} is invalid'),
     rateType: yup.string().oneOf(['day', 'month']).required(),
+    initialDeposit: yup
+      .decimal()
+      .label('Initial Deposit')
+      .required()
+      .typeError('${path} is invalid')
+      .test('min-daily-rate', 'Initial deposit must be at least the daily rate', function (value) {
+        const { earnings, rateType } = this.parent;
+        if (!value || !earnings) return true;
+        const dailyRate = getRate(earnings, rateType);
+        return BigNumber(value).gte(dailyRate);
+      }),
   });
 };
 
@@ -121,12 +132,6 @@ function AddNewPortalDialog({
     query: { enabled: !!PORTAL_POOL_FACTORY },
   });
 
-  const validationSchema = useMemo(() => {
-    return addPortalSchema({
-      minCapacity: fromSqd(minCapacity),
-    });
-  }, [minCapacity]);
-
   const { data: collectionDeadlineSeconds } = useReadPortalPoolFactoryCollectionDeadlineSeconds({
     address: PORTAL_POOL_FACTORY,
   });
@@ -141,6 +146,12 @@ function AddNewPortalDialog({
     return fromSqd(minCapacity).multipliedBy(1.2);
   }, [minCapacity]);
 
+  const validationSchema = useMemo(() => {
+    return addPortalSchema({
+      minCapacity: fromSqd(minCapacity),
+    });
+  }, [minCapacity]);
+
   const formik = useFormik({
     initialValues: {
       name: '',
@@ -148,6 +159,7 @@ function AddNewPortalDialog({
       capacity: undefined,
       earnings: '',
       rateType: 'month' as 'day' | 'month',
+      initialDeposit: undefined,
     } as any,
     validationSchema,
     validateOnChange: true,
@@ -170,7 +182,7 @@ function AddNewPortalDialog({
         );
 
         const initialDeposit = BigInt(
-          BigNumber(distributionRatePerSecond).div(DISTRIBUTION_RATE_BPS).times(86400).toFixed(0),
+          BigNumber(values.initialDeposit).times(10 ** selectedToken.decimals).toFixed(0),
         );
 
         const receipt = await writeTransactionAsync({
@@ -209,6 +221,10 @@ function AddNewPortalDialog({
   const estimatedCUs = useMemo(() => {
     return BigNumber(formik.values.capacity).multipliedBy(10);
   }, [formik.values.capacity]);
+
+  const suggestedInitialDeposit = useMemo(() => {
+    return getRate(formik.values.earnings || '0', formik.values.rateType);
+  }, [formik.values.earnings, formik.values.rateType]);
 
   const deadlineDate = useMemo(() => {
     const date = new Date(Date.now() + Number(collectionDeadlineSeconds) * 1000);
@@ -337,6 +353,27 @@ function AddNewPortalDialog({
                 <ToggleButton value="month">Month</ToggleButton>
               </ToggleButtonGroup>
             </Stack>
+          </FormRow>
+          <FormRow>
+            <FormikTextInput
+              id="initialDeposit"
+              label={`Initial Deposit (${selectedToken?.symbol || 'Token'})`}
+              placeholder={suggestedInitialDeposit.toString()}
+              formik={formik}
+              showErrorOnlyOfTouched
+              helperText={`Minimum: ${suggestedInitialDeposit.toFixed(2)} ${selectedToken?.symbol || 'Token'} (daily rate)`}
+              InputProps={{
+                endAdornment: (
+                  <Chip
+                    clickable
+                    onClick={() => {
+                      formik.setFieldValue('initialDeposit', suggestedInitialDeposit);
+                    }}
+                    label="Auto"
+                  />
+                ),
+              }}
+            />
           </FormRow>
 
           <FormDivider />
