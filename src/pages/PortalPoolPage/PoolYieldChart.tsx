@@ -3,8 +3,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { Box, Skeleton, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import BigNumber from 'bignumber.js';
 
-import { useHistoricalTokenPrices } from '@api/price';
 import { useApyTimeseriesQuery, useTvlTimeseriesQuery } from '@api/pool-squid/graphql';
+import { useHistoricalTokenPrices } from '@api/price';
 import { Card } from '@components/Card';
 import { LineChart, SharedCursorProvider } from '@components/Chart';
 import { tokenFormatter } from '@lib/formatters/formatters';
@@ -12,7 +12,6 @@ import { fromSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
 import { usePoolData } from './hooks';
-import type { PoolData } from './hooks/types';
 import { CHART_TEXTS } from './texts';
 
 type TimePeriod = '1w' | '1m' | '3m';
@@ -40,12 +39,12 @@ const tvlTooltipFormatter = (d: number) => tokenFormatter(d, 'SQD');
 
 interface ApyLineChartProps {
   poolId: string;
-  pool: PoolData;
   range: { from: Date; to: Date };
 }
 
-function ApyLineChart({ poolId, pool, range }: ApyLineChartProps) {
-  const { data: rewardRateData } = useApyTimeseriesQuery({
+function ApyLineChart({ poolId, range }: ApyLineChartProps) {
+  const { data: pool, isLoading: isPoolLoading } = usePoolData(poolId);
+  const { data: rewardRateData, isLoading: isApyLoading } = useApyTimeseriesQuery({
     poolId: poolId.toLowerCase(),
     from: range.from.toISOString(),
     to: range.to.toISOString(),
@@ -62,7 +61,7 @@ function ApyLineChart({ poolId, pool, range }: ApyLineChartProps) {
     return { from: range.from, to: range.to, period: undefined };
   }, [rewardRateData, range]);
 
-  const { data: chartPrices } = useHistoricalTokenPrices({
+  const { data: chartPrices, isLoading: isPricesLoading } = useHistoricalTokenPrices({
     address: '0x1337420ded5adb9980cfc35f8f2b054ea86f8ab1',
     from: priceRange.from,
     to: priceRange.to,
@@ -141,6 +140,10 @@ function ApyLineChart({ poolId, pool, range }: ApyLineChartProps) {
     return { min: range.from, max: range.to };
   }, [rewardRateData, range]);
 
+  if (isPoolLoading || isApyLoading || isPricesLoading) {
+    return <Skeleton variant="rectangular" height="100%" sx={{ borderRadius: 1, width: '100%' }} />;
+  }
+
   return (
     <SharedCursorProvider>
       <LineChart
@@ -163,7 +166,7 @@ interface TvlLineChartProps {
 }
 
 function TvlLineChart({ poolId, range }: TvlLineChartProps) {
-  const { data: tvlData } = useTvlTimeseriesQuery({
+  const { data: tvlData, isLoading: isTvlLoading } = useTvlTimeseriesQuery({
     poolId: poolId.toLowerCase(),
     from: range.from.toISOString(),
     to: range.to.toISOString(),
@@ -210,6 +213,10 @@ function TvlLineChart({ poolId, range }: TvlLineChartProps) {
     return { min: range.from, max: range.to };
   }, [tvlData, range]);
 
+  if (isTvlLoading) {
+    return <Skeleton variant="rectangular" height="100%" sx={{ borderRadius: 1, width: '100%' }} />;
+  }
+
   return (
     <SharedCursorProvider>
       <LineChart
@@ -227,7 +234,6 @@ function TvlLineChart({ poolId, range }: TvlLineChartProps) {
 
 export function PoolYieldChart({ poolId }: PoolYieldChartProps) {
   const { SQD_TOKEN } = useContracts();
-  const { data: pool } = usePoolData(poolId);
   const [period, setPeriod] = useState<TimePeriod>('1m');
   const [chartType, setChartType] = useState<ChartType>('apy');
 
@@ -249,10 +255,7 @@ export function PoolYieldChart({ poolId }: PoolYieldChartProps) {
     [],
   );
 
-  const range = useMemo(
-    () => getTimeRangeFromPeriod(pool?.createdAt || new Date(0), period),
-    [pool, period],
-  );
+  const range = useMemo(() => getTimeRangeFromPeriod(new Date(0), period), [period]);
 
   return (
     <Card
@@ -272,10 +275,8 @@ export function PoolYieldChart({ poolId }: PoolYieldChartProps) {
       }
     >
       <Box height={218} display="flex" alignItems="center" justifyContent="center">
-        {!pool ? (
-          <Skeleton variant="rectangular" height="100%" sx={{ borderRadius: 1, width: '100%' }} />
-        ) : chartType === 'apy' ? (
-          <ApyLineChart poolId={poolId} pool={pool} range={range} />
+        {chartType === 'apy' ? (
+          <ApyLineChart poolId={poolId} range={range} />
         ) : (
           <TvlLineChart poolId={poolId} range={range} />
         )}
