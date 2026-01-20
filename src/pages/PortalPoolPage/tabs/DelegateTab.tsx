@@ -50,13 +50,10 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
       return BigNumber(0);
 
     // Calculate daily distribution rate: rate per second * seconds in a day / decimals
-    const dailyDistribution = new BigNumber(pool.distributionRatePerSecond.toString())
-      .multipliedBy(86400)
-      .div(DISTRIBUTION_RATE_BPS)
-      .div(10 ** (pool?.rewardToken.decimals ?? 6));
+    const dailyDistribution = pool.distributionRatePerSecond.multipliedBy(86400);
 
     // Calculate user's share of daily rewards: daily rate * (user balance / total active stake)
-    const userShare = balance.div(pool.tvl.total);
+    const userShare = balance.div(pool.tvl.max);
 
     return dailyDistribution.multipliedBy(userShare);
   }, [pool, userData, balance, pool?.rewardToken.decimals]);
@@ -94,8 +91,8 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
             <Typography variant="h5">
               {isLoading ? <Skeleton width="50%" /> : tokenFormatter(balance, SQD_TOKEN, 2)}
             </Typography>
-            <Typography variant="body1">
-              {isLoading ? <Skeleton width="50%" /> : `≈ ${dollarFormatter(balanceInUsd || 0)}`}
+            <Typography variant="body1" color="text.secondary">
+              {isLoading ? <Skeleton width="50%" /> : `~${dollarFormatter(balanceInUsd || 0)}`}
             </Typography>
           </Stack>
           <Stack spacing={1}>

@@ -114,7 +114,7 @@ export function PoolStats({ poolId }: PoolStatsProps) {
                   {isLoading ? (
                     <Skeleton width="50%" />
                   ) : (
-                    tokenFormatter(pool!.totalRewardsToppedUp, pool!.rewardToken.symbol, 0)
+                    tokenFormatter(pool!.totalRewardsToppedUp, pool!.rewardToken.symbol, 2)
                   )}
                 </Typography>
                 {/* {pool.rewardToken && (

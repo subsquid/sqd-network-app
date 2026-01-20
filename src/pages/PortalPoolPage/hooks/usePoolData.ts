@@ -202,7 +202,7 @@ export function usePoolData(poolId?: string) {
       phase: getPhase(state, isOutOfMoney),
       distributionRatePerSecond: BigNumber(distributionRatePerSecond)
         .div(DISTRIBUTION_RATE_BPS)
-        .div(10 ** rewardToken.decimals),
+        .shiftedBy(-rewardToken.decimals),
       tvl: {
         current: fromSqd(activeStake),
         max: fromSqd(capacity),
@@ -216,7 +216,7 @@ export function usePoolData(poolId?: string) {
       createdAt,
       totalRewardsToppedUp: BigNumber(
         poolIndexedData?.poolById?.totalRewardsToppedUp ?? 0n,
-      ).dividedBy(10 ** rewardToken.decimals),
+      ).shiftedBy(-rewardToken.decimals),
     };
   }, [poolId, contractData, tokenData, poolIndexedData]);
 
