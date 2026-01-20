@@ -179,8 +179,9 @@ function getEventTypeColor(
     case LiquidityEventType.Deposit:
       return 'success';
     case LiquidityEventType.Withdrawal:
-    case LiquidityEventType.Exit:
       return 'error';
+    case LiquidityEventType.Exit:
+      return 'warning';
     default:
       return 'default';
   }
@@ -241,7 +242,7 @@ function ActivityTable({ poolId }: { poolId: string }) {
                 <TableCell>
                   <Typography variant="body1" fontWeight={500}>
                     {tokenFormatter(
-                      BigNumber(event.amount || 0).div(10 ** pool.lptToken.decimals),
+                      BigNumber(event.amount || 0).shiftedBy(-pool.lptToken.decimals),
                       SQD_TOKEN,
                       2,
                     )}
@@ -315,7 +316,7 @@ function TopUpsTable({ poolId }: { poolId: string }) {
                 <TableCell>
                   <Typography variant="body1" fontWeight={500}>
                     {tokenFormatter(
-                      BigNumber(topUp.amount || 0).div(10 ** pool.rewardToken.decimals),
+                      BigNumber(topUp.amount || 0).shiftedBy(-pool.rewardToken.decimals),
                       pool.rewardToken.symbol,
                       2,
                     )}
