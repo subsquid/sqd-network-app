@@ -5,7 +5,7 @@ interface UseLiquidityEventsProps {
   limit?: number;
 }
 
-export function useLiquidityEvents({ poolId, limit = 50 }: UseLiquidityEventsProps) {
+export function useLiquidityEvents({ poolId, limit = 15 }: UseLiquidityEventsProps) {
   const { data, isLoading, error } = useLiquidityEventsQuery(
     {
       poolId: poolId.toLowerCase(),

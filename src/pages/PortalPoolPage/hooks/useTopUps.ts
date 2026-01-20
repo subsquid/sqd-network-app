@@ -5,7 +5,7 @@ interface UseTopUpsProps {
   limit?: number;
 }
 
-export function useTopUps({ poolId, limit = 50 }: UseTopUpsProps) {
+export function useTopUps({ poolId, limit = 15 }: UseTopUpsProps) {
   const { data, isLoading, error } = useTopUpsQuery(
     {
       poolId: poolId.toLowerCase(),
