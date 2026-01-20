@@ -48,7 +48,7 @@ export const HEALTH_TEXTS = {
 export const STATS_TEXTS = {
   tvl: {
     label: 'TVL',
-    tooltip: 'Total Value Locked - current lock-ups relative to maximum pool capacity.',
+    tooltip: 'Total Value Locked: current amount locked in the pool (including pending withdrawals) out of the maximum pool capacity.',
   },
   apy: {
     label: 'APY',
