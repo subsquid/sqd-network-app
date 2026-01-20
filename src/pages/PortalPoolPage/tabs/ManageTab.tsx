@@ -111,7 +111,11 @@ export function ManageTab({ poolId }: ManageTabProps) {
               <Typography>
                 <Stack direction="row" alignItems="center" spacing={0.5}>
                   <span>
-                    {poolLoading ? <Skeleton width={100} /> : tokenFormatter(pool!.tvl.max, SQD_TOKEN, 0)}
+                    {poolLoading ? (
+                      <Skeleton width={100} />
+                    ) : (
+                      tokenFormatter(pool!.tvl.max, SQD_TOKEN, 0)
+                    )}
                   </span>
                   {!poolLoading && <EditCapacityButton poolId={poolId} disabled={!canEdit} />}
                 </Stack>

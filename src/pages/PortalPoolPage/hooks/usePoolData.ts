@@ -1,17 +1,16 @@
 import { useMemo } from 'react';
 
 import { BigNumber } from 'bignumber.js';
-import { addDays } from 'date-fns/addDays';
 import { useReadContract } from 'wagmi';
 
 import { portalPoolAbi, portalPoolFactoryAbi } from '@api/contracts';
+import { usePoolByIdQuery } from '@api/pool-squid/graphql';
 import { useERC20Tokens } from '@hooks/useERC20';
 import { fromSqd, toSqd } from '@lib/network';
 import { useContracts } from '@network/useContracts';
 
 import { getPhase, parseMetadata } from './helpers';
 import type { PoolData } from './types';
-import { usePoolByIdQuery } from '@api/pool-squid/graphql';
 
 export const DISTRIBUTION_RATE_BPS = 1000;
 export const REWARD_TOKEN_DECIMALS = 10 ** 6;

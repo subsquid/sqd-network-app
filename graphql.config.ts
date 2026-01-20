@@ -49,7 +49,9 @@ export default {
     },
     // Pool Squid endpoint
     'src/api/pool-squid/graphql.tsx': {
-      schema: isMainnet ? process.env.MAINNET_POOL_SQUID_API_URL! : process.env.TESTNET_POOL_SQUID_API_URL!,
+      schema: isMainnet
+        ? process.env.MAINNET_POOL_SQUID_API_URL!
+        : process.env.TESTNET_POOL_SQUID_API_URL!,
       documents: ['src/api/pool-squid/schema.graphql'],
       plugins: [
         'typescript',

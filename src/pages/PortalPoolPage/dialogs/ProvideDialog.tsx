@@ -729,11 +729,7 @@ export function ProvideButton({ poolId }: ProvideButtonProps) {
         onAccept={handleAcceptTerms}
         onReject={handleCloseDialog}
       />
-      <ProvideDialog
-        open={dialogState === 'provide'}
-        onClose={handleCloseDialog}
-        poolId={poolId}
-      />
+      <ProvideDialog open={dialogState === 'provide'} onClose={handleCloseDialog} poolId={poolId} />
     </>
   );
 }

@@ -44,7 +44,7 @@ export function usePoolUserData(poolId?: string) {
 
     const [poolCredit, poolDebt, poolBalance, runway, outOfMoney, userRewards, userStake] =
       unwrapMulticallResult(contractData?.[0]) || [0n, 0n, 0n, 0n, false, 0n, 0n];
-    
+
     const whitelistEnabled = unwrapMulticallResult(contractData?.[1]) || false;
     const isWhitelisted = unwrapMulticallResult(contractData?.[2]) || false;
 

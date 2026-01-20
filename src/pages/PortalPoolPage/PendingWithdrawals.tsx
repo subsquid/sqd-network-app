@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 
+import { dateFormat } from '@i18n';
 import { OpenInNewOutlined as ExplorerIcon } from '@mui/icons-material';
 import {
   Box,
@@ -28,7 +29,6 @@ import { HelpTooltip } from '@components/HelpTooltip';
 import { DashboardTable, NoItems } from '@components/Table';
 import { useCountdown } from '@hooks/useCountdown';
 import { useExplorer } from '@hooks/useExplorer';
-import { dateFormat } from '@i18n';
 import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { useContracts } from '@network/useContracts';
 
