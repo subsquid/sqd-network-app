@@ -38,6 +38,7 @@ export const addPortalSchema = ({ minCapacity }: { minCapacity: BigNumber }) => 
   return yup.object({
     name: yup.string().label('Name').trim().required('Name is required'),
     description: yup.string().label('Description').max(500).trim(),
+    website: yup.string().label('Website').url().trim(),
     capacity: yup
       .decimal()
       .label('Capacity')
@@ -156,6 +157,7 @@ function AddNewPortalDialog({
     initialValues: {
       name: '',
       description: '',
+      website: '',
       capacity: undefined,
       earnings: '',
       rateType: 'month' as 'day' | 'month',
@@ -201,6 +203,7 @@ function AddNewPortalDialog({
               metadata: JSON.stringify({
                 name: values.name,
                 description: values.description,
+                website: values.website,
               }),
               rewardToken: selectedToken.address,
             },
@@ -257,6 +260,14 @@ function AddNewPortalDialog({
               showErrorOnlyOfTouched
               multiline
               minRows={3}
+            />
+          </FormRow>
+          <FormRow>
+            <FormikTextInput
+              id="website"
+              label="Website"
+              formik={formik}
+              showErrorOnlyOfTouched
             />
           </FormRow>
           <FormRow>
