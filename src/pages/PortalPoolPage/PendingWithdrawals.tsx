@@ -177,7 +177,7 @@ function getEventTypeColor(
 ): 'success' | 'error' | 'default' | 'primary' | 'secondary' | 'info' | 'warning' {
   switch (eventType) {
     case LiquidityEventType.Deposit:
-      return 'success';
+      return 'info';
     case LiquidityEventType.Withdrawal:
       return 'error';
     case LiquidityEventType.Exit:
