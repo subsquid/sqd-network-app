@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { BigNumber } from 'bignumber.js';
 import { useReadContract } from 'wagmi';
 
-import { portalPoolAbi, portalPoolFactoryAbi } from '@api/contracts';
+import { portalPoolAbi, portalPoolFactoryAbi, portalRegistryAbi } from '@api/contracts';
 import { usePoolByIdQuery } from '@api/pool-squid/graphql';
 import { useERC20Tokens } from '@hooks/network/useERC20';
 import { fromSqd, toSqd } from '@lib/network';
@@ -20,7 +20,7 @@ export const REWARD_TOKEN_DECIMALS = 10 ** 6;
  * Combines portal validation, contract data, and LP token information
  */
 export function usePoolData(poolId?: string) {
-  const { PORTAL_POOL_FACTORY } = useContracts();
+  const { PORTAL_POOL_FACTORY, PORTAL_REGISTRY } = useContracts();
 
   const portalPoolContract = {
     abi: portalPoolAbi,
@@ -65,21 +65,15 @@ export function usePoolData(poolId?: string) {
     },
   );
 
-  const { data: metadataRaw, isLoading: isLoadingMetadata } = useReadContract({
-    ...portalPoolContract,
-    functionName: 'getMetadata',
-    query: queryOptions,
-  });
-
   const { data: lptToken, isLoading: isLoadingLptToken } = useReadContract({
     ...portalPoolContract,
     functionName: 'lptToken',
     query: queryOptions,
   });
 
-  const { data: isOutOfMoney, isLoading: isLoadingOutOfMoney } = useReadContract({
+  const { data: credit, isLoading: isLoadingOutOfMoney } = useReadContract({
     ...portalPoolContract,
-    functionName: 'isOutOfMoney',
+    functionName: 'getCredit',
     query: queryOptions,
   });
 
@@ -104,6 +98,14 @@ export function usePoolData(poolId?: string) {
     },
   );
 
+  const { data: cluster, isLoading: isLoadingMetadata } = useReadContract({
+    address: PORTAL_REGISTRY,
+    abi: portalRegistryAbi,
+    functionName: 'getClusterByAddress',
+    args: [poolId as `0x${string}`],
+    query: queryOptions,
+  });
+
   // Combine loading states
   const isLoadingData =
     isLoadingActiveStake ||
@@ -118,9 +120,9 @@ export function usePoolData(poolId?: string) {
 
   // Combine contract data
   const contractData = useMemo(() => {
-    if (!poolInfo || !lptToken) return undefined;
+    if (!poolInfo || !lptToken || !cluster) return undefined;
 
-    const metadata = parseMetadata(metadataRaw);
+    const metadata = parseMetadata(cluster.metadata);
 
     return {
       name: metadata.name || 'Portal Pool',
@@ -130,7 +132,7 @@ export function usePoolData(poolId?: string) {
       ...poolInfo,
       distributionRatePerSecond: distributionRatePerSecond || 0n,
       lptToken,
-      isOutOfMoney,
+      isOutOfMoney: !credit,
       minCapacity,
       rewardToken,
     };
@@ -138,9 +140,9 @@ export function usePoolData(poolId?: string) {
     activeStake,
     poolInfo,
     distributionRatePerSecond,
-    metadataRaw,
+    cluster,
     lptToken,
-    isOutOfMoney,
+    credit,
     minCapacity,
     rewardToken,
   ]);

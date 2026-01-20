@@ -6,7 +6,7 @@ import { parseMetadata } from '@pages/PortalPoolPage/hooks';
 import { Link, Outlet, Link as RouterLink } from 'react-router-dom';
 import { useReadContract, useReadContracts } from 'wagmi';
 
-import { portalPoolAbi, portalPoolFactoryAbi } from '@api/contracts';
+import { portalPoolAbi, portalPoolFactoryAbi, portalRegistryAbi } from '@api/contracts';
 import { SortDir, useMySources } from '@api/subsquid-network-squid';
 import { Card } from '@components/Card';
 import { SquaredChip } from '@components/Chip';
@@ -41,7 +41,7 @@ export function MyPortals() {
     sortDir: new Location.Enum<SortDir>(SortDir.Asc),
   });
 
-  const { SQD_TOKEN, PORTAL_POOL_FACTORY } = useContracts();
+  const { PORTAL_POOL_FACTORY, PORTAL_REGISTRY } = useContracts();
   const { address } = useAccount();
   const { data: sources, isLoading: isSourcesLoading } = useMySources();
 
@@ -61,12 +61,13 @@ export function MyPortals() {
     return portalAddresses.map(
       portalAddress =>
         ({
-          address: portalAddress,
-          abi: portalPoolAbi,
-          functionName: 'getMetadata',
+          address: PORTAL_REGISTRY,
+          abi: portalRegistryAbi,
+          functionName: 'getClusterByAddress',
+          args: [portalAddress as `0x${string}`],
         }) as const,
     );
-  }, [portalAddresses]);
+  }, [portalAddresses, PORTAL_REGISTRY]);
 
   const { data: portalsData, isLoading: isPortalsDataLoading } = useReadContracts({
     contracts: portalContracts,
@@ -86,7 +87,7 @@ export function MyPortals() {
 
         return {
           address: portalAddress,
-          name: parseMetadata(portalInfo).name || portalAddress,
+          name: parseMetadata(portalInfo.metadata).name || portalAddress,
         };
       })
       .filter((portal): portal is NonNullable<typeof portal> => portal !== null);
