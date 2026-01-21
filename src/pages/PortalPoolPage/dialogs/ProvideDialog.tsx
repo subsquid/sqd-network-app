@@ -67,7 +67,7 @@ const createValidationSchema = (
 
         if (amount.gt(userRemainingCapacity)) {
           return this.createError({
-            message: 'You have reached the maximum deposit limit',
+            message: 'You have reached the maximum token limit',
           });
         }
 
@@ -728,7 +728,7 @@ export function ProvideButton({ poolId }: ProvideButtonProps) {
             loading={dialogState !== 'closed'}
             disabled={isDisabled}
           >
-            LOCK-UP TOKENS
+            PROVIDE
           </Button>
         </span>
       </Tooltip>

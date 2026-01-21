@@ -55,7 +55,7 @@ function ActivationCountdown({ pool }: { pool: PoolData }) {
         sx={{ color: `${STATUS_CONFIG.collecting.color}.main` }}
       >
         <AccessTime sx={{ fontSize: 16 }} />
-        <span>{timeRemaining || HEALTH_TEXTS.bar.depositWindowLabel}</span>
+        <span>{timeRemaining || HEALTH_TEXTS.bar.provisionWindowLabel}</span>
       </Stack>
     </Tooltip>
   );

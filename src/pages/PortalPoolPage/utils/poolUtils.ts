@@ -114,7 +114,7 @@ export function getPhaseTooltip(phase: PoolPhase): string {
     case 'active':
       return 'Pool is active. Distributing yields to liquidity providers.';
     case 'collecting':
-      return 'Pool is collecting deposits to activate. Pool activates once minimum threshold is met. If not met by deadline, you can withdraw your full deposit.';
+      return 'Pool is collecting tokens to activate. Pool activates once minimum threshold is met. If not met by deadline, you can withdraw all your tokens.';
     case 'idle':
       return 'Pool is paused due to insufficient liquidity. Rewards are not being distributed. Pool reactivates when liquidity increases above minimum threshold.';
     case 'debt':

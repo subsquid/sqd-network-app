@@ -14,20 +14,20 @@ export const HEALTH_TEXTS = {
   status: {
     active: 'Pool is active and earning rewards. Distributing yields to liquidity providers.',
     collecting:
-      'Accepting lock-ups to activate the pool. Pool activates once minimum threshold is met. If not met by deadline, you can withdraw your full lock-up.',
+      'Accepting tokens to activate the pool. Pool activates once minimum threshold is met. If not met by deadline, you can withdraw all your tokens.',
     idle: 'Pool is paused due to insufficient liquidity. Rewards are not being distributed. Pool reactivates when liquidity increases above minimum threshold.',
     debt: 'Pool has run out of USDC rewards. No rewards are being distributed. Contact the pool operator to add more USDC to resume rewards.',
   },
   bar: {
-    depositWindowLabel: 'Lock-up window closes in',
-    depositWindowTooltip:
-      'Time remaining to lock up funds during the collection phase. Pool activates if the minimum threshold is met before this deadline.',
+    provisionWindowLabel: 'Provision window closes in',
+    provisionWindowTooltip:
+      'Time remaining to provide funds during the collection phase. Pool activates if the minimum threshold is met before this deadline.',
     critical:
-      'Pool has insufficient liquidity. Rewards are paused until lock-ups increase above the minimum threshold required for operations.',
+      'Pool has insufficient liquidity. Rewards are paused until provided tokens increase above the minimum threshold required for operations.',
     warning:
-      'Pool liquidity is below optimal levels. Additional lock-ups may be needed to maintain stable reward distribution.',
+      'Pool liquidity is below optimal levels. Additional tokens may be needed to maintain stable reward distribution.',
     healthy:
-      'Pool has sufficient liquidity. Rewards are being distributed normally to all delegators.',
+      'Pool has sufficient liquidity. Rewards are being distributed normally to all providers.',
     stable: {
       label: 'Stable',
       tooltip: (amount: string) => `Stable: ${amount}`,
@@ -48,7 +48,7 @@ export const HEALTH_TEXTS = {
 export const STATS_TEXTS = {
   tvl: {
     label: 'TVL',
-    tooltip: 'Total Value Locked: current amount locked in the pool (including pending withdrawals) out of the maximum pool capacity.',
+    tooltip: 'Total Value Locked: current amount provided to the pool (including pending withdrawals) out of the maximum pool capacity.',
   },
   apy: {
     label: 'APY',
@@ -57,7 +57,7 @@ export const STATS_TEXTS = {
   },
   monthlyPayout: {
     label: 'Total Funding',
-    tooltip: (symbol: string) => `Total amount of rewards funded to the pool`,
+    tooltip: (symbol: string) => `The total amount of rewards funded to the pool.`,
   },
 } as const;
 
@@ -74,7 +74,7 @@ export const CHART_TEXTS = {
   },
   subtitle: {
     apy: (symbol: string) => `Historical APY based on past ${symbol} token prices.`,
-    tvl: (symbol: string) => `Historical TVL showing locked ${symbol} tokens over time.`,
+    tvl: (symbol: string) => `Historical TVL showing provided ${symbol} tokens over time.`,
   },
 } as const;
 
@@ -96,18 +96,18 @@ export const WITHDRAWALS_TEXTS = {
 export const MANAGE_TEXTS = {
   rewardPoolBalance: {
     label: 'Reward Pool Balance',
-    tooltip: 'Total rewards available for distribution to delegators.',
+    tooltip: 'Total rewards available for distribution to providers.',
   },
   poolSettings: 'Pool Settings',
   distributionRate: {
     label: 'Distribution Rate',
-    tooltip: 'Daily reward amount distributed to delegators. Monthly payout = rate × 30 days.',
+    tooltip: 'Daily reward amount distributed to providers. Monthly payout = rate × 30 days.',
     unit: '/day',
   },
   maxPoolCapacity: {
     label: 'Max Pool Capacity',
     tooltip: (symbol: string) =>
-      `Maximum ${symbol} that can be locked up. Higher capacity allows more delegators to participate.`,
+      `Maximum ${symbol} that can be provided. Higher capacity allows more providers to participate.`,
   },
 } as const;
 
@@ -119,7 +119,7 @@ export const INFO_TEXTS = {
   lpToken: {
     label: 'LP-Token',
     tooltip: (symbol: string) =>
-      `Liquidity Provider token representing your share in the pool. You receive LP tokens when you lock up ${symbol}.`,
+      `Liquidity Provider token representing your share in the pool. You receive LP tokens when you provide ${symbol}.`,
   },
   rewardToken: {
     label: 'Reward Token',
@@ -143,7 +143,7 @@ export const INFO_TEXTS = {
 export const DELEGATE_TEXTS = {
   currentBalance: {
     label: 'Current Balance',
-    tooltip: (symbol: string) => `Your locked up ${symbol} tokens in this pool.`,
+    tooltip: (symbol: string) => `Your provided ${symbol} tokens in this pool.`,
   },
   availableRewards: {
     label: 'Available Rewards',
@@ -154,8 +154,8 @@ export const DELEGATE_TEXTS = {
     'Claim your accumulated rewards. Rewards are distributed daily based on your pool share.',
   alerts: {
     idle: (symbol: string) =>
-      `The reward distribution is paused because there is insufficient ${symbol} locked in the pool`,
-    debt: 'The reward distribution is paused because the pool is out of rewards',
+      `The reward distribution is paused because there are insufficient ${symbol} tokens provided to the pool.`,
+    debt: 'The reward distribution is paused because the pool is out of rewards.',
   },
 } as const;
 
@@ -163,7 +163,7 @@ export const DELEGATE_TEXTS = {
 export const TOP_UP_DIALOG_TEXTS = {
   title: 'Top Up Pool Rewards',
   description: (symbol: string) =>
-    `Add ${symbol} rewards to the pool. These funds will be distributed to delegators based on their pool share.`,
+    `Add ${symbol} rewards to the pool. These funds will be distributed to providers based on their pool share.`,
   amountLabel: 'Amount',
 } as const;
 
@@ -172,8 +172,8 @@ export const WITHDRAW_DIALOG_TEXTS = {
   title: 'Withdraw from Pool',
   amountLabel: 'Amount',
   fields: {
-    totalDelegation: 'Total Lock-up',
-    yourDelegation: 'Your Lock-up',
+    totalDelegation: 'Total Tokens',
+    yourDelegation: 'Your Tokens',
     expectedMonthlyPayout: 'Expected Monthly Payout',
     expectedUnlockDate: {
       label: 'Expected Unlock Date',
@@ -189,12 +189,12 @@ export const WITHDRAW_DIALOG_TEXTS = {
 
 // Provide Dialog
 export const PROVIDE_DIALOG_TEXTS = {
-  title: 'Lock up to Pool',
+  title: 'Provide to Pool',
   sourceLabel: 'Source',
   amountLabel: 'Amount',
   fields: {
-    totalDelegation: 'Total Lock-up',
-    yourDelegation: 'Your Lock-up',
+    totalDelegation: 'Total Tokens',
+    yourDelegation: 'Your Tokens',
     expectedMonthlyPayout: {
       label: 'Expected Monthly Payout',
       tooltip: 'Estimated monthly rewards based on your share of the pool at current APY.',
@@ -202,10 +202,10 @@ export const PROVIDE_DIALOG_TEXTS = {
   },
   alerts: {
     collecting:
-      'Pool is collecting lock-ups to activate. Your lock-up is locked until the pool activates or the lock-up window closes. If activation fails, you can withdraw in full.',
+      'Pool is collecting tokens to activate. Your tokens are locked until the pool activates or the provision window closes. If activation fails, you can withdraw in full.',
     idle: 'Pool is paused due to low liquidity. Rewards are not being distributed.',
-    poolFull: 'Pool is at maximum capacity. No more lock-ups accepted.',
-    userAtLimit: (amount: string) => `You have reached the maximum lock-up limit of ${amount}.`,
+    poolFull: 'Pool is at maximum capacity. No more tokens are accepted.',
+    userAtLimit: (amount: string) => `You have reached the maximum token limit of ${amount}.`,
   },
   tooltips: {
     poolAtCapacity: 'Pool is at maximum capacity',
@@ -244,7 +244,7 @@ export const ACTIVITY_TEXTS = {
     txn: 'Txn',
   },
   eventTypes: {
-    deposit: 'Deposit',
+    provide: 'Provide',
     withdrawal: 'Withdrawal',
     exit: 'Exit',
   },

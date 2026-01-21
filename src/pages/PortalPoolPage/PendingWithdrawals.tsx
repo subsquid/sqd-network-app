@@ -162,7 +162,7 @@ function formatTimeAgo(timestamp: string): string {
 function getEventTypeLabel(eventType: LiquidityEventType): string {
   switch (eventType) {
     case LiquidityEventType.Deposit:
-      return ACTIVITY_TEXTS.eventTypes.deposit;
+      return ACTIVITY_TEXTS.eventTypes.provide;
     case LiquidityEventType.Withdrawal:
       return ACTIVITY_TEXTS.eventTypes.withdrawal;
     case LiquidityEventType.Exit:

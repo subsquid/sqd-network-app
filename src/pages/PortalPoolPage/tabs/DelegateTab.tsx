@@ -14,7 +14,7 @@ import { useContracts } from '@hooks/network/useContracts';
 
 import { ProvideButton } from '../dialogs/ProvideDialog';
 import { WithdrawButton } from '../dialogs/WithdrawDialog';
-import { DISTRIBUTION_RATE_BPS, type PoolPhase, usePoolData, usePoolUserData } from '../hooks';
+import { type PoolPhase, usePoolData, usePoolUserData } from '../hooks';
 import { DELEGATE_TEXTS } from '../texts';
 import { invalidatePoolQueries } from '../utils/poolUtils';
 
