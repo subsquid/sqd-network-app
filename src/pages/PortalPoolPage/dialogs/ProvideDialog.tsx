@@ -318,9 +318,9 @@ function TermsContent() {
           networks and operate independently of the Interface.
         </Typography>
         <Typography variant="body2" paragraph>
-          Subsquid Labs GmbH (Zug, Switzerland, "Subsquid") does not control, operate, administer,
-          execute, or modify any smart contract, distributed-ledger network, or transaction
-          execution.
+          Subsquid Labs GmbH (Zug, Switzerland, “Subsquid”) does not execute any transactions, does
+          not control, and does not have access to any SQD locked in the SQD revenue pool smart
+          contracts.
         </Typography>
       </Box>
 
@@ -451,8 +451,8 @@ function TermsContent() {
           All smart contracts referenced, displayed, or accessible through the Interface are
           autonomous, self-executing software deployed on public distributed-ledger networks. Once
           deployed, such smart contracts operate independently of the Interface and independently of
-          Subsquid. Subsquid does not own, operate, control, administer, pause, modify, or intervene
-          in the execution of any smart contract or distributed-ledger transaction.
+          Subsquid. Subsquid does not execute any transactions, does not control, and does not
+          have access to any SQD locked in the SQD revenue pool smart contracts.
         </Typography>
         <Typography variant="body2" paragraph>
           Subsquid does not have access to, custody of, or control over any digital assets,
