@@ -43,120 +43,26 @@ const createValidationSchema = (maxWithdraw: BigNumber) =>
       }),
   });
 
-interface WithdrawDialogContentProps {
-  poolId: string;
-  formik: ReturnType<typeof useFormik<{ amount: string }>>;
-}
-
-function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
+export function WithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
   const { SQD_TOKEN } = useContracts();
+  const queryClient = useQueryClient();
+  const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
   const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
   const { data: userData, isLoading: userDataLoading } = usePoolUserData(poolId);
 
-  const typedAmount = useMemo(() => BigNumber(formik.values.amount || '0'), [formik.values.amount]);
+  const isLoading = poolLoading || userDataLoading;
 
-  const { data: withdrawalWaitingTimestamp } = useReadContract({
-    address: poolId as `0x${string}`,
-    abi: portalPoolAbi,
-    functionName: 'getWithdrawalWaitingTimestamp',
-    args: [BigInt(toSqd(typedAmount.toNumber()))],
-    query: {
-      enabled: !!poolId && typedAmount.gt(0),
-    },
-  });
-
-  const handleMaxClick = useCallback(() => {
-    if (userData) formik.setFieldValue('amount', userData.userBalance.toString());
-  }, [formik, userData]);
-
-  if (poolLoading || userDataLoading) return <Loader />;
-  if (!pool || !userData) return null;
-
-  const currentUserBalance = userData.userBalance;
-  const currentPoolTvl = pool.tvl.current;
-  const expectedUserDelegation = BigNumber.max(0, currentUserBalance.minus(typedAmount));
-  const expectedTotalDelegation = BigNumber.max(0, currentPoolTvl.minus(typedAmount));
-  const userExpectedMonthlyPayout = calculateExpectedMonthlyPayout(pool, expectedUserDelegation);
-
-  return (
-    <Stack spacing={2.5}>
-      <FormRow>
-        <FormikTextInput
-          id="amount"
-          label={WITHDRAW_DIALOG_TEXTS.amountLabel}
-          formik={formik}
-          showErrorOnlyOfTouched
-          autoComplete="off"
-          placeholder="0"
-          InputProps={{
-            endAdornment: (
-              <Chip
-                clickable
-                disabled={userData.userBalance.eq(formik.values.amount)}
-                onClick={handleMaxClick}
-                label="Max"
-              />
-            ),
-          }}
-        />
-      </FormRow>
-
-      <Divider />
-
-      <Stack spacing={1.5}>
-        <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2">{WITHDRAW_DIALOG_TEXTS.fields.totalDelegation}</Typography>
-          <Typography variant="body2">
-            {typedAmount.gt(0)
-              ? `${tokenFormatter(currentPoolTvl, '', 0).trim()} → ${tokenFormatter(expectedTotalDelegation, SQD_TOKEN, 0)}`
-              : tokenFormatter(pool.tvl.current, SQD_TOKEN, 0)}
-          </Typography>
-        </Stack>
-        <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2">{WITHDRAW_DIALOG_TEXTS.fields.yourDelegation}</Typography>
-          <Typography variant="body2">
-            {typedAmount.gt(0)
-              ? `${tokenFormatter(currentUserBalance, '', 2).trim()} → ${tokenFormatter(expectedUserDelegation, SQD_TOKEN, 2)}`
-              : tokenFormatter(userData.userBalance, SQD_TOKEN, 2)}
-          </Typography>
-        </Stack>
-        <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2">
-            {WITHDRAW_DIALOG_TEXTS.fields.expectedMonthlyPayout}
-          </Typography>
-          <Typography variant="body2">
-            {tokenFormatter(userExpectedMonthlyPayout, pool.rewardToken.symbol, 2)}
-          </Typography>
-        </Stack>
-        <Stack direction="row" justifyContent="space-between">
-          <Stack direction="row" alignItems="center" spacing={0.5}>
-            <Typography variant="body2">
-              {WITHDRAW_DIALOG_TEXTS.fields.expectedUnlockDate.label}
-            </Typography>
-            <HelpTooltip title={WITHDRAW_DIALOG_TEXTS.fields.expectedUnlockDate.tooltip} />
-          </Stack>
-          <Typography variant="body2">
-            {dateFormat(
-              withdrawalWaitingTimestamp
-                ? new Date(Number(withdrawalWaitingTimestamp) * 1000)
-                : undefined,
-              'dateTime',
-            ) || '—'}
-          </Typography>
-        </Stack>
-      </Stack>
-    </Stack>
+  const currentUserBalance = useMemo(
+    () => userData?.userBalance ?? BigNumber(0),
+    [userData?.userBalance],
   );
-}
 
-export function WithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
-  const queryClient = useQueryClient();
-  const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
-  const { data: userData } = usePoolUserData(poolId);
+  const currentPoolTvl = useMemo(() => pool?.tvl.current ?? BigNumber(0), [pool?.tvl.current]);
 
-  const maxWithdraw = userData?.userBalance ?? BigNumber(0);
-
-  const validationSchema = useMemo(() => createValidationSchema(maxWithdraw), [maxWithdraw]);
+  const validationSchema = useMemo(
+    () => createValidationSchema(currentUserBalance),
+    [currentUserBalance],
+  );
 
   const handleSubmit = useCallback(
     async (values: { amount: string }) => {
@@ -197,6 +103,37 @@ export function WithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
     [onClose, formik],
   );
 
+  const handleMaxClick = useCallback(() => {
+    if (userData) formik.setFieldValue('amount', userData.userBalance.toString());
+  }, [formik, userData]);
+
+  const typedAmount = useMemo(() => BigNumber(formik.values.amount || '0'), [formik.values.amount]);
+
+  const { data: withdrawalWaitingTimestamp } = useReadContract({
+    address: poolId as `0x${string}`,
+    abi: portalPoolAbi,
+    functionName: 'getWithdrawalWaitingTimestamp',
+    args: [BigInt(toSqd(typedAmount.toNumber()))],
+    query: {
+      enabled: !!poolId && typedAmount.gt(0),
+    },
+  });
+
+  const expectedUserDelegation = useMemo(
+    () => BigNumber.max(0, currentUserBalance.minus(typedAmount)),
+    [currentUserBalance, typedAmount],
+  );
+
+  const expectedTotalDelegation = useMemo(
+    () => BigNumber.max(0, currentPoolTvl.minus(typedAmount)),
+    [currentPoolTvl, typedAmount],
+  );
+
+  const userExpectedMonthlyPayout = useMemo(
+    () => (pool ? calculateExpectedMonthlyPayout(pool, expectedUserDelegation) : BigNumber(0)),
+    [pool, expectedUserDelegation],
+  );
+
   return (
     <ContractCallDialog
       title={WITHDRAW_DIALOG_TEXTS.title}
@@ -206,7 +143,81 @@ export function WithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
       confirmColor="error"
       disableConfirmButton={!formik.isValid || !formik.values.amount}
     >
-      <WithdrawDialogContent poolId={poolId} formik={formik} />
+      {isLoading ? (
+        <Loader />
+      ) : !pool || !userData ? null : (
+        <Stack spacing={2.5}>
+          <FormRow>
+            <FormikTextInput
+              id="amount"
+              label={WITHDRAW_DIALOG_TEXTS.amountLabel}
+              formik={formik}
+              showErrorOnlyOfTouched
+              autoComplete="off"
+              placeholder="0"
+              InputProps={{
+                endAdornment: (
+                  <Chip
+                    clickable
+                    disabled={userData.userBalance.eq(formik.values.amount)}
+                    onClick={handleMaxClick}
+                    label="Max"
+                  />
+                ),
+              }}
+            />
+          </FormRow>
+
+          <Divider />
+
+          <Stack spacing={1.5}>
+            <Stack direction="row" justifyContent="space-between">
+              <Typography variant="body2">
+                {WITHDRAW_DIALOG_TEXTS.fields.totalDelegation}
+              </Typography>
+              <Typography variant="body2">
+                {typedAmount.gt(0)
+                  ? `${tokenFormatter(currentPoolTvl, '', 0).trim()} → ${tokenFormatter(expectedTotalDelegation, SQD_TOKEN, 0)}`
+                  : tokenFormatter(pool.tvl.current, SQD_TOKEN, 0)}
+              </Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="space-between">
+              <Typography variant="body2">
+                {WITHDRAW_DIALOG_TEXTS.fields.yourDelegation}
+              </Typography>
+              <Typography variant="body2">
+                {typedAmount.gt(0)
+                  ? `${tokenFormatter(currentUserBalance, '', 2).trim()} → ${tokenFormatter(expectedUserDelegation, SQD_TOKEN, 2)}`
+                  : tokenFormatter(userData.userBalance, SQD_TOKEN, 2)}
+              </Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="space-between">
+              <Typography variant="body2">
+                {WITHDRAW_DIALOG_TEXTS.fields.expectedMonthlyPayout}
+              </Typography>
+              <Typography variant="body2">
+                {tokenFormatter(userExpectedMonthlyPayout, pool.rewardToken.symbol, 2)}
+              </Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="space-between">
+              <Stack direction="row" alignItems="center" spacing={0.5}>
+                <Typography variant="body2">
+                  {WITHDRAW_DIALOG_TEXTS.fields.expectedUnlockDate.label}
+                </Typography>
+                <HelpTooltip title={WITHDRAW_DIALOG_TEXTS.fields.expectedUnlockDate.tooltip} />
+              </Stack>
+              <Typography variant="body2">
+                {dateFormat(
+                  withdrawalWaitingTimestamp
+                    ? new Date(Number(withdrawalWaitingTimestamp) * 1000)
+                    : undefined,
+                  'dateTime',
+                ) || '—'}
+              </Typography>
+            </Stack>
+          </Stack>
+        </Stack>
+      )}
     </ContractCallDialog>
   );
 }

@@ -88,166 +88,53 @@ const createValidationSchema = (
       }),
   });
 
-interface ProvideDialogContentProps {
-  poolId: string;
-  formik: ReturnType<typeof useFormik<{ amount: string }>>;
-}
-
-function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
-  const { SQD_TOKEN } = useContracts();
-  const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
-  const { data: userData, isLoading: userDataLoading } = usePoolUserData(poolId);
-  const { data: sources } = useMySources();
-
-  const typedAmount = useMemo(() => BigNumber(formik.values.amount || '0'), [formik.values.amount]);
-
-  if (poolLoading || userDataLoading) return <Loader />;
-  if (!pool || !userData) return null;
-
-  const currentUserBalance = userData.userBalance;
-  const currentPoolTvl = pool.tvl.current;
-  const userRemainingCapacity = BigNumber.max(0, pool.maxDepositPerAddress.minus(currentUserBalance));
-  const poolRemainingCapacity = BigNumber.max(0, pool.tvl.max.minus(currentPoolTvl));
-  const effectiveMax = BigNumber.min(userRemainingCapacity, poolRemainingCapacity);
-
-  const handleMaxClick = useCallback(() => {
-    formik.setFieldValue(
-      'amount',
-      BigNumber.min(effectiveMax, fromSqd(sources[0]?.balance)).toString(),
-    );
-  }, [formik, effectiveMax, sources]);
-
-  const isDepositPhase = pool.phase === 'collecting';
-  const isPoolFull = poolRemainingCapacity.isZero();
-  const isUserAtLimit = userRemainingCapacity.isZero();
-
-  const expectedUserDelegation = currentUserBalance.plus(typedAmount);
-  const expectedTotalDelegation = currentPoolTvl.plus(typedAmount);
-  const cappedUserDelegation = currentUserBalance.plus(
-    BigNumber.min(typedAmount, effectiveMax),
-  );
-  const userExpectedMonthlyPayout = calculateExpectedMonthlyPayout(pool, cappedUserDelegation);
-
-  return (
-    <Stack spacing={2.5}>
-      {isDepositPhase && <Alert severity="info">{PROVIDE_DIALOG_TEXTS.alerts.collecting}</Alert>}
-
-      {pool.phase === 'idle' && (
-        <Alert severity="warning">{PROVIDE_DIALOG_TEXTS.alerts.idle}</Alert>
-      )}
-
-      {isPoolFull && <Alert severity="warning">{PROVIDE_DIALOG_TEXTS.alerts.poolFull}</Alert>}
-
-      {!isPoolFull && isUserAtLimit && (
-        <Alert severity="info">
-          {PROVIDE_DIALOG_TEXTS.alerts.userAtLimit(
-            tokenFormatter(pool.maxDepositPerAddress, SQD_TOKEN, 0),
-          )}
-        </Alert>
-      )}
-
-      <FormRow>
-        <FormikSelect
-          id={'source' as any}
-          showErrorOnlyOfTouched
-          options={sources?.map(s => ({
-            label: <SourceWalletOption source={s} />,
-            value: s.id,
-            disabled: s.type !== AccountType.User,
-          }))}
-          formik={formik}
-        />
-      </FormRow>
-
-      <FormRow>
-        <FormikTextInput
-          id="amount"
-          label={PROVIDE_DIALOG_TEXTS.amountLabel}
-          formik={formik}
-          showErrorOnlyOfTouched
-          autoComplete="off"
-          placeholder="0"
-          disabled={isPoolFull || isUserAtLimit}
-          InputProps={{
-            endAdornment: (
-              <Chip
-                clickable
-                disabled={
-                  isPoolFull || isUserAtLimit || effectiveMax.eq(formik.values.amount)
-                }
-                onClick={handleMaxClick}
-                label="Max"
-              />
-            ),
-          }}
-        />
-      </FormRow>
-
-      <Divider />
-
-      <Stack spacing={1.5}>
-        <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2">{PROVIDE_DIALOG_TEXTS.fields.totalDelegation}</Typography>
-          <Typography variant="body2">
-            {typedAmount.gt(0)
-              ? `${tokenFormatter(currentPoolTvl, '', 0).trim()} → ${tokenFormatter(expectedTotalDelegation, SQD_TOKEN, 0)}`
-              : tokenFormatter(pool.tvl.current, SQD_TOKEN, 0)}
-          </Typography>
-        </Stack>
-        <Stack direction="row" justifyContent="space-between">
-          <Typography variant="body2">{PROVIDE_DIALOG_TEXTS.fields.yourDelegation}</Typography>
-          <Typography variant="body2">
-            {typedAmount.gt(0)
-              ? `${tokenFormatter(currentUserBalance, '', 2).trim()} → ${tokenFormatter(expectedUserDelegation, SQD_TOKEN, 2)}`
-              : tokenFormatter(userData.userBalance, SQD_TOKEN, 2)}
-          </Typography>
-        </Stack>
-        <Stack direction="row" justifyContent="space-between">
-          <Stack direction="row" alignItems="center" spacing={0.5}>
-            <Typography variant="body2">
-              {PROVIDE_DIALOG_TEXTS.fields.expectedMonthlyPayout.label}
-            </Typography>
-            <HelpTooltip title={PROVIDE_DIALOG_TEXTS.fields.expectedMonthlyPayout.tooltip} />
-          </Stack>
-          <Typography variant="body2">
-            {tokenFormatter(userExpectedMonthlyPayout, pool.rewardToken.symbol, 2)}
-          </Typography>
-        </Stack>
-      </Stack>
-    </Stack>
-  );
-}
-
 export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
   const { SQD_TOKEN } = useContracts();
   const queryClient = useQueryClient();
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
-  const { data: pool } = usePoolData(poolId);
-  const { data: userData } = usePoolUserData(poolId);
-  const { data: sources } = useMySources();
+  const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
+  const { data: userData, isLoading: userDataLoading } = usePoolUserData(poolId);
+  const { data: sources, isLoading: sourcesLoading } = useMySources();
 
-  const validationSchema = useMemo(() => {
-    if (!pool || !userData) {
-      return createValidationSchema(
-        BigNumber(0),
-        BigNumber(0),
-        BigNumber(0),
+  const isLoading = poolLoading || userDataLoading || sourcesLoading;
+
+  const currentUserBalance = useMemo(
+    () => userData?.userBalance ?? BigNumber(0),
+    [userData?.userBalance],
+  );
+  const currentPoolTvl = useMemo(() => pool?.tvl.current ?? BigNumber(0), [pool?.tvl.current]);
+
+  const userRemainingCapacity = useMemo(
+    () =>
+      pool ? BigNumber.max(0, pool.maxDepositPerAddress.minus(currentUserBalance)) : BigNumber(0),
+    [pool, currentUserBalance],
+  );
+
+  const poolRemainingCapacity = useMemo(
+    () => (pool ? BigNumber.max(0, pool.tvl.max.minus(currentPoolTvl)) : BigNumber(0)),
+    [pool, currentPoolTvl],
+  );
+
+  const walletBalance = useMemo(
+    () => fromSqd(sources[0]?.balance) ?? BigNumber(0),
+    [sources],
+  );
+
+  const effectiveMax = useMemo(
+    () => BigNumber.min(userRemainingCapacity, poolRemainingCapacity, walletBalance),
+    [userRemainingCapacity, poolRemainingCapacity, walletBalance],
+  );
+
+  const validationSchema = useMemo(
+    () =>
+      createValidationSchema(
+        walletBalance,
+        userRemainingCapacity,
+        poolRemainingCapacity,
         SQD_TOKEN,
-      );
-    }
-
-    const currentUserBalance = userData.userBalance;
-    const currentPoolTvl = pool.tvl.current;
-    const userRemainingCapacity = BigNumber.max(0, pool.maxDepositPerAddress.minus(currentUserBalance));
-    const poolRemainingCapacity = BigNumber.max(0, pool.tvl.max.minus(currentPoolTvl));
-
-    return createValidationSchema(
-      fromSqd(sources[0]?.balance) ?? 0,
-      userRemainingCapacity,
-      poolRemainingCapacity,
-      SQD_TOKEN,
-    );
-  }, [pool, userData, SQD_TOKEN, sources]);
+      ),
+    [walletBalance, userRemainingCapacity, poolRemainingCapacity, SQD_TOKEN],
+  );
 
   const handleSubmit = useCallback(
     async (values: { amount: string }) => {
@@ -291,6 +178,32 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
     [onClose, formik],
   );
 
+  const handleMaxClick = useCallback(() => {
+    formik.setFieldValue('amount', effectiveMax.toString());
+  }, [formik, effectiveMax]);
+
+  const typedAmount = useMemo(() => BigNumber(formik.values.amount || '0'), [formik.values.amount]);
+
+  const isDepositPhase = pool?.phase === 'collecting';
+  const isPoolFull = poolRemainingCapacity.isZero();
+  const isUserAtLimit = userRemainingCapacity.isZero();
+
+  const expectedUserDelegation = useMemo(
+    () => currentUserBalance.plus(typedAmount),
+    [currentUserBalance, typedAmount],
+  );
+
+  const expectedTotalDelegation = useMemo(
+    () => currentPoolTvl.plus(typedAmount),
+    [currentPoolTvl, typedAmount],
+  );
+
+  const userExpectedMonthlyPayout = useMemo(() => {
+    if (!pool) return BigNumber(0);
+    const cappedUserDelegation = currentUserBalance.plus(BigNumber.min(typedAmount, effectiveMax));
+    return calculateExpectedMonthlyPayout(pool, cappedUserDelegation);
+  }, [pool, currentUserBalance, typedAmount, effectiveMax]);
+
   return (
     <ContractCallDialog
       title={PROVIDE_DIALOG_TEXTS.title}
@@ -299,7 +212,100 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
       loading={isPending}
       disableConfirmButton={!formik.isValid || !formik.values.amount || !pool}
     >
-      <ProvideDialogContent poolId={poolId} formik={formik} />
+      {isLoading ? (
+        <Loader />
+      ) : !pool || !userData ? null : (
+        <Stack spacing={2.5}>
+          {isDepositPhase && (
+            <Alert severity="info">{PROVIDE_DIALOG_TEXTS.alerts.collecting}</Alert>
+          )}
+
+          {pool.phase === 'idle' && (
+            <Alert severity="warning">{PROVIDE_DIALOG_TEXTS.alerts.idle}</Alert>
+          )}
+
+          {isPoolFull && <Alert severity="warning">{PROVIDE_DIALOG_TEXTS.alerts.poolFull}</Alert>}
+
+          {!isPoolFull && isUserAtLimit && (
+            <Alert severity="info">
+              {PROVIDE_DIALOG_TEXTS.alerts.userAtLimit(
+                tokenFormatter(pool.maxDepositPerAddress, SQD_TOKEN, 0),
+              )}
+            </Alert>
+          )}
+
+          <FormRow>
+            <FormikSelect
+              id={'source' as any}
+              showErrorOnlyOfTouched
+              options={sources?.map(s => ({
+                label: <SourceWalletOption source={s} />,
+                value: s.id,
+                disabled: s.type !== AccountType.User,
+              }))}
+              formik={formik}
+            />
+          </FormRow>
+
+          <FormRow>
+            <FormikTextInput
+              id="amount"
+              label={PROVIDE_DIALOG_TEXTS.amountLabel}
+              formik={formik}
+              showErrorOnlyOfTouched
+              autoComplete="off"
+              placeholder="0"
+              disabled={isPoolFull || isUserAtLimit}
+              InputProps={{
+                endAdornment: (
+                  <Chip
+                    clickable
+                    disabled={isPoolFull || isUserAtLimit || effectiveMax.eq(formik.values.amount)}
+                    onClick={handleMaxClick}
+                    label="Max"
+                  />
+                ),
+              }}
+            />
+          </FormRow>
+
+          <Divider />
+
+          <Stack spacing={1.5}>
+            <Stack direction="row" justifyContent="space-between">
+              <Typography variant="body2">
+                {PROVIDE_DIALOG_TEXTS.fields.totalDelegation}
+              </Typography>
+              <Typography variant="body2">
+                {typedAmount.gt(0)
+                  ? `${tokenFormatter(currentPoolTvl, '', 0).trim()} → ${tokenFormatter(expectedTotalDelegation, SQD_TOKEN, 0)}`
+                  : tokenFormatter(pool.tvl.current, SQD_TOKEN, 0)}
+              </Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="space-between">
+              <Typography variant="body2">
+                {PROVIDE_DIALOG_TEXTS.fields.yourDelegation}
+              </Typography>
+              <Typography variant="body2">
+                {typedAmount.gt(0)
+                  ? `${tokenFormatter(currentUserBalance, '', 2).trim()} → ${tokenFormatter(expectedUserDelegation, SQD_TOKEN, 2)}`
+                  : tokenFormatter(userData.userBalance, SQD_TOKEN, 2)}
+              </Typography>
+            </Stack>
+            <Stack direction="row" justifyContent="space-between">
+              <Stack direction="row" alignItems="center" spacing={0.5}>
+                <Typography variant="body2">
+                  {PROVIDE_DIALOG_TEXTS.fields.expectedMonthlyPayout.label}
+                </Typography>
+                <HelpTooltip title={PROVIDE_DIALOG_TEXTS.fields.expectedMonthlyPayout.tooltip} />
+              </Stack>
+              <Typography variant="body2">
+                {tokenFormatter(userExpectedMonthlyPayout, pool.rewardToken.symbol, 2)}
+              </Typography>
+            </Stack>
+          </Stack>
+        </Stack>
+      )}
     </ContractCallDialog>
   );
 }
