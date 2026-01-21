@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { ReactNode, useCallback } from 'react';
 
 import { dateFormat } from '@i18n';
 import {
@@ -23,6 +23,75 @@ import { INFO_TEXTS } from '../texts';
 
 interface InfoTabProps {
   poolId: string;
+}
+
+interface AddressActionsProps {
+  address: string;
+  explorerUrl: string;
+  onAddToWallet?: () => void;
+}
+
+function AddressActions({ address, explorerUrl, onAddToWallet }: AddressActionsProps) {
+  return (
+    <Stack direction="row" alignItems="center">
+      <CopyToClipboard text={address} content="" showButton={true} />
+      <Tooltip title={INFO_TEXTS.actions.openInExplorer}>
+        <IconButton
+          size="small"
+          color="inherit"
+          component={Link}
+          to={explorerUrl}
+          rel="noreferrer"
+          target="_blank"
+        >
+          <ExplorerIcon fontSize="inherit" />
+        </IconButton>
+      </Tooltip>
+      {onAddToWallet && (
+        <Tooltip title={INFO_TEXTS.actions.addToWallet}>
+          <IconButton size="small" color="inherit" onClick={onAddToWallet}>
+            <WalletIcon fontSize="inherit" />
+          </IconButton>
+        </Tooltip>
+      )}
+    </Stack>
+  );
+}
+
+interface InfoFieldProps {
+  label: string;
+  value: ReactNode;
+  tooltip?: ReactNode;
+  actions?: ReactNode;
+}
+
+function InfoField({ label, value, tooltip, actions }: InfoFieldProps) {
+  const labelContent = tooltip ? (
+    <Stack direction="row" alignItems="center" spacing={0.5}>
+      <span>{label}</span>
+      <HelpTooltip title={tooltip} />
+    </Stack>
+  ) : (
+    label
+  );
+
+  const valueContent = actions ? (
+    <Stack direction="row" alignItems="center" spacing={0.5}>
+      <span>{value}</span>
+      {actions}
+    </Stack>
+  ) : (
+    value
+  );
+
+  return (
+    <Stack spacing={0.5}>
+      <Typography variant="body2" color="text.secondary">
+        {labelContent}
+      </Typography>
+      <Typography>{valueContent}</Typography>
+    </Stack>
+  );
 }
 
 export function InfoTab({ poolId }: InfoTabProps) {
@@ -66,148 +135,70 @@ export function InfoTab({ poolId }: InfoTabProps) {
   );
 
   if (!pool) return null;
+
   return (
     <Card sx={{}} title={<span>{INFO_TEXTS.title}</span>}>
       <Stack spacing={2} divider={<Divider />}>
         <Stack spacing={1.5}>
-          <Stack spacing={0.5}>
-            <Typography variant="body2" color="text.secondary">
-              {INFO_TEXTS.contract}
-            </Typography>
-            <Typography>
-              <Stack direction="row" alignItems="center" spacing={0.5}>
-                <span>{addressFormatter(pool.id, true)}</span>
-                <Stack direction="row" alignItems="center">
-                  <CopyToClipboard text={pool.id} content="" showButton={true} />
-                  <Tooltip title={INFO_TEXTS.actions.openInExplorer}>
-                    <IconButton
-                      size="small"
-                      color="inherit"
-                      component={Link}
-                      to={explorer.getAddressUrl(pool.id)}
-                    >
-                      <ExplorerIcon fontSize="inherit" />
-                    </IconButton>
-                  </Tooltip>
-                </Stack>
-              </Stack>
-            </Typography>
-          </Stack>
+          <InfoField
+            label={INFO_TEXTS.contract}
+            value={addressFormatter(pool.id, true)}
+            actions={
+              <AddressActions address={pool.id} explorerUrl={explorer.getAddressUrl(pool.id)} />
+            }
+          />
 
-          <Stack spacing={0.5}>
-            <Typography variant="body2" color="text.secondary">
-              {INFO_TEXTS.operator}
-            </Typography>
-            <Typography>
-              <Stack direction="row" alignItems="center" spacing={0.5}>
-                <span>{addressFormatter(pool.operator.address, true)}</span>
-                <Stack direction="row" alignItems="center">
-                  <CopyToClipboard text={pool.operator.address} content="" showButton={true} />
-                  <Tooltip title={INFO_TEXTS.actions.openInExplorer}>
-                    <IconButton
-                      size="small"
-                      color="inherit"
-                      component={Link}
-                      to={explorer.getAddressUrl(pool.operator.address)}
-                    >
-                      <ExplorerIcon fontSize="inherit" />
-                    </IconButton>
-                  </Tooltip>
-                </Stack>
-              </Stack>
-            </Typography>
-          </Stack>
+          <InfoField
+            label={INFO_TEXTS.operator}
+            value={addressFormatter(pool.operator.address, true)}
+            actions={
+              <AddressActions
+                address={pool.operator.address}
+                explorerUrl={explorer.getAddressUrl(pool.operator.address)}
+              />
+            }
+          />
 
-          <Stack spacing={0.5}>
-            <Typography variant="body2" color="text.secondary">
-              <Stack direction="row" alignItems="center" spacing={0.5}>
-                <span>{INFO_TEXTS.lpToken.label}</span>
-                <HelpTooltip title={INFO_TEXTS.lpToken.tooltip(SQD_TOKEN)} />
-              </Stack>
-            </Typography>
-            <Typography>
-              <Stack direction="row" alignItems="center" spacing={0.5}>
-                <span>{pool.lptToken.symbol}</span>
-                <Stack direction="row" alignItems="center">
-                  <CopyToClipboard text={pool.lptToken.address} content="" showButton={true} />
-                  <Tooltip title={INFO_TEXTS.actions.openInExplorer}>
-                    <IconButton
-                      size="small"
-                      color="inherit"
-                      component={Link}
-                      to={explorer.getAddressUrl(pool.lptToken.address)}
-                    >
-                      <ExplorerIcon fontSize="inherit" />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title={INFO_TEXTS.actions.addToWallet}>
-                    <IconButton
-                      size="small"
-                      color="inherit"
-                      onClick={() => handleAddTokenToWallet('lp')}
-                    >
-                      <WalletIcon fontSize="inherit" />
-                    </IconButton>
-                  </Tooltip>
-                </Stack>
-              </Stack>
-            </Typography>
-          </Stack>
+          <InfoField
+            label={INFO_TEXTS.lpToken.label}
+            value={pool.lptToken.symbol}
+            tooltip={INFO_TEXTS.lpToken.tooltip(SQD_TOKEN)}
+            actions={
+              <AddressActions
+                address={pool.lptToken.address}
+                explorerUrl={explorer.getAddressUrl(pool.lptToken.address)}
+                onAddToWallet={() => handleAddTokenToWallet('lp')}
+              />
+            }
+          />
 
-          <Stack spacing={0.5}>
-            <Typography variant="body2" color="text.secondary">
-              <Stack direction="row" alignItems="center" spacing={0.5}>
-                <span>{INFO_TEXTS.rewardToken.label}</span>
-                <HelpTooltip title={INFO_TEXTS.rewardToken.tooltip} />
-              </Stack>
-            </Typography>
-            <Typography>
-              <Stack direction="row" alignItems="center" spacing={0.5}>
-                <span>{pool.rewardToken.symbol}</span>
-                <Stack direction="row" alignItems="center">
-                  <CopyToClipboard text={pool.rewardToken.address} content="" showButton={true} />
-                  <Tooltip title={INFO_TEXTS.actions.openInExplorer}>
-                    <IconButton
-                      size="small"
-                      color="inherit"
-                      component={Link}
-                      to={explorer.getAddressUrl(pool.rewardToken.address)}
-                    >
-                      <ExplorerIcon fontSize="inherit" />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title={INFO_TEXTS.actions.addToWallet}>
-                    <IconButton
-                      size="small"
-                      color="inherit"
-                      onClick={() => handleAddTokenToWallet('reward')}
-                    >
-                      <WalletIcon fontSize="inherit" />
-                    </IconButton>
-                  </Tooltip>
-                </Stack>
-              </Stack>
-            </Typography>
-          </Stack>
+          <InfoField
+            label={INFO_TEXTS.rewardToken.label}
+            value={pool.rewardToken.symbol}
+            tooltip={INFO_TEXTS.rewardToken.tooltip}
+            actions={
+              <AddressActions
+                address={pool.rewardToken.address}
+                explorerUrl={explorer.getAddressUrl(pool.rewardToken.address)}
+                onAddToWallet={() => handleAddTokenToWallet('reward')}
+              />
+            }
+          />
 
-          <Stack spacing={0.5}>
-            <Typography variant="body2" color="text.secondary">
-              {INFO_TEXTS.created}
-            </Typography>
-            <Typography>{dateFormat(pool.createdAt, 'dateTime') || '-'}</Typography>
-          </Stack>
+          <InfoField
+            label={INFO_TEXTS.created}
+            value={dateFormat(pool.createdAt, 'dateTime') || '-'}
+          />
 
           {pool.website && (
-            <Stack spacing={0.5}>
-              <Typography variant="body2" color="text.secondary">
-                {INFO_TEXTS.website}
-              </Typography>
-              <Typography>
+            <InfoField
+              label={INFO_TEXTS.website}
+              value={
                 <a href={urlFormatter(pool.website)} target="_blank" rel="noreferrer">
                   {pool.website}
                 </a>
-              </Typography>
-            </Stack>
+              }
+            />
           )}
         </Stack>
 
