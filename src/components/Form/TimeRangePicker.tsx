@@ -1,12 +1,14 @@
-import { Popover, TextField as MuiTextField, Box, InputAdornment, MenuItem } from '@mui/material';
-import { usePopupState, bindTrigger, bindPopover, PopupState } from 'material-ui-popup-state/hooks';
-import { useState, useMemo } from 'react';
-import { Search } from '@components/Search';
+import { useMemo, useState } from 'react';
+
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import { Box, InputAdornment, MenuItem, TextField as MuiTextField, Popover } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { format } from 'date-fns';
 import { useFormik } from 'formik';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { LocalizationProvider } from '@mui/x-date-pickers';
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import { PopupState, bindPopover, bindTrigger, usePopupState } from 'material-ui-popup-state/hooks';
+
+import { Search } from '@components/Search';
 import { parseTimeRange } from '@lib/datemath';
 
 const quickRanges: TimeRange[] = [

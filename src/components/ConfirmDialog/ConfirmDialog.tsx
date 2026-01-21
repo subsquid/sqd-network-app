@@ -1,5 +1,6 @@
 import React, { PropsWithChildren, SyntheticEvent } from 'react';
 
+import { CloseIcon } from '@icons/CloseIcon.tsx';
 import {
   Box,
   Button,
@@ -12,7 +13,6 @@ import {
 } from '@mui/material';
 
 import { SquaredChip } from '@components/Chip';
-import { CloseIcon } from '@icons/CloseIcon.tsx';
 
 export const ConfirmWrapper = styled(Box, {
   name: 'ConfirmWrapper',

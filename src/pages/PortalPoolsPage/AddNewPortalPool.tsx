@@ -1,43 +1,44 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+
+import { dateFormat } from '@i18n';
 import { Add } from '@mui/icons-material';
 import {
-  Button,
-  SxProps,
   Box,
-  Typography,
+  Button,
+  Chip,
   Stack,
+  SxProps,
   ToggleButton,
   ToggleButtonGroup,
-  Chip,
+  Typography,
 } from '@mui/material';
+import { DISTRIBUTION_RATE_BPS } from '@pages/PortalPoolPage/hooks';
+import { useRewardTokens } from '@pages/PortalPoolsPage/useRewardToken';
+import * as yup from '@schema';
+import BigNumber from 'bignumber.js';
 import { useFormik } from 'formik';
 import toast from 'react-hot-toast';
-import * as yup from '@schema';
 
-import { SourceWalletWithBalance } from '@api/subsquid-network-squid';
-import { ContractCallDialog } from '@components/ContractCallDialog';
-import { Form, FormikTextInput, FormRow, FormDivider } from '@components/Form';
-import { fromSqd, toSqd } from '@lib/network/utils';
-import { useContracts } from '@network/useContracts';
-import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import BigNumber from 'bignumber.js';
 import {
   portalPoolFactoryAbi,
-  useReadNetworkControllerMinStakeThreshold,
   useReadPortalPoolFactoryCollectionDeadlineSeconds,
   useReadPortalPoolFactoryGetMinCapacity,
-  useReadRouterNetworkController,
 } from '@api/contracts';
-import { toHex } from 'viem';
+import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
-import { dateFormat } from '@i18n';
-import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
+import { SourceWalletWithBalance } from '@api/subsquid-network-squid';
+import { ContractCallDialog } from '@components/ContractCallDialog';
+import { Form, FormDivider, FormRow, FormikTextInput } from '@components/Form';
 import { Loader } from '@components/Loader';
+import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
+import { fromSqd, toSqd } from '@lib/network/utils';
+import { useContracts } from '@hooks/network/useContracts';
 
 export const addPortalSchema = ({ minCapacity }: { minCapacity: BigNumber }) => {
   return yup.object({
     name: yup.string().label('Name').trim().required('Name is required'),
     description: yup.string().label('Description').max(500).trim(),
+    website: yup.string().label('Website').url().trim(),
     capacity: yup
       .decimal()
       .label('Capacity')
@@ -51,6 +52,17 @@ export const addPortalSchema = ({ minCapacity }: { minCapacity: BigNumber }) => 
       .min('0')
       .typeError('${path} is invalid'),
     rateType: yup.string().oneOf(['day', 'month']).required(),
+    initialDeposit: yup
+      .decimal()
+      .label('Initial Deposit')
+      .required()
+      .typeError('${path} is invalid')
+      .test('min-daily-rate', 'Initial deposit must be at least the daily rate', function (value) {
+        const { earnings, rateType } = this.parent;
+        if (!value || !earnings) return true;
+        const dailyRate = getRate(earnings, rateType);
+        return BigNumber(value).gte(dailyRate);
+      }),
   });
 };
 
@@ -99,29 +111,35 @@ function AddNewPortalDialog({
   sources?: SourceWalletWithBalance[];
 }) {
   const { setWaitHeight } = useSquidHeight();
+  const { PORTAL_POOL_FACTORY } = useContracts();
+  const { data: tokens, isLoading: isTokenRewardLoading } = useRewardTokens();
 
-  const { PORTAL_POOL_FACTORY, ROUTER } = useContracts();
+  const [selectedTokenAddress, setSelectedTokenAddress] = useState<`0x${string}` | undefined>();
 
-  const { data: minCapacity, isLoading: isMinCapacityLoading } =
-    useReadPortalPoolFactoryGetMinCapacity({
-      address: PORTAL_POOL_FACTORY,
-      query: { enabled: !!PORTAL_POOL_FACTORY },
-    });
+  // Auto-select the first token when tokens are loaded
+  useEffect(() => {
+    if (tokens && tokens.length > 0 && !selectedTokenAddress) {
+      setSelectedTokenAddress(tokens[0].address);
+    }
+  }, [tokens, selectedTokenAddress]);
 
-  const validationSchema = useMemo(() => {
-    return addPortalSchema({
-      minCapacity: fromSqd(minCapacity),
-    });
-  }, [minCapacity]);
+  const selectedToken = useMemo(() => {
+    if (!tokens || tokens.length === 0) return undefined;
+    return tokens.find(t => t.address === selectedTokenAddress);
+  }, [tokens, selectedTokenAddress]);
 
-  const { data: collectionDeadlineSeconds, isLoading: isCollectionDeadlineSecondsLoading } =
-    useReadPortalPoolFactoryCollectionDeadlineSeconds({
-      address: PORTAL_POOL_FACTORY,
-    });
+  const { data: minCapacity } = useReadPortalPoolFactoryGetMinCapacity({
+    address: PORTAL_POOL_FACTORY,
+    query: { enabled: !!PORTAL_POOL_FACTORY },
+  });
+
+  const { data: collectionDeadlineSeconds } = useReadPortalPoolFactoryCollectionDeadlineSeconds({
+    address: PORTAL_POOL_FACTORY,
+  });
 
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
 
-  const isLoading = false;
+  const isLoading = isTokenRewardLoading;
 
   const initialSource = sources?.[0];
 
@@ -129,13 +147,21 @@ function AddNewPortalDialog({
     return fromSqd(minCapacity).multipliedBy(1.2);
   }, [minCapacity]);
 
+  const validationSchema = useMemo(() => {
+    return addPortalSchema({
+      minCapacity: fromSqd(minCapacity),
+    });
+  }, [minCapacity]);
+
   const formik = useFormik({
     initialValues: {
       name: '',
       description: '',
+      website: '',
       capacity: undefined,
       earnings: '',
-      rateType: 'day' as 'day' | 'month',
+      rateType: 'month' as 'day' | 'month',
+      initialDeposit: undefined,
     } as any,
     validationSchema,
     validateOnChange: true,
@@ -144,28 +170,42 @@ function AddNewPortalDialog({
     enableReinitialize: true,
     onSubmit: async values => {
       try {
+        if (!selectedToken) {
+          toast.error('Please select a reward token');
+          return;
+        }
+
         const distributionRatePerSecond = BigInt(
-          BigNumber(getRate(values.earnings, values.rateType))
+          getRate(values.earnings, values.rateType)
             .div(86400)
-            .multipliedBy(10 ** 6)
+            .times(10 ** selectedToken.decimals)
+            .times(DISTRIBUTION_RATE_BPS)
             .toFixed(0),
+        );
+
+        const initialDeposit = BigInt(
+          BigNumber(values.initialDeposit).times(10 ** selectedToken.decimals).toFixed(0),
         );
 
         const receipt = await writeTransactionAsync({
           abi: portalPoolFactoryAbi,
           address: PORTAL_POOL_FACTORY,
           functionName: 'createPortalPool',
+          approve: initialDeposit,
+          approveToken: selectedToken.address,
           args: [
             {
-              distributionRatePerSecond,
+              operator: initialSource?.id as `0x${string}`,
               capacity: BigInt(toSqd(values.capacity)),
               tokenSuffix: collapseTokenName(values.name),
-              operator: initialSource?.id as `0x${string}`,
-              peerId: toHex(Date.now()),
+              distributionRatePerSecond,
+              initialDeposit,
               metadata: JSON.stringify({
                 name: values.name,
                 description: values.description,
+                website: values.website,
               }),
+              rewardToken: selectedToken.address,
             },
           ],
         });
@@ -185,6 +225,10 @@ function AddNewPortalDialog({
     return BigNumber(formik.values.capacity).multipliedBy(10);
   }, [formik.values.capacity]);
 
+  const suggestedInitialDeposit = useMemo(() => {
+    return getRate(formik.values.earnings || '0', formik.values.rateType);
+  }, [formik.values.earnings, formik.values.rateType]);
+
   const deadlineDate = useMemo(() => {
     const date = new Date(Date.now() + Number(collectionDeadlineSeconds) * 1000);
     return dateFormat(date, 'dateTime');
@@ -199,7 +243,7 @@ function AddNewPortalDialog({
         formik.handleSubmit();
       }}
       loading={isPending}
-      disableConfirmButton={!formik.isValid}
+      disableConfirmButton={!formik.isValid || !selectedToken}
     >
       {isLoading ? (
         <Loader />
@@ -216,6 +260,14 @@ function AddNewPortalDialog({
               showErrorOnlyOfTouched
               multiline
               minRows={3}
+            />
+          </FormRow>
+          <FormRow>
+            <FormikTextInput
+              id="website"
+              label="Website"
+              formik={formik}
+              showErrorOnlyOfTouched
             />
           </FormRow>
           <FormRow>
@@ -269,18 +321,25 @@ function AddNewPortalDialog({
           <FormRow>
             <Box>
               <Typography variant="body2" mb={1}>
-                Payment Tokens (for fee distribution)
+                Payment Token (for fee distribution)
               </Typography>
-              <Stack direction="row" spacing={1}>
-                <Button variant="contained" size="small" disabled={false}>
-                  USDC
-                </Button>
-                <Button variant="outlined" size="small" disabled>
-                  DAI (Coming soon)
-                </Button>
-                <Button variant="outlined" size="small" disabled>
-                  USDT (Coming soon)
-                </Button>
+              <Stack direction="row" spacing={1} flexWrap="wrap">
+                {tokens && tokens.length > 0 ? (
+                  tokens.map(token => (
+                    <Button
+                      key={token.address}
+                      variant={selectedToken?.address === token.address ? 'contained' : 'outlined'}
+                      size="small"
+                      onClick={() => setSelectedTokenAddress(token.address)}
+                    >
+                      {token.symbol}
+                    </Button>
+                  ))
+                ) : (
+                  <Typography variant="caption" color="error">
+                    No payment tokens available
+                  </Typography>
+                )}
               </Stack>
             </Box>
           </FormRow>
@@ -288,7 +347,7 @@ function AddNewPortalDialog({
             <Stack direction="row" spacing={1} alignItems="baseline">
               <FormikTextInput
                 id="earnings"
-                label="Expected Provider Earnings (USDC)"
+                label={`Expected Provider Earnings (${selectedToken?.symbol || 'Token'})`}
                 placeholder="0"
                 formik={formik}
                 showErrorOnlyOfTouched
@@ -306,6 +365,27 @@ function AddNewPortalDialog({
               </ToggleButtonGroup>
             </Stack>
           </FormRow>
+          <FormRow>
+            <FormikTextInput
+              id="initialDeposit"
+              label={`Initial Deposit (${selectedToken?.symbol || 'Token'})`}
+              placeholder={suggestedInitialDeposit.toString()}
+              formik={formik}
+              showErrorOnlyOfTouched
+              helperText={`Minimum: ${suggestedInitialDeposit.toFixed(2)} ${selectedToken?.symbol || 'Token'} (daily rate)`}
+              InputProps={{
+                endAdornment: (
+                  <Chip
+                    clickable
+                    onClick={() => {
+                      formik.setFieldValue('initialDeposit', suggestedInitialDeposit);
+                    }}
+                    label="Auto"
+                  />
+                ),
+              }}
+            />
+          </FormRow>
 
           <FormDivider />
           <Stack direction="column" spacing={1}>
@@ -320,7 +400,8 @@ function AddNewPortalDialog({
             <Stack direction="row" justifyContent="space-between" alignContent="center">
               <Typography variant="body2">Payment Rate</Typography>
               <Typography variant="body2">
-                {getRate(formik.values.earnings, formik.values.rateType).toFixed(2)} USDC/d
+                {getRate(formik.values.earnings, formik.values.rateType).toFixed(2)}{' '}
+                {selectedToken?.symbol || 'Token'}/d
               </Typography>
             </Stack>
           </Stack>
@@ -331,7 +412,7 @@ function AddNewPortalDialog({
 }
 
 function getRate(earnings: string, rateType: 'day' | 'month') {
-  return rateType === 'month' ? Number(earnings) / 30 : Number(earnings);
+  return rateType === 'month' ? BigNumber(earnings).div(30) : BigNumber(earnings);
 }
 
 function collapseTokenName(name: string): string {

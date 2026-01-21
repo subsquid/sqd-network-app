@@ -1,144 +1,200 @@
-import { Box, LinearProgress, Stack, Tooltip, Typography } from '@mui/material';
-import { AccessTime, CheckCircle, Warning, Error } from '@mui/icons-material';
+import { useMemo } from 'react';
+
+import { dateFormat } from '@i18n';
+import { AccessTime, Error, Warning } from '@mui/icons-material';
+import { Box, Stack, Tooltip, Typography, alpha, useTheme } from '@mui/material';
 
 import { useCountdown } from '@hooks/useCountdown';
-import { dateFormat } from '@i18n';
-import { percentFormatter } from '@lib/formatters/formatters';
-import { fromSqd } from '@lib/network';
+import { percentFormatter, tokenFormatter } from '@lib/formatters/formatters';
+import { useContracts } from '@hooks/network/useContracts';
 
 import type { PoolData } from './hooks';
 import { usePoolData } from './hooks';
+import { HEALTH_TEXTS } from './texts';
 
-interface PoolHealthBarProps {
-  poolId: string;
+type PoolStatus = 'collecting' | 'critical' | 'low' | 'healthy';
+
+const STATUS_CONFIG: Record<
+  PoolStatus,
+  { color: 'info' | 'error' | 'warning' | 'success'; description: string }
+> = {
+  collecting: {
+    color: 'info',
+    description: HEALTH_TEXTS.status.collecting,
+  },
+  critical: {
+    color: 'error',
+    description: HEALTH_TEXTS.bar.critical,
+  },
+  low: {
+    color: 'warning',
+    description: HEALTH_TEXTS.bar.warning,
+  },
+  healthy: {
+    color: 'success',
+    description: HEALTH_TEXTS.bar.healthy,
+  },
+};
+
+function getPoolStatus(pool: PoolData): PoolStatus {
+  if (pool.phase === 'collecting') return 'collecting';
+  if (pool.phase === 'idle') return 'critical';
+  if (pool.tvl.current.lt(pool.tvl.min)) return 'low';
+  return 'healthy';
 }
 
-interface ProgressBarProps {
-  label: React.ReactNode;
-  value: number;
-  color: 'success' | 'warning' | 'error' | 'info';
-}
-
-function ProgressBar({ label, value, color }: ProgressBarProps) {
-  // Cap the visual progress at 100% but show actual percentage in text
-  const visualProgress = Math.min(value, 100);
-
-  return (
-    <Box sx={{ flex: 1 }}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-        <Typography variant="body2" color={`${color}.main`}>
-          {label}
-        </Typography>
-        <Typography variant="body2" color={`${color}.main`} fontWeight="medium">
-          {percentFormatter(value)}
-        </Typography>
-      </Stack>
-      <LinearProgress
-        variant="determinate"
-        value={visualProgress}
-        color={color}
-        sx={{
-          height: 8,
-          borderRadius: 1,
-          backgroundColor: 'action.hover',
-        }}
-      />
-    </Box>
-  );
-}
-
-function getCapacityStatus(
-  pool: PoolData,
-  usagePercent: number,
-): {
-  color: 'success' | 'warning' | 'error';
-  icon: React.ReactElement;
-  text: string;
-  description: string;
-} {
-  // Color is based on pool phase/state, not percentage
-  const isHealthy = pool.phase === 'active' || pool.phase === 'debt';
-  const isCritical = pool.phase === 'idle';
-
-  let color: 'success' | 'warning' | 'error';
-  let icon: React.ReactElement;
-  let text: string;
-  let description: string;
-
-  if (isCritical) {
-    color = 'error';
-    icon = <Error sx={{ fontSize: 18, color: 'error.main' }} />;
-    text = 'Critical';
-    description = 'Pool is critical. Yields have stopped until more liquidity is added.';
-  } else if (!isHealthy || usagePercent < 50) {
-    color = 'warning';
-    icon = <Warning sx={{ fontSize: 18, color: 'warning.main' }} />;
-    text = 'Low';
-    description = 'Pool is running low. Consider adding liquidity.';
-  } else {
-    color = 'success';
-    icon = <CheckCircle sx={{ fontSize: 18, color: 'success.main' }} />;
-    text = 'Healthy';
-    description = 'Pool buffer is healthy. Yields are being distributed normally.';
-  }
-
-  return { color, icon, text, description };
-}
-
-// Shows activation progress during deposit window phase
-function ActivationProgress({ pool }: { pool: PoolData }) {
-  const current = fromSqd(pool.tvl.total).toNumber();
-  const max = fromSqd(pool.tvl.max).toNumber();
-  const progress = (current / max) * 100;
+function ActivationCountdown({ pool }: { pool: PoolData }) {
   const timeRemaining = useCountdown({ timestamp: pool.depositWindowEndsAt });
 
-  const label = (
+  return (
     <Tooltip title={dateFormat(pool.depositWindowEndsAt, 'dateTime')}>
-      <Stack direction="row" alignItems="center" spacing={0.5}>
+      <Stack
+        direction="row"
+        alignItems="center"
+        spacing={0.5}
+        sx={{ color: `${STATUS_CONFIG.collecting.color}.main` }}
+      >
         <AccessTime sx={{ fontSize: 16 }} />
-        <span>{timeRemaining || 'Deposit Window'}</span>
+        <span>{timeRemaining || HEALTH_TEXTS.bar.provisionWindowLabel}</span>
       </Stack>
     </Tooltip>
   );
-
-  return <ProgressBar label={label} value={progress} color="info" />;
 }
 
-// Shows capacity usage when pool is active
-function CapacityUsage({ pool }: { pool: PoolData }) {
-  const current = fromSqd(pool.tvl.total).toNumber();
-  const max = fromSqd(pool.tvl.max).toNumber();
-  const min = fromSqd(pool.tvl.min).toNumber();
+function StatusIcon({ status }: { status: PoolStatus }) {
+  const { description } = STATUS_CONFIG[status];
 
-  const real = Math.min(0, current - min);
-  const total = max - min;
-  const usagePercent = total === 0 ? 100 : (real / total) * 100;
-  const status = getCapacityStatus(pool, usagePercent);
+  switch (status) {
+    case 'collecting':
+      return null;
+    case 'critical':
+      return (
+        <Tooltip title={description} arrow>
+          <Error sx={{ fontSize: '1.25rem', color: 'error.main' }} />
+        </Tooltip>
+      );
+    case 'low':
+      return (
+        <Tooltip title={description} arrow>
+          <Warning sx={{ fontSize: '1.25rem', color: 'warning.main' }} />
+        </Tooltip>
+      );
+    case 'healthy':
+      return null;
+  }
+}
 
-  const realUsagePercent = max === 0 ? 100 : (current / max) * 100;
+function ProgressBar({ pool }: { pool: PoolData }) {
+  const theme = useTheme();
+  const { SQD_TOKEN } = useContracts();
 
-  const label = (
-    <Tooltip title={status.description} arrow>
-      <Stack direction="row" alignItems="center" spacing={0.5}>
-        {status.icon}
-        <Typography variant="body2" color={`${status.color}.main`}>
-          {status.text}
+  const status = useMemo(() => getPoolStatus(pool), [pool]);
+  const { color } = STATUS_CONFIG[status];
+
+  const { tvl } = pool;
+
+  const progress = useMemo(
+    () => ({
+      main: Math.min(tvl.current.div(tvl.max).times(100).toNumber(), 100),
+      buffer: Math.min(tvl.total.div(tvl.max).times(100).toNumber(), 100),
+      threshold: Math.min(tvl.min.div(tvl.max).times(100).toNumber(), 100),
+    }),
+    [tvl.current, tvl.total, tvl.max, tvl.min],
+  );
+
+  const showBuffer = progress.main < progress.buffer;
+  const showThreshold = progress.threshold > 0 && status !== 'collecting';
+
+  return (
+    <Stack spacing={0.5}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between">
+        <Typography variant="body2" fontWeight="medium">
+          <Box display="flex">
+            {status === 'collecting' ? (
+              <ActivationCountdown pool={pool} />
+            ) : (
+              <StatusIcon status={status} />
+            )}
+          </Box>
         </Typography>
+        <Stack direction="row" spacing={1}>
+          {showBuffer && (
+            <Typography variant="body2" fontWeight="medium">
+              {HEALTH_TEXTS.bar.stable.label}: {percentFormatter(progress.main)}
+            </Typography>
+          )}
+          <Typography variant="body2" color={`${color}.main`} fontWeight="medium">
+            {HEALTH_TEXTS.bar.total.label}: {percentFormatter(progress.buffer)}
+          </Typography>
+        </Stack>
       </Stack>
-    </Tooltip>
-  );
 
-  return <ProgressBar label={label} value={realUsagePercent} color={status.color} />;
+      <Box sx={{ position: 'relative' }}>
+        <Box
+          sx={{
+            position: 'relative',
+            height: 10,
+            borderRadius: 1,
+            backgroundColor: 'action.hover',
+            overflow: 'hidden',
+          }}
+        >
+          <Tooltip title={HEALTH_TEXTS.bar.stable.tooltip(tokenFormatter(tvl.current, SQD_TOKEN))}>
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                height: '100%',
+                width: `${progress.main}%`,
+                backgroundColor: theme.palette[color].main,
+              }}
+            />
+          </Tooltip>
+          <Tooltip
+            title={HEALTH_TEXTS.bar.pendingWithdrawals.tooltip(
+              tokenFormatter(tvl.total.minus(tvl.current), SQD_TOKEN),
+            )}
+          >
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: `${progress.main}%`,
+                height: '100%',
+                width: `${progress.buffer - progress.main}%`,
+                backgroundColor: alpha(theme.palette.warning.main, 0.5),
+              }}
+            />
+          </Tooltip>
+        </Box>
+
+        {showThreshold && (
+          <Tooltip
+            title={HEALTH_TEXTS.bar.minimumThreshold.tooltip(tokenFormatter(tvl.min, SQD_TOKEN))}
+          >
+            <Box
+              sx={{
+                position: 'absolute',
+                left: `${progress.threshold}%`,
+                top: -2,
+                bottom: -2,
+                width: 2,
+                backgroundColor: theme.palette.text.disabled,
+                zIndex: 1,
+              }}
+            />
+          </Tooltip>
+        )}
+      </Box>
+    </Stack>
+  );
 }
 
-export function PoolHealthBar({ poolId }: PoolHealthBarProps) {
+export function PoolHealthBar({ poolId }: { poolId: string }) {
   const { data: pool } = usePoolData(poolId);
 
   if (!pool) return null;
 
-  if (pool.phase === 'collecting') {
-    return <ActivationProgress pool={pool} />;
-  }
-
-  return <CapacityUsage pool={pool} />;
+  return <ProgressBar pool={pool} />;
 }

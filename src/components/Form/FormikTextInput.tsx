@@ -1,20 +1,19 @@
-import React, { useState, useEffect } from 'react';
-
-import {
-  styled,
-  SxProps,
-  TextField as MaterialTextField,
-  FormControl,
-  InputLabel,
-  IconButton,
-  InputAdornment,
-  Collapse,
-  InputProps as StandardInputProps,
-} from '@mui/material';
-import { FormikProps } from 'formik';
+import React, { useEffect, useState } from 'react';
 
 import { VisibleIcon } from '@icons/VisibleIcon';
 import { VisibleOffIcon } from '@icons/VisibleOffIcon';
+import {
+  Collapse,
+  FormControl,
+  IconButton,
+  InputAdornment,
+  InputLabel,
+  TextField as MaterialTextField,
+  InputProps as StandardInputProps,
+  SxProps,
+  styled,
+} from '@mui/material';
+import { FormikProps } from 'formik';
 
 export const StyledFormikTextField = styled(MaterialTextField)(({ theme }) => ({
   'label + &': {

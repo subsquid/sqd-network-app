@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState, useMemo } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 interface CursorPosition {
   x: number;
@@ -15,16 +15,9 @@ const SharedCursorContext = createContext<SharedCursorContextValue | null>(null)
 export function SharedCursorProvider({ children }: { children: React.ReactNode }) {
   const [cursor, setSharedCursor] = useState<CursorPosition | null>(null);
 
-  const value = useMemo(
-    () => ({ cursor, setSharedCursor }),
-    [cursor],
-  );
+  const value = useMemo(() => ({ cursor, setSharedCursor }), [cursor]);
 
-  return (
-    <SharedCursorContext.Provider value={value}>
-      {children}
-    </SharedCursorContext.Provider>
-  );
+  return <SharedCursorContext.Provider value={value}>{children}</SharedCursorContext.Provider>;
 }
 
 interface UseSharedCursorProps {

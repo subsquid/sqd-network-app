@@ -1,10 +1,9 @@
 import { SxProps } from '@mui/material';
+import { Link } from 'react-router-dom';
 
 import { Worker } from '@api/subsquid-network-squid';
-import { NameWithAvatar } from '@components/SourceWalletName';
 import { shortPeerId } from '@components/PeerId';
-import { CopyToClipboard } from '@components/CopyToClipboard';
-import { Link } from 'react-router-dom';
+import { NameWithAvatar } from '@components/SourceWalletName';
 
 export const WorkerName = ({
   worker,
@@ -20,14 +19,7 @@ export const WorkerName = ({
   return (
     <NameWithAvatar
       title={worker?.name || 'Worker'}
-      subtitle={
-        <CopyToClipboard
-          text={worker?.peerId || ''}
-          content={
-            <Link to={`/worker/${worker?.peerId}`}>{shortPeerId(worker?.peerId || '')}</Link>
-          }
-        />
-      }
+      subtitle={<Link to={`/worker/${worker?.peerId}`}>{shortPeerId(worker?.peerId || '')}</Link>}
       avatarValue={worker?.peerId}
       sx={sx}
     />

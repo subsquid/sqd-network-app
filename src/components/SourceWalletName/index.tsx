@@ -1,4 +1,5 @@
-import { Box, Stack, styled, Typography, SxProps } from '@mui/material';
+import { Box, Stack, SxProps, Typography, styled } from '@mui/material';
+
 import { Avatar } from '@components/Avatar';
 
 const Name = styled(Box, {

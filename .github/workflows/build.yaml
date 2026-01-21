@@ -55,6 +55,8 @@ jobs:
               echo "::set-output name=app_env::dev"
               echo "::set-output name=testnet_squid_api_url::https://subsquid.squids.live/subsquid-network-testnet:dev/api/graphql"
               echo "::set-output name=mainnet_squid_api_url::https://subsquid.squids.live/subsquid-network-mainnet:dev/api/graphql"
+              echo "::set-output name=testnet_pool_squid_api_url::https://subsquid.squids.live/portal-pools-testnet@v1/api/graphql"
+              echo "::set-output name=mainnet_pool_squid_api_url::https://subsquid.squids.live/portal-pools-mainnet@v1/api/graphql"
               echo "::set-output name=enable_demo_features::true"
               echo "::set-output name=sentry_dsn::"https://3a283cbad35b86e2afa2acd0e6b66794@o1149243.ingest.us.sentry.io/4509162478960640""
           fi
@@ -81,6 +83,8 @@ jobs:
           NETWORK: ${{ matrix.network }}
           TESTNET_SQUID_API_URL: ${{ steps.env.outputs.testnet_squid_api_url }}
           MAINNET_SQUID_API_URL: ${{ steps.env.outputs.mainnet_squid_api_url }}
+          TESTNET_POOL_SQUID_API_URL: ${{ steps.env.outputs.testnet_pool_squid_api_url }}
+          MAINNET_POOL_SQUID_API_URL: ${{ steps.env.outputs.mainnet_pool_squid_api_url }}
           NODE_ENV: production
           SENTRY_DSN: ${{ steps.env.outputs.sentry_dsn }}
       # Build and push images to Google Container Registry

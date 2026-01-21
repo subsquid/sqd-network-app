@@ -1,9 +1,11 @@
+import { createRequire } from 'module';
+
 import { sentryVitePlugin } from '@sentry/vite-plugin';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { createHtmlPlugin } from 'vite-plugin-html';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import { createRequire } from 'module';
+
 const require = createRequire(import.meta.url);
 
 import 'dotenv/config';
@@ -39,6 +41,12 @@ export default defineConfig({
     'process.env.NETWORK': encode(process.env.NETWORK || 'mainnet'),
     'process.env.SENTRY_DSN': encode(process.env.SENTRY_DSN || ''),
     'process.env.HOST_URL': encode(process.env.HOST_URL || ''),
+    'process.env.TESTNET_POOL_SQUID_API_URL': encode(
+      process.env.TESTNET_POOL_SQUID_API_URL || 'http://localhost:4350',
+    ),
+    'process.env.MAINNET_POOL_SQUID_API_URL': encode(
+      process.env.MAINNET_POOL_SQUID_API_URL || 'http://localhost:4350',
+    ),
   },
 
   optimizeDeps: {

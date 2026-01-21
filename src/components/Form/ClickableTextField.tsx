@@ -1,17 +1,16 @@
 import React from 'react';
 
+import { EditIcon } from '@icons/EditIcon';
 import {
   Box,
-  IconButton,
-  styled,
-  TextField,
   BoxProps,
+  IconButton,
   IconButtonProps,
+  TextField,
   TextFieldProps,
+  styled,
 } from '@mui/material';
 import classnames from 'classnames';
-
-import { EditIcon } from '@icons/EditIcon';
 
 export const ClickableInput = styled(Box, {
   name: 'ClickableInput',

@@ -1,47 +1,82 @@
-import { Box, Chip, Divider, Stack, Tooltip, Typography } from '@mui/material';
+import { useMemo } from 'react';
+
+import { Box, Chip, Divider, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
 
 import { Avatar } from '@components/Avatar';
 import { Card } from '@components/Card';
+import { useAccount } from '@network/useAccount';
 
+import { EditMetadataButton } from './dialogs/EditMetadataDialog';
 import { usePoolData } from './hooks';
-import { getPhaseColor, getPhaseLabel, getPhaseTooltip } from './utils/poolUtils';
 import { PoolHealthBar } from './PoolHealthBar';
 import { PoolStats } from './PoolStats';
+import { getPhaseColor, getPhaseLabel, getPhaseTooltip } from './utils/poolUtils';
 
 interface PoolHeaderProps {
   poolId: string;
 }
 
 export function PoolHeader({ poolId }: PoolHeaderProps) {
-  const { data: pool } = usePoolData(poolId);
+  const { data: pool, isLoading } = usePoolData(poolId);
+  const { address } = useAccount();
 
-  if (!pool) return null;
+  const isOperator = useMemo(
+    () => pool && address?.toLowerCase() === pool.operator.address.toLowerCase(),
+    [pool, address],
+  );
+
   return (
-    <Card>
-      <Stack spacing={2} divider={<Divider />}>
-        <Stack direction="row" alignItems="center" spacing={2} justifyContent="space-between">
-          <Box flex={0.5}>
+    <Stack spacing={2}>
+      <Card>
+        <Stack spacing={2} divider={<Divider />}>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            alignItems={{ xs: 'stretch', sm: 'center' }}
+            spacing={2}
+            justifyContent="space-between"
+          >
             <Stack direction="row" alignItems="center" spacing={2}>
-              <Avatar name={pool.name} colorDiscriminator={pool.id} size={64} />
+              {isLoading ? (
+                <Skeleton variant="circular" width={64} height={64} />
+              ) : (
+                <Avatar name={pool?.name ?? ''} colorDiscriminator={pool?.id ?? ''} size={64} />
+              )}
               <Stack direction="column" alignItems="start" spacing={1}>
-                <Typography variant="h5">{pool.name}</Typography>
-                <Tooltip title={getPhaseTooltip(pool.phase)}>
-                  <Chip
-                    label={getPhaseLabel(pool.phase)}
-                    color={getPhaseColor(pool.phase)}
-                    size="small"
-                  />
-                </Tooltip>
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <Typography variant="h5">
+                    {isLoading ? <Skeleton width="50%" /> : pool?.name}
+                  </Typography>
+                  {!isLoading && pool && isOperator && <EditMetadataButton poolId={poolId} />}
+                </Stack>
+                {isLoading ? (
+                  <Skeleton variant="rounded" width={80} height={24} />
+                ) : pool ? (
+                  <Tooltip title={getPhaseTooltip(pool.phase)}>
+                    <Chip
+                      label={getPhaseLabel(pool.phase)}
+                      color={getPhaseColor(pool.phase)}
+                      size="small"
+                    />
+                  </Tooltip>
+                ) : null}
               </Stack>
             </Stack>
-          </Box>
 
-          <Box flex={0.4}>
-            <PoolHealthBar poolId={poolId} />
-          </Box>
+            <Box sx={{ flex: 1, maxWidth: { sm: 300 } }}>
+              {isLoading ? (
+                <Stack spacing={0.5}>
+                  <Skeleton variant="text" width="100%" />
+                  <Skeleton variant="rounded" width="100%" height={10} />
+                </Stack>
+              ) : (
+                <PoolHealthBar poolId={poolId} />
+              )}
+            </Box>
+          </Stack>
+          {/* <PoolStats poolId={poolId} /> */}
         </Stack>
-        <PoolStats poolId={poolId} />
-      </Stack>
-    </Card>
+      </Card>
+      <PoolStats poolId={poolId} />
+    </Stack>
   );
 }

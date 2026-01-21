@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
-import { AreaClosed, LinePath } from '@visx/shape';
+
 import { curveMonotoneX } from '@visx/curve';
-import type { ScaleTime, ScaleLinear } from 'd3-scale';
+import { AreaClosed, LinePath } from '@visx/shape';
+import type { ScaleLinear, ScaleTime } from 'd3-scale';
+
 import type { SingleChartSeries } from './types';
 
 type XScale = ScaleTime<number, number, never>;

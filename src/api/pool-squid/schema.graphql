@@ -1,0 +1,51 @@
+query apyTimeseries($from: DateTime!, $poolId: String!, $to: DateTime!) {
+  apyTimeseries(from: $from, poolId: $poolId, to: $to) {
+    data {
+      value
+      timestamp
+    }
+    from
+    step
+    to
+  }
+}
+
+query tvlTimeseries($from: DateTime!, $poolId: String!, $to: DateTime!) {
+  tvlTimeseries(from: $from, poolId: $poolId, to: $to) {
+    data {
+      value {
+        tvlStable
+        tvlTotal
+      }
+      timestamp
+    }
+    from
+    step
+    to
+  }
+}
+
+query poolById($id: String!) {
+  poolById(id: $id) {
+    totalRewardsToppedUp
+    createdAt
+  }
+}
+
+query liquidityEvents($limit: Int!, $poolId: String!) {
+  liquidityEvents(limit: $limit, orderBy: id_DESC, where: { pool: { id_eq: $poolId } }) {
+    eventType
+    txHash
+    timestamp
+    providerId
+    amount
+  }
+}
+
+query topUps($limit: Int!, $poolId: String!) {
+  topUps(limit: $limit, orderBy: id_DESC, where: { pool: { id_eq: $poolId } }) {
+    txHash
+    timestamp
+    amount
+  }
+}

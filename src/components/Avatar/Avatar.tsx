@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { Avatar as MaterialAvatar, Box, SxProps, Theme, styled } from '@mui/material';
+import { Box, Avatar as MaterialAvatar, SxProps, Theme, styled } from '@mui/material';
 
 interface AvatarProps {
   /** The name to display in the avatar */

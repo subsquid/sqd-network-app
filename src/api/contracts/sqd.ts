@@ -1,10 +1,10 @@
 import { logger } from '@logger';
 import { erc20Abi } from 'viem';
 import { waitForTransactionReceipt } from 'viem/actions';
-import { useWriteContract, useClient } from 'wagmi';
+import { useClient, useWriteContract } from 'wagmi';
 import { WriteContractData } from 'wagmi/query';
 
-import { useContracts } from '@network/useContracts.ts';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { WriteContractRes, errorMessage } from './utils';
 

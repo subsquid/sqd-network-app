@@ -1,7 +1,6 @@
 import { useState } from 'react';
 
-import { peerIdToHex } from '@lib/network';
-import { SxProps, Button } from '@mui/material';
+import { Button, SxProps } from '@mui/material';
 import toast from 'react-hot-toast';
 import { useClient } from 'wagmi';
 
@@ -11,8 +10,9 @@ import { errorMessage } from '@api/contracts/utils';
 import { AccountType, SourceWallet, Worker } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
-import { useAccount } from '@network/useAccount';
-import { useContracts } from '@network/useContracts';
+import { peerIdToHex } from '@lib/network';
+import { useAccount } from '@hooks/network/useAccount';
+import { useContracts } from '@hooks/network/useContracts';
 
 export function WorkerUnregisterButton({
   worker,

@@ -1,22 +1,21 @@
-import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
-import { fromSqd, unwrapMulticallResult } from '@lib/network/utils';
-import { Box, Chip, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import { useMemo } from 'react';
+
+import { Chip, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import { keepPreviousData } from '@tanstack/react-query';
 import chunk from 'lodash-es/chunk';
+import { Link } from 'react-router-dom';
 import { erc20Abi } from 'viem';
 import { useReadContracts } from 'wagmi';
 
 import { vestingAbi } from '@api/contracts';
 import { useTemporaryHoldingsByAccountQuery } from '@api/subsquid-network-squid';
-import { DashboardTable, NoItems } from '@components/Table';
+import { Card } from '@components/Card';
 import { NameWithAvatar } from '@components/SourceWalletName';
-import { useAccount } from '@network/useAccount';
-import { useContracts } from '@network/useContracts';
-
-import { useMemo } from 'react';
-import { CopyToClipboard } from '@components/CopyToClipboard';
-import { Link } from 'react-router-dom';
-import {Card} from '@components/Card';
+import { DashboardTable, NoItems } from '@components/Table';
+import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
+import { fromSqd, unwrapMulticallResult } from '@lib/network/utils';
+import { useAccount } from '@hooks/network/useAccount';
+import { useContracts } from '@hooks/network/useContracts';
 
 export function MyTemporaryHoldings() {
   const account = useAccount();
@@ -101,16 +100,9 @@ export function MyTemporaryHoldings() {
                       .map(word => word[0]?.toUpperCase() + word.slice(1).toLowerCase())
                       .join(' ')} contract`}
                     subtitle={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <CopyToClipboard
-                          text={temporaryHolding.id}
-                          content={
-                            <Link to={`/assets/vestings/${temporaryHolding.id}`}>
-                              {addressFormatter(temporaryHolding.id, true)}
-                            </Link>
-                          }
-                        />
-                      </Box>
+                      <Link to={`/assets/vestings/${temporaryHolding.id}`}>
+                        {addressFormatter(temporaryHolding.id, true)}
+                      </Link>
                     }
                     avatarValue={temporaryHolding.id}
                     sx={{ width: { xs: 200, sm: 240 } }}

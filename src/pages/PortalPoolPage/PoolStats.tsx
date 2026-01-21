@@ -1,19 +1,19 @@
-import type { ReactNode } from 'react';
-import { Avatar, Box, Link, Stack, Typography } from '@mui/material';
+import { type ReactNode, useMemo } from 'react';
+
+import { Box, Skeleton, Stack, Typography } from '@mui/material';
 
 import { useTokenPrice } from '@api/price';
+import { Card } from '@components/Card';
 import { HelpTooltip } from '@components/HelpTooltip';
-import { useRewardToken } from '@hooks/useRewardToken';
 import {
   numberCompactFormatter,
   percentFormatter,
   tokenFormatter,
 } from '@lib/formatters/formatters';
-import { fromSqd } from '@lib/network';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { usePoolData } from './hooks';
-import { USDC_LOGO_URL } from './utils/constants';
+import { STATS_TEXTS } from './texts';
 import { calculateApy } from './utils/poolUtils';
 
 interface PoolStatsProps {
@@ -43,77 +43,101 @@ function StatItem({
 }
 
 export function PoolStats({ poolId }: PoolStatsProps) {
-  const { data: pool } = usePoolData(poolId);
+  const { data: pool, isLoading } = usePoolData(poolId);
   const { SQD_TOKEN, SQD } = useContracts();
   const { data: sqdPrice } = useTokenPrice({ address: SQD });
-  const { address: rewardTokenAddress, data: rewardToken } = useRewardToken();
-
-  if (!pool) return null;
-
-  const currentTvl = fromSqd(pool.tvl.current);
-  const maxTvl = fromSqd(pool.tvl.max);
-  const tvlPercent = maxTvl.gt(0) ? currentTvl.div(maxTvl).times(100).toNumber() : 0;
 
   // APY = (Annual Rewards) / (Capacity in USD)
   // Since rewards are constant: Annual = Monthly × 12
-  const calculatedApyRatio = calculateApy(pool.monthlyPayoutUsd, maxTvl.toNumber(), sqdPrice) || 0;
-  const displayApy = calculatedApyRatio * 100;
+  const displayApy = useMemo(() => {
+    if (!pool) return 0;
+    const calculatedApyRatio =
+      calculateApy(
+        pool.distributionRatePerSecond.times(30 * 86400).toNumber(),
+        pool.tvl.max.toNumber(),
+        sqdPrice,
+      ) || 0;
+    return calculatedApyRatio * 100;
+  }, [pool, sqdPrice]);
 
-  const apyTooltip =
-    'APY = (Monthly Payout × 12) / (Pool Capacity × SQD Price)\nBased on full pool capacity and live SQD price.';
+  const apyTooltip = STATS_TEXTS.apy.tooltip(SQD_TOKEN);
+  const monthlyPayoutTooltip = STATS_TEXTS.monthlyPayout.tooltip(SQD_TOKEN);
 
   return (
     <Stack
       direction={{ xs: 'column', sm: 'row' }}
       spacing={2}
-      sx={{ justifyContent: 'space-between', width: '100%' }}
+      sx={{ justifyContent: 'stretch', width: '100%' }}
     >
-      <StatItem
-        label="TVL"
-        value={
-          <Stack direction="row" alignItems="baseline" spacing={0.5} flexWrap="wrap">
-            <Typography variant="h6" component="span">
-              {numberCompactFormatter(currentTvl.toNumber())}
-            </Typography>
-            <Typography variant="h6" component="span">
-              / {numberCompactFormatter(maxTvl.toNumber())} {SQD_TOKEN}
-            </Typography>
-          </Stack>
-        }
-      />
-      <StatItem
-        label="APY"
-        tooltip={apyTooltip}
-        value={<Typography variant="h6">{percentFormatter(displayApy)}</Typography>}
-      />
-      <StatItem
-        label="Monthly Payout"
-        value={
-          <Typography variant="h6">
-            <Stack direction="row" alignItems="center" spacing={0.5} flexWrap="wrap">
-              <Typography variant="h6">
-                {tokenFormatter(pool.monthlyPayoutUsd, rewardToken?.symbol ?? 'USDC', 0)}
+      <Card sx={{ flex: 1 }}>
+        <StatItem
+          label={STATS_TEXTS.tvl.label}
+          tooltip={STATS_TEXTS.tvl.tooltip}
+          value={
+            <Stack direction="row" alignItems="baseline" spacing={0.5} flexWrap="wrap">
+              <Typography variant="h6" component="span">
+                {isLoading ? (
+                  <Skeleton width="50%" />
+                ) : (
+                  numberCompactFormatter(pool!.tvl.total.toNumber())
+                )}
               </Typography>
-              {rewardTokenAddress && (
-                <Link
-                  href={`https://arbiscan.io/token/${rewardTokenAddress}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  underline="hover"
-                  sx={{ display: 'flex', alignItems: 'center' }}
-                >
-                  <Avatar
-                    src={USDC_LOGO_URL}
-                    alt={rewardToken?.symbol ?? 'USDC'}
-                    sx={{ width: 24, height: 24 }}
-                  />
-                </Link>
-              )}
+              <Typography variant="h6" component="span">
+                {isLoading ? (
+                  <Skeleton width="50%" />
+                ) : (
+                  `/ ${numberCompactFormatter(pool!.tvl.max.toNumber())} ${SQD_TOKEN}`
+                )}
+              </Typography>
             </Stack>
-          </Typography>
-        }
-        tooltip="Fixed monthly amount paid to SQD liquidity providers"
-      />
+          }
+        />
+      </Card>
+      <Card sx={{ flex: 1 }}>
+        <StatItem
+          label={STATS_TEXTS.apy.label}
+          tooltip={apyTooltip}
+          value={
+            <Typography variant="h6">
+              {isLoading ? <Skeleton width="50%" /> : percentFormatter(displayApy)}
+            </Typography>
+          }
+        />
+      </Card>
+      <Card sx={{ flex: 1 }}>
+        <StatItem
+          label={STATS_TEXTS.monthlyPayout.label}
+          value={
+            <Typography variant="h6">
+              <Stack direction="row" alignItems="center" spacing={0.5} flexWrap="wrap">
+                <Typography variant="h6">
+                  {isLoading ? (
+                    <Skeleton width="50%" />
+                  ) : (
+                    tokenFormatter(pool!.totalRewardsToppedUp, pool!.rewardToken.symbol, 2)
+                  )}
+                </Typography>
+                {/* {pool.rewardToken && (
+                  <Link
+                    href={`https://arbiscan.io/token/${pool.rewardToken.address}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    underline="hover"
+                    sx={{ display: 'flex', alignItems: 'center' }}
+                  >
+                    <Avatar
+                      src={USDC_LOGO_URL}
+                      alt={pool.rewardToken.symbol}
+                      sx={{ width: '1.5rem', height: '1.5rem' }}
+                    />
+                  </Link>
+                )} */}
+              </Stack>
+            </Typography>
+          }
+          tooltip={monthlyPayoutTooltip}
+        />
+      </Card>
     </Stack>
   );
 }

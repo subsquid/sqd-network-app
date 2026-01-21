@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { lightTheme, Theme } from '@rainbow-me/rainbowkit';
+import { Theme, lightTheme } from '@rainbow-me/rainbowkit';
 import { merge } from 'lodash-es';
 
 import { PaletteType, useCreateTheme } from './theme';

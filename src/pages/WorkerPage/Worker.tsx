@@ -1,23 +1,21 @@
+import { useMemo } from 'react';
+
+import { CenteredPageWrapper, PageTitle } from '@layouts/NetworkLayout';
 import { Box, Divider, Stack, Tab, Tabs } from '@mui/material';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import {
+  WorkerStatus as ApiWorkerStatus,
+  WorkerStatus,
   useMySources,
   useMyWorkerDelegations,
   useWorkerByPeerId,
-  WorkerStatus,
-  WorkerStatus as ApiWorkerStatus,
 } from '@api/subsquid-network-squid';
+import { Avatar } from '@components/Avatar';
+import { Card } from '@components/Card';
 import { Loader } from '@components/Loader';
 import { NotFound } from '@components/NotFound';
-import { CenteredPageWrapper, PageTitle } from '@layouts/NetworkLayout';
-import { useAccount } from '@network/useAccount';
-import { useContracts } from '@network/useContracts';
-import { useMemo } from 'react';
-import { isOwned } from '@lib/network';
-import { Card } from '@components/Card';
-import { Avatar } from '@components/Avatar';
-import { WorkerTitle } from './WorkerTitle';
+import { Property, PropertyList } from '@components/Property';
 import {
   WorkerDelegate,
   WorkerStatusChip,
@@ -26,7 +24,11 @@ import {
   WorkerVersion,
   WorkerWithdrawButton,
 } from '@components/Worker';
-import { Property, PropertyList } from '@components/Property';
+import { isOwned } from '@lib/network';
+import { useAccount } from '@hooks/network/useAccount';
+import { useContracts } from '@hooks/network/useContracts';
+
+import { WorkerTitle } from './WorkerTitle';
 
 export const Worker = ({ backPath }: { backPath: string }) => {
   const location = useLocation();

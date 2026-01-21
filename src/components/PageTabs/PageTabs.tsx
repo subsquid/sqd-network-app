@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Box, SxProps, Tab, TabProps, Tabs, Theme, styled, TabsProps } from '@mui/material';
+import { Box, SxProps, Tab, TabProps, Tabs, TabsProps, Theme, styled } from '@mui/material';
 import classnames from 'classnames';
 import trimEnd from 'lodash-es/trimEnd';
 import { useLocation, useNavigate } from 'react-router-dom';

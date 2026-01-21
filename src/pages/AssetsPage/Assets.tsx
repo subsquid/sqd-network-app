@@ -1,28 +1,28 @@
 import { useMemo } from 'react';
 
-import { dollarFormatter, tokenFormatter } from '@lib/formatters/formatters';
-import { fromSqd } from '@lib/network/utils';
 import { CircleRounded } from '@mui/icons-material';
 import { Box, Grid, Stack, Typography, useTheme } from '@mui/material';
-import BigNumber from 'bignumber.js';
-import { Pie } from '@visx/shape';
 import { Group } from '@visx/group';
+import { Pie } from '@visx/shape';
+import BigNumber from 'bignumber.js';
 
+import { useTokenPrice } from '@api/price';
 import {
   AccountType,
   SourcesWithAssetsQuery,
-  useSourcesWithAssetsQuery,
   Worker,
+  useSourcesWithAssetsQuery,
 } from '@api/subsquid-network-squid';
-import { HelpTooltip } from '@components/HelpTooltip';
-import { demoFeaturesEnabled } from '@hooks/demoFeaturesEnabled';
-import { useAccount } from '@network/useAccount';
-import { useContracts } from '@network/useContracts';
 import { Card } from '@components/Card/Card';
+import { HelpTooltip } from '@components/HelpTooltip';
 import { Property, PropertyList } from '@components/Property';
+import { demoFeaturesEnabled } from '@hooks/demoFeaturesEnabled';
+import { dollarFormatter, tokenFormatter } from '@lib/formatters/formatters';
+import { fromSqd } from '@lib/network/utils';
+import { useAccount } from '@hooks/network/useAccount';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { ClaimButton } from './ClaimButton';
-import { useTokenPrice } from '@api/price';
 
 type TokenBalance = {
   name: string;

@@ -1,4 +1,4 @@
-import { chipClasses, Chip as MaterialChip, styled } from '@mui/material';
+import { Chip as MaterialChip, chipClasses, styled } from '@mui/material';
 
 import { GatewayFragmentFragment } from '@api/subsquid-network-squid';
 

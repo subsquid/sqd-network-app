@@ -1,8 +1,10 @@
 import { useCallback } from 'react';
+
 import { localPoint } from '@visx/event';
 import { bisector } from 'd3-array';
 import type { ScaleTime } from 'd3-scale';
-import type { ChartSeries, ChartDatum } from './types';
+
+import type { ChartDatum, ChartSeries } from './types';
 
 type XScale = ScaleTime<number, number, never>;
 

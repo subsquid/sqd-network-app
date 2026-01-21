@@ -1,7 +1,8 @@
 import React, { PropsWithChildren } from 'react';
 
-import { Box, Card as MuiCard, styled, Theme, CardProps as MuiCardProps } from '@mui/material';
+import { Box, Card as MuiCard, CardProps as MuiCardProps, Theme, styled } from '@mui/material';
 import { SxProps } from '@mui/system/styleFunctionSx';
+
 import { Loader } from '@components/Loader';
 import { SectionHeader } from '@components/SectionHeader';
 
@@ -42,7 +43,13 @@ export function Card({
     <MuiCard className={className} sx={sx} {...props}>
       <CardContent>
         {hasHeader && (
-          <SectionHeader title={title} subtitle={subtitle} tooltip={tooltip} action={action} sx={{ mb: 2 }} />
+          <SectionHeader
+            title={title}
+            subtitle={subtitle}
+            tooltip={tooltip}
+            action={action}
+            sx={{ mb: 2 }}
+          />
         )}
         {loading ? (
           <Box height={1} width={1}>

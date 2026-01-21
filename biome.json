@@ -13,7 +13,8 @@
       "!**/.yarn",
       "!**/build",
       "!**/dist",
-      "!**/*.generated.*"
+      "!**/*.generated.*",
+      "!**/graphql.tsx"
     ]
   },
   "formatter": {
@@ -27,7 +28,36 @@
     "attributePosition": "auto",
     "bracketSpacing": true
   },
-  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "identifierOrder": "lexicographic",
+            "groups": [
+              [":NODE:", "react"],
+              ":BLANK_LINE:",
+              [
+                ":PACKAGE:",
+                ":PACKAGE_WITH_PROTOCOL:",
+                "!@components/**",
+                "!@contexts/**",
+                "!@hooks/**",
+                "!@api/**",
+                "!@network/**",
+                "!@lib/**"
+              ],
+              ":BLANK_LINE:",
+
+              ["@components/**", "@contexts/**", "@hooks/**", "@api/**", "@network/**", "@lib/**"],
+              ":BLANK_LINE:"
+            ]
+          }
+        }
+      }
+    }
+  },
   "linter": {
     "enabled": true,
     "rules": {

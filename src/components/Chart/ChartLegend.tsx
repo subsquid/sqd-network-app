@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
+
 import { Box, Typography } from '@mui/material';
+
 import type { ChartSeries } from './types';
 
 interface ChartLegendProps {

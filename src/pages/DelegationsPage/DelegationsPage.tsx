@@ -1,23 +1,23 @@
-import { percentFormatter, tokenFormatter } from '@lib/formatters/formatters.ts';
-import { fromSqd } from '@lib/network';
+import { CenteredPageWrapper } from '@layouts/NetworkLayout';
 import { Stack, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 
-import { SortDir, useMyDelegations, useMySources, WorkerSortBy } from '@api/subsquid-network-squid';
+import { SortDir, WorkerSortBy, useMyDelegations, useMySources } from '@api/subsquid-network-squid';
+import { Card } from '@components/Card';
+import { SectionHeader } from '@components/SectionHeader';
 import { DashboardTable, NoItems, SortableHeaderCell } from '@components/Table';
-import { Location, useLocationState } from '@hooks/useLocationState';
-import { CenteredPageWrapper } from '@layouts/NetworkLayout';
-import { ConnectedWalletRequired } from '@network/ConnectedWalletRequired';
-import { useContracts } from '@network/useContracts';
 import {
   DelegationCapacity,
+  WorkerDelegate,
   WorkerName,
   WorkerStatusChip,
-  WorkerDelegate,
   WorkerUndelegate,
 } from '@components/Worker';
-import { SectionHeader } from '@components/SectionHeader';
-import { Card } from '@components/Card';
+import { Location, useLocationState } from '@hooks/useLocationState';
+import { percentFormatter, tokenFormatter } from '@lib/formatters/formatters.ts';
+import { fromSqd } from '@lib/network';
+import { ConnectedWalletRequired } from '@components/ConnectedWalletRequired';
+import { useContracts } from '@hooks/network/useContracts';
 
 export function MyDelegations() {
   const [query, setQuery] = useLocationState({

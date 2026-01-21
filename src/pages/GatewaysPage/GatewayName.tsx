@@ -1,10 +1,9 @@
-import { Stack, styled, Typography } from '@mui/material';
+import { Stack, Typography, styled } from '@mui/material';
 import { Box } from '@mui/system';
 import { Link } from 'react-router-dom';
 
 import { Gateway } from '@api/subsquid-network-squid';
 import { Avatar } from '@components/Avatar';
-import { CopyToClipboard } from '@components/CopyToClipboard';
 import { PeerIdShort, shortPeerId } from '@components/PeerId';
 
 const Name = styled(Box, {
@@ -33,14 +32,9 @@ export const GatewayName = ({
           <Name>{gateway.name.length > 30 ? gateway.name.slice(0, 27) + '...' : gateway.name}</Name>
         ) : null}
         <Typography variant="caption">
-          <CopyToClipboard
-            text={gateway.id}
-            content={
-              <PeerIdShort>
-                <Link to={to || '#'}>{shortPeerId(gateway.id)}</Link>
-              </PeerIdShort>
-            }
-          />
+          <PeerIdShort>
+            <Link to={to || '#'}>{shortPeerId(gateway.id)}</Link>
+          </PeerIdShort>
         </Typography>
         {/* <WorkerDelegationCapacity gateway={gateway} /> */}
       </Box>

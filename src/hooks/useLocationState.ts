@@ -1,6 +1,6 @@
 import { isArray, isDate, mapValues, pickBy } from 'lodash-es';
 import qs from 'qs';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Location {
@@ -85,19 +85,20 @@ export namespace Location {
   }
 }
 
-type TypeName<T> = T extends Location.Array<infer U>
-  ? TypeName<U>[]
-  : T extends Location.String
-    ? string
-    : T extends Location.Enum<infer U>
-      ? U
-      : T extends Location.Number
-        ? number
-        : T extends Location.Bool
-          ? boolean
-          : T extends Location.IsoDate
-            ? Date
-            : never;
+type TypeName<T> =
+  T extends Location.Array<infer U>
+    ? TypeName<U>[]
+    : T extends Location.String
+      ? string
+      : T extends Location.Enum<infer U>
+        ? U
+        : T extends Location.Number
+          ? number
+          : T extends Location.Bool
+            ? boolean
+            : T extends Location.IsoDate
+              ? Date
+              : never;
 
 export function useLocationState<
   Query extends Record<string | symbol, Location.Param>,

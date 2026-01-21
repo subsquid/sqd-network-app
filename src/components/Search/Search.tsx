@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
+
+import { SearchIcon } from '@icons/SearchIcon';
+import { Box } from '@mui/material';
 import { useDebouncedCallback } from 'use-debounce';
 
-import { Box } from '@mui/material';
-
 import { TextField } from '@components/Form';
-import { SearchIcon } from '@icons/SearchIcon';
 
 interface SearchProps {
   loading?: boolean;

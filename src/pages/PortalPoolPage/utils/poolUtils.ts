@@ -1,32 +1,34 @@
 import type { QueryClient } from '@tanstack/react-query';
+import BigNumber from 'bignumber.js';
 
-import { fromSqd } from '@lib/network';
 import type { PoolData, PoolPhase } from '../hooks/types';
 
 export interface CapacityInfo {
-  maxDepositPerAddress: number;
-  currentUserBalance: number;
-  userRemainingCapacity: number;
-  currentPoolTvl: number;
-  maxPoolCapacity: number;
-  poolRemainingCapacity: number;
-  effectiveMax: number;
+  maxDepositPerAddress: BigNumber;
+  currentUserBalance: BigNumber;
+  userRemainingCapacity: BigNumber;
+  currentPoolTvl: BigNumber;
+  maxPoolCapacity: BigNumber;
+  poolRemainingCapacity: BigNumber;
+  effectiveMax: BigNumber;
 }
 
-export function calculateCapacity(pool: PoolData, currentUserBalance: bigint = 0n): CapacityInfo {
-  const maxDepositPerAddress = fromSqd(pool.maxDepositPerAddress).toNumber();
-  const userBalance = fromSqd(currentUserBalance).toNumber();
-  const userRemainingCapacity = Math.max(0, maxDepositPerAddress - userBalance);
+export function calculateCapacity(
+  pool: PoolData,
+  currentUserBalance: BigNumber = BigNumber(0),
+): CapacityInfo {
+  const maxDepositPerAddress = pool.maxDepositPerAddress;
+  const userRemainingCapacity = BigNumber.max(0, maxDepositPerAddress.minus(currentUserBalance));
 
-  const currentPoolTvl = fromSqd(pool.tvl.current).toNumber();
-  const maxPoolCapacity = fromSqd(pool.tvl.max).toNumber();
-  const poolRemainingCapacity = Math.max(0, maxPoolCapacity - currentPoolTvl);
+  const currentPoolTvl = pool.tvl.current;
+  const maxPoolCapacity = pool.tvl.max;
+  const poolRemainingCapacity = BigNumber.max(0, maxPoolCapacity.minus(currentPoolTvl));
 
-  const effectiveMax = Math.min(userRemainingCapacity, poolRemainingCapacity);
+  const effectiveMax = BigNumber.min(userRemainingCapacity, poolRemainingCapacity);
 
   return {
     maxDepositPerAddress,
-    currentUserBalance: userBalance,
+    currentUserBalance,
     userRemainingCapacity,
     currentPoolTvl,
     maxPoolCapacity,
@@ -67,10 +69,13 @@ export function calculateApyOrZero(
   return calculateApy(monthlyPayoutUsd, tvlInSqd, sqdPrice) ?? 0;
 }
 
-export function calculateExpectedMonthlyPayout(pool: PoolData, userDelegation: number): number {
-  const maxPoolCapacity = fromSqd(pool.tvl.max).toNumber();
-  const payoutCoefficientPerSqd = maxPoolCapacity > 0 ? pool.monthlyPayoutUsd / maxPoolCapacity : 0;
-  return userDelegation * payoutCoefficientPerSqd;
+export function calculateExpectedMonthlyPayout(pool: PoolData, userDelegation: BigNumber): number {
+  const maxPoolCapacity = pool.tvl.max;
+  if (maxPoolCapacity.isZero()) return 0;
+  return userDelegation
+    .div(maxPoolCapacity)
+    .times(pool.distributionRatePerSecond.times(30 * 86400))
+    .toNumber();
 }
 
 export function getPhaseColor(
@@ -107,13 +112,13 @@ export function getPhaseLabel(phase: PoolPhase): string {
 export function getPhaseTooltip(phase: PoolPhase): string {
   switch (phase) {
     case 'active':
-      return 'Pool is active and earning rewards. Distributing yields to liquidity providers.';
+      return 'Pool is active. Distributing yields to liquidity providers.';
     case 'collecting':
-      return "Accepting deposits to reach activation threshold. Pool will activate once the minimum liquidity is reached. If threshold isn't met, deposits can be fully withdrawn.";
+      return 'Pool is collecting tokens to activate. Pool activates once minimum threshold is met. If not met by deadline, you can withdraw all your tokens.';
     case 'idle':
-      return 'Pool temporarily paused. Rewards have stopped due to insufficient buffer. Will resume once liquidity increases above minimum threshold.';
+      return 'Pool is paused due to insufficient liquidity. Rewards are not being distributed. Pool reactivates when liquidity increases above minimum threshold.';
     case 'debt':
-      return 'Pool is in debt. Rewards emission is paused because the USDC balance has run out. Please report it to the pool owner.';
+      return 'Pool has run out of USDC rewards. No rewards are being distributed. Contact the pool operator to add more USDC to resume rewards.';
     default:
       return phase;
   }

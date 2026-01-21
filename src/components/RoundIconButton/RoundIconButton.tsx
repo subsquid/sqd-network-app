@@ -1,4 +1,4 @@
-import { IconButton, IconButtonProps, SxProps, Theme, styled, alpha } from '@mui/material';
+import { IconButton, IconButtonProps, SxProps, Theme, alpha, styled } from '@mui/material';
 
 export interface RoundIconButtonProps extends Omit<IconButtonProps, 'size'> {
   /** Custom styles for the button */

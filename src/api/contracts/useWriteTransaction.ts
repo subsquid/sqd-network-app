@@ -2,21 +2,24 @@ import { useState } from 'react';
 
 import * as Sentry from '@sentry/react';
 import { readContract, waitForTransactionReceipt, writeContract } from '@wagmi/core';
-import { ContractFunctionExecutionError, createPublicClient, erc20Abi, http } from 'viem';
 import {
   Abi,
   Address,
   ContractFunctionArgs,
+  ContractFunctionExecutionError,
   ContractFunctionName,
   TransactionReceipt,
+  createPublicClient,
   encodeFunctionData,
+  erc20Abi,
+  http,
 } from 'viem';
 import { useConfig, useWriteContract } from 'wagmi';
 import { arbitrum } from 'wagmi/chains';
 
-import { useAccount } from '@network/useAccount';
-import { useContracts } from '@network/useContracts';
-import { getSubsquidNetwork, NetworkName } from '@network/useSubsquidNetwork';
+import { useAccount } from '@hooks/network/useAccount';
+import { useContracts } from '@hooks/network/useContracts';
+import { NetworkName, getSubsquidNetwork } from '@hooks/network/useSubsquidNetwork';
 
 import { vestingAbi } from './subsquid.generated';
 
@@ -127,7 +130,13 @@ export function useWriteSQDTransaction({}: object = {}): WriteTransactionResult 
           } as Parameters<typeof writeContractAsync>[0]);
         }
 
-        return await waitForTransactionReceipt(config, { hash });
+        const receipt = await waitForTransactionReceipt(config, { hash });
+
+        if (receipt.status === 'reverted') {
+          throw new Error('Transaction reverted');
+        }
+
+        return receipt;
       } catch (e) {
         if (e instanceof Error && !/rejected/i.test(e.message)) {
           let params: any;

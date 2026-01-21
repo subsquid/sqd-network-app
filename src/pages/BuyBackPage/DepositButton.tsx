@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
 
-import { fromSqd, toSqd } from '@lib/network/utils';
 import { Button, Chip } from '@mui/material';
 import * as yup from '@schema';
 import { useFormik } from 'formik';
@@ -11,9 +10,10 @@ import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
 import { AccountType, SourceWalletWithBalance } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
-import { Form, FormikSelect, FormikTextInput, FormRow } from '@components/Form';
+import { Form, FormRow, FormikSelect, FormikTextInput } from '@components/Form';
 import { SourceWalletOption } from '@components/SourceWallet';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
+import { fromSqd, toSqd } from '@lib/network/utils';
 
 export const depositSchema = yup.object({
   source: yup.string().label('Source').trim().required().typeError('${path} is invalid'),

@@ -11,6 +11,8 @@ import {
   DashboardOutlined,
   Lan,
   LanOutlined,
+  LocalAtm as PortalPool,
+  LocalAtmOutlined as PortalPoolOutlined,
   Savings,
   SavingsOutlined,
   SmsOutlined,
@@ -24,9 +26,10 @@ import {
   ListItemText,
   styled,
 } from '@mui/material';
-import { useWorkersChatUrl } from '@network/useWorkersChat';
-import React, { useRef } from 'react';
 import { Link, LinkProps as RouterLinkProps, useLocation } from 'react-router-dom';
+
+import { useWorkersChatUrl } from '@hooks/network/useWorkersChat';
+import {useRef} from 'react';
 
 interface NetworkMenuProps {
   onItemClick: () => void;
@@ -145,6 +148,7 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
   const paths = ['/dashboard', '/assets', '/workers', '/delegations'];
   if (demoFeaturesEnabled()) {
     paths.push('/portals');
+    paths.push('/portal-pools');
   }
 
   const selectedPath = paths.find(path => location.pathname.startsWith(path));
@@ -187,6 +191,15 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
           onClick={onItemClick}
           path="/portals"
           selected={activePath === '/portals'}
+        />
+      )}
+      {demoFeaturesEnabled() && (
+        <Item
+          LeftIcon={active => (active ? <PortalPool /> : <PortalPoolOutlined />)}
+          label="Portal Pools"
+          onClick={onItemClick}
+          path="/portal-pools"
+          selected={activePath === '/portal-pools'}
         />
       )}
       <Item

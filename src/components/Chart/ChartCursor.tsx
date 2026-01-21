@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
+
 import { useTheme } from '@mui/material';
-import { Line } from '@visx/shape';
-import { Group } from '@visx/group';
 import { GlyphCircle } from '@visx/glyph';
+import { Group } from '@visx/group';
+import { Line } from '@visx/shape';
 import { bisector } from 'd3-array';
-import type { ScaleTime, ScaleLinear } from 'd3-scale';
-import type { ChartSeries, ChartDatum, StackedChartSeries } from './types';
+import type { ScaleLinear, ScaleTime } from 'd3-scale';
+
+import type { ChartDatum, ChartSeries, StackedChartSeries } from './types';
 
 type XScale = ScaleTime<number, number, never>;
 type YScale = ScaleLinear<number, number, never>;

@@ -1,9 +1,7 @@
 import { useMemo, useState } from 'react';
 
-import { tokenFormatter } from '@lib/formatters/formatters';
-import { fromSqd } from '@lib/network/utils';
 import { TollOutlined } from '@mui/icons-material';
-import { Box, TableBody, TableCell, TableRow, Button } from '@mui/material';
+import { Box, Button, TableBody, TableCell, TableRow } from '@mui/material';
 import { useFormik } from 'formik';
 import toast from 'react-hot-toast';
 import { useClient } from 'wagmi';
@@ -14,14 +12,16 @@ import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
 import { AccountType, SourceWalletWithBalance, Worker } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
-import { Form, FormikSelect, FormRow } from '@components/Form';
+import { Form, FormRow, FormikSelect } from '@components/Form';
 import { Loader } from '@components/Loader';
 import { SourceWalletOption } from '@components/SourceWallet';
 import { TableList } from '@components/Table/TableList.tsx';
-import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
-import { useAccount } from '@network/useAccount';
-import { useContracts } from '@network/useContracts';
 import { WorkerName } from '@components/Worker';
+import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
+import { tokenFormatter } from '@lib/formatters/formatters';
+import { fromSqd } from '@lib/network/utils';
+import { useAccount } from '@hooks/network/useAccount';
+import { useContracts } from '@hooks/network/useContracts';
 
 export const claimSchema = yup.object({
   source: yup.string().label('Source').trim().required('Source is required'),

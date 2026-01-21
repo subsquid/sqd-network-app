@@ -16,6 +16,7 @@ export function useContracts(): {
   MULTICALL: `0x${string}`;
   BUYBACK: `0x${string}`;
   PORTAL_POOL_FACTORY: `0x${string}`;
+  PORTAL_REGISTRY: `0x${string}`;
 } {
   const network = getSubsquidNetwork();
 
@@ -34,7 +35,8 @@ export function useContracts(): {
         CHAIN_ID_L1: sepolia.id,
         MULTICALL: '0x7eCfBaa8742fDf5756DAC92fbc8b90a19b8815bF',
         BUYBACK: '0xe34189ad45044e93d3af7d93ac520d02651faf72',
-        PORTAL_POOL_FACTORY: '0x283D026ba166ae73925b622f6665Bd2699811b71',
+        PORTAL_POOL_FACTORY: '0xa3f66B4649cf1C70776CfE32352cb9b5006528bC',
+        PORTAL_REGISTRY: '0xff09F8eC63946bA2bFa5400F4dc1D09eeA21BcCD',
       };
     }
     case NetworkName.Mainnet: {
@@ -51,7 +53,8 @@ export function useContracts(): {
         CHAIN_ID_L1: mainnet.id,
         MULTICALL: '0x7eCfBaa8742fDf5756DAC92fbc8b90a19b8815bF',
         BUYBACK: '0x4efab28e320ef16907930a06e2a5aaadb7425b48',
-        PORTAL_POOL_FACTORY: '0x8baf8707861a84e3d978aC067447de9AAd862FAc',
+        PORTAL_POOL_FACTORY: '0x18184740eBE24881355E33cec620C44E575F2C70',
+        PORTAL_REGISTRY: '0x29edE9EB0ad3C02B6A98B0E41bF99Cd709812850',
       };
     }
   }

@@ -1,22 +1,25 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+
+import { EditOutlined } from '@mui/icons-material';
 import { IconButton } from '@mui/material';
-import { Edit } from '@mui/icons-material';
-import { useFormik } from 'formik';
-import * as yup from 'yup';
 import { useQueryClient } from '@tanstack/react-query';
 import { BigNumber } from 'bignumber.js';
+import { useFormik } from 'formik';
+import toast from 'react-hot-toast';
+import * as yup from 'yup';
 
 import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
+import { errorMessage } from '@api/contracts/utils';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
-import { useRewardToken } from '@hooks/useRewardToken';
-import { tokenFormatter } from '@lib/formatters/formatters';
-import { fromSqd, toSqd } from '@lib/network';
-import { useContracts } from '@network/useContracts';
+import { Loader } from '@components/Loader';
+import { toSqd } from '@lib/network';
+import { useContracts } from '@hooks/network/useContracts';
 
-import { invalidatePoolQueries } from '../utils/poolUtils';
 import { usePoolData } from '../hooks';
+import { EDIT_SETTINGS_DIALOG_TEXTS } from '../texts';
+import { invalidatePoolQueries } from '../utils/poolUtils';
 
 // Edit Capacity Dialog
 interface EditCapacityDialogProps {
@@ -38,12 +41,12 @@ const capacityValidationSchema = yup.object({
 export function EditCapacityDialog({ open, onClose, poolId }: EditCapacityDialogProps) {
   const queryClient = useQueryClient();
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
-  const { data: pool } = usePoolData(poolId);
+  const { data: pool, isLoading } = usePoolData(poolId);
   const { SQD_TOKEN } = useContracts();
 
   const initialCapacity = useMemo(() => {
     if (!pool) return '';
-    return fromSqd(pool.tvl.max).toString();
+    return pool.tvl.max.toString();
   }, [pool]);
 
   const formik = useFormik({
@@ -68,7 +71,9 @@ export function EditCapacityDialog({ open, onClose, poolId }: EditCapacityDialog
         await invalidatePoolQueries(queryClient, poolId);
         formik.resetForm();
         onClose();
-      } catch (error) {}
+      } catch (error) {
+        toast.error(errorMessage(error));
+      }
     },
   });
 
@@ -85,27 +90,31 @@ export function EditCapacityDialog({ open, onClose, poolId }: EditCapacityDialog
 
   return (
     <ContractCallDialog
-      title="Edit Max Pool Capacity"
+      title={EDIT_SETTINGS_DIALOG_TEXTS.editCapacity.title}
       open={open}
       onResult={handleResult}
       loading={isPending}
       disableConfirmButton={!formik.isValid}
     >
-      <FormRow>
-        <FormikTextInput
-          id="capacity"
-          label={`Max Pool Capacity (${SQD_TOKEN})`}
-          formik={formik}
-          showErrorOnlyOfTouched
-          autoComplete="off"
-          placeholder="0"
-        />
-      </FormRow>
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <FormRow>
+          <FormikTextInput
+            id="capacity"
+            label={EDIT_SETTINGS_DIALOG_TEXTS.editCapacity.label(SQD_TOKEN)}
+            formik={formik}
+            showErrorOnlyOfTouched
+            autoComplete="off"
+            placeholder="0"
+          />
+        </FormRow>
+      )}
     </ContractCallDialog>
   );
 }
 
-export function EditCapacityButton({ poolId, disabled }: { poolId: string, disabled?: boolean }) {
+export function EditCapacityButton({ poolId, disabled }: { poolId: string; disabled?: boolean }) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleOpen = useCallback(() => setDialogOpen(true), []);
@@ -114,7 +123,7 @@ export function EditCapacityButton({ poolId, disabled }: { poolId: string, disab
   return (
     <>
       <IconButton size="small" onClick={handleOpen} disabled={disabled}>
-        <Edit fontSize="small" />
+        <EditOutlined fontSize="small" />
       </IconButton>
       <EditCapacityDialog open={dialogOpen} onClose={handleClose} poolId={poolId} />
     </>
@@ -145,12 +154,11 @@ export function EditDistributionRateDialog({
 }: EditDistributionRateDialogProps) {
   const queryClient = useQueryClient();
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
-  const { data: pool } = usePoolData(poolId);
-  const { data: rewardToken } = useRewardToken();
+  const { data: pool, isLoading } = usePoolData(poolId);
 
   const initialDistributionRate = useMemo(() => {
     if (!pool) return '';
-    return (pool.monthlyPayoutUsd / 30).toFixed(2);
+    return pool.distributionRatePerSecond.times(86400).toFixed(2);
   }, [pool]);
 
   const formik = useFormik({
@@ -163,7 +171,9 @@ export function EditDistributionRateDialog({
     enableReinitialize: true,
     onSubmit: async values => {
       try {
-        const rewardDecimals = rewardToken?.decimals ?? 6;
+        if (!pool) return;
+
+        const rewardDecimals = pool.rewardToken.decimals;
 
         // Convert daily rate to per-second rate with reward token decimals
         const distributionRatePerSecond = BigInt(
@@ -183,7 +193,9 @@ export function EditDistributionRateDialog({
         await invalidatePoolQueries(queryClient, poolId);
         formik.resetForm();
         onClose();
-      } catch (error) {}
+      } catch (error) {
+        toast.error(errorMessage(error));
+      }
     },
   });
 
@@ -200,27 +212,39 @@ export function EditDistributionRateDialog({
 
   return (
     <ContractCallDialog
-      title="Edit Distribution Rate"
+      title={EDIT_SETTINGS_DIALOG_TEXTS.editDistributionRate.title}
       open={open}
       onResult={handleResult}
       loading={isPending}
       disableConfirmButton={!formik.isValid}
     >
-      <FormRow>
-        <FormikTextInput
-          id="distributionRate"
-          label={`Distribution Rate (${rewardToken?.symbol ?? 'USDC'}/day)`}
-          formik={formik}
-          showErrorOnlyOfTouched
-          autoComplete="off"
-          placeholder="0"
-        />
-      </FormRow>
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <FormRow>
+          <FormikTextInput
+            id="distributionRate"
+            label={EDIT_SETTINGS_DIALOG_TEXTS.editDistributionRate.label(
+              pool?.rewardToken.symbol || '',
+            )}
+            formik={formik}
+            showErrorOnlyOfTouched
+            autoComplete="off"
+            placeholder="0"
+          />
+        </FormRow>
+      )}
     </ContractCallDialog>
   );
 }
 
-export function EditDistributionRateButton({ poolId, disabled }: { poolId: string, disabled?: boolean }) {
+export function EditDistributionRateButton({
+  poolId,
+  disabled,
+}: {
+  poolId: string;
+  disabled?: boolean;
+}) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleOpen = useCallback(() => setDialogOpen(true), []);
@@ -229,10 +253,9 @@ export function EditDistributionRateButton({ poolId, disabled }: { poolId: strin
   return (
     <>
       <IconButton size="small" onClick={handleOpen} disabled={disabled}>
-        <Edit fontSize="small" />
+        <EditOutlined fontSize="small" />
       </IconButton>
       <EditDistributionRateDialog open={dialogOpen} onClose={handleClose} poolId={poolId} />
     </>
   );
 }
-

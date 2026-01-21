@@ -1,20 +1,23 @@
 import { useMemo } from 'react';
-import { Card } from '@components/Card';
-import { Box, Skeleton, Typography } from '@mui/material';
-import { lighten, darken } from '@mui/material/styles';
+
 import ShowChartIcon from '@mui/icons-material/ShowChart';
+import { Box, Skeleton, Typography } from '@mui/material';
+import { darken, lighten } from '@mui/material/styles';
+
+import { Card } from '@components/Card';
 import { createGenerator } from '@lib/array';
 import { toUTCDate } from '@lib/datemath';
 import {
   bytesFormatter,
   percentFormatter,
   toCompact,
-  tokenFormatter,
   toNumber,
+  tokenFormatter,
 } from '@lib/formatters/formatters';
-import { LineChart, useChartPalette } from './LineChart';
+
+import { CHART_CONFIG, type ChartProps, type ChartSeries, toTimeRange } from './';
 import { ChartLegend } from './ChartLegend';
-import { CHART_CONFIG, toTimeRange, type ChartProps, type ChartSeries } from './';
+import { LineChart, useChartPalette } from './LineChart';
 
 export const CHART_FORMATTERS = {
   number: {

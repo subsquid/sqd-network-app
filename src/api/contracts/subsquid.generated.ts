@@ -237,13 +237,6 @@ export const portalPoolAbi = [
   },
   {
     type: 'function',
-    inputs: [{ name: 'amount', internalType: 'uint256', type: 'uint256' }],
-    name: 'getWithdrawalWaitingTimestamp',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
     inputs: [],
     name: 'FACTORY_ROLE',
     outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
@@ -266,9 +259,16 @@ export const portalPoolAbi = [
   {
     type: 'function',
     inputs: [],
-    name: 'getMinCapacity',
-    outputs: [{ name: '', internalType: 'uint64', type: 'uint64' }],
+    name: 'RATE_PRECISION',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'users', internalType: 'address[]', type: 'address[]' }],
+    name: 'addToWhitelist',
+    outputs: [],
+    stateMutability: 'nonpayable',
   },
   {
     type: 'function',
@@ -293,16 +293,23 @@ export const portalPoolAbi = [
   },
   {
     type: 'function',
-    inputs: [{ name: 'token', internalType: 'address', type: 'address' }],
-    name: 'claimFees',
-    outputs: [{ name: 'claimed', internalType: 'uint256', type: 'uint256' }],
+    inputs: [],
+    name: 'claimRewards',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'nonpayable',
   },
   {
     type: 'function',
     inputs: [],
-    name: 'claimRewards',
+    name: 'claimRewardsFromClosed',
     outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'closePool',
+    outputs: [],
     stateMutability: 'nonpayable',
   },
   {
@@ -328,13 +335,6 @@ export const portalPoolAbi = [
   },
   {
     type: 'function',
-    inputs: [],
-    name: 'delegatorRatePerSec',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
     inputs: [{ name: 'amount', internalType: 'uint256', type: 'uint256' }],
     name: 'deposit',
     outputs: [],
@@ -342,11 +342,8 @@ export const portalPoolAbi = [
   },
   {
     type: 'function',
-    inputs: [
-      { name: 'token', internalType: 'address', type: 'address' },
-      { name: 'amount', internalType: 'uint256', type: 'uint256' },
-    ],
-    name: 'distributeFees',
+    inputs: [],
+    name: 'emergencyWithdraw',
     outputs: [],
     stateMutability: 'nonpayable',
   },
@@ -359,24 +356,7 @@ export const portalPoolAbi = [
   },
   {
     type: 'function',
-    inputs: [],
-    name: 'getAllowedPaymentTokens',
-    outputs: [{ name: '', internalType: 'address[]', type: 'address[]' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'provider', internalType: 'address', type: 'address' },
-      { name: 'token', internalType: 'address', type: 'address' },
-    ],
-    name: 'getClaimableFees',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: 'delegator', internalType: 'address', type: 'address' }],
+    inputs: [{ name: 'provider', internalType: 'address', type: 'address' }],
     name: 'getClaimableRewards',
     outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
@@ -433,13 +413,6 @@ export const portalPoolAbi = [
   {
     type: 'function',
     inputs: [],
-    name: 'getMetadata',
-    outputs: [{ name: '', internalType: 'string', type: 'string' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
     name: 'getMinCapacity',
     outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
@@ -447,33 +420,18 @@ export const portalPoolAbi = [
   {
     type: 'function',
     inputs: [],
-    name: 'getPeerId',
-    outputs: [{ name: '', internalType: 'bytes', type: 'bytes' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: 'user', internalType: 'address', type: 'address' }],
-    name: 'getPoolStatusWithRewards',
-    outputs: [
-      { name: 'poolCredit', internalType: 'uint256', type: 'uint256' },
-      { name: 'poolDebt', internalType: 'uint256', type: 'uint256' },
-      { name: 'poolBalance', internalType: 'int256', type: 'int256' },
-      { name: 'runway', internalType: 'int256', type: 'int256' },
-      { name: 'outOfMoney', internalType: 'bool', type: 'bool' },
-      { name: 'userRewards', internalType: 'uint256', type: 'uint256' },
-      { name: 'userStake', internalType: 'uint256', type: 'uint256' },
-    ],
+    name: 'getOperator',
+    outputs: [{ name: '', internalType: 'address', type: 'address' }],
     stateMutability: 'view',
   },
   {
     type: 'function',
     inputs: [],
-    name: 'getPortalInfo',
+    name: 'getPoolInfo',
     outputs: [
       {
         name: '',
-        internalType: 'struct IPortalPool.PortalInfo',
+        internalType: 'struct IPortalPool.PoolInfo',
         type: 'tuple',
         components: [
           { name: 'operator', internalType: 'address', type: 'address' },
@@ -483,13 +441,28 @@ export const portalPoolAbi = [
           { name: 'activationTime', internalType: 'uint64', type: 'uint64' },
           {
             name: 'state',
-            internalType: 'enum IPortalPool.PortalState',
+            internalType: 'enum IPortalPool.PoolState',
             type: 'uint8',
           },
           { name: 'paused', internalType: 'bool', type: 'bool' },
           { name: 'firstActivated', internalType: 'bool', type: 'bool' },
         ],
       },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'provider', internalType: 'address', type: 'address' }],
+    name: 'getPoolStatusWithRewards',
+    outputs: [
+      { name: 'poolCredit', internalType: 'uint256', type: 'uint256' },
+      { name: 'poolDebt', internalType: 'uint256', type: 'uint256' },
+      { name: 'poolBalance', internalType: 'int256', type: 'int256' },
+      { name: 'runway', internalType: 'int256', type: 'int256' },
+      { name: 'outOfMoney', internalType: 'bool', type: 'bool' },
+      { name: 'providerRewards', internalType: 'uint256', type: 'uint256' },
+      { name: 'providerStake', internalType: 'uint256', type: 'uint256' },
     ],
     stateMutability: 'view',
   },
@@ -503,39 +476,17 @@ export const portalPoolAbi = [
   {
     type: 'function',
     inputs: [
-      { name: 'user', internalType: 'address', type: 'address' },
-      { name: 'ticketId', internalType: 'uint256', type: 'uint256' },
-    ],
-    name: 'getQueueStatus',
-    outputs: [
-      { name: 'processed', internalType: 'uint256', type: 'uint256' },
-      { name: 'userEndPos', internalType: 'uint256', type: 'uint256' },
-      { name: 'secondsRemaining', internalType: 'uint256', type: 'uint256' },
-      { name: 'ready', internalType: 'bool', type: 'bool' },
-    ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'user', internalType: 'address', type: 'address' },
+      { name: 'provider', internalType: 'address', type: 'address' },
       { name: 'ticketId', internalType: 'uint256', type: 'uint256' },
     ],
     name: 'getQueueStatusWithTimestamp',
     outputs: [
       { name: 'processed', internalType: 'uint256', type: 'uint256' },
-      { name: 'userEndPos', internalType: 'uint256', type: 'uint256' },
+      { name: 'providerEndPos', internalType: 'uint256', type: 'uint256' },
       { name: 'secondsRemaining', internalType: 'uint256', type: 'uint256' },
       { name: 'ready', internalType: 'bool', type: 'bool' },
       { name: 'unlockTimestamp', internalType: 'uint256', type: 'uint256' },
     ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'getRewardDebt',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
   },
   {
@@ -548,6 +499,13 @@ export const portalPoolAbi = [
       { name: 'runwayTimestamp', internalType: 'int256', type: 'int256' },
       { name: 'isDry', internalType: 'bool', type: 'bool' },
     ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'getRewardToken',
+    outputs: [{ name: '', internalType: 'address', type: 'address' }],
     stateMutability: 'view',
   },
   {
@@ -569,7 +527,7 @@ export const portalPoolAbi = [
     inputs: [],
     name: 'getState',
     outputs: [
-      { name: '', internalType: 'enum IPortalPool.PortalState', type: 'uint8' },
+      { name: '', internalType: 'enum IPortalPool.PoolState', type: 'uint8' },
     ],
     stateMutability: 'view',
   },
@@ -596,9 +554,11 @@ export const portalPoolAbi = [
   },
   {
     type: 'function',
-    inputs: [{ name: 'user', internalType: 'address', type: 'address' }],
-    name: 'getUserRewards',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    inputs: [{ name: 'amount', internalType: 'uint256', type: 'uint256' }],
+    name: 'getWithdrawalWaitingTimestamp',
+    outputs: [
+      { name: 'unlockTimestamp', internalType: 'uint256', type: 'uint256' },
+    ],
     stateMutability: 'view',
   },
   {
@@ -632,17 +592,11 @@ export const portalPoolAbi = [
           { name: 'operator', internalType: 'address', type: 'address' },
           { name: 'capacity', internalType: 'uint256', type: 'uint256' },
           { name: 'depositDeadline', internalType: 'uint256', type: 'uint256' },
-          { name: 'peerId', internalType: 'bytes', type: 'bytes' },
           { name: 'tokenSuffix', internalType: 'string', type: 'string' },
           { name: 'sqd', internalType: 'address', type: 'address' },
-          { name: 'usdc', internalType: 'address', type: 'address' },
+          { name: 'rewardToken', internalType: 'address', type: 'address' },
           { name: 'portalRegistry', internalType: 'address', type: 'address' },
           { name: 'feeRouter', internalType: 'address', type: 'address' },
-          {
-            name: 'networkController',
-            internalType: 'address',
-            type: 'address',
-          },
           {
             name: 'distributionRatePerSecond',
             internalType: 'uint256',
@@ -658,16 +612,16 @@ export const portalPoolAbi = [
   },
   {
     type: 'function',
-    inputs: [],
-    name: 'isOutOfMoney',
-    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
-    stateMutability: 'view',
+    inputs: [{ name: 'amount', internalType: 'uint256', type: 'uint256' }],
+    name: 'initializeCredit',
+    outputs: [],
+    stateMutability: 'nonpayable',
   },
   {
     type: 'function',
-    inputs: [{ name: '', internalType: 'address', type: 'address' }],
-    name: 'lastDistributionTime',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    inputs: [{ name: 'user', internalType: 'address', type: 'address' }],
+    name: 'isWhitelisted',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
     stateMutability: 'view',
   },
   {
@@ -685,16 +639,6 @@ export const portalPoolAbi = [
       { name: '', internalType: 'contract LiquidPortalToken', type: 'address' },
     ],
     stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'provider', internalType: 'address', type: 'address' },
-      { name: 'amount', internalType: 'uint256', type: 'uint256' },
-    ],
-    name: 'onAllocationReduced',
-    outputs: [],
-    stateMutability: 'nonpayable',
   },
   {
     type: 'function',
@@ -727,6 +671,27 @@ export const portalPoolAbi = [
     name: 'perStakeRateWad',
     outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'providerRatePerSec',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'recoverRewardsFromFailed',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'users', internalType: 'address[]', type: 'address[]' }],
+    name: 'removeFromWhitelist',
+    outputs: [],
+    stateMutability: 'nonpayable',
   },
   {
     type: 'function',
@@ -764,15 +729,6 @@ export const portalPoolAbi = [
   },
   {
     type: 'function',
-    inputs: [
-      { name: 'newBurnAddress', internalType: 'address', type: 'address' },
-    ],
-    name: 'setBurnAddress',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
     inputs: [{ name: 'newCapacity', internalType: 'uint256', type: 'uint256' }],
     name: 'setCapacity',
     outputs: [],
@@ -784,6 +740,20 @@ export const portalPoolAbi = [
       { name: 'newRatePerSecond', internalType: 'uint256', type: 'uint256' },
     ],
     name: 'setDistributionRate',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'metadata', internalType: 'string', type: 'string' }],
+    name: 'setMetadata',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'enabled', internalType: 'bool', type: 'bool' }],
+    name: 'setWhitelistEnabled',
     outputs: [],
     stateMutability: 'nonpayable',
   },
@@ -810,10 +780,10 @@ export const portalPoolAbi = [
   },
   {
     type: 'function',
-    inputs: [{ name: '', internalType: 'address', type: 'address' }],
-    name: 'totalFeesDistributed',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
+    inputs: [{ name: 'newOperator', internalType: 'address', type: 'address' }],
+    name: 'transferOperator',
+    outputs: [],
+    stateMutability: 'nonpayable',
   },
   {
     type: 'function',
@@ -838,6 +808,20 @@ export const portalPoolAbi = [
   },
   {
     type: 'function',
+    inputs: [{ name: '', internalType: 'address', type: 'address' }],
+    name: 'whitelist',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'whitelistEnabled',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
     inputs: [{ name: 'ticketId', internalType: 'uint256', type: 'uint256' }],
     name: 'withdrawExit',
     outputs: [],
@@ -857,448 +841,6 @@ export const portalPoolAbi = [
     outputs: [{ name: '', internalType: 'address', type: 'address' }],
     stateMutability: 'view',
   },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'provider',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'amount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'AllocationReduced',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'burnAddress',
-        internalType: 'address',
-        type: 'address',
-        indexed: false,
-      },
-    ],
-    name: 'BurnAddressUpdated',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'oldCapacity',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'newCapacity',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'CapacityUpdated',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'provider',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'amount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'newTotal',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'Deposited',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'oldRate',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'newRate',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'DistributionRateChanged',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'provider',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'amount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'ExitClaimed',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'provider',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'amount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'endPosition',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'ExitRequested',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'provider',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'token',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'amount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'FeesClaimed',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'token',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'totalAmount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'toProviders',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'toWorkers',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'toBurn',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'FeesDistributed',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'version',
-        internalType: 'uint64',
-        type: 'uint64',
-        indexed: false,
-      },
-    ],
-    name: 'Initialized',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: false,
-      },
-    ],
-    name: 'Paused',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'delegator',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'amount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'RewardsClaimed',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'operator',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'amount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'newBalanceScaled',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'RewardsToppedUp',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      { name: 'role', internalType: 'bytes32', type: 'bytes32', indexed: true },
-      {
-        name: 'previousAdminRole',
-        internalType: 'bytes32',
-        type: 'bytes32',
-        indexed: true,
-      },
-      {
-        name: 'newAdminRole',
-        internalType: 'bytes32',
-        type: 'bytes32',
-        indexed: true,
-      },
-    ],
-    name: 'RoleAdminChanged',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      { name: 'role', internalType: 'bytes32', type: 'bytes32', indexed: true },
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'sender',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-    ],
-    name: 'RoleGranted',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      { name: 'role', internalType: 'bytes32', type: 'bytes32', indexed: true },
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'sender',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-    ],
-    name: 'RoleRevoked',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      { name: 'from', internalType: 'address', type: 'address', indexed: true },
-      { name: 'to', internalType: 'address', type: 'address', indexed: true },
-      {
-        name: 'amount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'StakeTransferred',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'oldState',
-        internalType: 'enum IPortalPool.PortalState',
-        type: 'uint8',
-        indexed: false,
-      },
-      {
-        name: 'newState',
-        internalType: 'enum IPortalPool.PortalState',
-        type: 'uint8',
-        indexed: false,
-      },
-    ],
-    name: 'StateChanged',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: false,
-      },
-    ],
-    name: 'Unpaused',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'provider',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'amount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'Withdrawn',
-  },
-  { type: 'error', inputs: [], name: 'AccessControlBadConfirmation' },
-  {
-    type: 'error',
-    inputs: [
-      { name: 'account', internalType: 'address', type: 'address' },
-      { name: 'neededRole', internalType: 'bytes32', type: 'bytes32' },
-    ],
-    name: 'AccessControlUnauthorizedAccount',
-  },
-  { type: 'error', inputs: [], name: 'AlreadyWithdrawn' },
-  { type: 'error', inputs: [], name: 'BelowCurrentStake' },
-  { type: 'error', inputs: [], name: 'BelowMinimum' },
-  { type: 'error', inputs: [], name: 'CapacityExceeded' },
-  { type: 'error', inputs: [], name: 'DeadlineNotPassed' },
-  { type: 'error', inputs: [], name: 'DistributionTurnedOff' },
-  { type: 'error', inputs: [], name: 'EnforcedPause' },
-  { type: 'error', inputs: [], name: 'ExceedsWalletLimit' },
-  { type: 'error', inputs: [], name: 'ExpectedPause' },
-  { type: 'error', inputs: [], name: 'InsufficientStake' },
-  { type: 'error', inputs: [], name: 'InsufficientTransferableStake' },
-  { type: 'error', inputs: [], name: 'InvalidAddress' },
-  { type: 'error', inputs: [], name: 'InvalidAmount' },
-  { type: 'error', inputs: [], name: 'InvalidInitialization' },
-  { type: 'error', inputs: [], name: 'InvalidState' },
-  { type: 'error', inputs: [], name: 'NoActiveExitRequest' },
-  { type: 'error', inputs: [], name: 'NoChange' },
-  { type: 'error', inputs: [], name: 'NoStakeToWithdraw' },
-  { type: 'error', inputs: [], name: 'NotActivated' },
-  { type: 'error', inputs: [], name: 'NotInitializing' },
-  { type: 'error', inputs: [], name: 'NotLPTToken' },
-  { type: 'error', inputs: [], name: 'NotOperator' },
-  { type: 'error', inputs: [], name: 'NotPortalRegistry' },
-  { type: 'error', inputs: [], name: 'NothingToClaim' },
-  { type: 'error', inputs: [], name: 'PoolHasDebt' },
-  { type: 'error', inputs: [], name: 'PortalNotFailed' },
-  { type: 'error', inputs: [], name: 'ReentrancyGuardReentrantCall' },
-  {
-    type: 'error',
-    inputs: [{ name: 'token', internalType: 'address', type: 'address' }],
-    name: 'SafeERC20FailedOperation',
-  },
-  { type: 'error', inputs: [], name: 'StillInQueue' },
-  { type: 'error', inputs: [], name: 'TokenNotAllowed' },
-  { type: 'error', inputs: [], name: 'UseWithdrawFromFailed' },
-  { type: 'error', inputs: [], name: 'WaitForActivationOrDeadline' },
 ] as const
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1306,23 +848,6 @@ export const portalPoolAbi = [
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const portalPoolFactoryAbi = [
-  {
-    type: 'constructor',
-    inputs: [
-      { name: '_implementation', internalType: 'address', type: 'address' },
-      { name: '_portalRegistry', internalType: 'address', type: 'address' },
-      { name: '_feeRouter', internalType: 'address', type: 'address' },
-      { name: '_networkController', internalType: 'address', type: 'address' },
-      { name: '_sqd', internalType: 'address', type: 'address' },
-      { name: '_usdc', internalType: 'address', type: 'address' },
-      {
-        name: '_defaultMaxStakePerWallet',
-        internalType: 'uint256',
-        type: 'uint256',
-      },
-    ],
-    stateMutability: 'nonpayable',
-  },
   {
     type: 'function',
     inputs: [],
@@ -1333,15 +858,22 @@ export const portalPoolFactoryAbi = [
   {
     type: 'function',
     inputs: [],
-    name: 'getMinCapacity',
-    outputs: [{ name: '', internalType: 'uint64', type: 'uint64' }],
+    name: 'PAUSER_ROLE',
+    outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
     stateMutability: 'view',
   },
   {
     type: 'function',
     inputs: [],
-    name: 'PAUSER_ROLE',
+    name: 'POOL_DEPLOYER_ROLE',
     outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'UPGRADE_INTERFACE_VERSION',
+    outputs: [{ name: '', internalType: 'string', type: 'string' }],
     stateMutability: 'view',
   },
   {
@@ -1384,14 +916,15 @@ export const portalPoolFactoryAbi = [
         components: [
           { name: 'operator', internalType: 'address', type: 'address' },
           { name: 'capacity', internalType: 'uint256', type: 'uint256' },
-          { name: 'peerId', internalType: 'bytes', type: 'bytes' },
           { name: 'tokenSuffix', internalType: 'string', type: 'string' },
           {
             name: 'distributionRatePerSecond',
             internalType: 'uint256',
             type: 'uint256',
           },
+          { name: 'initialDeposit', internalType: 'uint256', type: 'uint256' },
           { name: 'metadata', internalType: 'string', type: 'string' },
+          { name: 'rewardToken', internalType: 'address', type: 'address' },
         ],
       },
     ],
@@ -1404,6 +937,13 @@ export const portalPoolFactoryAbi = [
     inputs: [],
     name: 'defaultMaxStakePerWallet',
     outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'defaultWhitelistEnabled',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
     stateMutability: 'view',
   },
   {
@@ -1425,6 +965,13 @@ export const portalPoolFactoryAbi = [
     inputs: [],
     name: 'getAllowedPaymentTokens',
     outputs: [{ name: '', internalType: 'address[]', type: 'address[]' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'getMinCapacity',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
   },
   {
@@ -1481,6 +1028,25 @@ export const portalPoolFactoryAbi = [
   },
   {
     type: 'function',
+    inputs: [
+      { name: '_implementation', internalType: 'address', type: 'address' },
+      { name: '_portalRegistry', internalType: 'address', type: 'address' },
+      { name: '_feeRouter', internalType: 'address', type: 'address' },
+      { name: '_sqd', internalType: 'address', type: 'address' },
+      {
+        name: '_defaultMaxStakePerWallet',
+        internalType: 'uint256',
+        type: 'uint256',
+      },
+      { name: '_minStakeThreshold', internalType: 'uint256', type: 'uint256' },
+      { name: '_workerEpochLength', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'initialize',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
     inputs: [{ name: '', internalType: 'address', type: 'address' }],
     name: 'isAllowedPaymentToken',
     outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
@@ -1496,6 +1062,13 @@ export const portalPoolFactoryAbi = [
   {
     type: 'function',
     inputs: [],
+    name: 'maxDistributionRatePerSecond',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
     name: 'maxPaymentTokens',
     outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
@@ -1503,8 +1076,15 @@ export const portalPoolFactoryAbi = [
   {
     type: 'function',
     inputs: [],
-    name: 'networkController',
-    outputs: [{ name: '', internalType: 'address', type: 'address' }],
+    name: 'minDistributionRatePerSecond',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'minStakeThreshold',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
   },
   {
@@ -1548,6 +1128,13 @@ export const portalPoolFactoryAbi = [
   {
     type: 'function',
     inputs: [],
+    name: 'poolDeploymentOpen',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
     name: 'portalCount',
     outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
@@ -1557,6 +1144,13 @@ export const portalPoolFactoryAbi = [
     inputs: [],
     name: 'portalRegistry',
     outputs: [{ name: '', internalType: 'address', type: 'address' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'proxiableUUID',
+    outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
     stateMutability: 'view',
   },
   {
@@ -1602,10 +1196,33 @@ export const portalPoolFactoryAbi = [
   },
   {
     type: 'function',
+    inputs: [{ name: 'enabled', internalType: 'bool', type: 'bool' }],
+    name: 'setDefaultWhitelistEnabled',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
     inputs: [
       { name: 'ratePerSecond', internalType: 'uint256', type: 'uint256' },
     ],
     name: 'setExitUnlockRate',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: '_feeRouter', internalType: 'address', type: 'address' }],
+    name: 'setFeeRouter',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'ratePerSecond', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'setMaxDistributionRate',
     outputs: [],
     stateMutability: 'nonpayable',
   },
@@ -1618,8 +1235,42 @@ export const portalPoolFactoryAbi = [
   },
   {
     type: 'function',
-    inputs: [{ name: '_usdc', internalType: 'address', type: 'address' }],
-    name: 'setUsdc',
+    inputs: [
+      { name: 'ratePerSecond', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'setMinDistributionRate',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: '_minStakeThreshold', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'setMinStakeThreshold',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'open', internalType: 'bool', type: 'bool' }],
+    name: 'setPoolDeploymentOpen',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'enabled', internalType: 'bool', type: 'bool' }],
+    name: 'setWhitelistFeatureEnabled',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: '_workerEpochLength', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'setWorkerEpochLength',
     outputs: [],
     stateMutability: 'nonpayable',
   },
@@ -1664,9 +1315,26 @@ export const portalPoolFactoryAbi = [
   },
   {
     type: 'function',
+    inputs: [
+      { name: 'newImplementation', internalType: 'address', type: 'address' },
+      { name: 'data', internalType: 'bytes', type: 'bytes' },
+    ],
+    name: 'upgradeToAndCall',
+    outputs: [],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
     inputs: [],
-    name: 'usdc',
-    outputs: [{ name: '', internalType: 'address', type: 'address' }],
+    name: 'whitelistFeatureEnabled',
+    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'workerEpochLength',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
   },
   {
@@ -1676,283 +1344,6 @@ export const portalPoolFactoryAbi = [
     outputs: [{ name: '', internalType: 'address', type: 'address' }],
     stateMutability: 'view',
   },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'newImplementation',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-    ],
-    name: 'BeaconUpgraded',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'oldValue',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'newValue',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'CollectionDeadlineUpdated',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'oldValue',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'newValue',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'DefaultMaxStakePerWalletUpdated',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'oldValue',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'newValue',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'ExitUnlockRateUpdated',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'oldValue',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'newValue',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'MaxPaymentTokensUpdated',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: false,
-      },
-    ],
-    name: 'Paused',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'token',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-    ],
-    name: 'PaymentTokenAdded',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'token',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-    ],
-    name: 'PaymentTokenRemoved',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'portal',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'operator',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      { name: 'peerId', internalType: 'bytes', type: 'bytes', indexed: false },
-    ],
-    name: 'PortalCreated',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      { name: 'role', internalType: 'bytes32', type: 'bytes32', indexed: true },
-      {
-        name: 'previousAdminRole',
-        internalType: 'bytes32',
-        type: 'bytes32',
-        indexed: true,
-      },
-      {
-        name: 'newAdminRole',
-        internalType: 'bytes32',
-        type: 'bytes32',
-        indexed: true,
-      },
-    ],
-    name: 'RoleAdminChanged',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      { name: 'role', internalType: 'bytes32', type: 'bytes32', indexed: true },
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'sender',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-    ],
-    name: 'RoleGranted',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      { name: 'role', internalType: 'bytes32', type: 'bytes32', indexed: true },
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'sender',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-    ],
-    name: 'RoleRevoked',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: false,
-      },
-    ],
-    name: 'Unpaused',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'oldUsdc',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'newUsdc',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-    ],
-    name: 'UsdcUpdated',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'oldValue',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'newValue',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-    ],
-    name: 'WorkerPoolAddressUpdated',
-  },
-  { type: 'error', inputs: [], name: 'AccessControlBadConfirmation' },
-  {
-    type: 'error',
-    inputs: [
-      { name: 'account', internalType: 'address', type: 'address' },
-      { name: 'neededRole', internalType: 'bytes32', type: 'bytes32' },
-    ],
-    name: 'AccessControlUnauthorizedAccount',
-  },
-  { type: 'error', inputs: [], name: 'BelowMinimum' },
-  { type: 'error', inputs: [], name: 'EmptyPeerId' },
-  { type: 'error', inputs: [], name: 'EnforcedPause' },
-  { type: 'error', inputs: [], name: 'ExpectedPause' },
-  { type: 'error', inputs: [], name: 'InvalidAddress' },
-  { type: 'error', inputs: [], name: 'NoPaymentTokens' },
-  { type: 'error', inputs: [], name: 'TokenAlreadyAdded' },
-  { type: 'error', inputs: [], name: 'TokenNotAllowed' },
-  { type: 'error', inputs: [], name: 'TooManyTokens' },
 ] as const
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1960,21 +1351,26 @@ export const portalPoolFactoryAbi = [
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const portalRegistryAbi = [
-  {
-    type: 'constructor',
-    inputs: [
-      { name: '_sqd', internalType: 'address', type: 'address' },
-      { name: '_networkController', internalType: 'address', type: 'address' },
-      { name: '_minStake', internalType: 'uint256', type: 'uint256' },
-      { name: '_mana', internalType: 'uint256', type: 'uint256' },
-    ],
-    stateMutability: 'nonpayable',
-  },
+  { type: 'constructor', inputs: [], stateMutability: 'nonpayable' },
   {
     type: 'function',
     inputs: [],
     name: 'DEFAULT_ADMIN_ROLE',
     outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'MAX_CLUSTERS_PER_OWNER',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'MAX_PORTALS_PER_CLUSTER',
+    outputs: [{ name: '', internalType: 'uint8', type: 'uint8' }],
     stateMutability: 'view',
   },
   {
@@ -1994,15 +1390,221 @@ export const portalRegistryAbi = [
   {
     type: 'function',
     inputs: [],
-    name: 'activatePortalPool',
+    name: 'UPGRADE_INTERFACE_VERSION',
+    outputs: [{ name: '', internalType: 'string', type: 'string' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'clusterId', internalType: 'bytes32', type: 'bytes32' },
+      { name: 'peerId', internalType: 'bytes', type: 'bytes' },
+      { name: 'metadata', internalType: 'string', type: 'string' },
+    ],
+    name: 'addPortal',
     outputs: [],
     stateMutability: 'nonpayable',
   },
   {
     type: 'function',
+    inputs: [{ name: '', internalType: 'address', type: 'address' }],
+    name: 'addressToClusterId',
+    outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    name: 'allClusterIds',
+    outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'clusterCount',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'factory',
+    outputs: [{ name: '', internalType: 'address', type: 'address' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
     inputs: [
-      { name: 'portalAddress', internalType: 'address', type: 'address' },
+      { name: 'offset', internalType: 'uint256', type: 'uint256' },
+      { name: 'limit', internalType: 'uint256', type: 'uint256' },
     ],
+    name: 'getActiveClusters',
+    outputs: [
+      { name: 'clusterIds', internalType: 'bytes32[]', type: 'bytes32[]' },
+      {
+        name: 'clusters',
+        internalType: 'struct IPortalRegistry.Cluster[]',
+        type: 'tuple[]',
+        components: [
+          { name: 'clusterAddress', internalType: 'address', type: 'address' },
+          { name: 'operator', internalType: 'address', type: 'address' },
+          { name: 'totalStaked', internalType: 'uint256', type: 'uint256' },
+          { name: 'registeredAt', internalType: 'uint256', type: 'uint256' },
+          { name: 'active', internalType: 'bool', type: 'bool' },
+          { name: 'metadata', internalType: 'string', type: 'string' },
+          {
+            name: 'portals',
+            internalType: 'struct IPortalRegistry.Portal[]',
+            type: 'tuple[]',
+            components: [
+              { name: 'peerId', internalType: 'bytes', type: 'bytes' },
+              { name: 'metadata', internalType: 'string', type: 'string' },
+              { name: 'addedAt', internalType: 'uint64', type: 'uint64' },
+            ],
+          },
+        ],
+      },
+      { name: 'totalActive', internalType: 'uint256', type: 'uint256' },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'clusterId', internalType: 'bytes32', type: 'bytes32' }],
+    name: 'getCluster',
+    outputs: [
+      {
+        name: '',
+        internalType: 'struct IPortalRegistry.Cluster',
+        type: 'tuple',
+        components: [
+          { name: 'clusterAddress', internalType: 'address', type: 'address' },
+          { name: 'operator', internalType: 'address', type: 'address' },
+          { name: 'totalStaked', internalType: 'uint256', type: 'uint256' },
+          { name: 'registeredAt', internalType: 'uint256', type: 'uint256' },
+          { name: 'active', internalType: 'bool', type: 'bool' },
+          { name: 'metadata', internalType: 'string', type: 'string' },
+          {
+            name: 'portals',
+            internalType: 'struct IPortalRegistry.Portal[]',
+            type: 'tuple[]',
+            components: [
+              { name: 'peerId', internalType: 'bytes', type: 'bytes' },
+              { name: 'metadata', internalType: 'string', type: 'string' },
+              { name: 'addedAt', internalType: 'uint64', type: 'uint64' },
+            ],
+          },
+        ],
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'clusterAddress', internalType: 'address', type: 'address' },
+    ],
+    name: 'getClusterByAddress',
+    outputs: [
+      {
+        name: '',
+        internalType: 'struct IPortalRegistry.Cluster',
+        type: 'tuple',
+        components: [
+          { name: 'clusterAddress', internalType: 'address', type: 'address' },
+          { name: 'operator', internalType: 'address', type: 'address' },
+          { name: 'totalStaked', internalType: 'uint256', type: 'uint256' },
+          { name: 'registeredAt', internalType: 'uint256', type: 'uint256' },
+          { name: 'active', internalType: 'bool', type: 'bool' },
+          { name: 'metadata', internalType: 'string', type: 'string' },
+          {
+            name: 'portals',
+            internalType: 'struct IPortalRegistry.Portal[]',
+            type: 'tuple[]',
+            components: [
+              { name: 'peerId', internalType: 'bytes', type: 'bytes' },
+              { name: 'metadata', internalType: 'string', type: 'string' },
+              { name: 'addedAt', internalType: 'uint64', type: 'uint64' },
+            ],
+          },
+        ],
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'clusterAddress', internalType: 'address', type: 'address' },
+    ],
+    name: 'getClusterIdByAddress',
+    outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'peerId', internalType: 'bytes', type: 'bytes' }],
+    name: 'getClusterIdByPeerId',
+    outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'clusterId', internalType: 'bytes32', type: 'bytes32' }],
+    name: 'getClusterPortals',
+    outputs: [
+      {
+        name: '',
+        internalType: 'struct IPortalRegistry.Portal[]',
+        type: 'tuple[]',
+        components: [
+          { name: 'peerId', internalType: 'bytes', type: 'bytes' },
+          { name: 'metadata', internalType: 'string', type: 'string' },
+          { name: 'addedAt', internalType: 'uint64', type: 'uint64' },
+        ],
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'offset', internalType: 'uint256', type: 'uint256' },
+      { name: 'limit', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'getClustersPaginated',
+    outputs: [
+      { name: 'clusterIds', internalType: 'bytes32[]', type: 'bytes32[]' },
+      {
+        name: 'clusters',
+        internalType: 'struct IPortalRegistry.Cluster[]',
+        type: 'tuple[]',
+        components: [
+          { name: 'clusterAddress', internalType: 'address', type: 'address' },
+          { name: 'operator', internalType: 'address', type: 'address' },
+          { name: 'totalStaked', internalType: 'uint256', type: 'uint256' },
+          { name: 'registeredAt', internalType: 'uint256', type: 'uint256' },
+          { name: 'active', internalType: 'bool', type: 'bool' },
+          { name: 'metadata', internalType: 'string', type: 'string' },
+          {
+            name: 'portals',
+            internalType: 'struct IPortalRegistry.Portal[]',
+            type: 'tuple[]',
+            components: [
+              { name: 'peerId', internalType: 'bytes', type: 'bytes' },
+              { name: 'metadata', internalType: 'string', type: 'string' },
+              { name: 'addedAt', internalType: 'uint64', type: 'uint64' },
+            ],
+          },
+        ],
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: 'clusterId', internalType: 'bytes32', type: 'bytes32' }],
     name: 'getComputationUnits',
     outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
@@ -2010,46 +1612,15 @@ export const portalRegistryAbi = [
   {
     type: 'function',
     inputs: [{ name: 'operator', internalType: 'address', type: 'address' }],
-    name: 'getDirectPortalId',
-    outputs: [{ name: '', internalType: 'address', type: 'address' }],
+    name: 'getOperatorClusters',
+    outputs: [{ name: '', internalType: 'bytes32[]', type: 'bytes32[]' }],
     stateMutability: 'view',
   },
   {
     type: 'function',
-    inputs: [
-      { name: 'portalAddress', internalType: 'address', type: 'address' },
-    ],
-    name: 'getMetadata',
-    outputs: [{ name: '', internalType: 'string', type: 'string' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'portalAddress', internalType: 'address', type: 'address' },
-    ],
-    name: 'getPortal',
-    outputs: [
-      {
-        name: '',
-        internalType: 'struct IPortalRegistry.Portal',
-        type: 'tuple',
-        components: [
-          { name: 'peerId', internalType: 'bytes', type: 'bytes' },
-          { name: 'portalAddress', internalType: 'address', type: 'address' },
-          { name: 'operator', internalType: 'address', type: 'address' },
-          { name: 'totalStaked', internalType: 'uint256', type: 'uint256' },
-          { name: 'registeredAt', internalType: 'uint256', type: 'uint256' },
-          { name: 'active', internalType: 'bool', type: 'bool' },
-          {
-            name: 'portalType',
-            internalType: 'enum IPortalRegistry.PortalType',
-            type: 'uint8',
-          },
-          { name: 'metadata', internalType: 'string', type: 'string' },
-        ],
-      },
-    ],
+    inputs: [{ name: 'clusterId', internalType: 'bytes32', type: 'bytes32' }],
+    name: 'getPortalCount',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
   },
   {
@@ -2082,26 +1653,20 @@ export const portalRegistryAbi = [
   {
     type: 'function',
     inputs: [
-      { name: 'provider', internalType: 'address', type: 'address' },
-      { name: 'amount', internalType: 'uint256', type: 'uint256' },
+      { name: '_sqd', internalType: 'address', type: 'address' },
+      { name: '_minStake', internalType: 'uint256', type: 'uint256' },
+      { name: '_mana', internalType: 'uint256', type: 'uint256' },
     ],
-    name: 'immediateUnlock',
+    name: 'initialize',
     outputs: [],
     stateMutability: 'nonpayable',
   },
   {
     type: 'function',
     inputs: [
-      { name: 'portalAddress', internalType: 'address', type: 'address' },
+      { name: 'clusterAddress', internalType: 'address', type: 'address' },
     ],
-    name: 'isDirectPortal',
-    outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: '', internalType: 'address', type: 'address' }],
-    name: 'isPortal',
+    name: 'isCluster',
     outputs: [{ name: '', internalType: 'bool', type: 'bool' }],
     stateMutability: 'view',
   },
@@ -2121,22 +1686,19 @@ export const portalRegistryAbi = [
   },
   {
     type: 'function',
-    inputs: [],
-    name: 'networkController',
-    outputs: [
-      {
-        name: '',
-        internalType: 'contract INetworkController',
-        type: 'address',
-      },
-    ],
-    stateMutability: 'view',
+    inputs: [{ name: 'data', internalType: 'bytes[]', type: 'bytes[]' }],
+    name: 'multicall',
+    outputs: [{ name: 'results', internalType: 'bytes[]', type: 'bytes[]' }],
+    stateMutability: 'nonpayable',
   },
   {
     type: 'function',
-    inputs: [{ name: '', internalType: 'address', type: 'address' }],
-    name: 'operatorToDirectPortal',
-    outputs: [{ name: '', internalType: 'address', type: 'address' }],
+    inputs: [
+      { name: '', internalType: 'address', type: 'address' },
+      { name: '', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'ownerClusters',
+    outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
     stateMutability: 'view',
   },
   {
@@ -2156,59 +1718,35 @@ export const portalRegistryAbi = [
   {
     type: 'function',
     inputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
-    name: 'peerIdToPortal',
-    outputs: [{ name: '', internalType: 'address', type: 'address' }],
+    name: 'peerIdToCluster',
+    outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
     stateMutability: 'view',
   },
   {
     type: 'function',
-    inputs: [{ name: '', internalType: 'address', type: 'address' }],
-    name: 'portals',
-    outputs: [
-      { name: 'peerId', internalType: 'bytes', type: 'bytes' },
-      { name: 'portalAddress', internalType: 'address', type: 'address' },
+    inputs: [],
+    name: 'proxiableUUID',
+    outputs: [{ name: '', internalType: 'bytes32', type: 'bytes32' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'clusterAddress', internalType: 'address', type: 'address' },
       { name: 'operator', internalType: 'address', type: 'address' },
-      { name: 'totalStaked', internalType: 'uint256', type: 'uint256' },
-      { name: 'registeredAt', internalType: 'uint256', type: 'uint256' },
-      { name: 'active', internalType: 'bool', type: 'bool' },
-      {
-        name: 'portalType',
-        internalType: 'enum IPortalRegistry.PortalType',
-        type: 'uint8',
-      },
       { name: 'metadata', internalType: 'string', type: 'string' },
     ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: '', internalType: 'address', type: 'address' },
-      { name: '', internalType: 'address', type: 'address' },
-    ],
-    name: 'providerAllocations',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [
-      { name: 'peerId', internalType: 'bytes', type: 'bytes' },
-      { name: 'metadata', internalType: 'string', type: 'string' },
-    ],
-    name: 'registerDirectPortal',
-    outputs: [{ name: 'portalId', internalType: 'address', type: 'address' }],
+    name: 'registerCluster',
+    outputs: [{ name: 'clusterId', internalType: 'bytes32', type: 'bytes32' }],
     stateMutability: 'nonpayable',
   },
   {
     type: 'function',
     inputs: [
-      { name: 'peerId', internalType: 'bytes', type: 'bytes' },
-      { name: 'portalAddress', internalType: 'address', type: 'address' },
-      { name: 'operator', internalType: 'address', type: 'address' },
-      { name: 'metadata', internalType: 'string', type: 'string' },
+      { name: 'clusterId', internalType: 'bytes32', type: 'bytes32' },
+      { name: 'portalIndex', internalType: 'uint256', type: 'uint256' },
     ],
-    name: 'registerPortalPool',
+    name: 'removePortal',
     outputs: [],
     stateMutability: 'nonpayable',
   },
@@ -2234,18 +1772,32 @@ export const portalRegistryAbi = [
   },
   {
     type: 'function',
-    inputs: [{ name: '_mana', internalType: 'uint256', type: 'uint256' }],
-    name: 'setMana',
+    inputs: [
+      { name: 'clusterId', internalType: 'bytes32', type: 'bytes32' },
+      { name: 'metadata', internalType: 'string', type: 'string' },
+    ],
+    name: 'setClusterMetadata',
     outputs: [],
     stateMutability: 'nonpayable',
   },
   {
     type: 'function',
-    inputs: [
-      { name: 'portalAddress', internalType: 'address', type: 'address' },
-      { name: 'metadata', internalType: 'string', type: 'string' },
-    ],
-    name: 'setMetadata',
+    inputs: [{ name: 'metadata', internalType: 'string', type: 'string' }],
+    name: 'setClusterMetadataByPool',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: '_factory', internalType: 'address', type: 'address' }],
+    name: 'setFactory',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [{ name: '_mana', internalType: 'uint256', type: 'uint256' }],
+    name: 'setMana',
     outputs: [],
     stateMutability: 'nonpayable',
   },
@@ -2259,35 +1811,18 @@ export const portalRegistryAbi = [
   {
     type: 'function',
     inputs: [
-      { name: 'portal', internalType: 'address', type: 'address' },
-      { name: 'status', internalType: 'bool', type: 'bool' },
+      { name: 'clusterId', internalType: 'bytes32', type: 'bytes32' },
+      { name: 'portalIndex', internalType: 'uint256', type: 'uint256' },
+      { name: 'metadata', internalType: 'string', type: 'string' },
     ],
-    name: 'setPortalStatus',
+    name: 'setPortalMetadata',
     outputs: [],
     stateMutability: 'nonpayable',
   },
   {
     type: 'function',
-    inputs: [
-      { name: 'portalAddress', internalType: 'address', type: 'address' },
-      { name: 'provider', internalType: 'address', type: 'address' },
-      { name: 'amount', internalType: 'uint256', type: 'uint256' },
-    ],
+    inputs: [{ name: 'amount', internalType: 'uint256', type: 'uint256' }],
     name: 'stake',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: 'amount', internalType: 'uint256', type: 'uint256' }],
-    name: 'stakePoolFunds',
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [{ name: 'amount', internalType: 'uint256', type: 'uint256' }],
-    name: 'stakeToDirectPortal',
     outputs: [],
     stateMutability: 'nonpayable',
   },
@@ -2300,15 +1835,18 @@ export const portalRegistryAbi = [
   },
   {
     type: 'function',
-    inputs: [],
-    name: 'unpause',
-    outputs: [],
+    inputs: [{ name: 'data', internalType: 'bytes[]', type: 'bytes[]' }],
+    name: 'tryMulticall',
+    outputs: [
+      { name: 'successes', internalType: 'bool[]', type: 'bool[]' },
+      { name: 'results', internalType: 'bytes[]', type: 'bytes[]' },
+    ],
     stateMutability: 'nonpayable',
   },
   {
     type: 'function',
-    inputs: [{ name: 'amount', internalType: 'uint256', type: 'uint256' }],
-    name: 'unstakeFromDirectPortal',
+    inputs: [],
+    name: 'unpause',
     outputs: [],
     stateMutability: 'nonpayable',
   },
@@ -2318,315 +1856,26 @@ export const portalRegistryAbi = [
       { name: 'provider', internalType: 'address', type: 'address' },
       { name: 'amount', internalType: 'uint256', type: 'uint256' },
     ],
-    name: 'withdrawFailedPortal',
+    name: 'unstake',
     outputs: [],
     stateMutability: 'nonpayable',
   },
   {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'oldValue',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'newValue',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'ManaUpdated',
+    type: 'function',
+    inputs: [{ name: 'newOperator', internalType: 'address', type: 'address' }],
+    name: 'updateClusterOperator',
+    outputs: [],
+    stateMutability: 'nonpayable',
   },
   {
-    type: 'event',
-    anonymous: false,
+    type: 'function',
     inputs: [
-      {
-        name: 'portal',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'metadata',
-        internalType: 'string',
-        type: 'string',
-        indexed: false,
-      },
+      { name: 'newImplementation', internalType: 'address', type: 'address' },
+      { name: 'data', internalType: 'bytes', type: 'bytes' },
     ],
-    name: 'MetadataChanged',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'oldValue',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-      {
-        name: 'newValue',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'MinStakeUpdated',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: false,
-      },
-    ],
-    name: 'Paused',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'portal',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-    ],
-    name: 'PortalActivated',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'portal',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-    ],
-    name: 'PortalDeactivated',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'portal',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      { name: 'peerId', internalType: 'bytes', type: 'bytes', indexed: false },
-      {
-        name: 'operator',
-        internalType: 'address',
-        type: 'address',
-        indexed: false,
-      },
-      {
-        name: 'portalType',
-        internalType: 'enum IPortalRegistry.PortalType',
-        type: 'uint8',
-        indexed: false,
-      },
-    ],
-    name: 'PortalRegistered',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'portal',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      { name: 'status', internalType: 'bool', type: 'bool', indexed: false },
-    ],
-    name: 'PortalStatusChanged',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      { name: 'role', internalType: 'bytes32', type: 'bytes32', indexed: true },
-      {
-        name: 'previousAdminRole',
-        internalType: 'bytes32',
-        type: 'bytes32',
-        indexed: true,
-      },
-      {
-        name: 'newAdminRole',
-        internalType: 'bytes32',
-        type: 'bytes32',
-        indexed: true,
-      },
-    ],
-    name: 'RoleAdminChanged',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      { name: 'role', internalType: 'bytes32', type: 'bytes32', indexed: true },
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'sender',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-    ],
-    name: 'RoleGranted',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      { name: 'role', internalType: 'bytes32', type: 'bytes32', indexed: true },
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'sender',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-    ],
-    name: 'RoleRevoked',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'portal',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'provider',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'amount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'Staked',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'account',
-        internalType: 'address',
-        type: 'address',
-        indexed: false,
-      },
-    ],
-    name: 'Unpaused',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'portal',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'provider',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'amount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'Unstaked',
-  },
-  {
-    type: 'event',
-    anonymous: false,
-    inputs: [
-      {
-        name: 'provider',
-        internalType: 'address',
-        type: 'address',
-        indexed: true,
-      },
-      {
-        name: 'amount',
-        internalType: 'uint256',
-        type: 'uint256',
-        indexed: false,
-      },
-    ],
-    name: 'Withdrawn',
-  },
-  { type: 'error', inputs: [], name: 'AccessControlBadConfirmation' },
-  {
-    type: 'error',
-    inputs: [
-      { name: 'account', internalType: 'address', type: 'address' },
-      { name: 'neededRole', internalType: 'bytes32', type: 'bytes32' },
-    ],
-    name: 'AccessControlUnauthorizedAccount',
-  },
-  { type: 'error', inputs: [], name: 'AlreadyHasDirectPortal' },
-  { type: 'error', inputs: [], name: 'EnforcedPause' },
-  { type: 'error', inputs: [], name: 'ExpectedPause' },
-  { type: 'error', inputs: [], name: 'InsufficientAllocation' },
-  { type: 'error', inputs: [], name: 'InvalidAddress' },
-  { type: 'error', inputs: [], name: 'InvalidAmount' },
-  { type: 'error', inputs: [], name: 'InvalidPeerId' },
-  { type: 'error', inputs: [], name: 'NoDirectPortal' },
-  { type: 'error', inputs: [], name: 'NotOperator' },
-  { type: 'error', inputs: [], name: 'OnlyPoolPortal' },
-  { type: 'error', inputs: [], name: 'OnlyPortal' },
-  { type: 'error', inputs: [], name: 'PeerIdInUse' },
-  { type: 'error', inputs: [], name: 'PortalAlreadyRegistered' },
-  { type: 'error', inputs: [], name: 'PortalNotRegistered' },
-  {
-    type: 'error',
-    inputs: [{ name: 'token', internalType: 'address', type: 'address' }],
-    name: 'SafeERC20FailedOperation',
+    name: 'upgradeToAndCall',
+    outputs: [],
+    stateMutability: 'payable',
   },
 ] as const
 
@@ -3426,15 +2675,6 @@ export const useReadPortalPoolDefaultAdminRole =
   })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getWithdrawalWaitingTimestamp"`
- */
-export const useReadPortalPoolGetWithdrawalWaitingTimestamp =
-  /*#__PURE__*/ createUseReadContract({
-    abi: portalPoolAbi,
-    functionName: 'getWithdrawalWaitingTimestamp',
-  })
-
-/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"FACTORY_ROLE"`
  */
 export const useReadPortalPoolFactoryRole = /*#__PURE__*/ createUseReadContract(
@@ -3459,12 +2699,12 @@ export const useReadPortalPoolPrecision = /*#__PURE__*/ createUseReadContract({
 })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getMinCapacity"`
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"RATE_PRECISION"`
  */
-export const useReadPortalPoolGetMinCapacity =
+export const useReadPortalPoolRatePrecision =
   /*#__PURE__*/ createUseReadContract({
     abi: portalPoolAbi,
-    functionName: 'getMinCapacity',
+    functionName: 'RATE_PRECISION',
   })
 
 /**
@@ -3508,39 +2748,12 @@ export const useReadPortalPoolDebt = /*#__PURE__*/ createUseReadContract({
 })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"delegatorRatePerSec"`
- */
-export const useReadPortalPoolDelegatorRatePerSec =
-  /*#__PURE__*/ createUseReadContract({
-    abi: portalPoolAbi,
-    functionName: 'delegatorRatePerSec',
-  })
-
-/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getActiveStake"`
  */
 export const useReadPortalPoolGetActiveStake =
   /*#__PURE__*/ createUseReadContract({
     abi: portalPoolAbi,
     functionName: 'getActiveStake',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getAllowedPaymentTokens"`
- */
-export const useReadPortalPoolGetAllowedPaymentTokens =
-  /*#__PURE__*/ createUseReadContract({
-    abi: portalPoolAbi,
-    functionName: 'getAllowedPaymentTokens',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getClaimableFees"`
- */
-export const useReadPortalPoolGetClaimableFees =
-  /*#__PURE__*/ createUseReadContract({
-    abi: portalPoolAbi,
-    functionName: 'getClaimableFees',
   })
 
 /**
@@ -3596,19 +2809,27 @@ export const useReadPortalPoolGetExitTicket =
   })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getMetadata"`
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getMinCapacity"`
  */
-export const useReadPortalPoolGetMetadata = /*#__PURE__*/ createUseReadContract(
-  { abi: portalPoolAbi, functionName: 'getMetadata' },
+export const useReadPortalPoolGetMinCapacity =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolAbi,
+    functionName: 'getMinCapacity',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getOperator"`
+ */
+export const useReadPortalPoolGetOperator = /*#__PURE__*/ createUseReadContract(
+  { abi: portalPoolAbi, functionName: 'getOperator' },
 )
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getPeerId"`
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getPoolInfo"`
  */
-export const useReadPortalPoolGetPeerId = /*#__PURE__*/ createUseReadContract({
-  abi: portalPoolAbi,
-  functionName: 'getPeerId',
-})
+export const useReadPortalPoolGetPoolInfo = /*#__PURE__*/ createUseReadContract(
+  { abi: portalPoolAbi, functionName: 'getPoolInfo' },
+)
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getPoolStatusWithRewards"`
@@ -3617,15 +2838,6 @@ export const useReadPortalPoolGetPoolStatusWithRewards =
   /*#__PURE__*/ createUseReadContract({
     abi: portalPoolAbi,
     functionName: 'getPoolStatusWithRewards',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getPortalInfo"`
- */
-export const useReadPortalPoolGetPortalInfo =
-  /*#__PURE__*/ createUseReadContract({
-    abi: portalPoolAbi,
-    functionName: 'getPortalInfo',
   })
 
 /**
@@ -3638,15 +2850,6 @@ export const useReadPortalPoolGetProviderStake =
   })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getQueueStatus"`
- */
-export const useReadPortalPoolGetQueueStatus =
-  /*#__PURE__*/ createUseReadContract({
-    abi: portalPoolAbi,
-    functionName: 'getQueueStatus',
-  })
-
-/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getQueueStatusWithTimestamp"`
  */
 export const useReadPortalPoolGetQueueStatusWithTimestamp =
@@ -3656,21 +2859,21 @@ export const useReadPortalPoolGetQueueStatusWithTimestamp =
   })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getRewardDebt"`
- */
-export const useReadPortalPoolGetRewardDebt =
-  /*#__PURE__*/ createUseReadContract({
-    abi: portalPoolAbi,
-    functionName: 'getRewardDebt',
-  })
-
-/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getRewardStatus"`
  */
 export const useReadPortalPoolGetRewardStatus =
   /*#__PURE__*/ createUseReadContract({
     abi: portalPoolAbi,
     functionName: 'getRewardStatus',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getRewardToken"`
+ */
+export const useReadPortalPoolGetRewardToken =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolAbi,
+    functionName: 'getRewardToken',
   })
 
 /**
@@ -3726,12 +2929,12 @@ export const useReadPortalPoolGetTotalProcessed =
   })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getUserRewards"`
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getWithdrawalWaitingTimestamp"`
  */
-export const useReadPortalPoolGetUserRewards =
+export const useReadPortalPoolGetWithdrawalWaitingTimestamp =
   /*#__PURE__*/ createUseReadContract({
     abi: portalPoolAbi,
-    functionName: 'getUserRewards',
+    functionName: 'getWithdrawalWaitingTimestamp',
   })
 
 /**
@@ -3743,21 +2946,12 @@ export const useReadPortalPoolHasRole = /*#__PURE__*/ createUseReadContract({
 })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"isOutOfMoney"`
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"isWhitelisted"`
  */
-export const useReadPortalPoolIsOutOfMoney =
+export const useReadPortalPoolIsWhitelisted =
   /*#__PURE__*/ createUseReadContract({
     abi: portalPoolAbi,
-    functionName: 'isOutOfMoney',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"lastDistributionTime"`
- */
-export const useReadPortalPoolLastDistributionTime =
-  /*#__PURE__*/ createUseReadContract({
-    abi: portalPoolAbi,
-    functionName: 'lastDistributionTime',
+    functionName: 'isWhitelisted',
   })
 
 /**
@@ -3795,6 +2989,15 @@ export const useReadPortalPoolPerStakeRateWad =
   })
 
 /**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"providerRatePerSec"`
+ */
+export const useReadPortalPoolProviderRatePerSec =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolAbi,
+    functionName: 'providerRatePerSec',
+  })
+
+/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"rewardPerStakeStored"`
  */
 export const useReadPortalPoolRewardPerStakeStored =
@@ -3822,15 +3025,6 @@ export const useReadPortalPoolTotalDistributionRatePerSec =
   })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"totalFeesDistributed"`
- */
-export const useReadPortalPoolTotalFeesDistributed =
-  /*#__PURE__*/ createUseReadContract({
-    abi: portalPoolAbi,
-    functionName: 'totalFeesDistributed',
-  })
-
-/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"treasuryAccumulated"`
  */
 export const useReadPortalPoolTreasuryAccumulated =
@@ -3846,6 +3040,23 @@ export const useReadPortalPoolTreasuryRatePerSec =
   /*#__PURE__*/ createUseReadContract({
     abi: portalPoolAbi,
     functionName: 'treasuryRatePerSec',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"whitelist"`
+ */
+export const useReadPortalPoolWhitelist = /*#__PURE__*/ createUseReadContract({
+  abi: portalPoolAbi,
+  functionName: 'whitelist',
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"whitelistEnabled"`
+ */
+export const useReadPortalPoolWhitelistEnabled =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolAbi,
+    functionName: 'whitelistEnabled',
   })
 
 /**
@@ -3865,6 +3076,15 @@ export const useWritePortalPool = /*#__PURE__*/ createUseWriteContract({
 })
 
 /**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"addToWhitelist"`
+ */
+export const useWritePortalPoolAddToWhitelist =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolAbi,
+    functionName: 'addToWhitelist',
+  })
+
+/**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"checkAndFailPortal"`
  */
 export const useWritePortalPoolCheckAndFailPortal =
@@ -3872,13 +3092,6 @@ export const useWritePortalPoolCheckAndFailPortal =
     abi: portalPoolAbi,
     functionName: 'checkAndFailPortal',
   })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"claimFees"`
- */
-export const useWritePortalPoolClaimFees = /*#__PURE__*/ createUseWriteContract(
-  { abi: portalPoolAbi, functionName: 'claimFees' },
-)
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"claimRewards"`
@@ -3890,6 +3103,22 @@ export const useWritePortalPoolClaimRewards =
   })
 
 /**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"claimRewardsFromClosed"`
+ */
+export const useWritePortalPoolClaimRewardsFromClosed =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolAbi,
+    functionName: 'claimRewardsFromClosed',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"closePool"`
+ */
+export const useWritePortalPoolClosePool = /*#__PURE__*/ createUseWriteContract(
+  { abi: portalPoolAbi, functionName: 'closePool' },
+)
+
+/**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"deposit"`
  */
 export const useWritePortalPoolDeposit = /*#__PURE__*/ createUseWriteContract({
@@ -3898,12 +3127,12 @@ export const useWritePortalPoolDeposit = /*#__PURE__*/ createUseWriteContract({
 })
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"distributeFees"`
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"emergencyWithdraw"`
  */
-export const useWritePortalPoolDistributeFees =
+export const useWritePortalPoolEmergencyWithdraw =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalPoolAbi,
-    functionName: 'distributeFees',
+    functionName: 'emergencyWithdraw',
   })
 
 /**
@@ -3923,12 +3152,12 @@ export const useWritePortalPoolInitialize =
   })
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"onAllocationReduced"`
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"initializeCredit"`
  */
-export const useWritePortalPoolOnAllocationReduced =
+export const useWritePortalPoolInitializeCredit =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalPoolAbi,
-    functionName: 'onAllocationReduced',
+    functionName: 'initializeCredit',
   })
 
 /**
@@ -3947,6 +3176,24 @@ export const useWritePortalPoolPause = /*#__PURE__*/ createUseWriteContract({
   abi: portalPoolAbi,
   functionName: 'pause',
 })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"recoverRewardsFromFailed"`
+ */
+export const useWritePortalPoolRecoverRewardsFromFailed =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolAbi,
+    functionName: 'recoverRewardsFromFailed',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"removeFromWhitelist"`
+ */
+export const useWritePortalPoolRemoveFromWhitelist =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolAbi,
+    functionName: 'removeFromWhitelist',
+  })
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"renounceRole"`
@@ -3976,15 +3223,6 @@ export const useWritePortalPoolRevokeRole =
   })
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"setBurnAddress"`
- */
-export const useWritePortalPoolSetBurnAddress =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: portalPoolAbi,
-    functionName: 'setBurnAddress',
-  })
-
-/**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"setCapacity"`
  */
 export const useWritePortalPoolSetCapacity =
@@ -4003,12 +3241,39 @@ export const useWritePortalPoolSetDistributionRate =
   })
 
 /**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"setMetadata"`
+ */
+export const useWritePortalPoolSetMetadata =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolAbi,
+    functionName: 'setMetadata',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"setWhitelistEnabled"`
+ */
+export const useWritePortalPoolSetWhitelistEnabled =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolAbi,
+    functionName: 'setWhitelistEnabled',
+  })
+
+/**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"topUpRewards"`
  */
 export const useWritePortalPoolTopUpRewards =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalPoolAbi,
     functionName: 'topUpRewards',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"transferOperator"`
+ */
+export const useWritePortalPoolTransferOperator =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolAbi,
+    functionName: 'transferOperator',
   })
 
 /**
@@ -4045,21 +3310,21 @@ export const useSimulatePortalPool = /*#__PURE__*/ createUseSimulateContract({
 })
 
 /**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"addToWhitelist"`
+ */
+export const useSimulatePortalPoolAddToWhitelist =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolAbi,
+    functionName: 'addToWhitelist',
+  })
+
+/**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"checkAndFailPortal"`
  */
 export const useSimulatePortalPoolCheckAndFailPortal =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalPoolAbi,
     functionName: 'checkAndFailPortal',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"claimFees"`
- */
-export const useSimulatePortalPoolClaimFees =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: portalPoolAbi,
-    functionName: 'claimFees',
   })
 
 /**
@@ -4072,6 +3337,24 @@ export const useSimulatePortalPoolClaimRewards =
   })
 
 /**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"claimRewardsFromClosed"`
+ */
+export const useSimulatePortalPoolClaimRewardsFromClosed =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolAbi,
+    functionName: 'claimRewardsFromClosed',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"closePool"`
+ */
+export const useSimulatePortalPoolClosePool =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolAbi,
+    functionName: 'closePool',
+  })
+
+/**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"deposit"`
  */
 export const useSimulatePortalPoolDeposit =
@@ -4081,12 +3364,12 @@ export const useSimulatePortalPoolDeposit =
   })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"distributeFees"`
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"emergencyWithdraw"`
  */
-export const useSimulatePortalPoolDistributeFees =
+export const useSimulatePortalPoolEmergencyWithdraw =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalPoolAbi,
-    functionName: 'distributeFees',
+    functionName: 'emergencyWithdraw',
   })
 
 /**
@@ -4108,12 +3391,12 @@ export const useSimulatePortalPoolInitialize =
   })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"onAllocationReduced"`
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"initializeCredit"`
  */
-export const useSimulatePortalPoolOnAllocationReduced =
+export const useSimulatePortalPoolInitializeCredit =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalPoolAbi,
-    functionName: 'onAllocationReduced',
+    functionName: 'initializeCredit',
   })
 
 /**
@@ -4132,6 +3415,24 @@ export const useSimulatePortalPoolPause =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalPoolAbi,
     functionName: 'pause',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"recoverRewardsFromFailed"`
+ */
+export const useSimulatePortalPoolRecoverRewardsFromFailed =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolAbi,
+    functionName: 'recoverRewardsFromFailed',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"removeFromWhitelist"`
+ */
+export const useSimulatePortalPoolRemoveFromWhitelist =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolAbi,
+    functionName: 'removeFromWhitelist',
   })
 
 /**
@@ -4162,15 +3463,6 @@ export const useSimulatePortalPoolRevokeRole =
   })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"setBurnAddress"`
- */
-export const useSimulatePortalPoolSetBurnAddress =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: portalPoolAbi,
-    functionName: 'setBurnAddress',
-  })
-
-/**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"setCapacity"`
  */
 export const useSimulatePortalPoolSetCapacity =
@@ -4189,12 +3481,39 @@ export const useSimulatePortalPoolSetDistributionRate =
   })
 
 /**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"setMetadata"`
+ */
+export const useSimulatePortalPoolSetMetadata =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolAbi,
+    functionName: 'setMetadata',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"setWhitelistEnabled"`
+ */
+export const useSimulatePortalPoolSetWhitelistEnabled =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolAbi,
+    functionName: 'setWhitelistEnabled',
+  })
+
+/**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"topUpRewards"`
  */
 export const useSimulatePortalPoolTopUpRewards =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalPoolAbi,
     functionName: 'topUpRewards',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"transferOperator"`
+ */
+export const useSimulatePortalPoolTransferOperator =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolAbi,
+    functionName: 'transferOperator',
   })
 
 /**
@@ -4225,192 +3544,6 @@ export const useSimulatePortalPoolWithdrawFromFailed =
   })
 
 /**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__
- */
-export const useWatchPortalPoolEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({ abi: portalPoolAbi })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"AllocationReduced"`
- */
-export const useWatchPortalPoolAllocationReducedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolAbi,
-    eventName: 'AllocationReduced',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"BurnAddressUpdated"`
- */
-export const useWatchPortalPoolBurnAddressUpdatedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolAbi,
-    eventName: 'BurnAddressUpdated',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"CapacityUpdated"`
- */
-export const useWatchPortalPoolCapacityUpdatedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolAbi,
-    eventName: 'CapacityUpdated',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"Deposited"`
- */
-export const useWatchPortalPoolDepositedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolAbi,
-    eventName: 'Deposited',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"DistributionRateChanged"`
- */
-export const useWatchPortalPoolDistributionRateChangedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolAbi,
-    eventName: 'DistributionRateChanged',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"ExitClaimed"`
- */
-export const useWatchPortalPoolExitClaimedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolAbi,
-    eventName: 'ExitClaimed',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"ExitRequested"`
- */
-export const useWatchPortalPoolExitRequestedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolAbi,
-    eventName: 'ExitRequested',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"FeesClaimed"`
- */
-export const useWatchPortalPoolFeesClaimedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolAbi,
-    eventName: 'FeesClaimed',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"FeesDistributed"`
- */
-export const useWatchPortalPoolFeesDistributedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolAbi,
-    eventName: 'FeesDistributed',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"Initialized"`
- */
-export const useWatchPortalPoolInitializedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolAbi,
-    eventName: 'Initialized',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"Paused"`
- */
-export const useWatchPortalPoolPausedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolAbi,
-    eventName: 'Paused',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"RewardsClaimed"`
- */
-export const useWatchPortalPoolRewardsClaimedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolAbi,
-    eventName: 'RewardsClaimed',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"RewardsToppedUp"`
- */
-export const useWatchPortalPoolRewardsToppedUpEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolAbi,
-    eventName: 'RewardsToppedUp',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"RoleAdminChanged"`
- */
-export const useWatchPortalPoolRoleAdminChangedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolAbi,
-    eventName: 'RoleAdminChanged',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"RoleGranted"`
- */
-export const useWatchPortalPoolRoleGrantedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolAbi,
-    eventName: 'RoleGranted',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"RoleRevoked"`
- */
-export const useWatchPortalPoolRoleRevokedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolAbi,
-    eventName: 'RoleRevoked',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"StakeTransferred"`
- */
-export const useWatchPortalPoolStakeTransferredEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolAbi,
-    eventName: 'StakeTransferred',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"StateChanged"`
- */
-export const useWatchPortalPoolStateChangedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolAbi,
-    eventName: 'StateChanged',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"Unpaused"`
- */
-export const useWatchPortalPoolUnpausedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolAbi,
-    eventName: 'Unpaused',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"Withdrawn"`
- */
-export const useWatchPortalPoolWithdrawnEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolAbi,
-    eventName: 'Withdrawn',
-  })
-
-/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__
  */
 export const useReadPortalPoolFactory = /*#__PURE__*/ createUseReadContract({
@@ -4427,21 +3560,30 @@ export const useReadPortalPoolFactoryDefaultAdminRole =
   })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"getMinCapacity"`
- */
-export const useReadPortalPoolFactoryGetMinCapacity =
-  /*#__PURE__*/ createUseReadContract({
-    abi: portalPoolFactoryAbi,
-    functionName: 'getMinCapacity',
-  })
-
-/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"PAUSER_ROLE"`
  */
 export const useReadPortalPoolFactoryPauserRole =
   /*#__PURE__*/ createUseReadContract({
     abi: portalPoolFactoryAbi,
     functionName: 'PAUSER_ROLE',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"POOL_DEPLOYER_ROLE"`
+ */
+export const useReadPortalPoolFactoryPoolDeployerRole =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'POOL_DEPLOYER_ROLE',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"UPGRADE_INTERFACE_VERSION"`
+ */
+export const useReadPortalPoolFactoryUpgradeInterfaceVersion =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'UPGRADE_INTERFACE_VERSION',
   })
 
 /**
@@ -4481,6 +3623,15 @@ export const useReadPortalPoolFactoryDefaultMaxStakePerWallet =
   })
 
 /**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"defaultWhitelistEnabled"`
+ */
+export const useReadPortalPoolFactoryDefaultWhitelistEnabled =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'defaultWhitelistEnabled',
+  })
+
+/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"exitUnlockRatePerSecond"`
  */
 export const useReadPortalPoolFactoryExitUnlockRatePerSecond =
@@ -4505,6 +3656,15 @@ export const useReadPortalPoolFactoryGetAllowedPaymentTokens =
   /*#__PURE__*/ createUseReadContract({
     abi: portalPoolFactoryAbi,
     functionName: 'getAllowedPaymentTokens',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"getMinCapacity"`
+ */
+export const useReadPortalPoolFactoryGetMinCapacity =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'getMinCapacity',
   })
 
 /**
@@ -4571,6 +3731,15 @@ export const useReadPortalPoolFactoryIsPortal =
   })
 
 /**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"maxDistributionRatePerSecond"`
+ */
+export const useReadPortalPoolFactoryMaxDistributionRatePerSecond =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'maxDistributionRatePerSecond',
+  })
+
+/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"maxPaymentTokens"`
  */
 export const useReadPortalPoolFactoryMaxPaymentTokens =
@@ -4580,12 +3749,21 @@ export const useReadPortalPoolFactoryMaxPaymentTokens =
   })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"networkController"`
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"minDistributionRatePerSecond"`
  */
-export const useReadPortalPoolFactoryNetworkController =
+export const useReadPortalPoolFactoryMinDistributionRatePerSecond =
   /*#__PURE__*/ createUseReadContract({
     abi: portalPoolFactoryAbi,
-    functionName: 'networkController',
+    functionName: 'minDistributionRatePerSecond',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"minStakeThreshold"`
+ */
+export const useReadPortalPoolFactoryMinStakeThreshold =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'minStakeThreshold',
   })
 
 /**
@@ -4625,6 +3803,15 @@ export const useReadPortalPoolFactoryPaymentTokensList =
   })
 
 /**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"poolDeploymentOpen"`
+ */
+export const useReadPortalPoolFactoryPoolDeploymentOpen =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'poolDeploymentOpen',
+  })
+
+/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"portalCount"`
  */
 export const useReadPortalPoolFactoryPortalCount =
@@ -4640,6 +3827,15 @@ export const useReadPortalPoolFactoryPortalRegistry =
   /*#__PURE__*/ createUseReadContract({
     abi: portalPoolFactoryAbi,
     functionName: 'portalRegistry',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"proxiableUUID"`
+ */
+export const useReadPortalPoolFactoryProxiableUuid =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'proxiableUUID',
   })
 
 /**
@@ -4660,11 +3856,22 @@ export const useReadPortalPoolFactorySupportsInterface =
   })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"usdc"`
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"whitelistFeatureEnabled"`
  */
-export const useReadPortalPoolFactoryUsdc = /*#__PURE__*/ createUseReadContract(
-  { abi: portalPoolFactoryAbi, functionName: 'usdc' },
-)
+export const useReadPortalPoolFactoryWhitelistFeatureEnabled =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'whitelistFeatureEnabled',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"workerEpochLength"`
+ */
+export const useReadPortalPoolFactoryWorkerEpochLength =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'workerEpochLength',
+  })
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"workerPoolAddress"`
@@ -4707,6 +3914,15 @@ export const useWritePortalPoolFactoryGrantRole =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalPoolFactoryAbi,
     functionName: 'grantRole',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"initialize"`
+ */
+export const useWritePortalPoolFactoryInitialize =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'initialize',
   })
 
 /**
@@ -4764,12 +3980,39 @@ export const useWritePortalPoolFactorySetDefaultMaxStakePerWallet =
   })
 
 /**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setDefaultWhitelistEnabled"`
+ */
+export const useWritePortalPoolFactorySetDefaultWhitelistEnabled =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setDefaultWhitelistEnabled',
+  })
+
+/**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setExitUnlockRate"`
  */
 export const useWritePortalPoolFactorySetExitUnlockRate =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalPoolFactoryAbi,
     functionName: 'setExitUnlockRate',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setFeeRouter"`
+ */
+export const useWritePortalPoolFactorySetFeeRouter =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setFeeRouter',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setMaxDistributionRate"`
+ */
+export const useWritePortalPoolFactorySetMaxDistributionRate =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setMaxDistributionRate',
   })
 
 /**
@@ -4782,12 +4025,48 @@ export const useWritePortalPoolFactorySetMaxPaymentTokens =
   })
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setUsdc"`
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setMinDistributionRate"`
  */
-export const useWritePortalPoolFactorySetUsdc =
+export const useWritePortalPoolFactorySetMinDistributionRate =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalPoolFactoryAbi,
-    functionName: 'setUsdc',
+    functionName: 'setMinDistributionRate',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setMinStakeThreshold"`
+ */
+export const useWritePortalPoolFactorySetMinStakeThreshold =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setMinStakeThreshold',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setPoolDeploymentOpen"`
+ */
+export const useWritePortalPoolFactorySetPoolDeploymentOpen =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setPoolDeploymentOpen',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setWhitelistFeatureEnabled"`
+ */
+export const useWritePortalPoolFactorySetWhitelistFeatureEnabled =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setWhitelistFeatureEnabled',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setWorkerEpochLength"`
+ */
+export const useWritePortalPoolFactorySetWorkerEpochLength =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setWorkerEpochLength',
   })
 
 /**
@@ -4815,6 +4094,15 @@ export const useWritePortalPoolFactoryUpgradeBeacon =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalPoolFactoryAbi,
     functionName: 'upgradeBeacon',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"upgradeToAndCall"`
+ */
+export const useWritePortalPoolFactoryUpgradeToAndCall =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'upgradeToAndCall',
   })
 
 /**
@@ -4848,6 +4136,15 @@ export const useSimulatePortalPoolFactoryGrantRole =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalPoolFactoryAbi,
     functionName: 'grantRole',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"initialize"`
+ */
+export const useSimulatePortalPoolFactoryInitialize =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'initialize',
   })
 
 /**
@@ -4905,12 +4202,39 @@ export const useSimulatePortalPoolFactorySetDefaultMaxStakePerWallet =
   })
 
 /**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setDefaultWhitelistEnabled"`
+ */
+export const useSimulatePortalPoolFactorySetDefaultWhitelistEnabled =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setDefaultWhitelistEnabled',
+  })
+
+/**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setExitUnlockRate"`
  */
 export const useSimulatePortalPoolFactorySetExitUnlockRate =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalPoolFactoryAbi,
     functionName: 'setExitUnlockRate',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setFeeRouter"`
+ */
+export const useSimulatePortalPoolFactorySetFeeRouter =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setFeeRouter',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setMaxDistributionRate"`
+ */
+export const useSimulatePortalPoolFactorySetMaxDistributionRate =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setMaxDistributionRate',
   })
 
 /**
@@ -4923,12 +4247,48 @@ export const useSimulatePortalPoolFactorySetMaxPaymentTokens =
   })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setUsdc"`
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setMinDistributionRate"`
  */
-export const useSimulatePortalPoolFactorySetUsdc =
+export const useSimulatePortalPoolFactorySetMinDistributionRate =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalPoolFactoryAbi,
-    functionName: 'setUsdc',
+    functionName: 'setMinDistributionRate',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setMinStakeThreshold"`
+ */
+export const useSimulatePortalPoolFactorySetMinStakeThreshold =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setMinStakeThreshold',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setPoolDeploymentOpen"`
+ */
+export const useSimulatePortalPoolFactorySetPoolDeploymentOpen =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setPoolDeploymentOpen',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setWhitelistFeatureEnabled"`
+ */
+export const useSimulatePortalPoolFactorySetWhitelistFeatureEnabled =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setWhitelistFeatureEnabled',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"setWorkerEpochLength"`
+ */
+export const useSimulatePortalPoolFactorySetWorkerEpochLength =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolFactoryAbi,
+    functionName: 'setWorkerEpochLength',
   })
 
 /**
@@ -4959,144 +4319,12 @@ export const useSimulatePortalPoolFactoryUpgradeBeacon =
   })
 
 /**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `functionName` set to `"upgradeToAndCall"`
  */
-export const useWatchPortalPoolFactoryEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({ abi: portalPoolFactoryAbi })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"BeaconUpgraded"`
- */
-export const useWatchPortalPoolFactoryBeaconUpgradedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
+export const useSimulatePortalPoolFactoryUpgradeToAndCall =
+  /*#__PURE__*/ createUseSimulateContract({
     abi: portalPoolFactoryAbi,
-    eventName: 'BeaconUpgraded',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"CollectionDeadlineUpdated"`
- */
-export const useWatchPortalPoolFactoryCollectionDeadlineUpdatedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolFactoryAbi,
-    eventName: 'CollectionDeadlineUpdated',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"DefaultMaxStakePerWalletUpdated"`
- */
-export const useWatchPortalPoolFactoryDefaultMaxStakePerWalletUpdatedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolFactoryAbi,
-    eventName: 'DefaultMaxStakePerWalletUpdated',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"ExitUnlockRateUpdated"`
- */
-export const useWatchPortalPoolFactoryExitUnlockRateUpdatedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolFactoryAbi,
-    eventName: 'ExitUnlockRateUpdated',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"MaxPaymentTokensUpdated"`
- */
-export const useWatchPortalPoolFactoryMaxPaymentTokensUpdatedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolFactoryAbi,
-    eventName: 'MaxPaymentTokensUpdated',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"Paused"`
- */
-export const useWatchPortalPoolFactoryPausedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolFactoryAbi,
-    eventName: 'Paused',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"PaymentTokenAdded"`
- */
-export const useWatchPortalPoolFactoryPaymentTokenAddedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolFactoryAbi,
-    eventName: 'PaymentTokenAdded',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"PaymentTokenRemoved"`
- */
-export const useWatchPortalPoolFactoryPaymentTokenRemovedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolFactoryAbi,
-    eventName: 'PaymentTokenRemoved',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"PortalCreated"`
- */
-export const useWatchPortalPoolFactoryPortalCreatedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolFactoryAbi,
-    eventName: 'PortalCreated',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"RoleAdminChanged"`
- */
-export const useWatchPortalPoolFactoryRoleAdminChangedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolFactoryAbi,
-    eventName: 'RoleAdminChanged',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"RoleGranted"`
- */
-export const useWatchPortalPoolFactoryRoleGrantedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolFactoryAbi,
-    eventName: 'RoleGranted',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"RoleRevoked"`
- */
-export const useWatchPortalPoolFactoryRoleRevokedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolFactoryAbi,
-    eventName: 'RoleRevoked',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"Unpaused"`
- */
-export const useWatchPortalPoolFactoryUnpausedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolFactoryAbi,
-    eventName: 'Unpaused',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"UsdcUpdated"`
- */
-export const useWatchPortalPoolFactoryUsdcUpdatedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolFactoryAbi,
-    eventName: 'UsdcUpdated',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolFactoryAbi}__ and `eventName` set to `"WorkerPoolAddressUpdated"`
- */
-export const useWatchPortalPoolFactoryWorkerPoolAddressUpdatedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalPoolFactoryAbi,
-    eventName: 'WorkerPoolAddressUpdated',
+    functionName: 'upgradeToAndCall',
   })
 
 /**
@@ -5113,6 +4341,24 @@ export const useReadPortalRegistryDefaultAdminRole =
   /*#__PURE__*/ createUseReadContract({
     abi: portalRegistryAbi,
     functionName: 'DEFAULT_ADMIN_ROLE',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"MAX_CLUSTERS_PER_OWNER"`
+ */
+export const useReadPortalRegistryMaxClustersPerOwner =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalRegistryAbi,
+    functionName: 'MAX_CLUSTERS_PER_OWNER',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"MAX_PORTALS_PER_CLUSTER"`
+ */
+export const useReadPortalRegistryMaxPortalsPerCluster =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalRegistryAbi,
+    functionName: 'MAX_PORTALS_PER_CLUSTER',
   })
 
 /**
@@ -5133,6 +4379,112 @@ export const useReadPortalRegistrySqd = /*#__PURE__*/ createUseReadContract({
 })
 
 /**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"UPGRADE_INTERFACE_VERSION"`
+ */
+export const useReadPortalRegistryUpgradeInterfaceVersion =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalRegistryAbi,
+    functionName: 'UPGRADE_INTERFACE_VERSION',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"addressToClusterId"`
+ */
+export const useReadPortalRegistryAddressToClusterId =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalRegistryAbi,
+    functionName: 'addressToClusterId',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"allClusterIds"`
+ */
+export const useReadPortalRegistryAllClusterIds =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalRegistryAbi,
+    functionName: 'allClusterIds',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"clusterCount"`
+ */
+export const useReadPortalRegistryClusterCount =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalRegistryAbi,
+    functionName: 'clusterCount',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"factory"`
+ */
+export const useReadPortalRegistryFactory = /*#__PURE__*/ createUseReadContract(
+  { abi: portalRegistryAbi, functionName: 'factory' },
+)
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"getActiveClusters"`
+ */
+export const useReadPortalRegistryGetActiveClusters =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalRegistryAbi,
+    functionName: 'getActiveClusters',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"getCluster"`
+ */
+export const useReadPortalRegistryGetCluster =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalRegistryAbi,
+    functionName: 'getCluster',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"getClusterByAddress"`
+ */
+export const useReadPortalRegistryGetClusterByAddress =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalRegistryAbi,
+    functionName: 'getClusterByAddress',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"getClusterIdByAddress"`
+ */
+export const useReadPortalRegistryGetClusterIdByAddress =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalRegistryAbi,
+    functionName: 'getClusterIdByAddress',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"getClusterIdByPeerId"`
+ */
+export const useReadPortalRegistryGetClusterIdByPeerId =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalRegistryAbi,
+    functionName: 'getClusterIdByPeerId',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"getClusterPortals"`
+ */
+export const useReadPortalRegistryGetClusterPortals =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalRegistryAbi,
+    functionName: 'getClusterPortals',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"getClustersPaginated"`
+ */
+export const useReadPortalRegistryGetClustersPaginated =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalRegistryAbi,
+    functionName: 'getClustersPaginated',
+  })
+
+/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"getComputationUnits"`
  */
 export const useReadPortalRegistryGetComputationUnits =
@@ -5142,30 +4494,21 @@ export const useReadPortalRegistryGetComputationUnits =
   })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"getDirectPortalId"`
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"getOperatorClusters"`
  */
-export const useReadPortalRegistryGetDirectPortalId =
+export const useReadPortalRegistryGetOperatorClusters =
   /*#__PURE__*/ createUseReadContract({
     abi: portalRegistryAbi,
-    functionName: 'getDirectPortalId',
+    functionName: 'getOperatorClusters',
   })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"getMetadata"`
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"getPortalCount"`
  */
-export const useReadPortalRegistryGetMetadata =
+export const useReadPortalRegistryGetPortalCount =
   /*#__PURE__*/ createUseReadContract({
     abi: portalRegistryAbi,
-    functionName: 'getMetadata',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"getPortal"`
- */
-export const useReadPortalRegistryGetPortal =
-  /*#__PURE__*/ createUseReadContract({
-    abi: portalRegistryAbi,
-    functionName: 'getPortal',
+    functionName: 'getPortalCount',
   })
 
 /**
@@ -5185,21 +4528,12 @@ export const useReadPortalRegistryHasRole = /*#__PURE__*/ createUseReadContract(
 )
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"isDirectPortal"`
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"isCluster"`
  */
-export const useReadPortalRegistryIsDirectPortal =
+export const useReadPortalRegistryIsCluster =
   /*#__PURE__*/ createUseReadContract({
     abi: portalRegistryAbi,
-    functionName: 'isDirectPortal',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"isPortal"`
- */
-export const useReadPortalRegistryIsPortal =
-  /*#__PURE__*/ createUseReadContract({
-    abi: portalRegistryAbi,
-    functionName: 'isPortal',
+    functionName: 'isCluster',
   })
 
 /**
@@ -5220,21 +4554,12 @@ export const useReadPortalRegistryMinStake =
   })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"networkController"`
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"ownerClusters"`
  */
-export const useReadPortalRegistryNetworkController =
+export const useReadPortalRegistryOwnerClusters =
   /*#__PURE__*/ createUseReadContract({
     abi: portalRegistryAbi,
-    functionName: 'networkController',
-  })
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"operatorToDirectPortal"`
- */
-export const useReadPortalRegistryOperatorToDirectPortal =
-  /*#__PURE__*/ createUseReadContract({
-    abi: portalRegistryAbi,
-    functionName: 'operatorToDirectPortal',
+    functionName: 'ownerClusters',
   })
 
 /**
@@ -5246,28 +4571,21 @@ export const useReadPortalRegistryPaused = /*#__PURE__*/ createUseReadContract({
 })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"peerIdToPortal"`
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"peerIdToCluster"`
  */
-export const useReadPortalRegistryPeerIdToPortal =
+export const useReadPortalRegistryPeerIdToCluster =
   /*#__PURE__*/ createUseReadContract({
     abi: portalRegistryAbi,
-    functionName: 'peerIdToPortal',
+    functionName: 'peerIdToCluster',
   })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"portals"`
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"proxiableUUID"`
  */
-export const useReadPortalRegistryPortals = /*#__PURE__*/ createUseReadContract(
-  { abi: portalRegistryAbi, functionName: 'portals' },
-)
-
-/**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"providerAllocations"`
- */
-export const useReadPortalRegistryProviderAllocations =
+export const useReadPortalRegistryProxiableUuid =
   /*#__PURE__*/ createUseReadContract({
     abi: portalRegistryAbi,
-    functionName: 'providerAllocations',
+    functionName: 'proxiableUUID',
   })
 
 /**
@@ -5287,12 +4605,12 @@ export const useWritePortalRegistry = /*#__PURE__*/ createUseWriteContract({
 })
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"activatePortalPool"`
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"addPortal"`
  */
-export const useWritePortalRegistryActivatePortalPool =
+export const useWritePortalRegistryAddPortal =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalRegistryAbi,
-    functionName: 'activatePortalPool',
+    functionName: 'addPortal',
   })
 
 /**
@@ -5305,12 +4623,21 @@ export const useWritePortalRegistryGrantRole =
   })
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"immediateUnlock"`
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"initialize"`
  */
-export const useWritePortalRegistryImmediateUnlock =
+export const useWritePortalRegistryInitialize =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalRegistryAbi,
-    functionName: 'immediateUnlock',
+    functionName: 'initialize',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"multicall"`
+ */
+export const useWritePortalRegistryMulticall =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalRegistryAbi,
+    functionName: 'multicall',
   })
 
 /**
@@ -5321,21 +4648,21 @@ export const useWritePortalRegistryPause = /*#__PURE__*/ createUseWriteContract(
 )
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"registerDirectPortal"`
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"registerCluster"`
  */
-export const useWritePortalRegistryRegisterDirectPortal =
+export const useWritePortalRegistryRegisterCluster =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalRegistryAbi,
-    functionName: 'registerDirectPortal',
+    functionName: 'registerCluster',
   })
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"registerPortalPool"`
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"removePortal"`
  */
-export const useWritePortalRegistryRegisterPortalPool =
+export const useWritePortalRegistryRemovePortal =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalRegistryAbi,
-    functionName: 'registerPortalPool',
+    functionName: 'removePortal',
   })
 
 /**
@@ -5357,21 +4684,39 @@ export const useWritePortalRegistryRevokeRole =
   })
 
 /**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"setClusterMetadata"`
+ */
+export const useWritePortalRegistrySetClusterMetadata =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalRegistryAbi,
+    functionName: 'setClusterMetadata',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"setClusterMetadataByPool"`
+ */
+export const useWritePortalRegistrySetClusterMetadataByPool =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalRegistryAbi,
+    functionName: 'setClusterMetadataByPool',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"setFactory"`
+ */
+export const useWritePortalRegistrySetFactory =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalRegistryAbi,
+    functionName: 'setFactory',
+  })
+
+/**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"setMana"`
  */
 export const useWritePortalRegistrySetMana =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalRegistryAbi,
     functionName: 'setMana',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"setMetadata"`
- */
-export const useWritePortalRegistrySetMetadata =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: portalRegistryAbi,
-    functionName: 'setMetadata',
   })
 
 /**
@@ -5384,12 +4729,12 @@ export const useWritePortalRegistrySetMinStake =
   })
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"setPortalStatus"`
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"setPortalMetadata"`
  */
-export const useWritePortalRegistrySetPortalStatus =
+export const useWritePortalRegistrySetPortalMetadata =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalRegistryAbi,
-    functionName: 'setPortalStatus',
+    functionName: 'setPortalMetadata',
   })
 
 /**
@@ -5400,21 +4745,12 @@ export const useWritePortalRegistryStake = /*#__PURE__*/ createUseWriteContract(
 )
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"stakePoolFunds"`
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"tryMulticall"`
  */
-export const useWritePortalRegistryStakePoolFunds =
+export const useWritePortalRegistryTryMulticall =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalRegistryAbi,
-    functionName: 'stakePoolFunds',
-  })
-
-/**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"stakeToDirectPortal"`
- */
-export const useWritePortalRegistryStakeToDirectPortal =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: portalRegistryAbi,
-    functionName: 'stakeToDirectPortal',
+    functionName: 'tryMulticall',
   })
 
 /**
@@ -5427,21 +4763,30 @@ export const useWritePortalRegistryUnpause =
   })
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"unstakeFromDirectPortal"`
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"unstake"`
  */
-export const useWritePortalRegistryUnstakeFromDirectPortal =
+export const useWritePortalRegistryUnstake =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalRegistryAbi,
-    functionName: 'unstakeFromDirectPortal',
+    functionName: 'unstake',
   })
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"withdrawFailedPortal"`
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"updateClusterOperator"`
  */
-export const useWritePortalRegistryWithdrawFailedPortal =
+export const useWritePortalRegistryUpdateClusterOperator =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalRegistryAbi,
-    functionName: 'withdrawFailedPortal',
+    functionName: 'updateClusterOperator',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"upgradeToAndCall"`
+ */
+export const useWritePortalRegistryUpgradeToAndCall =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalRegistryAbi,
+    functionName: 'upgradeToAndCall',
   })
 
 /**
@@ -5451,12 +4796,12 @@ export const useSimulatePortalRegistry =
   /*#__PURE__*/ createUseSimulateContract({ abi: portalRegistryAbi })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"activatePortalPool"`
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"addPortal"`
  */
-export const useSimulatePortalRegistryActivatePortalPool =
+export const useSimulatePortalRegistryAddPortal =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalRegistryAbi,
-    functionName: 'activatePortalPool',
+    functionName: 'addPortal',
   })
 
 /**
@@ -5469,12 +4814,21 @@ export const useSimulatePortalRegistryGrantRole =
   })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"immediateUnlock"`
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"initialize"`
  */
-export const useSimulatePortalRegistryImmediateUnlock =
+export const useSimulatePortalRegistryInitialize =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalRegistryAbi,
-    functionName: 'immediateUnlock',
+    functionName: 'initialize',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"multicall"`
+ */
+export const useSimulatePortalRegistryMulticall =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalRegistryAbi,
+    functionName: 'multicall',
   })
 
 /**
@@ -5487,21 +4841,21 @@ export const useSimulatePortalRegistryPause =
   })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"registerDirectPortal"`
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"registerCluster"`
  */
-export const useSimulatePortalRegistryRegisterDirectPortal =
+export const useSimulatePortalRegistryRegisterCluster =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalRegistryAbi,
-    functionName: 'registerDirectPortal',
+    functionName: 'registerCluster',
   })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"registerPortalPool"`
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"removePortal"`
  */
-export const useSimulatePortalRegistryRegisterPortalPool =
+export const useSimulatePortalRegistryRemovePortal =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalRegistryAbi,
-    functionName: 'registerPortalPool',
+    functionName: 'removePortal',
   })
 
 /**
@@ -5523,21 +4877,39 @@ export const useSimulatePortalRegistryRevokeRole =
   })
 
 /**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"setClusterMetadata"`
+ */
+export const useSimulatePortalRegistrySetClusterMetadata =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalRegistryAbi,
+    functionName: 'setClusterMetadata',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"setClusterMetadataByPool"`
+ */
+export const useSimulatePortalRegistrySetClusterMetadataByPool =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalRegistryAbi,
+    functionName: 'setClusterMetadataByPool',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"setFactory"`
+ */
+export const useSimulatePortalRegistrySetFactory =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalRegistryAbi,
+    functionName: 'setFactory',
+  })
+
+/**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"setMana"`
  */
 export const useSimulatePortalRegistrySetMana =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalRegistryAbi,
     functionName: 'setMana',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"setMetadata"`
- */
-export const useSimulatePortalRegistrySetMetadata =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: portalRegistryAbi,
-    functionName: 'setMetadata',
   })
 
 /**
@@ -5550,12 +4922,12 @@ export const useSimulatePortalRegistrySetMinStake =
   })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"setPortalStatus"`
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"setPortalMetadata"`
  */
-export const useSimulatePortalRegistrySetPortalStatus =
+export const useSimulatePortalRegistrySetPortalMetadata =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalRegistryAbi,
-    functionName: 'setPortalStatus',
+    functionName: 'setPortalMetadata',
   })
 
 /**
@@ -5568,21 +4940,12 @@ export const useSimulatePortalRegistryStake =
   })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"stakePoolFunds"`
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"tryMulticall"`
  */
-export const useSimulatePortalRegistryStakePoolFunds =
+export const useSimulatePortalRegistryTryMulticall =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalRegistryAbi,
-    functionName: 'stakePoolFunds',
-  })
-
-/**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"stakeToDirectPortal"`
- */
-export const useSimulatePortalRegistryStakeToDirectPortal =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: portalRegistryAbi,
-    functionName: 'stakeToDirectPortal',
+    functionName: 'tryMulticall',
   })
 
 /**
@@ -5595,162 +4958,30 @@ export const useSimulatePortalRegistryUnpause =
   })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"unstakeFromDirectPortal"`
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"unstake"`
  */
-export const useSimulatePortalRegistryUnstakeFromDirectPortal =
+export const useSimulatePortalRegistryUnstake =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalRegistryAbi,
-    functionName: 'unstakeFromDirectPortal',
+    functionName: 'unstake',
   })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"withdrawFailedPortal"`
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"updateClusterOperator"`
  */
-export const useSimulatePortalRegistryWithdrawFailedPortal =
+export const useSimulatePortalRegistryUpdateClusterOperator =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalRegistryAbi,
-    functionName: 'withdrawFailedPortal',
+    functionName: 'updateClusterOperator',
   })
 
 /**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalRegistryAbi}__
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalRegistryAbi}__ and `functionName` set to `"upgradeToAndCall"`
  */
-export const useWatchPortalRegistryEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({ abi: portalRegistryAbi })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalRegistryAbi}__ and `eventName` set to `"ManaUpdated"`
- */
-export const useWatchPortalRegistryManaUpdatedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
+export const useSimulatePortalRegistryUpgradeToAndCall =
+  /*#__PURE__*/ createUseSimulateContract({
     abi: portalRegistryAbi,
-    eventName: 'ManaUpdated',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalRegistryAbi}__ and `eventName` set to `"MetadataChanged"`
- */
-export const useWatchPortalRegistryMetadataChangedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalRegistryAbi,
-    eventName: 'MetadataChanged',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalRegistryAbi}__ and `eventName` set to `"MinStakeUpdated"`
- */
-export const useWatchPortalRegistryMinStakeUpdatedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalRegistryAbi,
-    eventName: 'MinStakeUpdated',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalRegistryAbi}__ and `eventName` set to `"Paused"`
- */
-export const useWatchPortalRegistryPausedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalRegistryAbi,
-    eventName: 'Paused',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalRegistryAbi}__ and `eventName` set to `"PortalActivated"`
- */
-export const useWatchPortalRegistryPortalActivatedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalRegistryAbi,
-    eventName: 'PortalActivated',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalRegistryAbi}__ and `eventName` set to `"PortalDeactivated"`
- */
-export const useWatchPortalRegistryPortalDeactivatedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalRegistryAbi,
-    eventName: 'PortalDeactivated',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalRegistryAbi}__ and `eventName` set to `"PortalRegistered"`
- */
-export const useWatchPortalRegistryPortalRegisteredEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalRegistryAbi,
-    eventName: 'PortalRegistered',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalRegistryAbi}__ and `eventName` set to `"PortalStatusChanged"`
- */
-export const useWatchPortalRegistryPortalStatusChangedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalRegistryAbi,
-    eventName: 'PortalStatusChanged',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalRegistryAbi}__ and `eventName` set to `"RoleAdminChanged"`
- */
-export const useWatchPortalRegistryRoleAdminChangedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalRegistryAbi,
-    eventName: 'RoleAdminChanged',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalRegistryAbi}__ and `eventName` set to `"RoleGranted"`
- */
-export const useWatchPortalRegistryRoleGrantedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalRegistryAbi,
-    eventName: 'RoleGranted',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalRegistryAbi}__ and `eventName` set to `"RoleRevoked"`
- */
-export const useWatchPortalRegistryRoleRevokedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalRegistryAbi,
-    eventName: 'RoleRevoked',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalRegistryAbi}__ and `eventName` set to `"Staked"`
- */
-export const useWatchPortalRegistryStakedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalRegistryAbi,
-    eventName: 'Staked',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalRegistryAbi}__ and `eventName` set to `"Unpaused"`
- */
-export const useWatchPortalRegistryUnpausedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalRegistryAbi,
-    eventName: 'Unpaused',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalRegistryAbi}__ and `eventName` set to `"Unstaked"`
- */
-export const useWatchPortalRegistryUnstakedEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalRegistryAbi,
-    eventName: 'Unstaked',
-  })
-
-/**
- * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalRegistryAbi}__ and `eventName` set to `"Withdrawn"`
- */
-export const useWatchPortalRegistryWithdrawnEvent =
-  /*#__PURE__*/ createUseWatchContractEvent({
-    abi: portalRegistryAbi,
-    eventName: 'Withdrawn',
+    functionName: 'upgradeToAndCall',
   })
 
 /**

@@ -1,5 +1,6 @@
+import { useState } from 'react';
+
 import { dateFormat } from '@i18n';
-import { percentFormatter } from '@lib/formatters/formatters';
 import { ArrowBackIosNew, ArrowForwardIos, FilterList } from '@mui/icons-material';
 import {
   Collapse,
@@ -14,9 +15,9 @@ import {
   useTheme,
 } from '@mui/material';
 import { Box } from '@mui/system';
-import { useState } from 'react';
 
-import { SortDir, useMySources, useWorkers, WorkerSortBy } from '@api/subsquid-network-squid';
+import { SortDir, WorkerSortBy, useMySources, useWorkers } from '@api/subsquid-network-squid';
+import { Card } from '@components/Card';
 import { Search } from '@components/Search/Search';
 import { SectionHeader } from '@components/SectionHeader';
 import { DashboardTable, NoItems, SortableHeaderCell } from '@components/Table';
@@ -28,8 +29,9 @@ import {
   WorkerVersion,
 } from '@components/Worker';
 import { Location, useLocationState } from '@hooks/useLocationState';
+import { percentFormatter } from '@lib/formatters/formatters';
+
 import { WorkersFilters } from './WorkersFilters';
-import { Card } from '@components/Card';
 
 function TableNavigation({
   totalPages,
@@ -168,11 +170,7 @@ export function Workers() {
         </Collapse>
       </Box>
       <Card>
-        <DashboardTable
-          loading={isLoading}
-          minHeight={PER_PAGE * 73}
-          sx={{ m: -2, mt: -0.5 }}
-        >
+        <DashboardTable loading={isLoading} minHeight={PER_PAGE * 73} sx={{ m: -2, mt: -0.5 }}>
           <TableHead>
             <TableRow>
               <SortableHeaderCell sort={WorkerSortBy.Name} query={query} setQuery={setQuery}>

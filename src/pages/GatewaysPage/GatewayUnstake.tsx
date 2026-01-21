@@ -8,14 +8,14 @@ import { useClient } from 'wagmi';
 import * as yup from 'yup';
 
 import { gatewayRegistryAbi } from '@api/contracts';
+import { useStakeInfo } from '@api/contracts/useStakeInfo';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
 import { ContractCallDialog } from '@components/ContractCallDialog';
+import { useSourceContext } from '@contexts/SourceContext';
 import { useCountdown } from '@hooks/useCountdown';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
-import { useContracts } from '@network/useContracts';
-import { useSourceContext } from '@contexts/SourceContext';
-import { useStakeInfo } from '@api/contracts/useStakeInfo';
+import { useContracts } from '@hooks/network/useContracts';
 
 export const stakeSchema = yup.object({
   source: yup.string().label('Source').trim().required('Source is required'),

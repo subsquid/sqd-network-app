@@ -1,9 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 
-import { percentFormatter } from '@lib/formatters/formatters';
-import { fromSqd, toSqd } from '@lib/network/utils';
-import { Button, Skeleton, Typography } from '@mui/material';
-import { Chip, Stack } from '@mui/material';
+import { Button, Chip, Skeleton, Stack, Typography } from '@mui/material';
 import * as yup from '@schema';
 import BigNumber from 'bignumber.js';
 import { useFormik } from 'formik';
@@ -17,16 +14,18 @@ import { errorMessage } from '@api/contracts/utils';
 import {
   AccountType,
   SourceWalletWithBalance,
-  useWorkerDelegationInfo,
   Worker,
   WorkerStatus,
+  useWorkerDelegationInfo,
 } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
-import { Form, FormDivider, FormikSelect, FormikTextInput, FormRow } from '@components/Form';
+import { Form, FormDivider, FormRow, FormikSelect, FormikTextInput } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { SourceWalletOption } from '@components/SourceWallet';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
-import { useContracts } from '@network/useContracts';
+import { percentFormatter } from '@lib/formatters/formatters';
+import { fromSqd, toSqd } from '@lib/network/utils';
+import { useContracts } from '@hooks/network/useContracts';
 
 export const EXPECTED_APR_TIP = (
   <span>

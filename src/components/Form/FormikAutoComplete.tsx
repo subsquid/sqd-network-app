@@ -1,5 +1,4 @@
-import { Autocomplete } from '@mui/material';
-import { autocompleteClasses, styled, TextField } from '@mui/material';
+import { Autocomplete, TextField, autocompleteClasses, styled } from '@mui/material';
 import { FormikProps } from 'formik';
 
 const inputHeight = 54;

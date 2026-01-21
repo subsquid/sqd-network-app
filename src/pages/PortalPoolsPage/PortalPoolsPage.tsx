@@ -1,24 +1,25 @@
-import { Box, Button, Stack, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
-import { Link, Outlet, Link as RouterLink } from 'react-router-dom';
 import { useMemo } from 'react';
 
-import { SortDir, useMySources } from '@api/subsquid-network-squid';
-import { DashboardTable, SortableHeaderCell, NoItems } from '@components/Table';
-import { Location, useLocationState } from '@hooks/useLocationState';
 import { CenteredPageWrapper } from '@layouts/NetworkLayout';
-import { ConnectedWalletRequired } from '@network/ConnectedWalletRequired';
-import { useContracts } from '@network/useContracts';
+import { Button, Stack, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import { parseMetadata } from '@pages/PortalPoolPage/hooks';
+import { Link, Outlet, Link as RouterLink } from 'react-router-dom';
+import { useReadContract, useReadContracts } from 'wagmi';
+
+import { portalPoolAbi, portalPoolFactoryAbi, portalRegistryAbi } from '@api/contracts';
+import { SortDir, useMySources } from '@api/subsquid-network-squid';
+import { Card } from '@components/Card';
 import { SquaredChip } from '@components/Chip';
 import { SectionHeader } from '@components/SectionHeader';
-import { Card } from '@components/Card';
 import { NameWithAvatar } from '@components/SourceWalletName';
-import { CopyToClipboard } from '@components/CopyToClipboard';
-import { AddPortalButton } from './AddNewPortalPool';
-import { useAccount } from '@network/useAccount';
-import { useReadContract, useReadContracts } from 'wagmi';
-import { portalPoolFactoryAbi, portalPoolAbi } from '@api/contracts';
+import { DashboardTable, NoItems, SortableHeaderCell } from '@components/Table';
+import { Location, useLocationState } from '@hooks/useLocationState';
 import { unwrapMulticallResult } from '@lib/network';
-import { parseMetadata } from '@pages/PortalPoolPage/hooks';
+import { ConnectedWalletRequired } from '@components/ConnectedWalletRequired';
+import { useAccount } from '@hooks/network/useAccount';
+import { useContracts } from '@hooks/network/useContracts';
+
+import { AddPortalButton } from './AddNewPortalPool';
 
 enum PortalSortBy {
   Name = 'name',
@@ -29,11 +30,7 @@ function PortalName({ name, address }: { name: string; address: string }) {
 
   return (
     <RouterLink to={`/portal-pool/${address}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-      <NameWithAvatar
-        title={name}
-        subtitle={<CopyToClipboard text={address} content={shortAddress} />}
-        avatarValue={address}
-      />
+      <NameWithAvatar title={name} subtitle={shortAddress} avatarValue={address} />
     </RouterLink>
   );
 }
@@ -44,7 +41,7 @@ export function MyPortals() {
     sortDir: new Location.Enum<SortDir>(SortDir.Asc),
   });
 
-  const { SQD_TOKEN, PORTAL_POOL_FACTORY } = useContracts();
+  const { PORTAL_POOL_FACTORY, PORTAL_REGISTRY } = useContracts();
   const { address } = useAccount();
   const { data: sources, isLoading: isSourcesLoading } = useMySources();
 
@@ -64,12 +61,13 @@ export function MyPortals() {
     return portalAddresses.map(
       portalAddress =>
         ({
-          address: portalAddress,
-          abi: portalPoolAbi,
-          functionName: 'getMetadata',
+          address: PORTAL_REGISTRY,
+          abi: portalRegistryAbi,
+          functionName: 'getClusterByAddress',
+          args: [portalAddress as `0x${string}`],
         }) as const,
     );
-  }, [portalAddresses]);
+  }, [portalAddresses, PORTAL_REGISTRY]);
 
   const { data: portalsData, isLoading: isPortalsDataLoading } = useReadContracts({
     contracts: portalContracts,
@@ -89,7 +87,7 @@ export function MyPortals() {
 
         return {
           address: portalAddress,
-          name: parseMetadata(portalInfo).name || portalAddress,
+          name: parseMetadata(portalInfo.metadata).name || portalAddress,
         };
       })
       .filter((portal): portal is NonNullable<typeof portal> => portal !== null);

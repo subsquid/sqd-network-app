@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 
-import { nonNullable } from '@lib/array';
 import {
   Checkbox,
   ListItemText,
   MenuItem,
   Select,
-  selectClasses,
   Stack,
+  selectClasses,
   styled,
 } from '@mui/material';
+
+import { nonNullable } from '@lib/array';
 
 export const PaperSelect = styled(Select, {
   name: 'PaperSelect',

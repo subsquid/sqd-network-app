@@ -36,7 +36,7 @@
       "@logger": ["./src/logger/index"],
       "@apps": ["./src/apps/apps"],
       "@apps/*": ["./src/apps/*"],
-      "@network/*": ["./src/network/*"],
+      "@network/*": ["./src/hooks/network/*"],
       "@schema": ["./src/schema"]
     }
   },

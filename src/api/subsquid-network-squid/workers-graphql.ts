@@ -1,17 +1,18 @@
 import { useMemo } from 'react';
 
-import { calculateDelegationCapacity } from '@lib/network';
-import { getWorkerStatus } from '@components/Worker';
 import BigNumber from 'bignumber.js';
 import { compare as compareSemver } from 'semver';
 import { PartialDeep, SimplifyDeep } from 'type-fest';
 
-import { useAccount } from '@network/useAccount.ts';
+import { getWorkerStatus } from '@components/Worker';
+import { calculateDelegationCapacity } from '@lib/network';
+import { useAccount } from '@hooks/network/useAccount';
 
 import { useSquid } from './datasource';
 import {
   AccountType,
   Delegation,
+  Worker,
   useAllWorkersQuery,
   useMyDelegationsQuery,
   useMyWorkersCountQuery,
@@ -19,7 +20,6 @@ import {
   useWorkerByPeerIdQuery,
   useWorkerDelegationInfoQuery,
   useWorkerOwnerQuery,
-  Worker,
 } from './graphql';
 import { useNetworkSettings } from './settings-graphql';
 

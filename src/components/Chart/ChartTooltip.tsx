@@ -1,6 +1,9 @@
 import { useMemo } from 'react';
+
 import { Box, Divider, Paper, Typography } from '@mui/material';
+
 import { toDateSeconds } from '@lib/formatters/formatters';
+
 import type { ChartDatum, ChartFormatters, ChartSeries } from './types';
 
 interface ChartTooltipProps {

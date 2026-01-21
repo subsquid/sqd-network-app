@@ -1,30 +1,29 @@
-import { Divider, Stack, Typography } from '@mui/material';
-import { formatUnits } from 'viem';
+import { useMemo } from 'react';
+
+import { Divider, Skeleton, Stack, Typography } from '@mui/material';
+import BigNumber from 'bignumber.js';
 import { useReadContract } from 'wagmi';
 
 import { portalPoolAbi } from '@api/contracts';
 import { Card } from '@components/Card';
-import { Property, PropertyList } from '@components/Property';
-import { useRewardToken } from '@hooks/useRewardToken';
-import { dollarFormatter, tokenFormatter } from '@lib/formatters/formatters';
-import { fromSqd } from '@lib/network';
-import { useContracts } from '@network/useContracts';
+import { HelpTooltip } from '@components/HelpTooltip';
+import { tokenFormatter } from '@lib/formatters/formatters';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { EditCapacityButton, EditDistributionRateButton } from '../dialogs/EditSettingsDialog';
 import { TopUpButton } from '../dialogs/TopUpDialog';
 import { usePoolData } from '../hooks';
-import { useMemo } from 'react';
+import { MANAGE_TEXTS } from '../texts';
 
 interface ManageTabProps {
   poolId: string;
 }
 
 export function ManageTab({ poolId }: ManageTabProps) {
-  const { data: pool } = usePoolData(poolId);
+  const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
   const { SQD_TOKEN } = useContracts();
-  const { data: rewardToken } = useRewardToken();
 
-  const { data: rewardBalance } = useReadContract({
+  const { data: rewardBalance, isLoading: rewardBalanceLoading } = useReadContract({
     address: poolId as `0x${string}`,
     abi: portalPoolAbi,
     functionName: 'getCurrentRewardBalance',
@@ -38,42 +37,93 @@ export function ManageTab({ poolId }: ManageTabProps) {
     return pool.phase !== 'collecting' && pool.phase !== 'debt' && pool.phase !== 'failed';
   }, [pool?.phase]);
 
-  if (!pool) return null;
-
-  const rewardDecimals = rewardToken?.decimals ?? 6;
-  const rewardSymbol = rewardToken?.symbol ?? 'USDC';
-  const formattedBalance = rewardBalance ? formatUnits(rewardBalance, rewardDecimals) : '0';
+  if (!pool && !poolLoading) return null;
 
   return (
-    <Card sx={{ height: '100%', overflowY: 'auto' }}>
-      <Stack spacing={3} divider={<Divider />}>
-        <Stack spacing={1.5}>
-          <Typography variant="body2" color="text.secondary">
-            Current Reward Balance
-          </Typography>
-          <Typography variant="body1">
-            {tokenFormatter(Number(formattedBalance), rewardSymbol, 6)}
-          </Typography>
+    <Stack spacing={2}>
+      <Card
+        title={
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            <span>{MANAGE_TEXTS.rewardPoolBalance.label}</span>
+            <HelpTooltip title={MANAGE_TEXTS.rewardPoolBalance.tooltip} />
+          </Stack>
+        }
+      >
+        <Stack spacing={2} divider={<Divider />}>
+          <Stack spacing={0.5}>
+            <Typography variant="h5">
+              {poolLoading || rewardBalanceLoading ? (
+                <Skeleton width="50%" />
+              ) : (
+                tokenFormatter(
+                  BigNumber(rewardBalance || 0).div(10 ** pool!.rewardToken.decimals),
+                  pool!.rewardToken.symbol,
+                  6,
+                )
+              )}
+            </Typography>
+          </Stack>
+          <Stack spacing={1}>
+            <TopUpButton poolId={poolId} />
+          </Stack>
         </Stack>
+      </Card>
 
-        <TopUpButton poolId={poolId} />
+      <Card
+        title={
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            <span>{MANAGE_TEXTS.poolSettings}</span>
+          </Stack>
+        }
+      >
+        <Stack spacing={2} divider={<Divider />}>
+          <Stack spacing={1.5}>
+            <Stack spacing={0.5}>
+              <Typography variant="body2" color="text.secondary">
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <span>{MANAGE_TEXTS.distributionRate.label}</span>
+                  <HelpTooltip title={MANAGE_TEXTS.distributionRate.tooltip} />
+                </Stack>
+              </Typography>
+              <Typography>
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <span>
+                    {poolLoading ? (
+                      <Skeleton width={100} />
+                    ) : (
+                      `${pool!.distributionRatePerSecond.times(86400).toFixed(2)} ${pool!.rewardToken.symbol}${MANAGE_TEXTS.distributionRate.unit}`
+                    )}
+                  </span>
+                  {!poolLoading && (
+                    <EditDistributionRateButton poolId={poolId} disabled={!canEdit} />
+                  )}
+                </Stack>
+              </Typography>
+            </Stack>
 
-        <Stack spacing={2}>
-          <Typography variant="subtitle2">Configurable Settings</Typography>
-          <PropertyList>
-            <Property
-              label="Distribution Rate"
-              value={`${(pool.monthlyPayoutUsd / 30).toFixed(2)} ${rewardSymbol}/day`}
-              action={<EditDistributionRateButton poolId={poolId} disabled={!canEdit} />}
-            />
-            <Property
-              label="Max Pool Capacity"
-              value={tokenFormatter(fromSqd(pool.tvl.max), SQD_TOKEN, 0)}
-              action={<EditCapacityButton poolId={poolId} disabled={!canEdit} />}
-            />
-          </PropertyList>
+            <Stack spacing={0.5}>
+              <Typography variant="body2" color="text.secondary">
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <span>{MANAGE_TEXTS.maxPoolCapacity.label}</span>
+                  <HelpTooltip title={MANAGE_TEXTS.maxPoolCapacity.tooltip(SQD_TOKEN)} />
+                </Stack>
+              </Typography>
+              <Typography>
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <span>
+                    {poolLoading ? (
+                      <Skeleton width={100} />
+                    ) : (
+                      tokenFormatter(pool!.tvl.max, SQD_TOKEN, 0)
+                    )}
+                  </span>
+                  {!poolLoading && <EditCapacityButton poolId={poolId} disabled={!canEdit} />}
+                </Stack>
+              </Typography>
+            </Stack>
+          </Stack>
         </Stack>
-      </Stack>
-    </Card>
+      </Card>
+    </Stack>
   );
 }

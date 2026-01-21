@@ -1,17 +1,17 @@
+import { CenteredPageWrapper } from '@layouts/NetworkLayout';
 import { Warning } from '@mui/icons-material';
 import { Alert, Box, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 
 import { useSourcesQuery, useSquid } from '@api/subsquid-network-squid';
-import { DashboardTable, NoItems } from '@components/Table';
+import { SectionHeader } from '@components/SectionHeader';
 import { NameWithAvatar } from '@components/SourceWalletName';
-import { CenteredPageWrapper } from '@layouts/NetworkLayout';
-import { ConnectedWalletRequired } from '@network/ConnectedWalletRequired';
-import { useAccount } from '@network/useAccount';
-import { useContracts } from '@network/useContracts';
+import { DashboardTable, NoItems } from '@components/Table';
+import { ConnectedWalletRequired } from '@components/ConnectedWalletRequired';
+import { useAccount } from '@hooks/network/useAccount';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { DepositButton } from './DepositButton';
-import { SectionHeader } from '@components/SectionHeader';
 
 export function OtcContracts() {
   const account = useAccount();

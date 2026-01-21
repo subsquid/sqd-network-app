@@ -6,4 +6,3 @@ export const poolQueryKeys = {
   isPortal: (poolId?: string) => ['isPortal', poolId] as const,
   lpTokenSymbol: (tokenAddress?: string) => ['lpTokenSymbol', tokenAddress] as const,
 };
-

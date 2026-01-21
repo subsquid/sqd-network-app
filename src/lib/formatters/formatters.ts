@@ -60,16 +60,14 @@ const tokenFormatOptions = {
   groupSize: 3,
 };
 
-
-
 export function tokenFormatter(val: number | BigNumber, currency: string, decimals = 3) {
   const bn = BigNumber(val);
   const rounded = bn.decimalPlaces(decimals, BigNumber.ROUND_FLOOR);
 
   const res =
     rounded.eq(0) && !bn.eq(0)
-      ? '< ' + BigNumber(1).shiftedBy(-decimals).toFormat(tokenFormatOptions)
-      :  rounded.toFormat(tokenFormatOptions);
+      ? '<' + BigNumber(1).shiftedBy(-decimals).toFormat(tokenFormatOptions)
+      : rounded.toFormat(tokenFormatOptions);
 
   return res + ` ${currency}`;
 }

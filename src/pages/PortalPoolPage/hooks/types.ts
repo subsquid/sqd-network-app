@@ -1,3 +1,7 @@
+import type BigNumber from 'bignumber.js';
+
+import type { ERC20TokenData } from '@hooks/network/useERC20';
+
 // Pool phases:
 // - 'collecting': Pool created, users depositing, portal inactive
 // - 'active': Base (1M SQD) + 20% buffer reached, portal operating
@@ -13,7 +17,7 @@ export interface PoolOperator {
 
 export interface PendingWithdrawal {
   id: string;
-  amount: bigint;
+  amount: BigNumber;
   estimatedCompletionAt: Date;
 }
 
@@ -24,6 +28,13 @@ export interface WithdrawalQueue {
   windowResetIn?: string;
 }
 
+export interface PoolTvl {
+  current: BigNumber;
+  total: BigNumber;
+  max: BigNumber;
+  min: BigNumber;
+}
+
 export interface PoolData {
   id: string;
   name: string;
@@ -31,24 +42,19 @@ export interface PoolData {
   website?: string;
   operator: PoolOperator;
   phase: PoolPhase;
-  monthlyPayoutUsd: number;
-  distributionRatePerSecond: bigint;
-  tvl: {
-    current: bigint;
-    total: bigint;
-    max: bigint;
-    min: bigint;
-  };
+  distributionRatePerSecond: BigNumber;
+  tvl: PoolTvl;
   depositWindowEndsAt?: Date;
-  withdrawalQueue: WithdrawalQueue;
-  maxDepositPerAddress: bigint;
-  withdrawWaitTime?: string;
-  lptTokenSymbol?: string;
-  lptToken: string;
+  maxDepositPerAddress: BigNumber;
+  lptToken: ERC20TokenData;
+  rewardToken: ERC20TokenData;
+  createdAt: Date;
+  totalRewardsToppedUp: BigNumber;
 }
 
 export interface PoolUserData {
-  userBalance: bigint;
+  userBalance: BigNumber;
   userRewards: bigint;
+  isWhitelisted: boolean;
+  whitelistEnabled: boolean;
 }
-

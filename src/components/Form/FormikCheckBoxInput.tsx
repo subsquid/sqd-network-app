@@ -4,10 +4,10 @@ import {
   Box,
   Checkbox,
   FormControlLabel,
-  formControlLabelClasses,
-  FormHelperText,
-  styled,
   FormControlLabelProps,
+  FormHelperText,
+  formControlLabelClasses,
+  styled,
 } from '@mui/material';
 import { FormikProps } from 'formik';
 

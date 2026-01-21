@@ -1,13 +1,14 @@
 import { useMemo } from 'react';
-import { useCurrentEpoch } from '@api/subsquid-network-squid';
+
 import {
   useReadGatewayRegistryComputationUnitsAmount,
   useReadGatewayRegistryGetStake,
   useReadNetworkControllerWorkerEpochLength,
   useReadRouterNetworkController,
 } from '@api/contracts';
+import { useCurrentEpoch } from '@api/subsquid-network-squid';
 import { getBlockTime } from '@lib/network';
-import { useContracts } from '@network/useContracts';
+import { useContracts } from '@hooks/network/useContracts';
 
 export function useStakeInfo(selectedSourceAddress: `0x${string}`) {
   const { GATEWAY_REGISTRATION, ROUTER } = useContracts();

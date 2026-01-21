@@ -1,6 +1,7 @@
+import { Box, type SxProps, Typography, styled } from '@mui/material';
+
 import { SquaredChip } from '@components/Chip';
 import { HelpTooltip } from '@components/HelpTooltip';
-import { Box, styled, Tooltip, Typography, type SxProps } from '@mui/material';
 
 const CardHeader = styled(Box, {
   name: 'CardHeader',

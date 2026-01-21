@@ -1,8 +1,10 @@
 import { useMemo } from 'react';
-import { Bar } from '@visx/shape';
+
 import { Group } from '@visx/group';
-import type { ScaleTime, ScaleLinear } from 'd3-scale';
-import type { StackedChartSeries, SingleChartSeries } from './types';
+import { Bar } from '@visx/shape';
+import type { ScaleLinear, ScaleTime } from 'd3-scale';
+
+import type { SingleChartSeries, StackedChartSeries } from './types';
 
 type XScale = ScaleTime<number, number, never>;
 type YScale = ScaleLinear<number, number, never>;

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Box, SxProps, Theme, styled, Tooltip } from '@mui/material';
+import { Box, SxProps, Theme, Tooltip, styled } from '@mui/material';
 
 export interface OnlineCircleProps {
   /** Whether the indicator should show online status */

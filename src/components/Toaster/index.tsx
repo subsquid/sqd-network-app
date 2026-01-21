@@ -1,6 +1,6 @@
 import { Report } from '@mui/icons-material';
 import { Alert, AlertColor, Box, CircularProgress, Typography } from '@mui/material';
-import toast, { Toaster as Toaster_, Toast } from 'react-hot-toast';
+import toast, { Toast, Toaster as Toaster_ } from 'react-hot-toast';
 
 interface ToastConfig {
   color: AlertColor;

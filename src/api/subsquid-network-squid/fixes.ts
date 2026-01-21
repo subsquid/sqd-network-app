@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
 
-import { getBlockTime } from '@lib/network';
 import { Simplify } from 'type-fest';
 import { useBlock, useReadContracts } from 'wagmi';
 
 import { Worker, WorkerStatus } from '@api/subsquid-network-squid';
-import { useContracts } from '@network/useContracts';
+import { getBlockTime } from '@lib/network';
+import { useContracts } from '@hooks/network/useContracts';
 
 import {
   stakingAbi,

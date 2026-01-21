@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
+
 import { useReadContract, useReadContracts } from 'wagmi';
 
 import { portalPoolAbi } from '@api/contracts';
-import { unwrapMulticallResult } from '@lib/network';
-import { useAccount } from '@network/useAccount';
+import { fromSqd, unwrapMulticallResult } from '@lib/network';
+import { useAccount } from '@hooks/network/useAccount';
 
 import type { PendingWithdrawal } from './types';
 
@@ -81,7 +82,7 @@ export function usePoolPendingWithdrawals(poolId?: string) {
 
       withdrawals.push({
         id: ticketIds[i].toString(),
-        amount: exitTicket?.amount ?? 0n,
+        amount: fromSqd(exitTicket?.amount ?? 0n),
         estimatedCompletionAt: new Date(unlockTimestampMs),
       });
     }

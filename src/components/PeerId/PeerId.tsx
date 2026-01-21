@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { ContentCopy as CopyIcon } from '@mui/icons-material';
-import { Box, Tooltip, SxProps, Theme, styled } from '@mui/material';
+import { Box, SxProps, Theme, Tooltip, styled } from '@mui/material';
 
 import { CopyToClipboard } from '@components/CopyToClipboard';
 
@@ -117,9 +117,7 @@ export function PeerId({
       ) : (
         content
       )}
-      {showCopyIcon && (
-        <CopyToClipboard text={peerId} content={<CopyIconStyled sx={copyIconSx} />} />
-      )}
+      {showCopyIcon && <CopyToClipboard text={peerId} />}
     </PeerIdContainer>
   );
 }

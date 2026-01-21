@@ -1,8 +1,8 @@
 import { dateFormat } from '@i18n';
-import { addressFormatter, percentFormatter, tokenFormatter } from '@lib/formatters/formatters';
-import { fromSqd, unwrapMulticallResult } from '@lib/network/utils';
+import { CenteredPageWrapper, PageTitle } from '@layouts/NetworkLayout';
 import { Box, Divider, Stack, Typography, useTheme } from '@mui/material';
 import { keepPreviousData } from '@tanstack/react-query';
+import BigNumber from 'bignumber.js';
 import { useParams } from 'react-router-dom';
 import { useReadContracts } from 'wagmi';
 
@@ -14,11 +14,11 @@ import { CopyToClipboard } from '@components/CopyToClipboard';
 import { Loader } from '@components/Loader';
 import { NotFound } from '@components/NotFound';
 import { Property, PropertyList } from '@components/Property';
-import { CenteredPageWrapper, PageTitle } from '@layouts/NetworkLayout';
-import { useContracts } from '@network/useContracts';
+import { addressFormatter, percentFormatter, tokenFormatter } from '@lib/formatters/formatters';
+import { fromSqd, unwrapMulticallResult } from '@lib/network/utils';
+import { useContracts } from '@hooks/network/useContracts';
 
 import { ReleaseButton } from './ReleaseButton';
-import BigNumber from 'bignumber.js';
 
 function VestingTitle({ address }: { address: `0x${string}` }) {
   const theme = useTheme();

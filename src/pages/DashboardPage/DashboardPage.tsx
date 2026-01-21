@@ -1,7 +1,6 @@
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Tab, Tabs } from '@mui/material';
-
 import { CenteredPageWrapper } from '@layouts/NetworkLayout';
+import { Tab, Tabs } from '@mui/material';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { NetworkSummary } from './Summary';
 

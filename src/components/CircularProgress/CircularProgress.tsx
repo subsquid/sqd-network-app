@@ -1,9 +1,9 @@
 import {
-  Stack,
-  CircularProgress as MaterialCircularProgress,
-  styled,
   Box,
+  CircularProgress as MaterialCircularProgress,
+  Stack,
   Theme,
+  styled,
 } from '@mui/material';
 import { SxProps } from '@mui/system/styleFunctionSx';
 
