@@ -294,7 +294,7 @@ function TermsContent() {
           1. The Interface
         </Typography>
         <Typography variant="body2" paragraph>
-          The web-based interface made available under the name "SQD Revenue Pools" (the
+          The web-based interface made available under the name "SQD revenue pools" (the
           "Interface") provides a means of accessing and viewing certain information related to
           revenue pools and of facilitating user-initiated interactions with specific smart
           contracts deployed on distributed-ledger networks. The Interface is intended solely for
@@ -318,7 +318,7 @@ function TermsContent() {
           networks and operate independently of the Interface.
         </Typography>
         <Typography variant="body2" paragraph>
-          Subsquid Labs GmbH (Zug, Switzerland, “Subsquid”) does not execute any transactions, does
+          Subsquid Labs GmbH (Zug, Switzerland, "Subsquid") does not execute any transactions, does
           not control, and does not have access to any SQD locked in the SQD revenue pool smart
           contracts.
         </Typography>
@@ -339,7 +339,29 @@ function TermsContent() {
 
       <Box>
         <Typography variant="h6" gutterBottom>
-          3. No Offer, No Solicitation, No Recommendation
+          3. Sanctions Compliance
+        </Typography>
+        <Typography variant="body2" paragraph>
+          By accessing or using the Interface, the user warrants on a continuing basis that the user
+          is not located in, incorporated in, or otherwise established in, and is not a citizen or
+          resident of, any jurisdiction subject to comprehensive economic or trade sanctions imposed
+          by the United States of America, the European Union, the United Kingdom, Canada, or
+          Switzerland, and that the user is not subject to, or designated under, any applicable
+          sanctions or restricted party lists maintained by any governmental authority, including
+          the United States Office of Foreign Assets Control (OFAC).
+        </Typography>
+        <Typography variant="body2" paragraph>
+          Subsquid Labs GmbH may suspend, restrict, or terminate access to the Interface at any time
+          if it reasonably believes that this representation has been breached. Any breach of this
+          clause constitutes a material breach of these Terms of Use. Subsquid shall not be liable
+          for any losses arising from measures taken in good faith to comply with applicable
+          sanctions laws.
+        </Typography>
+      </Box>
+
+      <Box>
+        <Typography variant="h6" gutterBottom>
+          4. No Offer, No Solicitation, No Recommendation
         </Typography>
         <Typography variant="body2" paragraph>
           The Interface does not constitute, and shall not be construed as, an offer, solicitation,
@@ -351,7 +373,7 @@ function TermsContent() {
 
       <Box>
         <Typography variant="h6" gutterBottom>
-          4. Beta Phase and Experimental Nature
+          5. Beta Phase and Experimental Nature
         </Typography>
         <Typography variant="body2" paragraph>
           The Interface and the revenue pool framework are provided on an experimental basis and
@@ -390,7 +412,7 @@ function TermsContent() {
 
       <Box>
         <Typography variant="h6" gutterBottom>
-          5. Revenue Pools and No Rights or Entitlements
+          6. Revenue Pools and No Rights or Entitlements
         </Typography>
         <Typography variant="body2" paragraph>
           The revenue pools constitute an optional participation mechanism operated by independent
@@ -445,14 +467,15 @@ function TermsContent() {
 
       <Box>
         <Typography variant="h6" gutterBottom>
-          6. Smart Contracts, Asset Control, and Irreversibility
+          7. Smart Contracts, Asset Control, and Irreversibility
         </Typography>
         <Typography variant="body2" paragraph>
           All smart contracts referenced, displayed, or accessible through the Interface are
-          autonomous, self-executing software deployed on public distributed-ledger networks. Once
-          deployed, such smart contracts operate independently of the Interface and independently of
-          Subsquid. Subsquid does not execute any transactions, does not control, and does not
-          have access to any SQD locked in the SQD revenue pool smart contracts.
+          autonomous, self-executing software deployed on public distributed-ledger networks.
+          Certain smart contracts, including the SQD revenue pool smart contracts, grant Subsquid
+          limited administrative rights as defined in their respective code. Notwithstanding such
+          administrative rights, once deployed these smart contracts operate independently of the
+          Interface.
         </Typography>
         <Typography variant="body2" paragraph>
           Subsquid does not have access to, custody of, or control over any digital assets,
@@ -491,7 +514,7 @@ function TermsContent() {
 
       <Box>
         <Typography variant="h6" gutterBottom>
-          7. No Advice
+          8. No Advice
         </Typography>
         <Typography variant="body2" paragraph>
           Nothing made available through the Interface or under these Terms of Use constitutes, or
@@ -517,7 +540,7 @@ function TermsContent() {
 
       <Box>
         <Typography variant="h6" gutterBottom>
-          8. Limitation of Liability
+          9. Limitation of Liability
         </Typography>
         <Typography variant="body2" paragraph>
           To the maximum extent permitted by applicable law, neither Subsquid nor any of its
@@ -526,9 +549,12 @@ function TermsContent() {
           incidental, consequential, special, punitive, or exemplary damages, losses, or expenses
           arising out of or in connection with the use of, reliance on, or inability to use the
           Interface, whether arising in contract, tort (including negligence), strict liability, or
-          otherwise. This exclusion applies irrespective of whether any of the foregoing parties has
-          been advised of the possibility of such damages and includes, without limitation, any loss
-          of digital assets, tokens, cryptocurrencies, or other funds, loss of profits, revenue,
+          otherwise.
+        </Typography>
+        <Typography variant="body2" paragraph>
+          This exclusion applies irrespective of whether any of the foregoing parties has been
+          advised of the possibility of such damages and includes, without limitation, any loss of
+          digital assets, tokens, cryptocurrencies, or other funds, loss of profits, revenue,
           business, or anticipated savings, loss, corruption, or unavailability of data, failed,
           delayed, or incorrectly executed transactions, smart contract errors, vulnerabilities, or
           exploits, protocol failures, hacks, cyberattacks, forks, network congestion or outages,
@@ -539,7 +565,7 @@ function TermsContent() {
 
       <Box>
         <Typography variant="h6" gutterBottom>
-          9. Indemnification
+          10. Indemnification
         </Typography>
         <Typography variant="body2" paragraph>
           You agree to indemnify, defend, and hold harmless Subsquid and its affiliates,
@@ -553,7 +579,7 @@ function TermsContent() {
 
       <Box>
         <Typography variant="h6" gutterBottom>
-          10. Taxes
+          11. Taxes
         </Typography>
         <Typography variant="body2" paragraph>
           Each user bears sole and exclusive responsibility for identifying, calculating, reporting,
@@ -576,7 +602,7 @@ function TermsContent() {
 
       <Box>
         <Typography variant="h6" gutterBottom>
-          11. Miscellaneous
+          12. Miscellaneous
         </Typography>
         <Typography variant="body2" paragraph>
           Subsquid reserves the right to amend, modify, or replace these Terms of Use, in whole or
