@@ -50,6 +50,8 @@ jobs:
               echo "::set-output name=app_env::prod"
               echo "::set-output name=testnet_squid_api_url::https://subsquid.squids.live/subsquid-network-testnet:prod/api/graphql"
               echo "::set-output name=mainnet_squid_api_url::https://subsquid.squids.live/subsquid-network-mainnet:prod/api/graphql"
+              echo "::set-output name=testnet_pool_squid_api_url::https://subsquid.squids.live/portal-pools-testnet@v1/api/graphql"
+              echo "::set-output name=mainnet_pool_squid_api_url::https://subsquid.squids.live/portal-pools-mainnet@v1/api/graphql"
               echo "::set-output name=enable_demo_features::false"
           else
               echo "::set-output name=app_env::dev"
