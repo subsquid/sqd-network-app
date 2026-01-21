@@ -17,7 +17,7 @@ import { HelpTooltip } from '@components/HelpTooltip';
 import { Loader } from '@components/Loader';
 import { SourceWalletOption } from '@components/SourceWallet';
 import { tokenFormatter } from '@lib/formatters/formatters';
-import { toSqd } from '@lib/network';
+import { fromSqd, toSqd } from '@lib/network';
 import { useContracts } from '@hooks/network/useContracts';
 
 import { usePoolCapacity, usePoolData, usePoolUserData } from '../hooks';
@@ -51,6 +51,7 @@ interface ProvideDialogProps {
 }
 
 const createValidationSchema = (
+  useBalance: BigNumber,
   userRemainingCapacity: BigNumber,
   poolRemainingCapacity: BigNumber,
   sqdToken: string,
@@ -64,6 +65,12 @@ const createValidationSchema = (
       })
       .test('max', function (value) {
         const amount = BigNumber(value || '0');
+
+        if (amount.gt(useBalance)) {
+          return this.createError({
+            message: 'You have insufficient balance',
+          });
+        }
 
         if (amount.gt(userRemainingCapacity)) {
           return this.createError({
@@ -96,8 +103,12 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
   const typedAmount = useMemo(() => BigNumber(formik.values.amount || '0'), [formik.values.amount]);
 
   const handleMaxClick = useCallback(() => {
-    if (capacity) formik.setFieldValue('amount', capacity.effectiveMax.toString());
-  }, [formik, capacity]);
+    if (capacity)
+      formik.setFieldValue(
+        'amount',
+        BigNumber.min(capacity.effectiveMax, fromSqd(sources[0]?.balance)).toString(),
+      );
+  }, [formik, capacity, sources]);
 
   if (poolLoading || userDataLoading) return <Loader />;
   if (!pool || !capacity) return null;
@@ -211,16 +222,18 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
   const { data: pool } = usePoolData(poolId);
   const capacity = usePoolCapacity(poolId);
+  const { data: sources } = useMySources();
 
   const { userRemainingCapacity, poolRemainingCapacity, maxDepositPerAddress } = capacity || {};
 
   const validationSchema = useMemo(() => {
     return createValidationSchema(
+      fromSqd(sources[0]?.balance) ?? 0,
       userRemainingCapacity ?? BigNumber(0),
       poolRemainingCapacity ?? BigNumber(0),
       SQD_TOKEN,
     );
-  }, [userRemainingCapacity, poolRemainingCapacity, SQD_TOKEN]);
+  }, [userRemainingCapacity, poolRemainingCapacity, SQD_TOKEN, sources]);
 
   const handleSubmit = useCallback(
     async (values: { amount: string }) => {
