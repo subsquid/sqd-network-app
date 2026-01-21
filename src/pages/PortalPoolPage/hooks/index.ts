@@ -7,7 +7,6 @@ export * from './queryKeys';
 // Re-export types
 export * from './types';
 export * from './useLiquidityEvents';
-export * from './usePoolCapacity';
 export * from './usePoolData';
 export * from './usePoolPendingWithdrawals';
 export * from './usePoolUserData';

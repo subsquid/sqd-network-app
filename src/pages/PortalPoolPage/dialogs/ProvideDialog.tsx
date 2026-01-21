@@ -20,7 +20,7 @@ import { tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, toSqd } from '@lib/network';
 import { useContracts } from '@hooks/network/useContracts';
 
-import { usePoolCapacity, usePoolData, usePoolUserData } from '../hooks';
+import { usePoolData, usePoolUserData } from '../hooks';
 import { PROVIDE_DIALOG_TEXTS } from '../texts';
 import { calculateExpectedMonthlyPayout, invalidatePoolQueries } from '../utils/poolUtils';
 
@@ -97,30 +97,34 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
   const { SQD_TOKEN } = useContracts();
   const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
   const { data: userData, isLoading: userDataLoading } = usePoolUserData(poolId);
-  const capacity = usePoolCapacity(poolId);
   const { data: sources } = useMySources();
 
   const typedAmount = useMemo(() => BigNumber(formik.values.amount || '0'), [formik.values.amount]);
 
-  const handleMaxClick = useCallback(() => {
-    if (capacity)
-      formik.setFieldValue(
-        'amount',
-        BigNumber.min(capacity.effectiveMax, fromSqd(sources[0]?.balance)).toString(),
-      );
-  }, [formik, capacity, sources]);
-
   if (poolLoading || userDataLoading) return <Loader />;
-  if (!pool || !capacity) return null;
+  if (!pool || !userData) return null;
+
+  const currentUserBalance = userData.userBalance;
+  const currentPoolTvl = pool.tvl.current;
+  const userRemainingCapacity = BigNumber.max(0, pool.maxDepositPerAddress.minus(currentUserBalance));
+  const poolRemainingCapacity = BigNumber.max(0, pool.tvl.max.minus(currentPoolTvl));
+  const effectiveMax = BigNumber.min(userRemainingCapacity, poolRemainingCapacity);
+
+  const handleMaxClick = useCallback(() => {
+    formik.setFieldValue(
+      'amount',
+      BigNumber.min(effectiveMax, fromSqd(sources[0]?.balance)).toString(),
+    );
+  }, [formik, effectiveMax, sources]);
 
   const isDepositPhase = pool.phase === 'collecting';
-  const isPoolFull = capacity.poolRemainingCapacity.isZero();
-  const isUserAtLimit = capacity.userRemainingCapacity.isZero();
+  const isPoolFull = poolRemainingCapacity.isZero();
+  const isUserAtLimit = userRemainingCapacity.isZero();
 
-  const expectedUserDelegation = capacity.currentUserBalance.plus(typedAmount);
-  const expectedTotalDelegation = capacity.currentPoolTvl.plus(typedAmount);
-  const cappedUserDelegation = capacity.currentUserBalance.plus(
-    BigNumber.min(typedAmount, capacity.effectiveMax),
+  const expectedUserDelegation = currentUserBalance.plus(typedAmount);
+  const expectedTotalDelegation = currentPoolTvl.plus(typedAmount);
+  const cappedUserDelegation = currentUserBalance.plus(
+    BigNumber.min(typedAmount, effectiveMax),
   );
   const userExpectedMonthlyPayout = calculateExpectedMonthlyPayout(pool, cappedUserDelegation);
 
@@ -169,7 +173,7 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
               <Chip
                 clickable
                 disabled={
-                  isPoolFull || isUserAtLimit || capacity.effectiveMax.eq(formik.values.amount)
+                  isPoolFull || isUserAtLimit || effectiveMax.eq(formik.values.amount)
                 }
                 onClick={handleMaxClick}
                 label="Max"
@@ -186,7 +190,7 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
           <Typography variant="body2">{PROVIDE_DIALOG_TEXTS.fields.totalDelegation}</Typography>
           <Typography variant="body2">
             {typedAmount.gt(0)
-              ? `${tokenFormatter(capacity.currentPoolTvl, '', 0).trim()} → ${tokenFormatter(expectedTotalDelegation, SQD_TOKEN, 0)}`
+              ? `${tokenFormatter(currentPoolTvl, '', 0).trim()} → ${tokenFormatter(expectedTotalDelegation, SQD_TOKEN, 0)}`
               : tokenFormatter(pool.tvl.current, SQD_TOKEN, 0)}
           </Typography>
         </Stack>
@@ -194,10 +198,8 @@ function ProvideDialogContent({ poolId, formik }: ProvideDialogContentProps) {
           <Typography variant="body2">{PROVIDE_DIALOG_TEXTS.fields.yourDelegation}</Typography>
           <Typography variant="body2">
             {typedAmount.gt(0)
-              ? `${tokenFormatter(capacity.currentUserBalance, '', 2).trim()} → ${tokenFormatter(expectedUserDelegation, SQD_TOKEN, 2)}`
-              : userData
-                ? tokenFormatter(userData.userBalance, SQD_TOKEN, 2)
-                : '0 SQD'}
+              ? `${tokenFormatter(currentUserBalance, '', 2).trim()} → ${tokenFormatter(expectedUserDelegation, SQD_TOKEN, 2)}`
+              : tokenFormatter(userData.userBalance, SQD_TOKEN, 2)}
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">
@@ -221,19 +223,31 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
   const queryClient = useQueryClient();
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
   const { data: pool } = usePoolData(poolId);
-  const capacity = usePoolCapacity(poolId);
+  const { data: userData } = usePoolUserData(poolId);
   const { data: sources } = useMySources();
 
-  const { userRemainingCapacity, poolRemainingCapacity, maxDepositPerAddress } = capacity || {};
-
   const validationSchema = useMemo(() => {
+    if (!pool || !userData) {
+      return createValidationSchema(
+        BigNumber(0),
+        BigNumber(0),
+        BigNumber(0),
+        SQD_TOKEN,
+      );
+    }
+
+    const currentUserBalance = userData.userBalance;
+    const currentPoolTvl = pool.tvl.current;
+    const userRemainingCapacity = BigNumber.max(0, pool.maxDepositPerAddress.minus(currentUserBalance));
+    const poolRemainingCapacity = BigNumber.max(0, pool.tvl.max.minus(currentPoolTvl));
+
     return createValidationSchema(
       fromSqd(sources[0]?.balance) ?? 0,
-      userRemainingCapacity ?? BigNumber(0),
-      poolRemainingCapacity ?? BigNumber(0),
+      userRemainingCapacity,
+      poolRemainingCapacity,
       SQD_TOKEN,
     );
-  }, [userRemainingCapacity, poolRemainingCapacity, SQD_TOKEN, sources]);
+  }, [pool, userData, SQD_TOKEN, sources]);
 
   const handleSubmit = useCallback(
     async (values: { amount: string }) => {
@@ -721,9 +735,10 @@ export function ProvideButton({ poolId }: ProvideButtonProps) {
   const [dialogState, setDialogState] = useState<DialogState>('closed');
   const { data: pool } = usePoolData(poolId);
   const { data: userData } = usePoolUserData(poolId);
+  const { SQD_TOKEN } = useContracts();
 
   const { isDisabled, disabledReason } = useMemo(() => {
-    if (!pool) return { isDisabled: true, disabledReason: '' };
+    if (!pool || !userData) return { isDisabled: true, disabledReason: '' };
 
     const isNotWhitelisted = userData?.whitelistEnabled && !userData?.isWhitelisted;
     if (isNotWhitelisted) {
@@ -735,8 +750,20 @@ export function ProvideButton({ poolId }: ProvideButtonProps) {
       return { isDisabled: true, disabledReason: PROVIDE_DIALOG_TEXTS.tooltips.poolAtCapacity };
     }
 
+    const userBalance = userData.userBalance;
+    const userRemainingCapacity = BigNumber.max(0, pool.maxDepositPerAddress.minus(userBalance));
+    const isUserAtLimit = userRemainingCapacity.isZero();
+    if (isUserAtLimit) {
+      return {
+        isDisabled: true,
+        disabledReason: PROVIDE_DIALOG_TEXTS.alerts.userAtLimit(
+          tokenFormatter(pool.maxDepositPerAddress, SQD_TOKEN, 0),
+        ),
+      };
+    }
+
     return { isDisabled: false, disabledReason: '' };
-  }, [pool, userData]);
+  }, [pool, userData, SQD_TOKEN]);
 
   const handleButtonClick = useCallback(() => {
     if (hasAcceptedTerms()) {

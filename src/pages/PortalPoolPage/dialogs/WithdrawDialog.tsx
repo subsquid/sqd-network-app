@@ -20,7 +20,7 @@ import { tokenFormatter } from '@lib/formatters/formatters';
 import { toSqd } from '@lib/network';
 import { useContracts } from '@hooks/network/useContracts';
 
-import { usePoolCapacity, usePoolData, usePoolUserData } from '../hooks';
+import { usePoolData, usePoolUserData } from '../hooks';
 import { WITHDRAW_DIALOG_TEXTS } from '../texts';
 import { calculateExpectedMonthlyPayout, invalidatePoolQueries } from '../utils/poolUtils';
 
@@ -52,7 +52,6 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
   const { SQD_TOKEN } = useContracts();
   const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
   const { data: userData, isLoading: userDataLoading } = usePoolUserData(poolId);
-  const capacity = usePoolCapacity(poolId);
 
   const typedAmount = useMemo(() => BigNumber(formik.values.amount || '0'), [formik.values.amount]);
 
@@ -71,10 +70,12 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
   }, [formik, userData]);
 
   if (poolLoading || userDataLoading) return <Loader />;
-  if (!pool || !capacity || !userData) return null;
+  if (!pool || !userData) return null;
 
-  const expectedUserDelegation = BigNumber.max(0, capacity.currentUserBalance.minus(typedAmount));
-  const expectedTotalDelegation = BigNumber.max(0, capacity.currentPoolTvl.minus(typedAmount));
+  const currentUserBalance = userData.userBalance;
+  const currentPoolTvl = pool.tvl.current;
+  const expectedUserDelegation = BigNumber.max(0, currentUserBalance.minus(typedAmount));
+  const expectedTotalDelegation = BigNumber.max(0, currentPoolTvl.minus(typedAmount));
   const userExpectedMonthlyPayout = calculateExpectedMonthlyPayout(pool, expectedUserDelegation);
 
   return (
@@ -107,7 +108,7 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
           <Typography variant="body2">{WITHDRAW_DIALOG_TEXTS.fields.totalDelegation}</Typography>
           <Typography variant="body2">
             {typedAmount.gt(0)
-              ? `${tokenFormatter(capacity.currentPoolTvl, '', 0).trim()} → ${tokenFormatter(expectedTotalDelegation, SQD_TOKEN, 0)}`
+              ? `${tokenFormatter(currentPoolTvl, '', 0).trim()} → ${tokenFormatter(expectedTotalDelegation, SQD_TOKEN, 0)}`
               : tokenFormatter(pool.tvl.current, SQD_TOKEN, 0)}
           </Typography>
         </Stack>
@@ -115,10 +116,8 @@ function WithdrawDialogContent({ poolId, formik }: WithdrawDialogContentProps) {
           <Typography variant="body2">{WITHDRAW_DIALOG_TEXTS.fields.yourDelegation}</Typography>
           <Typography variant="body2">
             {typedAmount.gt(0)
-              ? `${tokenFormatter(capacity.currentUserBalance, '', 2).trim()} → ${tokenFormatter(expectedUserDelegation, SQD_TOKEN, 2)}`
-              : userData
-                ? tokenFormatter(userData.userBalance, SQD_TOKEN, 2)
-                : '0 SQD'}
+              ? `${tokenFormatter(currentUserBalance, '', 2).trim()} → ${tokenFormatter(expectedUserDelegation, SQD_TOKEN, 2)}`
+              : tokenFormatter(userData.userBalance, SQD_TOKEN, 2)}
           </Typography>
         </Stack>
         <Stack direction="row" justifyContent="space-between">
