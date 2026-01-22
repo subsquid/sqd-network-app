@@ -1,10 +1,21 @@
 import { LogoutOutlined } from '@mui/icons-material';
 
-import { useAppReload } from '../../index.tsx';
 import { BasicMenuItem } from './BasicMenuItem';
+import { useDisconnect } from 'wagmi';
+import { useAppReload } from '../..';
 
 export function LogoutMenuItem() {
-  const reload = useAppReload({ to: '/' });
+  const { disconnectAsync } = useDisconnect();
+  const reload = useAppReload({});
 
-  return <BasicMenuItem LeftIcon={LogoutOutlined} label="Disconnect" onClick={() => reload()} />;
+  return (
+    <BasicMenuItem
+      LeftIcon={LogoutOutlined}
+      label="Disconnect"
+      onClick={async () => {
+        await disconnectAsync();
+        await reload();
+      }}
+    />
+  );
 }

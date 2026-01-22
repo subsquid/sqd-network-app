@@ -94,7 +94,6 @@ if (process.env.SENTRY_DSN) {
 
 export function useAppReload({ delay = 500, to }: { delay?: number; to?: string } = {}) {
   const navigate = useNavigate();
-  const { disconnectAsync } = useDisconnect();
 
   return async () => {
     await appShowLoader();
@@ -102,7 +101,6 @@ export function useAppReload({ delay = 500, to }: { delay?: number; to?: string 
 
     root.unmount();
 
-    await disconnectAsync();
     queryClient.clear();
     if (to) {
       navigate(to);
