@@ -5,6 +5,7 @@ import {
   rainbowWallet,
   safeWallet,
   walletConnectWallet,
+  rabbyWallet,
 } from '@rainbow-me/rainbowkit/wallets';
 import { upperFirst } from 'lodash-es';
 import { fallback, http } from 'wagmi';
@@ -37,7 +38,13 @@ export const rainbowConfig = getDefaultConfig({
   wallets: [
     {
       groupName: 'Recommended',
-      wallets: [safeWallet, rainbowWallet, baseAccount, metaMaskWallet, walletConnectWallet],
+      wallets: [
+        metaMaskWallet,
+        rabbyWallet,
+        safeWallet,
+        rainbowWallet,
+        walletConnectWallet,
+      ],
     },
   ],
 });
