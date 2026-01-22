@@ -6,6 +6,8 @@ import {
   safeWallet,
   walletConnectWallet,
   rabbyWallet,
+  coinbaseWallet,
+  trustWallet,
 } from '@rainbow-me/rainbowkit/wallets';
 import { upperFirst } from 'lodash-es';
 import { fallback, http } from 'wagmi';
@@ -37,12 +39,15 @@ export const rainbowConfig = getDefaultConfig({
   chains: network === NetworkName.Mainnet ? [arbitrum] : [arbitrumSepolia],
   wallets: [
     {
-      groupName: 'Recommended',
+      groupName: 'Popular',
       wallets: [
         metaMaskWallet,
         rabbyWallet,
         safeWallet,
         rainbowWallet,
+        baseAccount,
+        trustWallet,
+        coinbaseWallet,
         walletConnectWallet,
       ],
     },

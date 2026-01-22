@@ -3028,9 +3028,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rainbow-me/rainbowkit@npm:^2.2.9":
-  version: 2.2.9
-  resolution: "@rainbow-me/rainbowkit@npm:2.2.9"
+"@rainbow-me/rainbowkit@npm:^2.2.10":
+  version: 2.2.10
+  resolution: "@rainbow-me/rainbowkit@npm:2.2.10"
   dependencies:
     "@vanilla-extract/css": "npm:1.17.3"
     "@vanilla-extract/dynamic": "npm:2.1.4"
@@ -3045,7 +3045,7 @@ __metadata:
     react-dom: ">=18"
     viem: 2.x
     wagmi: ^2.9.0
-  checksum: 10c0/30b2d710dca1c4d87892073d3e1824de04d808edde0fbc2d6a7c60fd90c121fd75271f75d8d9744559e4306b11b043cb066e18b42b2df8a72a6ed861ee86b4f7
+  checksum: 10c0/f5e6cb969a6a17a12e87139a8ebd4b573b4c6d9beb5f3c974d19216932d15e8680528369b8b1157bf74c2a602c9250f1d073d6c9bbe5628ad31e381e5d8d3c37
   languageName: node
   linkType: hard
 
@@ -4314,7 +4314,7 @@ __metadata:
     "@mui/icons-material": "npm:^7.3.4"
     "@mui/material": "npm:^7.3.4"
     "@mui/x-date-pickers": "npm:^8.15.0"
-    "@rainbow-me/rainbowkit": "npm:^2.2.9"
+    "@rainbow-me/rainbowkit": "npm:^2.2.10"
     "@sentry/react": "npm:^10.22.0"
     "@sentry/vite-plugin": "npm:^4.6.0"
     "@tanstack/react-query": "npm:^5.90.5"
