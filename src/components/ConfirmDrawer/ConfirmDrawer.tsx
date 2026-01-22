@@ -29,7 +29,7 @@ export const CloseIconButton = styled(IconButton, {
 }));
 
 export const Content = styled(Box)(({ theme: { spacing } }) => ({
-  padding: spacing(1, 3, 2),
+  padding: spacing(0, 3, 2),
   overflowY: 'auto',
 }));
 
