@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 
 import { SquaredChip } from '@components/Chip';
+import { CloseOutlined } from '@mui/icons-material';
 
 export const ConfirmWrapper = styled(Box, {
   name: 'ConfirmWrapper',
@@ -21,12 +22,13 @@ export const ConfirmWrapper = styled(Box, {
 export const ConfirmDialogTitle = styled(Box, {
   name: 'ConfirmDialogTitle',
 })(({ theme: { spacing, breakpoints } }) => ({
-  margin: spacing(3.5, 4, 2.5),
+  margin: spacing(3.5, 4, 2.5, 4),
   padding: 0,
   fontWeight: 500,
   fontSize: '1.125rem',
-  position: 'relative',
-  paddingRight: 45,
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
   [breakpoints.down('sm')]: {
     margin: spacing(4, 3, 2, 3),
     fontSize: '1rem',
@@ -35,14 +37,9 @@ export const ConfirmDialogTitle = styled(Box, {
 
 export const CloseIconButton = styled(IconButton, {
   name: 'CloseIconButton',
-})(({}) => ({
-  position: 'absolute',
-  top: -6,
-  right: -6,
-  padding: 0,
-  // [breakpoints.down('xs')]: {
-  //   paddingLeft: '10px',
-  // },
+})(({ theme }) => ({
+  padding: 2,
+  border: `1px solid ${theme.palette.secondary.main}`,
 }));
 
 export const Content = styled(DialogContent)(({ theme: { spacing, breakpoints } }) => ({
@@ -152,8 +149,8 @@ export const ConfirmDialog = ({
       <ConfirmWrapper>
         <ConfirmDialogTitle>
           <SquaredChip label={title} color="primary" />
-          <CloseIconButton onClick={handleReject}>
-            <CloseIcon />
+          <CloseIconButton size="small" onClick={handleReject}>
+            <CloseOutlined fontSize="small" />
           </CloseIconButton>
         </ConfirmDialogTitle>
         <Content>
