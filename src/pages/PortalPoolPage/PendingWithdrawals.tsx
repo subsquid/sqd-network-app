@@ -28,6 +28,7 @@ import { Card } from '@components/Card';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { DashboardTable, NoItems } from '@components/Table';
 import { useCountdown } from '@hooks/useCountdown';
+import { useTicker } from '@hooks/useTicker';
 import { useExplorer } from '@hooks/useExplorer';
 import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { useContracts } from '@hooks/network/useContracts';
@@ -52,10 +53,19 @@ function WithdrawalRow({
   isClaiming: boolean;
 }) {
   const { SQD_TOKEN } = useContracts();
-  const isReady = withdrawal.estimatedCompletionAt.getTime() < Date.now();
+  const [currentTime, setCurrentTime] = useState(Date.now());
   const timeLeft = useCountdown({
     timestamp: withdrawal.estimatedCompletionAt,
   });
+
+  // Update current time every second to recalculate isReady
+  const updateTime = useCallback(() => {
+    setCurrentTime(Date.now());
+  }, []);
+
+  useTicker(updateTime, 1000);
+
+  const isReady = withdrawal.estimatedCompletionAt.getTime() < currentTime;
 
   return (
     <TableRow>
