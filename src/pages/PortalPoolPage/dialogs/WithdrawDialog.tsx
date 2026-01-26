@@ -236,15 +236,19 @@ export function WithdrawButton({ poolId }: WithdrawButtonProps) {
   const handleOpen = useCallback(() => setDialogOpen(true), []);
   const handleClose = useCallback(() => setDialogOpen(false), []);
 
+  const tooltipTitle = useMemo(() => {
+    if (pool?.phase === 'collecting') {
+      return WITHDRAW_DIALOG_TEXTS.tooltips.collecting;
+    }
+    if (!hasBalance) {
+      return WITHDRAW_DIALOG_TEXTS.tooltips.nothingToWithdraw;
+    }
+    return '';
+  }, [pool?.phase, hasBalance]);
+
   return (
     <>
-      <Tooltip
-        title={
-          pool?.phase === 'collecting'
-            ? WITHDRAW_DIALOG_TEXTS.tooltips.collecting
-            : WITHDRAW_DIALOG_TEXTS.tooltips.nothingToWithdraw
-        }
-      >
+      <Tooltip title={tooltipTitle}>
         <span>
           <Button
             variant="outlined"
