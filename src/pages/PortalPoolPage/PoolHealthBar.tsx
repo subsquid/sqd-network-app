@@ -179,8 +179,9 @@ function ProgressBar({ pool }: { pool: PoolData }) {
                 left: `${progress.threshold}%`,
                 top: -2,
                 bottom: -2,
-                width: 2,
-                backgroundColor: theme.palette.text.disabled,
+                width: 4,
+                borderRadius: 1,
+                backgroundColor: theme.palette.divider,
                 zIndex: 1,
               }}
             />
