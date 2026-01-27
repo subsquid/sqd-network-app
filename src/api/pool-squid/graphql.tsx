@@ -1433,7 +1433,7 @@ export const LiquidityEventsDocument = `
     query liquidityEvents($limit: Int!, $poolId: String!) {
   liquidityEvents(
     limit: $limit
-    orderBy: id_DESC
+    orderBy: timestamp_DESC
     where: {pool: {id_eq: $poolId}}
   ) {
     eventType
@@ -1469,7 +1469,7 @@ export const useLiquidityEventsQuery = <
 
 export const TopUpsDocument = `
     query topUps($limit: Int!, $poolId: String!) {
-  topUps(limit: $limit, orderBy: id_DESC, where: {pool: {id_eq: $poolId}}) {
+  topUps(limit: $limit, orderBy: timestamp_DESC, where: {pool: {id_eq: $poolId}}) {
     txHash
     timestamp
     amount

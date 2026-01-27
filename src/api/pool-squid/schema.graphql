@@ -33,7 +33,7 @@ query poolById($id: String!) {
 }
 
 query liquidityEvents($limit: Int!, $poolId: String!) {
-  liquidityEvents(limit: $limit, orderBy: id_DESC, where: { pool: { id_eq: $poolId } }) {
+  liquidityEvents(limit: $limit, orderBy: timestamp_DESC, where: { pool: { id_eq: $poolId } }) {
     eventType
     txHash
     timestamp
@@ -43,7 +43,7 @@ query liquidityEvents($limit: Int!, $poolId: String!) {
 }
 
 query topUps($limit: Int!, $poolId: String!) {
-  topUps(limit: $limit, orderBy: id_DESC, where: { pool: { id_eq: $poolId } }) {
+  topUps(limit: $limit, orderBy: timestamp_DESC, where: { pool: { id_eq: $poolId } }) {
     txHash
     timestamp
     amount

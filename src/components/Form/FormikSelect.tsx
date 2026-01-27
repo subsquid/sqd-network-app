@@ -58,7 +58,7 @@ export const FormikSelect = <T extends Record<string, any>>({
       <FormSelect
         disabled={disabled}
         onChange={onChange}
-        value={formik.values[id] || (options[0].value as string)}
+        value={formik.values[id] || (options.length > 0 ? options[0].value : '')}
         variant="outlined"
       >
         {options.map(option => (
