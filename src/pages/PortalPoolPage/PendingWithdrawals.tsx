@@ -34,6 +34,8 @@ import { useLiquidityEvents } from './hooks/useLiquidityEvents';
 import { useTopUps } from './hooks/useTopUps';
 import { ACTIVITY_TEXTS, TOP_UPS_TEXTS, WITHDRAWALS_TEXTS } from './texts';
 
+const PAGE_SIZE = 10;
+
 interface PendingWithdrawalsProps {
   poolId: string;
 }
@@ -92,13 +94,12 @@ function PendingWithdrawalsTable({
 }) {
   const { SQD_TOKEN } = useContracts();
   const [pageIndex, setPageIndex] = useState(0);
-  const pageSize = 15;
 
   // Client-side pagination
-  const pageCount = Math.ceil(pendingWithdrawals.length / pageSize) || 1;
+  const pageCount = Math.ceil(pendingWithdrawals.length / PAGE_SIZE) || 1;
   const paginatedData = useMemo(() => {
-    const start = pageIndex * pageSize;
-    return pendingWithdrawals.slice(start, start + pageSize);
+    const start = pageIndex * PAGE_SIZE;
+    return pendingWithdrawals.slice(start, start + PAGE_SIZE);
   }, [pendingWithdrawals, pageIndex]);
 
   const columns = useMemo<ColumnDef<PendingWithdrawal>[]>(
@@ -211,7 +212,6 @@ function getEventTypeColor(
 
 function ActivityTable({ poolId }: { poolId: string }) {
   const [pageIndex, setPageIndex] = useState(0);
-  const pageSize = 15;
 
   const {
     events,
@@ -219,8 +219,8 @@ function ActivityTable({ poolId }: { poolId: string }) {
     isLoading: isLoadingEvents,
   } = useLiquidityEvents({
     poolId,
-    limit: pageSize,
-    offset: pageIndex * pageSize,
+    limit: PAGE_SIZE,
+    offset: pageIndex * PAGE_SIZE,
   });
   const { data: pool, isLoading: isLoadingPool } = usePoolData(poolId);
   const explorer = useExplorer();
@@ -229,7 +229,7 @@ function ActivityTable({ poolId }: { poolId: string }) {
   const isLoading = isLoadingEvents || isLoadingPool;
 
   // Calculate total page count from totalCount
-  const pageCount = Math.ceil(totalCount / pageSize) || 1;
+  const pageCount = Math.ceil(totalCount / PAGE_SIZE) || 1;
 
   const columns = useMemo<ColumnDef<(typeof events)[number]>[]>(
     () => [
@@ -330,7 +330,6 @@ function ActivityTable({ poolId }: { poolId: string }) {
 
 function TopUpsTable({ poolId }: { poolId: string }) {
   const [pageIndex, setPageIndex] = useState(0);
-  const pageSize = 15;
 
   const {
     topUps,
@@ -338,8 +337,8 @@ function TopUpsTable({ poolId }: { poolId: string }) {
     isLoading: isLoadingTopUps,
   } = useTopUps({
     poolId,
-    limit: pageSize,
-    offset: pageIndex * pageSize,
+    limit: PAGE_SIZE,
+    offset: pageIndex * PAGE_SIZE,
   });
   const { data: pool, isLoading: isLoadingPool } = usePoolData(poolId);
   const explorer = useExplorer();
@@ -347,7 +346,7 @@ function TopUpsTable({ poolId }: { poolId: string }) {
   const isLoading = isLoadingTopUps || isLoadingPool;
 
   // Calculate total page count from totalCount
-  const pageCount = Math.ceil(totalCount / pageSize) || 1;
+  const pageCount = Math.ceil(totalCount / PAGE_SIZE) || 1;
 
   const columns = useMemo<ColumnDef<(typeof topUps)[number]>[]>(
     () => [
