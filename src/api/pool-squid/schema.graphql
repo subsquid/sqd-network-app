@@ -32,20 +32,36 @@ query poolById($id: String!) {
   }
 }
 
-query liquidityEvents($limit: Int!, $poolId: String!) {
-  liquidityEvents(limit: $limit, orderBy: timestamp_DESC, where: { pool: { id_eq: $poolId } }) {
+query liquidityEvents($limit: Int!, $offset: Int!, $poolId: String!) {
+  liquidityEvents(
+    limit: $limit
+    offset: $offset
+    orderBy: timestamp_DESC
+    where: { pool: { id_eq: $poolId } }
+  ) {
     eventType
     txHash
     timestamp
     providerId
     amount
   }
+  liquidityEventsConnection(orderBy: id_ASC, where: { pool: { id_eq: $poolId } }) {
+    totalCount
+  }
 }
 
-query topUps($limit: Int!, $poolId: String!) {
-  topUps(limit: $limit, orderBy: timestamp_DESC, where: { pool: { id_eq: $poolId } }) {
+query topUps($limit: Int!, $offset: Int!, $poolId: String!) {
+  topUps(
+    limit: $limit
+    offset: $offset
+    orderBy: timestamp_DESC
+    where: { pool: { id_eq: $poolId } }
+  ) {
     txHash
     timestamp
     amount
+  }
+  topUpsConnection(orderBy: id_ASC, where: { pool: { id_eq: $poolId } }) {
+    totalCount
   }
 }

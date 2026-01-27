@@ -1299,6 +1299,7 @@ export type PoolByIdQuery = {
 
 export type LiquidityEventsQueryVariables = Exact<{
   limit: Scalars["Int"]["input"];
+  offset: Scalars["Int"]["input"];
   poolId: Scalars["String"]["input"];
 }>;
 
@@ -1312,10 +1313,15 @@ export type LiquidityEventsQuery = {
     providerId?: string;
     amount: string;
   }>;
+  liquidityEventsConnection: {
+    __typename?: "LiquidityEventsConnection";
+    totalCount: number;
+  };
 };
 
 export type TopUpsQueryVariables = Exact<{
   limit: Scalars["Int"]["input"];
+  offset: Scalars["Int"]["input"];
   poolId: Scalars["String"]["input"];
 }>;
 
@@ -1327,6 +1333,7 @@ export type TopUpsQuery = {
     timestamp: string;
     amount: string;
   }>;
+  topUpsConnection: { __typename?: "TopUpsConnection"; totalCount: number };
 };
 
 export const ApyTimeseriesDocument = `
@@ -1430,9 +1437,10 @@ export const usePoolByIdQuery = <TData = PoolByIdQuery, TError = unknown>(
 };
 
 export const LiquidityEventsDocument = `
-    query liquidityEvents($limit: Int!, $poolId: String!) {
+    query liquidityEvents($limit: Int!, $offset: Int!, $poolId: String!) {
   liquidityEvents(
     limit: $limit
+    offset: $offset
     orderBy: timestamp_DESC
     where: {pool: {id_eq: $poolId}}
   ) {
@@ -1441,6 +1449,9 @@ export const LiquidityEventsDocument = `
     timestamp
     providerId
     amount
+  }
+  liquidityEventsConnection(orderBy: id_ASC, where: {pool: {id_eq: $poolId}}) {
+    totalCount
   }
 }
     `;
@@ -1468,11 +1479,19 @@ export const useLiquidityEventsQuery = <
 };
 
 export const TopUpsDocument = `
-    query topUps($limit: Int!, $poolId: String!) {
-  topUps(limit: $limit, orderBy: timestamp_DESC, where: {pool: {id_eq: $poolId}}) {
+    query topUps($limit: Int!, $offset: Int!, $poolId: String!) {
+  topUps(
+    limit: $limit
+    offset: $offset
+    orderBy: timestamp_DESC
+    where: {pool: {id_eq: $poolId}}
+  ) {
     txHash
     timestamp
     amount
+  }
+  topUpsConnection(orderBy: id_ASC, where: {pool: {id_eq: $poolId}}) {
+    totalCount
   }
 }
     `;

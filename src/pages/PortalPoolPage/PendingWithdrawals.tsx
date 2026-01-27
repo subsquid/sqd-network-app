@@ -7,30 +7,26 @@ import {
   Button,
   Chip,
   IconButton,
-  Skeleton,
   Stack,
   Tab,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
   Tabs,
   Tooltip,
   Typography,
 } from '@mui/material';
+import { ColumnDef } from '@tanstack/react-table';
 import BigNumber from 'bignumber.js';
 import { Link } from 'react-router-dom';
 
 import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { LiquidityEventType } from '@api/pool-squid/graphql';
-import { Card } from '@components/Card';
 import { HelpTooltip } from '@components/HelpTooltip';
-import { DashboardTable, NoItems } from '@components/Table';
+import { PaginatedTable } from '@components/Table';
+import { useContracts } from '@hooks/network/useContracts';
 import { useCountdown } from '@hooks/useCountdown';
 import { useExplorer } from '@hooks/useExplorer';
+import { useTicker } from '@hooks/useTicker';
 import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
-import { useContracts } from '@hooks/network/useContracts';
 
 import type { PendingWithdrawal } from './hooks';
 import { usePoolData, usePoolPendingWithdrawals } from './hooks';
@@ -38,11 +34,20 @@ import { useLiquidityEvents } from './hooks/useLiquidityEvents';
 import { useTopUps } from './hooks/useTopUps';
 import { ACTIVITY_TEXTS, TOP_UPS_TEXTS, WITHDRAWALS_TEXTS } from './texts';
 
+const PAGE_SIZE = 10;
+
 interface PendingWithdrawalsProps {
   poolId: string;
 }
 
-function WithdrawalRow({
+function WithdrawalTimeLeftCell({ withdrawal }: { withdrawal: PendingWithdrawal }) {
+  const timeLeft = useCountdown({
+    timestamp: withdrawal.estimatedCompletionAt,
+  });
+  return <>{timeLeft}</>;
+}
+
+function WithdrawalActionCell({
   withdrawal,
   onClaim,
   isClaiming,
@@ -51,31 +56,28 @@ function WithdrawalRow({
   onClaim: (id: string) => void;
   isClaiming: boolean;
 }) {
-  const { SQD_TOKEN } = useContracts();
-  const isReady = withdrawal.estimatedCompletionAt.getTime() < Date.now();
-  const timeLeft = useCountdown({
-    timestamp: withdrawal.estimatedCompletionAt,
-  });
+  const [currentTime, setCurrentTime] = useState(Date.now());
+
+  const updateTime = useCallback(() => {
+    setCurrentTime(Date.now());
+  }, []);
+
+  useTicker(updateTime, 1000);
+
+  const isReady = withdrawal.estimatedCompletionAt.getTime() < currentTime;
 
   return (
-    <TableRow>
-      <TableCell>{Number(withdrawal.id) + 1}</TableCell>
-      <TableCell>{tokenFormatter(withdrawal.amount, SQD_TOKEN, 2)}</TableCell>
-      <TableCell>{timeLeft}</TableCell>
-      <TableCell>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Button
-            variant="contained"
-            onClick={() => onClaim(withdrawal.id)}
-            loading={isClaiming}
-            disabled={!isReady}
-            color="success"
-          >
-            CLAIM
-          </Button>
-        </Box>
-      </TableCell>
-    </TableRow>
+    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+      <Button
+        variant="contained"
+        onClick={() => onClaim(withdrawal.id)}
+        loading={isClaiming}
+        disabled={!isReady}
+        color="success"
+      >
+        CLAIM
+      </Button>
+    </Box>
   );
 }
 
@@ -90,55 +92,76 @@ function PendingWithdrawalsTable({
   onClaim: (id: string) => void;
   isLoading: boolean;
 }) {
-  return (
-    <DashboardTable>
-      <TableHead>
-        <TableRow>
-          <TableCell>{WITHDRAWALS_TEXTS.table.withdrawalId}</TableCell>
-          <TableCell>{WITHDRAWALS_TEXTS.table.amount}</TableCell>
-          <TableCell>
-            <Stack direction="row" alignItems="center" spacing={0.5}>
-              <span>{WITHDRAWALS_TEXTS.table.timeLeft.label}</span>
-              <HelpTooltip title={WITHDRAWALS_TEXTS.table.timeLeft.tooltip} />
-            </Stack>
-          </TableCell>
-          <TableCell></TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {isLoading ? (
-          <TableRow>
-            <TableCell>
-              <Skeleton width="50%" />
-            </TableCell>
-            <TableCell>
-              <Skeleton width="50%" />
-            </TableCell>
-            <TableCell>
-              <Skeleton width="50%" />
-            </TableCell>
-            <TableCell>
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Skeleton variant="rounded" width={80} height={36} />
-              </Box>
-            </TableCell>
-          </TableRow>
-        ) : pendingWithdrawals.length ? (
-          pendingWithdrawals.map(withdrawal => (
-            <WithdrawalRow
-              key={withdrawal.id}
+  const { SQD_TOKEN } = useContracts();
+  const [pageIndex, setPageIndex] = useState(0);
+
+  // Client-side pagination
+  const pageCount = Math.ceil(pendingWithdrawals.length / PAGE_SIZE) || 1;
+  const paginatedData = useMemo(() => {
+    const start = pageIndex * PAGE_SIZE;
+    return pendingWithdrawals.slice(start, start + PAGE_SIZE);
+  }, [pendingWithdrawals, pageIndex]);
+
+  const columns = useMemo<ColumnDef<PendingWithdrawal>[]>(
+    () => [
+      {
+        id: 'withdrawalId',
+        accessorFn: row => Number(row.id) + 1,
+        header: () => WITHDRAWALS_TEXTS.table.withdrawalId,
+        cell: info => info.getValue(),
+      },
+      {
+        id: 'amount',
+        accessorFn: row => row.amount,
+        header: () => WITHDRAWALS_TEXTS.table.amount,
+        cell: info => {
+          const amount = info.getValue() as string;
+          return tokenFormatter(BigNumber(amount), SQD_TOKEN, 2);
+        },
+      },
+      {
+        id: 'timeLeft',
+        accessorFn: row => row,
+        header: () => (
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            <span>{WITHDRAWALS_TEXTS.table.timeLeft.label}</span>
+            <HelpTooltip title={WITHDRAWALS_TEXTS.table.timeLeft.tooltip} />
+          </Stack>
+        ),
+        cell: ({ getValue }) => {
+          const withdrawal = getValue() as PendingWithdrawal;
+          return <WithdrawalTimeLeftCell withdrawal={withdrawal} />;
+        },
+      },
+      {
+        id: 'action',
+        accessorFn: row => row,
+        header: () => '',
+        cell: ({ getValue }) => {
+          const withdrawal = getValue() as PendingWithdrawal;
+          return (
+            <WithdrawalActionCell
               withdrawal={withdrawal}
               onClaim={onClaim}
               isClaiming={claimingId === withdrawal.id}
             />
-          ))
-        ) : (
-          <NoItems>
-            <Typography>{WITHDRAWALS_TEXTS.noRequests}</Typography>
-          </NoItems>
-        )}
-      </TableBody>
-    </DashboardTable>
+          );
+        },
+      },
+    ],
+    [SQD_TOKEN, claimingId, onClaim],
+  );
+
+  return (
+    <PaginatedTable
+      data={paginatedData}
+      columns={columns}
+      pageIndex={pageIndex}
+      pageCount={pageCount}
+      onPageChange={setPageIndex}
+      isLoading={isLoading}
+      emptyMessage={WITHDRAWALS_TEXTS.noRequests}
+    />
   );
 }
 
@@ -188,169 +211,211 @@ function getEventTypeColor(
 }
 
 function ActivityTable({ poolId }: { poolId: string }) {
-  const { events, isLoading: isLoadingEvents } = useLiquidityEvents({ poolId });
+  const [pageIndex, setPageIndex] = useState(0);
+
+  const {
+    events,
+    totalCount,
+    isLoading: isLoadingEvents,
+  } = useLiquidityEvents({
+    poolId,
+    limit: PAGE_SIZE,
+    offset: pageIndex * PAGE_SIZE,
+  });
   const { data: pool, isLoading: isLoadingPool } = usePoolData(poolId);
   const explorer = useExplorer();
   const { SQD_TOKEN } = useContracts();
 
   const isLoading = isLoadingEvents || isLoadingPool;
 
-  const sortedEvents = useMemo(() => {
-    return [...events].sort((a, b) => {
-      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-    });
-  }, [events]);
+  // Calculate total page count from totalCount
+  const pageCount = Math.ceil(totalCount / PAGE_SIZE) || 1;
+
+  const columns = useMemo<ColumnDef<(typeof events)[number]>[]>(
+    () => [
+      {
+        id: 'account',
+        accessorFn: row => row.providerId,
+        header: () => ACTIVITY_TEXTS.table.account,
+        cell: info => (
+          <Typography variant="body1" fontWeight={500}>
+            {info.getValue()
+              ? addressFormatter(info.getValue() as string, true)
+              : addressFormatter(undefined, true)}
+          </Typography>
+        ),
+      },
+      {
+        id: 'type',
+        accessorFn: row => row.eventType,
+        header: () => ACTIVITY_TEXTS.table.type,
+        cell: info => (
+          <Chip
+            label={getEventTypeLabel(info.getValue() as LiquidityEventType)}
+            size="small"
+            variant="outlined"
+            color={getEventTypeColor(info.getValue() as LiquidityEventType)}
+            sx={{ minWidth: 60 }}
+          />
+        ),
+      },
+      {
+        id: 'amount',
+        accessorFn: row => row.amount,
+        header: () => ACTIVITY_TEXTS.table.amount,
+        cell: ({ row, getValue }) => (
+          <Typography variant="body1" fontWeight={500}>
+            {pool &&
+              tokenFormatter(
+                BigNumber((getValue() as string) || 0).shiftedBy(-pool.lptToken.decimals),
+                SQD_TOKEN,
+                2,
+              )}
+          </Typography>
+        ),
+      },
+      {
+        id: 'time',
+        accessorFn: row => row.timestamp,
+        header: () => ACTIVITY_TEXTS.table.time,
+        cell: info => (
+          <Tooltip title={dateFormat(info.getValue() as string, 'dateTime')}>
+            <Typography
+              variant="body1"
+              component="span"
+              sx={{ cursor: 'default', display: 'inline-block' }}
+            >
+              {formatTimeAgo(info.getValue() as string)}
+            </Typography>
+          </Tooltip>
+        ),
+      },
+      {
+        id: 'actions',
+        accessorFn: row => row.txHash,
+        header: () => '',
+        cell: info => (
+          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Tooltip title={`Open in Explorer`}>
+              <IconButton
+                size="small"
+                component={Link}
+                to={explorer.getTxUrl(info.getValue() as string)}
+                target="_blank"
+              >
+                <ExplorerIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        ),
+      },
+    ],
+    [pool, SQD_TOKEN, explorer],
+  );
 
   if (!pool) return null;
 
   return (
-    <DashboardTable loading={isLoading}>
-      <>
-        <TableHead>
-          <TableRow>
-            <TableCell>{ACTIVITY_TEXTS.table.account}</TableCell>
-            <TableCell>{ACTIVITY_TEXTS.table.type}</TableCell>
-            <TableCell>{ACTIVITY_TEXTS.table.amount}</TableCell>
-            <TableCell>{ACTIVITY_TEXTS.table.time}</TableCell>
-            <TableCell align="center"></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {sortedEvents.length === 0 && !isLoading ? (
-            <NoItems>
-              <Typography>{ACTIVITY_TEXTS.noActivity}</Typography>
-            </NoItems>
-          ) : (
-            sortedEvents.map((event, index) => (
-              <TableRow key={`${event.txHash}-${index}`}>
-                <TableCell>
-                  <Typography variant="body1" fontWeight={500}>
-                    {event.providerId
-                      ? addressFormatter(event.providerId, true)
-                      : addressFormatter(undefined, true)}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Chip
-                    label={getEventTypeLabel(event.eventType)}
-                    size="small"
-                    variant="outlined"
-                    color={getEventTypeColor(event.eventType)}
-                    sx={{ minWidth: 60 }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body1" fontWeight={500}>
-                    {tokenFormatter(
-                      BigNumber(event.amount || 0).shiftedBy(-pool.lptToken.decimals),
-                      SQD_TOKEN,
-                      2,
-                    )}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Tooltip title={dateFormat(event.timestamp, 'dateTime')}>
-                    <Typography
-                      variant="body1"
-                      component="span"
-                      sx={{ cursor: 'default', display: 'inline-block' }}
-                    >
-                      {formatTimeAgo(event.timestamp)}
-                    </Typography>
-                  </Tooltip>
-                </TableCell>
-                <TableCell align="center">
-                  <Tooltip title={`Open in Explorer`}>
-                    <IconButton
-                      size="small"
-                      component={Link}
-                      to={explorer.getTxUrl(event.txHash)}
-                      target="_blank"
-                    >
-                      <ExplorerIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </>
-    </DashboardTable>
+    <PaginatedTable
+      data={events}
+      columns={columns}
+      pageIndex={pageIndex}
+      pageCount={pageCount}
+      onPageChange={setPageIndex}
+      isLoading={isLoading}
+      emptyMessage={ACTIVITY_TEXTS.noActivity}
+    />
   );
 }
 
 function TopUpsTable({ poolId }: { poolId: string }) {
-  const { topUps, isLoading: isLoadingTopUps } = useTopUps({ poolId });
+  const [pageIndex, setPageIndex] = useState(0);
+
+  const {
+    topUps,
+    totalCount,
+    isLoading: isLoadingTopUps,
+  } = useTopUps({
+    poolId,
+    limit: PAGE_SIZE,
+    offset: pageIndex * PAGE_SIZE,
+  });
   const { data: pool, isLoading: isLoadingPool } = usePoolData(poolId);
   const explorer = useExplorer();
 
   const isLoading = isLoadingTopUps || isLoadingPool;
 
-  const sortedTopUps = useMemo(() => {
-    return [...topUps].sort((a, b) => {
-      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
-    });
-  }, [topUps]);
+  // Calculate total page count from totalCount
+  const pageCount = Math.ceil(totalCount / PAGE_SIZE) || 1;
+
+  const columns = useMemo<ColumnDef<(typeof topUps)[number]>[]>(
+    () => [
+      {
+        id: 'amount',
+        accessorFn: row => row.amount,
+        header: () => TOP_UPS_TEXTS.table.amount,
+        cell: ({ getValue }) => (
+          <Typography variant="body1" fontWeight={500}>
+            {pool &&
+              tokenFormatter(
+                BigNumber((getValue() as string) || 0).shiftedBy(-pool.rewardToken.decimals),
+                pool.rewardToken.symbol,
+                2,
+              )}
+          </Typography>
+        ),
+      },
+      {
+        id: 'time',
+        accessorFn: row => row.timestamp,
+        header: () => TOP_UPS_TEXTS.table.time,
+        cell: info => (
+          <Tooltip title={dateFormat(info.getValue() as string, 'dateTime')}>
+            <Typography
+              variant="body1"
+              component="span"
+              sx={{ cursor: 'default', display: 'inline-block' }}
+            >
+              {formatTimeAgo(info.getValue() as string)}
+            </Typography>
+          </Tooltip>
+        ),
+      },
+      {
+        id: 'actions',
+        accessorFn: row => row.txHash,
+        header: () => '',
+        cell: info => (
+          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Tooltip title={`Open in Explorer`}>
+              <IconButton
+                size="small"
+                component={Link}
+                to={explorer.getTxUrl(info.getValue() as string)}
+                target="_blank"
+              >
+                <ExplorerIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        ),
+      },
+    ],
+    [pool, explorer],
+  );
 
   if (!pool) return null;
 
   return (
-    <DashboardTable loading={isLoading}>
-      <>
-        <TableHead>
-          <TableRow>
-            <TableCell>{TOP_UPS_TEXTS.table.amount}</TableCell>
-            <TableCell>{TOP_UPS_TEXTS.table.time}</TableCell>
-            <TableCell align="center"></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {sortedTopUps.length === 0 && !isLoading ? (
-            <NoItems>
-              <Typography>{TOP_UPS_TEXTS.noTopUps}</Typography>
-            </NoItems>
-          ) : (
-            sortedTopUps.map((topUp, index) => (
-              <TableRow key={`${topUp.txHash}-${index}`}>
-                <TableCell>
-                  <Typography variant="body1" fontWeight={500}>
-                    {tokenFormatter(
-                      BigNumber(topUp.amount || 0).shiftedBy(-pool.rewardToken.decimals),
-                      pool.rewardToken.symbol,
-                      2,
-                    )}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Tooltip title={dateFormat(topUp.timestamp, 'dateTime')}>
-                    <Typography
-                      variant="body1"
-                      component="span"
-                      sx={{ cursor: 'default', display: 'inline-block' }}
-                    >
-                      {formatTimeAgo(topUp.timestamp)}
-                    </Typography>
-                  </Tooltip>
-                </TableCell>
-                <TableCell align="center">
-                  <Tooltip title={`Open in Explorer`}>
-                    <IconButton
-                      size="small"
-                      component={Link}
-                      to={explorer.getTxUrl(topUp.txHash)}
-                      target="_blank"
-                    >
-                      <ExplorerIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </>
-    </DashboardTable>
+    <PaginatedTable
+      data={topUps}
+      columns={columns}
+      pageIndex={pageIndex}
+      pageCount={pageCount}
+      onPageChange={setPageIndex}
+      isLoading={isLoading}
+      emptyMessage={TOP_UPS_TEXTS.noTopUps}
+    />
   );
 }
 
@@ -394,18 +459,16 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
         <Tab label={TOP_UPS_TEXTS.title} />
         <Tab label={WITHDRAWALS_TEXTS.tabTitle} />
       </Tabs>
-      <Card>
-        {activeTab === 0 && <ActivityTable poolId={poolId} />}
-        {activeTab === 1 && <TopUpsTable poolId={poolId} />}
-        {activeTab === 2 && (
-          <PendingWithdrawalsTable
-            pendingWithdrawals={pendingWithdrawals}
-            claimingId={claimingId}
-            onClaim={handleClaim}
-            isLoading={poolLoading || withdrawalsLoading}
-          />
-        )}
-      </Card>
+      {activeTab === 0 && <ActivityTable poolId={poolId} />}
+      {activeTab === 1 && <TopUpsTable poolId={poolId} />}
+      {activeTab === 2 && (
+        <PendingWithdrawalsTable
+          pendingWithdrawals={pendingWithdrawals}
+          claimingId={claimingId}
+          onClaim={handleClaim}
+          isLoading={poolLoading || withdrawalsLoading}
+        />
+      )}
     </Box>
   );
 }
