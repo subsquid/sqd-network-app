@@ -170,7 +170,7 @@ export function Workers() {
         </Collapse>
       </Box>
       <Card>
-        <DashboardTable loading={isLoading} minHeight={PER_PAGE * 73} sx={{ m: -2, mt: -0.5 }}>
+        <DashboardTable loading={isLoading} minHeight={PER_PAGE * 73}>
           <TableHead>
             <TableRow>
               <SortableHeaderCell sort={WorkerSortBy.Name} query={query} setQuery={setQuery}>
@@ -245,16 +245,16 @@ export function Workers() {
             )}
           </TableBody>
         </DashboardTable>
-        {!isWorkersLoading && totalPages > 1 && (
-          <Box display="flex" justifyContent="flex-end" mt={2}>
-            <Pagination
-              count={totalPages}
-              page={page}
-              onChange={(_, value) => setQuery.page(value)}
-            />
-          </Box>
-        )}
       </Card>
+      {!isWorkersLoading && totalPages > 1 && (
+        <Box display="flex" justifyContent="flex-end">
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={(_, value) => setQuery.page(value)}
+          />
+        </Box>
+      )}
     </>
   );
 }

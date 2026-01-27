@@ -3,13 +3,15 @@ import { useTopUpsQuery } from '@api/pool-squid/graphql';
 interface UseTopUpsProps {
   poolId: string;
   limit?: number;
+  offset?: number;
 }
 
-export function useTopUps({ poolId, limit = 15 }: UseTopUpsProps) {
+export function useTopUps({ poolId, limit = 15, offset = 0 }: UseTopUpsProps) {
   const { data, isLoading, error } = useTopUpsQuery(
     {
       poolId: poolId.toLowerCase(),
       limit,
+      offset,
     },
     {
       enabled: !!poolId,
@@ -19,6 +21,7 @@ export function useTopUps({ poolId, limit = 15 }: UseTopUpsProps) {
 
   return {
     topUps: data?.topUps || [],
+    totalCount: data?.topUpsConnection?.totalCount || 0,
     isLoading,
     error,
   };

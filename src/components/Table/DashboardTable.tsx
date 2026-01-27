@@ -120,7 +120,7 @@ export const DashboardTable = ({
   const tableContent = loading ? <LoadingTableBody minHeight={minHeight} /> : children;
 
   return (
-    <Box sx={{ ...sx, mx: -2, my: -1 }} className={className}>
+    <Box sx={{ ...sx, mx: -2, mt: -1, mb: -2 }} className={className}>
       <Box
         position="relative"
         sx={{
