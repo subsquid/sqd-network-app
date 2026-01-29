@@ -32,7 +32,9 @@ import type { PendingWithdrawal } from './hooks';
 import { usePoolData, usePoolPendingWithdrawals } from './hooks';
 import { useLiquidityEvents } from './hooks/useLiquidityEvents';
 import { useTopUps } from './hooks/useTopUps';
-import { ACTIVITY_TEXTS, TOP_UPS_TEXTS, WITHDRAWALS_TEXTS } from './texts';
+import { useClaims } from './hooks/useClaims';
+import { useAccount } from '@hooks/network/useAccount';
+import { ACTIVITY_TEXTS, CLAIMS_TEXTS, TOP_UPS_TEXTS, WITHDRAWALS_TEXTS } from './texts';
 
 const PAGE_SIZE = 10;
 
@@ -419,6 +421,110 @@ function TopUpsTable({ poolId }: { poolId: string }) {
   );
 }
 
+function ClaimsTable({ poolId, providerId }: { poolId: string; providerId?: string }) {
+  const [pageIndex, setPageIndex] = useState(0);
+
+  const {
+    claims,
+    totalCount,
+    isLoading: isLoadingClaims,
+  } = useClaims({
+    poolId,
+    providerId,
+    limit: PAGE_SIZE,
+    offset: pageIndex * PAGE_SIZE,
+  });
+  const { data: pool, isLoading: isLoadingPool } = usePoolData(poolId);
+  const explorer = useExplorer();
+
+  const isLoading = isLoadingClaims || isLoadingPool;
+
+  // Calculate total page count from totalCount
+  const pageCount = Math.ceil(totalCount / PAGE_SIZE) || 1;
+
+  const columns = useMemo<ColumnDef<(typeof claims)[number]>[]>(
+    () => [
+      {
+        id: 'account',
+        accessorFn: row => row.providerId,
+        header: () => CLAIMS_TEXTS.table.account,
+        cell: info => (
+          <Typography variant="body1" fontWeight={500}>
+            {info.getValue()
+              ? addressFormatter(info.getValue() as string, true)
+              : addressFormatter(undefined, true)}
+          </Typography>
+        ),
+      },
+      {
+        id: 'amount',
+        accessorFn: row => row.amount,
+        header: () => CLAIMS_TEXTS.table.amount,
+        cell: ({ getValue }) => (
+          <Typography variant="body1" fontWeight={500}>
+            {pool &&
+              tokenFormatter(
+                BigNumber((getValue() as string) || 0).shiftedBy(-pool.rewardToken.decimals),
+                pool.rewardToken.symbol,
+                2,
+              )}
+          </Typography>
+        ),
+      },
+      {
+        id: 'time',
+        accessorFn: row => row.timestamp,
+        header: () => CLAIMS_TEXTS.table.time,
+        cell: info => (
+          <Tooltip title={dateFormat(info.getValue() as string, 'dateTime')}>
+            <Typography
+              variant="body1"
+              component="span"
+              sx={{ cursor: 'default', display: 'inline-block' }}
+            >
+              {formatTimeAgo(info.getValue() as string)}
+            </Typography>
+          </Tooltip>
+        ),
+      },
+      {
+        id: 'actions',
+        accessorFn: row => row.txHash,
+        header: () => '',
+        cell: info => (
+          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Tooltip title={`Open in Explorer`}>
+              <IconButton
+                size="small"
+                component={Link}
+                to={explorer.getTxUrl(info.getValue() as string)}
+                target="_blank"
+              >
+                <ExplorerIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        ),
+      },
+    ],
+    [pool, explorer],
+  );
+
+  if (!pool) return null;
+
+  return (
+    <PaginatedTable
+      data={claims}
+      columns={columns}
+      pageIndex={pageIndex}
+      pageCount={pageCount}
+      onPageChange={setPageIndex}
+      isLoading={isLoading}
+      emptyMessage={CLAIMS_TEXTS.noClaims}
+    />
+  );
+}
+
 export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
   const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
   const [claimingId, setClaimingId] = useState<string | null>(null);
@@ -426,6 +532,7 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
   const { writeTransactionAsync } = useWriteSQDTransaction();
   const { data: pendingWithdrawals = [], isLoading: withdrawalsLoading } =
     usePoolPendingWithdrawals(poolId);
+  const { address } = useAccount();
 
   const handleClaim = useCallback(
     async (withdrawalId: string) => {
@@ -457,11 +564,13 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
       <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 2 }}>
         <Tab label={ACTIVITY_TEXTS.title} />
         <Tab label={TOP_UPS_TEXTS.title} />
+        <Tab label={CLAIMS_TEXTS.title} />
         <Tab label={WITHDRAWALS_TEXTS.tabTitle} />
       </Tabs>
       {activeTab === 0 && <ActivityTable poolId={poolId} />}
       {activeTab === 1 && <TopUpsTable poolId={poolId} />}
-      {activeTab === 2 && (
+      {activeTab === 2 && <ClaimsTable poolId={poolId} providerId={address} />}
+      {activeTab === 3 && (
         <PendingWithdrawalsTable
           pendingWithdrawals={pendingWithdrawals}
           claimingId={claimingId}

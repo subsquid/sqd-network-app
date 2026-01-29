@@ -65,3 +65,25 @@ query topUps($limit: Int!, $offset: Int!, $poolId: String!) {
     totalCount
   }
 }
+
+query claims($limit: Int!, $offset: Int!, $poolId: String!, $providerId: String) {
+  claims(
+    limit: $limit
+    offset: $offset
+    orderBy: timestamp_DESC
+    where: { pool: { id_eq: $poolId }, providerId_eq: $providerId }
+  ) {
+    providerId
+    timestamp
+    txHash
+    blockNumber
+    amount
+    id
+  }
+  claimsConnection(
+    orderBy: id_ASC
+    where: { pool: { id_eq: $poolId }, providerId_eq: $providerId }
+  ) {
+    totalCount
+  }
+}

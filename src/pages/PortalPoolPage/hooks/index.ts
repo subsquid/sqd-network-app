@@ -11,3 +11,4 @@ export * from './usePoolData';
 export * from './usePoolPendingWithdrawals';
 export * from './usePoolUserData';
 export * from './useTopUps';
+export * from './useClaims';

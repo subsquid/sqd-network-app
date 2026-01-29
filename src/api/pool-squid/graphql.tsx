@@ -246,6 +246,214 @@ export type CapacityChangesConnection = {
   totalCount: Scalars["Int"]["output"];
 };
 
+export type Claim = {
+  __typename?: "Claim";
+  amount: Scalars["BigInt"]["output"];
+  blockNumber: Scalars["Int"]["output"];
+  id: Scalars["String"]["output"];
+  pool: Pool;
+  providerId: Scalars["String"]["output"];
+  timestamp: Scalars["DateTime"]["output"];
+  txHash: Scalars["String"]["output"];
+};
+
+export type ClaimEdge = {
+  __typename?: "ClaimEdge";
+  cursor: Scalars["String"]["output"];
+  node: Claim;
+};
+
+export enum ClaimOrderByInput {
+  AmountAsc = "amount_ASC",
+  AmountAscNullsFirst = "amount_ASC_NULLS_FIRST",
+  AmountAscNullsLast = "amount_ASC_NULLS_LAST",
+  AmountDesc = "amount_DESC",
+  AmountDescNullsFirst = "amount_DESC_NULLS_FIRST",
+  AmountDescNullsLast = "amount_DESC_NULLS_LAST",
+  BlockNumberAsc = "blockNumber_ASC",
+  BlockNumberAscNullsFirst = "blockNumber_ASC_NULLS_FIRST",
+  BlockNumberAscNullsLast = "blockNumber_ASC_NULLS_LAST",
+  BlockNumberDesc = "blockNumber_DESC",
+  BlockNumberDescNullsFirst = "blockNumber_DESC_NULLS_FIRST",
+  BlockNumberDescNullsLast = "blockNumber_DESC_NULLS_LAST",
+  IdAsc = "id_ASC",
+  IdAscNullsFirst = "id_ASC_NULLS_FIRST",
+  IdAscNullsLast = "id_ASC_NULLS_LAST",
+  IdDesc = "id_DESC",
+  IdDescNullsFirst = "id_DESC_NULLS_FIRST",
+  IdDescNullsLast = "id_DESC_NULLS_LAST",
+  PoolCapacityAsc = "pool_capacity_ASC",
+  PoolCapacityAscNullsFirst = "pool_capacity_ASC_NULLS_FIRST",
+  PoolCapacityAscNullsLast = "pool_capacity_ASC_NULLS_LAST",
+  PoolCapacityDesc = "pool_capacity_DESC",
+  PoolCapacityDescNullsFirst = "pool_capacity_DESC_NULLS_FIRST",
+  PoolCapacityDescNullsLast = "pool_capacity_DESC_NULLS_LAST",
+  PoolClosedAtBlockAsc = "pool_closedAtBlock_ASC",
+  PoolClosedAtBlockAscNullsFirst = "pool_closedAtBlock_ASC_NULLS_FIRST",
+  PoolClosedAtBlockAscNullsLast = "pool_closedAtBlock_ASC_NULLS_LAST",
+  PoolClosedAtBlockDesc = "pool_closedAtBlock_DESC",
+  PoolClosedAtBlockDescNullsFirst = "pool_closedAtBlock_DESC_NULLS_FIRST",
+  PoolClosedAtBlockDescNullsLast = "pool_closedAtBlock_DESC_NULLS_LAST",
+  PoolClosedAtAsc = "pool_closedAt_ASC",
+  PoolClosedAtAscNullsFirst = "pool_closedAt_ASC_NULLS_FIRST",
+  PoolClosedAtAscNullsLast = "pool_closedAt_ASC_NULLS_LAST",
+  PoolClosedAtDesc = "pool_closedAt_DESC",
+  PoolClosedAtDescNullsFirst = "pool_closedAt_DESC_NULLS_FIRST",
+  PoolClosedAtDescNullsLast = "pool_closedAt_DESC_NULLS_LAST",
+  PoolCreatedAtBlockAsc = "pool_createdAtBlock_ASC",
+  PoolCreatedAtBlockAscNullsFirst = "pool_createdAtBlock_ASC_NULLS_FIRST",
+  PoolCreatedAtBlockAscNullsLast = "pool_createdAtBlock_ASC_NULLS_LAST",
+  PoolCreatedAtBlockDesc = "pool_createdAtBlock_DESC",
+  PoolCreatedAtBlockDescNullsFirst = "pool_createdAtBlock_DESC_NULLS_FIRST",
+  PoolCreatedAtBlockDescNullsLast = "pool_createdAtBlock_DESC_NULLS_LAST",
+  PoolCreatedAtAsc = "pool_createdAt_ASC",
+  PoolCreatedAtAscNullsFirst = "pool_createdAt_ASC_NULLS_FIRST",
+  PoolCreatedAtAscNullsLast = "pool_createdAt_ASC_NULLS_LAST",
+  PoolCreatedAtDesc = "pool_createdAt_DESC",
+  PoolCreatedAtDescNullsFirst = "pool_createdAt_DESC_NULLS_FIRST",
+  PoolCreatedAtDescNullsLast = "pool_createdAt_DESC_NULLS_LAST",
+  PoolIdAsc = "pool_id_ASC",
+  PoolIdAscNullsFirst = "pool_id_ASC_NULLS_FIRST",
+  PoolIdAscNullsLast = "pool_id_ASC_NULLS_LAST",
+  PoolIdDesc = "pool_id_DESC",
+  PoolIdDescNullsFirst = "pool_id_DESC_NULLS_FIRST",
+  PoolIdDescNullsLast = "pool_id_DESC_NULLS_LAST",
+  PoolRewardRateAsc = "pool_rewardRate_ASC",
+  PoolRewardRateAscNullsFirst = "pool_rewardRate_ASC_NULLS_FIRST",
+  PoolRewardRateAscNullsLast = "pool_rewardRate_ASC_NULLS_LAST",
+  PoolRewardRateDesc = "pool_rewardRate_DESC",
+  PoolRewardRateDescNullsFirst = "pool_rewardRate_DESC_NULLS_FIRST",
+  PoolRewardRateDescNullsLast = "pool_rewardRate_DESC_NULLS_LAST",
+  PoolTotalRewardsToppedUpAsc = "pool_totalRewardsToppedUp_ASC",
+  PoolTotalRewardsToppedUpAscNullsFirst = "pool_totalRewardsToppedUp_ASC_NULLS_FIRST",
+  PoolTotalRewardsToppedUpAscNullsLast = "pool_totalRewardsToppedUp_ASC_NULLS_LAST",
+  PoolTotalRewardsToppedUpDesc = "pool_totalRewardsToppedUp_DESC",
+  PoolTotalRewardsToppedUpDescNullsFirst = "pool_totalRewardsToppedUp_DESC_NULLS_FIRST",
+  PoolTotalRewardsToppedUpDescNullsLast = "pool_totalRewardsToppedUp_DESC_NULLS_LAST",
+  PoolTvlStableAsc = "pool_tvlStable_ASC",
+  PoolTvlStableAscNullsFirst = "pool_tvlStable_ASC_NULLS_FIRST",
+  PoolTvlStableAscNullsLast = "pool_tvlStable_ASC_NULLS_LAST",
+  PoolTvlStableDesc = "pool_tvlStable_DESC",
+  PoolTvlStableDescNullsFirst = "pool_tvlStable_DESC_NULLS_FIRST",
+  PoolTvlStableDescNullsLast = "pool_tvlStable_DESC_NULLS_LAST",
+  PoolTvlTotalAsc = "pool_tvlTotal_ASC",
+  PoolTvlTotalAscNullsFirst = "pool_tvlTotal_ASC_NULLS_FIRST",
+  PoolTvlTotalAscNullsLast = "pool_tvlTotal_ASC_NULLS_LAST",
+  PoolTvlTotalDesc = "pool_tvlTotal_DESC",
+  PoolTvlTotalDescNullsFirst = "pool_tvlTotal_DESC_NULLS_FIRST",
+  PoolTvlTotalDescNullsLast = "pool_tvlTotal_DESC_NULLS_LAST",
+  ProviderIdAsc = "providerId_ASC",
+  ProviderIdAscNullsFirst = "providerId_ASC_NULLS_FIRST",
+  ProviderIdAscNullsLast = "providerId_ASC_NULLS_LAST",
+  ProviderIdDesc = "providerId_DESC",
+  ProviderIdDescNullsFirst = "providerId_DESC_NULLS_FIRST",
+  ProviderIdDescNullsLast = "providerId_DESC_NULLS_LAST",
+  TimestampAsc = "timestamp_ASC",
+  TimestampAscNullsFirst = "timestamp_ASC_NULLS_FIRST",
+  TimestampAscNullsLast = "timestamp_ASC_NULLS_LAST",
+  TimestampDesc = "timestamp_DESC",
+  TimestampDescNullsFirst = "timestamp_DESC_NULLS_FIRST",
+  TimestampDescNullsLast = "timestamp_DESC_NULLS_LAST",
+  TxHashAsc = "txHash_ASC",
+  TxHashAscNullsFirst = "txHash_ASC_NULLS_FIRST",
+  TxHashAscNullsLast = "txHash_ASC_NULLS_LAST",
+  TxHashDesc = "txHash_DESC",
+  TxHashDescNullsFirst = "txHash_DESC_NULLS_FIRST",
+  TxHashDescNullsLast = "txHash_DESC_NULLS_LAST",
+}
+
+export type ClaimWhereInput = {
+  AND?: InputMaybe<Array<ClaimWhereInput>>;
+  OR?: InputMaybe<Array<ClaimWhereInput>>;
+  amount_eq?: InputMaybe<Scalars["BigInt"]["input"]>;
+  amount_gt?: InputMaybe<Scalars["BigInt"]["input"]>;
+  amount_gte?: InputMaybe<Scalars["BigInt"]["input"]>;
+  amount_in?: InputMaybe<Array<Scalars["BigInt"]["input"]>>;
+  amount_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  amount_lt?: InputMaybe<Scalars["BigInt"]["input"]>;
+  amount_lte?: InputMaybe<Scalars["BigInt"]["input"]>;
+  amount_not_eq?: InputMaybe<Scalars["BigInt"]["input"]>;
+  amount_not_in?: InputMaybe<Array<Scalars["BigInt"]["input"]>>;
+  blockNumber_eq?: InputMaybe<Scalars["Int"]["input"]>;
+  blockNumber_gt?: InputMaybe<Scalars["Int"]["input"]>;
+  blockNumber_gte?: InputMaybe<Scalars["Int"]["input"]>;
+  blockNumber_in?: InputMaybe<Array<Scalars["Int"]["input"]>>;
+  blockNumber_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  blockNumber_lt?: InputMaybe<Scalars["Int"]["input"]>;
+  blockNumber_lte?: InputMaybe<Scalars["Int"]["input"]>;
+  blockNumber_not_eq?: InputMaybe<Scalars["Int"]["input"]>;
+  blockNumber_not_in?: InputMaybe<Array<Scalars["Int"]["input"]>>;
+  id_contains?: InputMaybe<Scalars["String"]["input"]>;
+  id_containsInsensitive?: InputMaybe<Scalars["String"]["input"]>;
+  id_endsWith?: InputMaybe<Scalars["String"]["input"]>;
+  id_eq?: InputMaybe<Scalars["String"]["input"]>;
+  id_gt?: InputMaybe<Scalars["String"]["input"]>;
+  id_gte?: InputMaybe<Scalars["String"]["input"]>;
+  id_in?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  id_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  id_lt?: InputMaybe<Scalars["String"]["input"]>;
+  id_lte?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_contains?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_containsInsensitive?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_endsWith?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_eq?: InputMaybe<Scalars["String"]["input"]>;
+  id_not_in?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  id_not_startsWith?: InputMaybe<Scalars["String"]["input"]>;
+  id_startsWith?: InputMaybe<Scalars["String"]["input"]>;
+  pool?: InputMaybe<PoolWhereInput>;
+  pool_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  providerId_contains?: InputMaybe<Scalars["String"]["input"]>;
+  providerId_containsInsensitive?: InputMaybe<Scalars["String"]["input"]>;
+  providerId_endsWith?: InputMaybe<Scalars["String"]["input"]>;
+  providerId_eq?: InputMaybe<Scalars["String"]["input"]>;
+  providerId_gt?: InputMaybe<Scalars["String"]["input"]>;
+  providerId_gte?: InputMaybe<Scalars["String"]["input"]>;
+  providerId_in?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  providerId_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  providerId_lt?: InputMaybe<Scalars["String"]["input"]>;
+  providerId_lte?: InputMaybe<Scalars["String"]["input"]>;
+  providerId_not_contains?: InputMaybe<Scalars["String"]["input"]>;
+  providerId_not_containsInsensitive?: InputMaybe<Scalars["String"]["input"]>;
+  providerId_not_endsWith?: InputMaybe<Scalars["String"]["input"]>;
+  providerId_not_eq?: InputMaybe<Scalars["String"]["input"]>;
+  providerId_not_in?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  providerId_not_startsWith?: InputMaybe<Scalars["String"]["input"]>;
+  providerId_startsWith?: InputMaybe<Scalars["String"]["input"]>;
+  timestamp_eq?: InputMaybe<Scalars["DateTime"]["input"]>;
+  timestamp_gt?: InputMaybe<Scalars["DateTime"]["input"]>;
+  timestamp_gte?: InputMaybe<Scalars["DateTime"]["input"]>;
+  timestamp_in?: InputMaybe<Array<Scalars["DateTime"]["input"]>>;
+  timestamp_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  timestamp_lt?: InputMaybe<Scalars["DateTime"]["input"]>;
+  timestamp_lte?: InputMaybe<Scalars["DateTime"]["input"]>;
+  timestamp_not_eq?: InputMaybe<Scalars["DateTime"]["input"]>;
+  timestamp_not_in?: InputMaybe<Array<Scalars["DateTime"]["input"]>>;
+  txHash_contains?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_containsInsensitive?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_endsWith?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_eq?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_gt?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_gte?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_in?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  txHash_isNull?: InputMaybe<Scalars["Boolean"]["input"]>;
+  txHash_lt?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_lte?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_not_contains?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_not_containsInsensitive?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_not_endsWith?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_not_eq?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_not_in?: InputMaybe<Array<Scalars["String"]["input"]>>;
+  txHash_not_startsWith?: InputMaybe<Scalars["String"]["input"]>;
+  txHash_startsWith?: InputMaybe<Scalars["String"]["input"]>;
+};
+
+export type ClaimsConnection = {
+  __typename?: "ClaimsConnection";
+  edges: Array<ClaimEdge>;
+  pageInfo: PageInfo;
+  totalCount: Scalars["Int"]["output"];
+};
+
 export type DistributionRateChange = {
   __typename?: "DistributionRateChange";
   blockNumber: Scalars["Int"]["output"];
@@ -684,6 +892,7 @@ export type Pool = {
   __typename?: "Pool";
   capacity: Scalars["BigInt"]["output"];
   capacityHistory: Array<CapacityChange>;
+  claims: Array<Claim>;
   closedAt?: Maybe<Scalars["DateTime"]["output"]>;
   closedAtBlock?: Maybe<Scalars["Int"]["output"]>;
   createdAt: Scalars["DateTime"]["output"];
@@ -703,6 +912,13 @@ export type PoolCapacityHistoryArgs = {
   offset?: InputMaybe<Scalars["Int"]["input"]>;
   orderBy?: InputMaybe<Array<CapacityChangeOrderByInput>>;
   where?: InputMaybe<CapacityChangeWhereInput>;
+};
+
+export type PoolClaimsArgs = {
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  orderBy?: InputMaybe<Array<ClaimOrderByInput>>;
+  where?: InputMaybe<ClaimWhereInput>;
 };
 
 export type PoolDistributionRateHistoryArgs = {
@@ -810,6 +1026,9 @@ export type PoolWhereInput = {
   capacity_lte?: InputMaybe<Scalars["BigInt"]["input"]>;
   capacity_not_eq?: InputMaybe<Scalars["BigInt"]["input"]>;
   capacity_not_in?: InputMaybe<Array<Scalars["BigInt"]["input"]>>;
+  claims_every?: InputMaybe<ClaimWhereInput>;
+  claims_none?: InputMaybe<ClaimWhereInput>;
+  claims_some?: InputMaybe<ClaimWhereInput>;
   closedAtBlock_eq?: InputMaybe<Scalars["Int"]["input"]>;
   closedAtBlock_gt?: InputMaybe<Scalars["Int"]["input"]>;
   closedAtBlock_gte?: InputMaybe<Scalars["Int"]["input"]>;
@@ -923,6 +1142,9 @@ export type Query = {
   capacityChangeById?: Maybe<CapacityChange>;
   capacityChanges: Array<CapacityChange>;
   capacityChangesConnection: CapacityChangesConnection;
+  claimById?: Maybe<Claim>;
+  claims: Array<Claim>;
+  claimsConnection: ClaimsConnection;
   distributionRateChangeById?: Maybe<DistributionRateChange>;
   distributionRateChanges: Array<DistributionRateChange>;
   distributionRateChangesConnection: DistributionRateChangesConnection;
@@ -961,6 +1183,24 @@ export type QueryCapacityChangesConnectionArgs = {
   first?: InputMaybe<Scalars["Int"]["input"]>;
   orderBy: Array<CapacityChangeOrderByInput>;
   where?: InputMaybe<CapacityChangeWhereInput>;
+};
+
+export type QueryClaimByIdArgs = {
+  id: Scalars["String"]["input"];
+};
+
+export type QueryClaimsArgs = {
+  limit?: InputMaybe<Scalars["Int"]["input"]>;
+  offset?: InputMaybe<Scalars["Int"]["input"]>;
+  orderBy?: InputMaybe<Array<ClaimOrderByInput>>;
+  where?: InputMaybe<ClaimWhereInput>;
+};
+
+export type QueryClaimsConnectionArgs = {
+  after?: InputMaybe<Scalars["String"]["input"]>;
+  first?: InputMaybe<Scalars["Int"]["input"]>;
+  orderBy: Array<ClaimOrderByInput>;
+  where?: InputMaybe<ClaimWhereInput>;
 };
 
 export type QueryDistributionRateChangeByIdArgs = {
@@ -1336,6 +1576,27 @@ export type TopUpsQuery = {
   topUpsConnection: { __typename?: "TopUpsConnection"; totalCount: number };
 };
 
+export type ClaimsQueryVariables = Exact<{
+  limit: Scalars["Int"]["input"];
+  offset: Scalars["Int"]["input"];
+  poolId: Scalars["String"]["input"];
+  providerId?: InputMaybe<Scalars["String"]["input"]>;
+}>;
+
+export type ClaimsQuery = {
+  __typename?: "Query";
+  claims: Array<{
+    __typename?: "Claim";
+    providerId: string;
+    timestamp: string;
+    txHash: string;
+    blockNumber: number;
+    amount: string;
+    id: string;
+  }>;
+  claimsConnection: { __typename?: "ClaimsConnection"; totalCount: number };
+};
+
 export const ApyTimeseriesDocument = `
     query apyTimeseries($from: DateTime!, $poolId: String!, $to: DateTime!) {
   apyTimeseries(from: $from, poolId: $poolId, to: $to) {
@@ -1506,6 +1767,46 @@ export const useTopUpsQuery = <TData = TopUpsQuery, TError = unknown>(
     queryKey: ["topUps", variables],
     queryFn: fetcher<TopUpsQuery, TopUpsQueryVariables>(
       TopUpsDocument,
+      variables,
+    ),
+    ...options,
+  });
+};
+
+export const ClaimsDocument = `
+    query claims($limit: Int!, $offset: Int!, $poolId: String!, $providerId: String) {
+  claims(
+    limit: $limit
+    offset: $offset
+    orderBy: timestamp_DESC
+    where: {pool: {id_eq: $poolId}, providerId_eq: $providerId}
+  ) {
+    providerId
+    timestamp
+    txHash
+    blockNumber
+    amount
+    id
+  }
+  claimsConnection(
+    orderBy: id_ASC
+    where: {pool: {id_eq: $poolId}, providerId_eq: $providerId}
+  ) {
+    totalCount
+  }
+}
+    `;
+
+export const useClaimsQuery = <TData = ClaimsQuery, TError = unknown>(
+  variables: ClaimsQueryVariables,
+  options?: Omit<UseQueryOptions<ClaimsQuery, TError, TData>, "queryKey"> & {
+    queryKey?: UseQueryOptions<ClaimsQuery, TError, TData>["queryKey"];
+  },
+) => {
+  return useQuery<ClaimsQuery, TError, TData>({
+    queryKey: ["claims", variables],
+    queryFn: fetcher<ClaimsQuery, ClaimsQueryVariables>(
+      ClaimsDocument,
       variables,
     ),
     ...options,

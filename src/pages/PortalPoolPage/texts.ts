@@ -261,3 +261,15 @@ export const TOP_UPS_TEXTS = {
   },
   noTopUps: 'No top-ups yet',
 } as const;
+
+// Claims Tab
+export const CLAIMS_TEXTS = {
+  title: 'Claims',
+  table: {
+    account: 'Account',
+    amount: 'Amount',
+    time: 'Time',
+    txn: 'Txn',
+  },
+  noClaims: 'No claims yet',
+} as const;
