@@ -61,7 +61,7 @@ export function useHistoricalTokenPrices({
   const { data, isPending, isLoading } = useQuery({
     queryKey: ['historicalTokenPrices', address, fromTimestamp, toTimestamp],
     queryFn: async () => {
-      const url = `https://coins.llama.fi/chart/${coin}?start=${fromTimestamp}&span=${100}&period=1h`;
+      const url = `https://coins.llama.fi/chart/${coin}?end=${toTimestamp}&span=${30}&period=${Math.floor((toTimestamp - fromTimestamp) / 30 / 3600)}h`;
       const res = await fetch(url);
       const json = (await res.json()) as ChartPriceResponse;
       const coinData = json.coins[coin];

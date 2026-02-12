@@ -77,48 +77,34 @@ function ApyLineChart({ poolId, range }: ApyLineChartProps) {
       return [];
     }
 
-    // Create a map of prices by timestamp for quick lookup
-    const priceMap = new Map(chartPrices.map(({ timestamp, price }) => [timestamp * 1000, price]));
+    const sortedPrices = [...chartPrices]
+      .map(({ timestamp, price }) => ({ timestamp: timestamp * 1000, price }))
+      .sort((a, b) => a.timestamp - b.timestamp);
 
-    // Helper function to find the closest price for a given timestamp
-    const findClosestPrice = (targetTimestamp: number): number | null => {
-      let closestTimestamp: number | null = null;
-      let minDiff = Infinity;
+    let priceIdx = 0;
+    const data = rewardRateData.apyTimeseries.data.map(entry => {
+      const timestampMs = new Date(entry.timestamp).getTime();
 
-      for (const timestamp of priceMap.keys()) {
-        const diff = Math.abs(timestamp - targetTimestamp);
-        if (diff < minDiff) {
-          minDiff = diff;
-          closestTimestamp = timestamp;
-        }
+      while (
+        priceIdx < sortedPrices.length - 1 &&
+        sortedPrices[priceIdx + 1].timestamp <= timestampMs
+      ) {
+        priceIdx++;
       }
 
-      return closestTimestamp !== null ? (priceMap.get(closestTimestamp) ?? null) : null;
-    };
+      const price = sortedPrices[priceIdx].price;
 
-    const data = rewardRateData.apyTimeseries.data
-      .map((entry, index) => {
-        const timestampMs = new Date(entry.timestamp).getTime();
+      // Convert reward rate from raw BigInt to USD per second
+      const apy = BigNumber(entry.value)
+        .times(10 ** (18 - pool.rewardToken.decimals))
+        .div(price)
+        .toNumber();
 
-        // Find closest price
-        const price = findClosestPrice(timestampMs);
-
-        if (!price || price <= 0) {
-          return null;
-        }
-
-        // Convert reward rate from raw BigInt to USD per second
-        const apy = BigNumber(entry.value)
-          .times(10 ** (18 - pool.rewardToken.decimals))
-          .div(price)
-          .toNumber();
-
-        return {
-          x: new Date(timestampMs),
-          y: apy * 100,
-        };
-      })
-      .filter((point): point is { x: Date; y: number } => point !== null);
+      return {
+        x: new Date(timestampMs),
+        y: apy * 100,
+      };
+    });
 
     return [
       {
