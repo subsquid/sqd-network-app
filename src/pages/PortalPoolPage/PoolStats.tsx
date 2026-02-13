@@ -14,7 +14,6 @@ import { useContracts } from '@hooks/network/useContracts';
 
 import { usePoolData } from './hooks';
 import { STATS_TEXTS } from './texts';
-import { calculateApy } from './utils/poolUtils';
 
 interface PoolStatsProps {
   poolId: string;
@@ -47,17 +46,16 @@ export function PoolStats({ poolId }: PoolStatsProps) {
   const { SQD_TOKEN, SQD } = useContracts();
   const { data: sqdPrice } = useTokenPrice({ address: SQD });
 
-  // APY = (Annual Rewards) / (Capacity in USD)
-  // Since rewards are constant: Annual = Monthly × 12
+  // APY = (distributionRatePerSecond / tvl.max) * secondsPerYear / sqdPrice
+  // Divide in BigNumber first to preserve precision with large raw values
   const displayApy = useMemo(() => {
-    if (!pool) return 0;
-    const calculatedApyRatio =
-      calculateApy(
-        pool.distributionRatePerSecond.times(30 * 86400).toNumber(),
-        pool.tvl.max.toNumber(),
-        sqdPrice,
-      ) || 0;
-    return calculatedApyRatio * 100;
+    if (!pool || !sqdPrice || sqdPrice <= 0 || pool.tvl.max.isZero()) return 0;
+    return pool.distributionRatePerSecond
+      .div(pool.tvl.max)
+      .times(365 * 86400)
+      .div(sqdPrice)
+      .times(100)
+      .toNumber();
   }, [pool, sqdPrice]);
 
   const apyTooltip = STATS_TEXTS.apy.tooltip(SQD_TOKEN);
