@@ -64,7 +64,7 @@ function ApyLineChart({ poolId, range }: ApyLineChartProps) {
   const { data: chartPrices, isLoading: isPricesLoading } = useHistoricalTokenPrices({
     address: '0x1337420ded5adb9980cfc35f8f2b054ea86f8ab1',
     from: priceRange.from,
-    to: priceRange.to,
+    to: range.to,
   });
 
   const series = useMemo(() => {
@@ -77,32 +77,36 @@ function ApyLineChart({ poolId, range }: ApyLineChartProps) {
       return [];
     }
 
-    const sortedPrices = [...chartPrices]
-      .map(({ timestamp, price }) => ({ timestamp: timestamp * 1000, price }))
-      .sort((a, b) => a.timestamp - b.timestamp);
+    const sortedPrices = chartPrices.map(({ timestamp, price }) => ({
+      timestamp: timestamp * 1000,
+      price,
+    }));
 
+    const apyData = rewardRateData.apyTimeseries.data;
     let priceIdx = 0;
-    const data = rewardRateData.apyTimeseries.data.map(entry => {
-      const timestampMs = new Date(entry.timestamp).getTime();
+    const data = apyData.map((entry, i) => {
+      const nextTimestampMs =
+        i < apyData.length - 1 ? new Date(apyData[i + 1].timestamp).getTime() : Infinity;
 
+      // Advance price index to the latest price before the next APY point
       while (
         priceIdx < sortedPrices.length - 1 &&
-        sortedPrices[priceIdx + 1].timestamp <= timestampMs
+        sortedPrices[priceIdx + 1].timestamp < nextTimestampMs
       ) {
         priceIdx++;
       }
 
       const price = sortedPrices[priceIdx].price;
 
-      // Convert reward rate from raw BigInt to USD per second
       const apy = BigNumber(entry.value)
-        .times(10 ** (18 - pool.rewardToken.decimals))
+        .shiftedBy(18 - pool.rewardToken.decimals)
         .div(price)
+        .times(100)
         .toNumber();
 
       return {
-        x: new Date(timestampMs),
-        y: apy * 100,
+        x: new Date(entry.timestamp),
+        y: apy,
       };
     });
 
