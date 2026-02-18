@@ -1,4 +1,15 @@
-import { useLiquidityEventsQuery } from '@api/pool-squid/graphql';
+import { LiquidityEventType } from '@api/types';
+import { useQuery } from '@tanstack/react-query';
+
+import { trpc } from '@api/trpc';
+
+interface LiquidityEvent {
+  eventType: LiquidityEventType;
+  txHash: string;
+  timestamp: string;
+  providerId?: string;
+  amount: string;
+}
 
 interface UseLiquidityEventsProps {
   poolId: string;
@@ -7,7 +18,7 @@ interface UseLiquidityEventsProps {
 }
 
 export function useLiquidityEvents({ poolId, limit = 15, offset = 0 }: UseLiquidityEventsProps) {
-  const { data, isLoading, error } = useLiquidityEventsQuery(
+  const { data, isLoading, error } = useQuery(trpc.pool.liquidityEvents.queryOptions(
     {
       poolId: poolId.toLowerCase(),
       limit,
@@ -15,13 +26,13 @@ export function useLiquidityEvents({ poolId, limit = 15, offset = 0 }: UseLiquid
     },
     {
       enabled: !!poolId,
-      refetchInterval: 30000, // Refetch every 30 seconds
+      refetchInterval: 30000,
     },
-  );
+  ));
 
   return {
-    events: data?.liquidityEvents || [],
-    totalCount: data?.liquidityEventsConnection?.totalCount || 0,
+    events: (data?.liquidityEvents as LiquidityEvent[]) || [],
+    totalCount: data?.totalCount || 0,
     isLoading,
     error,
   };

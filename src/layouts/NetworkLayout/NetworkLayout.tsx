@@ -13,13 +13,13 @@ import {
 } from '@mui/material';
 import classnames from 'classnames';
 import { Outlet } from 'react-router-dom';
-import { useDisconnect } from 'wagmi';
+import { useAccount, useDisconnect } from 'wagmi';
 
-import { useTokenPrice } from '@api/price';
+import { useQuery } from '@tanstack/react-query';
+import { trpc } from '@api/trpc';
 import { Logo } from '@components/Logo';
 import { useBannerHeight } from '@components/TopBanner';
 import { dollarFormatter } from '@lib/formatters/formatters';
-import { useAccount } from '@hooks/network/useAccount';
 import { useContracts } from '@hooks/network/useContracts';
 import { getChain, getSubsquidNetwork } from '@hooks/network/useSubsquidNetwork';
 
@@ -188,7 +188,7 @@ export const NetworkLayout = ({
   const network = getSubsquidNetwork();
   const bannerHeight = useBannerHeight();
   const { SQD, SQD_TOKEN } = useContracts();
-  const price = useTokenPrice({ address: SQD });
+  const price = useQuery(trpc.price.current.queryOptions());
 
   useEffect(() => {
     if (!isConnected) return;

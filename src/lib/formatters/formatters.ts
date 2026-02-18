@@ -3,7 +3,7 @@ import prettyBytes from 'pretty-bytes';
 import { zeroAddress } from 'viem';
 import { getAddress } from 'viem/utils';
 
-export function percentFormatter(value?: number | string | BigNumber, decimals = 2) {
+export function percentFormatter(value?: number | string | BigNumber | null, decimals = 2) {
   value = BigNumber(value || 0);
 
   return `${value.lt(0.01) && value.gt(0) ? '<0.01%' : value.toFixed(decimals)}%`;
@@ -13,13 +13,13 @@ const formatter8 = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 8,
 });
 
-export function numberWithCommasFormatter(val?: number | bigint | string) {
+export function numberWithCommasFormatter(val?: number | bigint | string | null) {
   if (!val) return '0';
 
   return formatter8.format(typeof val === 'string' ? Number(val) : val);
 }
 
-export function bytesFormatter(val?: number | string, compact?: boolean) {
+export function bytesFormatter(val?: number | string | null, compact?: boolean) {
   // if (!val) return '0 MB';
 
   return prettyBytes(Number(val || 0), {

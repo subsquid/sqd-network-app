@@ -4,13 +4,14 @@ import { CenteredPageWrapper, PageTitle } from '@layouts/NetworkLayout';
 import { Box, Divider, Stack, Tab, Tabs } from '@mui/material';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 
+import { useQuery } from '@tanstack/react-query';
 import {
   WorkerStatus as ApiWorkerStatus,
   WorkerStatus,
   useMySources,
-  useMyWorkerDelegations,
   useWorkerByPeerId,
 } from '@api/subsquid-network-squid';
+import { trpc } from '@api/trpc';
 import { Avatar } from '@components/Avatar';
 import { Card } from '@components/Card';
 import { Loader } from '@components/Loader';
@@ -25,7 +26,7 @@ import {
   WorkerWithdrawButton,
 } from '@components/Worker';
 import { isOwned } from '@lib/network';
-import { useAccount } from '@hooks/network/useAccount';
+import { useAccount } from 'wagmi';
 import { useContracts } from '@hooks/network/useContracts';
 
 import { WorkerTitle } from './WorkerTitle';
@@ -49,7 +50,10 @@ export const Worker = ({ backPath }: { backPath: string }) => {
   const { SQD_TOKEN } = useContracts();
 
   const { data: sources, isLoading: isSourcesLoading } = useMySources();
-  const { data: delegations, isLoading: isDelegationsLoading } = useMyWorkerDelegations({ peerId });
+  const { data: delegationsData, isLoading: isDelegationsLoading } = useQuery(
+    trpc.worker.delegations.queryOptions({ workerId: peerId || '', address: address || '' }),
+  );
+  const delegations = delegationsData?.[0]?.delegations;
 
   const isLoading = isPending || isSourcesLoading || isDelegationsLoading;
 
@@ -57,7 +61,7 @@ export const Worker = ({ backPath }: { backPath: string }) => {
     if (!worker) return false;
     if (worker.status === ApiWorkerStatus.Withdrawn) return false;
     if (!isOwned(worker, address)) return false;
-    return [ApiWorkerStatus.Active, ApiWorkerStatus.Registering].includes(worker.status);
+    return ([ApiWorkerStatus.Active, ApiWorkerStatus.Registering] as string[]).includes(worker.status);
   }, [worker, address]);
 
   if (isLoading) {

@@ -1,8 +1,7 @@
 /* eslint-disable */
-import { useQuery, UseQueryOptions } from "@tanstack/react-query";
-import { fetcher } from "./fetcher";
-export type Maybe<T> = T;
-export type InputMaybe<T> = T;
+import type { DocumentTypeDecoration } from "@graphql-typed-document-node/core";
+export type Maybe<T> = T | null;
+export type InputMaybe<T> = T | null | undefined;
 export type Exact<T extends { [key: string]: unknown }> = {
   [K in keyof T]: T[K];
 };
@@ -28,18 +27,18 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean };
   Int: { input: number; output: number };
   Float: { input: number; output: number };
+  /** Big number integer */
   BigInt: { input: string; output: string };
+  /** A date-time string in simplified extended ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ) */
   DateTime: { input: string; output: string };
 };
 
 export type ApyEntry = {
-  __typename?: "ApyEntry";
   timestamp: Scalars["DateTime"]["output"];
   value: Scalars["Float"]["output"];
 };
 
 export type ApyTimeseries = {
-  __typename?: "ApyTimeseries";
   data: Array<ApyEntry>;
   from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
@@ -47,7 +46,6 @@ export type ApyTimeseries = {
 };
 
 export type CapacityChange = {
-  __typename?: "CapacityChange";
   blockNumber: Scalars["Int"]["output"];
   id: Scalars["String"]["output"];
   newCapacity: Scalars["BigInt"]["output"];
@@ -58,7 +56,6 @@ export type CapacityChange = {
 };
 
 export type CapacityChangeEdge = {
-  __typename?: "CapacityChangeEdge";
   cursor: Scalars["String"]["output"];
   node: CapacityChange;
 };
@@ -240,14 +237,12 @@ export type CapacityChangeWhereInput = {
 };
 
 export type CapacityChangesConnection = {
-  __typename?: "CapacityChangesConnection";
   edges: Array<CapacityChangeEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
 };
 
 export type Claim = {
-  __typename?: "Claim";
   amount: Scalars["BigInt"]["output"];
   blockNumber: Scalars["Int"]["output"];
   id: Scalars["String"]["output"];
@@ -258,7 +253,6 @@ export type Claim = {
 };
 
 export type ClaimEdge = {
-  __typename?: "ClaimEdge";
   cursor: Scalars["String"]["output"];
   node: Claim;
 };
@@ -448,14 +442,12 @@ export type ClaimWhereInput = {
 };
 
 export type ClaimsConnection = {
-  __typename?: "ClaimsConnection";
   edges: Array<ClaimEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
 };
 
 export type DistributionRateChange = {
-  __typename?: "DistributionRateChange";
   blockNumber: Scalars["Int"]["output"];
   id: Scalars["String"]["output"];
   newRate: Scalars["BigInt"]["output"];
@@ -466,7 +458,6 @@ export type DistributionRateChange = {
 };
 
 export type DistributionRateChangeEdge = {
-  __typename?: "DistributionRateChangeEdge";
   cursor: Scalars["String"]["output"];
   node: DistributionRateChange;
 };
@@ -648,14 +639,12 @@ export type DistributionRateChangeWhereInput = {
 };
 
 export type DistributionRateChangesConnection = {
-  __typename?: "DistributionRateChangesConnection";
   edges: Array<DistributionRateChangeEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
 };
 
 export type LiquidityEvent = {
-  __typename?: "LiquidityEvent";
   amount: Scalars["BigInt"]["output"];
   blockNumber: Scalars["Int"]["output"];
   eventType: LiquidityEventType;
@@ -667,7 +656,6 @@ export type LiquidityEvent = {
 };
 
 export type LiquidityEventEdge = {
-  __typename?: "LiquidityEventEdge";
   cursor: Scalars["String"]["output"];
   node: LiquidityEvent;
 };
@@ -874,14 +862,12 @@ export type LiquidityEventWhereInput = {
 };
 
 export type LiquidityEventsConnection = {
-  __typename?: "LiquidityEventsConnection";
   edges: Array<LiquidityEventEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
 };
 
 export type PageInfo = {
-  __typename?: "PageInfo";
   endCursor: Scalars["String"]["output"];
   hasNextPage: Scalars["Boolean"]["output"];
   hasPreviousPage: Scalars["Boolean"]["output"];
@@ -889,7 +875,6 @@ export type PageInfo = {
 };
 
 export type Pool = {
-  __typename?: "Pool";
   capacity: Scalars["BigInt"]["output"];
   capacityHistory: Array<CapacityChange>;
   claims: Array<Claim>;
@@ -943,7 +928,6 @@ export type PoolTopUpsArgs = {
 };
 
 export type PoolEdge = {
-  __typename?: "PoolEdge";
   cursor: Scalars["String"]["output"];
   node: Pool;
 };
@@ -1130,14 +1114,12 @@ export type PoolWhereInput = {
 };
 
 export type PoolsConnection = {
-  __typename?: "PoolsConnection";
   edges: Array<PoolEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
 };
 
 export type Query = {
-  __typename?: "Query";
   apyTimeseries: ApyTimeseries;
   capacityChangeById?: Maybe<CapacityChange>;
   capacityChanges: Array<CapacityChange>;
@@ -1283,7 +1265,6 @@ export type QueryTvlTimeseriesArgs = {
 };
 
 export type TopUp = {
-  __typename?: "TopUp";
   amount: Scalars["BigInt"]["output"];
   blockNumber: Scalars["Int"]["output"];
   id: Scalars["String"]["output"];
@@ -1293,7 +1274,6 @@ export type TopUp = {
 };
 
 export type TopUpEdge = {
-  __typename?: "TopUpEdge";
   cursor: Scalars["String"]["output"];
   node: TopUp;
 };
@@ -1460,20 +1440,17 @@ export type TopUpWhereInput = {
 };
 
 export type TopUpsConnection = {
-  __typename?: "TopUpsConnection";
   edges: Array<TopUpEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
 };
 
 export type TvlEntry = {
-  __typename?: "TvlEntry";
   timestamp: Scalars["DateTime"]["output"];
   value: TvlValue;
 };
 
 export type TvlTimeseries = {
-  __typename?: "TvlTimeseries";
   data: Array<TvlEntry>;
   from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
@@ -1481,7 +1458,6 @@ export type TvlTimeseries = {
 };
 
 export type TvlValue = {
-  __typename?: "TvlValue";
   tvlStable: Scalars["BigInt"]["output"];
   tvlTotal: Scalars["BigInt"]["output"];
 };
@@ -1493,13 +1469,11 @@ export type ApyTimeseriesQueryVariables = Exact<{
 }>;
 
 export type ApyTimeseriesQuery = {
-  __typename?: "Query";
   apyTimeseries: {
-    __typename?: "ApyTimeseries";
     from: string;
     step: number;
     to: string;
-    data: Array<{ __typename?: "ApyEntry"; value: number; timestamp: string }>;
+    data: Array<{ value: number; timestamp: string }>;
   };
 };
 
@@ -1510,16 +1484,13 @@ export type TvlTimeseriesQueryVariables = Exact<{
 }>;
 
 export type TvlTimeseriesQuery = {
-  __typename?: "Query";
   tvlTimeseries: {
-    __typename?: "TvlTimeseries";
     from: string;
     step: number;
     to: string;
     data: Array<{
-      __typename?: "TvlEntry";
       timestamp: string;
-      value: { __typename?: "TvlValue"; tvlStable: string; tvlTotal: string };
+      value: { tvlStable: string; tvlTotal: string };
     }>;
   };
 };
@@ -1529,12 +1500,7 @@ export type PoolByIdQueryVariables = Exact<{
 }>;
 
 export type PoolByIdQuery = {
-  __typename?: "Query";
-  poolById?: {
-    __typename?: "Pool";
-    totalRewardsToppedUp: string;
-    createdAt: string;
-  };
+  poolById?: { totalRewardsToppedUp: string; createdAt: string } | null;
 };
 
 export type LiquidityEventsQueryVariables = Exact<{
@@ -1544,19 +1510,14 @@ export type LiquidityEventsQueryVariables = Exact<{
 }>;
 
 export type LiquidityEventsQuery = {
-  __typename?: "Query";
   liquidityEvents: Array<{
-    __typename?: "LiquidityEvent";
     eventType: LiquidityEventType;
     txHash: string;
     timestamp: string;
-    providerId?: string;
+    providerId?: string | null;
     amount: string;
   }>;
-  liquidityEventsConnection: {
-    __typename?: "LiquidityEventsConnection";
-    totalCount: number;
-  };
+  liquidityEventsConnection: { totalCount: number };
 };
 
 export type TopUpsQueryVariables = Exact<{
@@ -1566,38 +1527,32 @@ export type TopUpsQueryVariables = Exact<{
 }>;
 
 export type TopUpsQuery = {
-  __typename?: "Query";
-  topUps: Array<{
-    __typename?: "TopUp";
-    txHash: string;
-    timestamp: string;
-    amount: string;
-  }>;
-  topUpsConnection: { __typename?: "TopUpsConnection"; totalCount: number };
+  topUps: Array<{ txHash: string; timestamp: string; amount: string }>;
+  topUpsConnection: { totalCount: number };
 };
 
-export type ClaimsQueryVariables = Exact<{
-  limit: Scalars["Int"]["input"];
-  offset: Scalars["Int"]["input"];
-  poolId: Scalars["String"]["input"];
-  providerId?: InputMaybe<Scalars["String"]["input"]>;
-}>;
+export class TypedDocumentString<TResult, TVariables>
+  extends String
+  implements DocumentTypeDecoration<TResult, TVariables>
+{
+  __apiType?: NonNullable<
+    DocumentTypeDecoration<TResult, TVariables>["__apiType"]
+  >;
+  private value: string;
+  public __meta__?: Record<string, any> | undefined;
 
-export type ClaimsQuery = {
-  __typename?: "Query";
-  claims: Array<{
-    __typename?: "Claim";
-    providerId: string;
-    timestamp: string;
-    txHash: string;
-    blockNumber: number;
-    amount: string;
-    id: string;
-  }>;
-  claimsConnection: { __typename?: "ClaimsConnection"; totalCount: number };
-};
+  constructor(value: string, __meta__?: Record<string, any> | undefined) {
+    super(value);
+    this.value = value;
+    this.__meta__ = __meta__;
+  }
 
-export const ApyTimeseriesDocument = `
+  override toString(): string & DocumentTypeDecoration<TResult, TVariables> {
+    return this.value;
+  }
+}
+
+export const ApyTimeseriesDocument = new TypedDocumentString(`
     query apyTimeseries($from: DateTime!, $poolId: String!, $to: DateTime!) {
   apyTimeseries(from: $from, poolId: $poolId, to: $to) {
     data {
@@ -1609,31 +1564,11 @@ export const ApyTimeseriesDocument = `
     to
   }
 }
-    `;
-
-export const useApyTimeseriesQuery = <
-  TData = ApyTimeseriesQuery,
-  TError = unknown,
->(
-  variables: ApyTimeseriesQueryVariables,
-  options?: Omit<
-    UseQueryOptions<ApyTimeseriesQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<ApyTimeseriesQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<ApyTimeseriesQuery, TError, TData>({
-    queryKey: ["apyTimeseries", variables],
-    queryFn: fetcher<ApyTimeseriesQuery, ApyTimeseriesQueryVariables>(
-      ApyTimeseriesDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const TvlTimeseriesDocument = `
+    `) as unknown as TypedDocumentString<
+  ApyTimeseriesQuery,
+  ApyTimeseriesQueryVariables
+>;
+export const TvlTimeseriesDocument = new TypedDocumentString(`
     query tvlTimeseries($from: DateTime!, $poolId: String!, $to: DateTime!) {
   tvlTimeseries(from: $from, poolId: $poolId, to: $to) {
     data {
@@ -1648,56 +1583,19 @@ export const TvlTimeseriesDocument = `
     to
   }
 }
-    `;
-
-export const useTvlTimeseriesQuery = <
-  TData = TvlTimeseriesQuery,
-  TError = unknown,
->(
-  variables: TvlTimeseriesQueryVariables,
-  options?: Omit<
-    UseQueryOptions<TvlTimeseriesQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<TvlTimeseriesQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<TvlTimeseriesQuery, TError, TData>({
-    queryKey: ["tvlTimeseries", variables],
-    queryFn: fetcher<TvlTimeseriesQuery, TvlTimeseriesQueryVariables>(
-      TvlTimeseriesDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const PoolByIdDocument = `
+    `) as unknown as TypedDocumentString<
+  TvlTimeseriesQuery,
+  TvlTimeseriesQueryVariables
+>;
+export const PoolByIdDocument = new TypedDocumentString(`
     query poolById($id: String!) {
   poolById(id: $id) {
     totalRewardsToppedUp
     createdAt
   }
 }
-    `;
-
-export const usePoolByIdQuery = <TData = PoolByIdQuery, TError = unknown>(
-  variables: PoolByIdQueryVariables,
-  options?: Omit<UseQueryOptions<PoolByIdQuery, TError, TData>, "queryKey"> & {
-    queryKey?: UseQueryOptions<PoolByIdQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<PoolByIdQuery, TError, TData>({
-    queryKey: ["poolById", variables],
-    queryFn: fetcher<PoolByIdQuery, PoolByIdQueryVariables>(
-      PoolByIdDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const LiquidityEventsDocument = `
+    `) as unknown as TypedDocumentString<PoolByIdQuery, PoolByIdQueryVariables>;
+export const LiquidityEventsDocument = new TypedDocumentString(`
     query liquidityEvents($limit: Int!, $offset: Int!, $poolId: String!) {
   liquidityEvents(
     limit: $limit
@@ -1715,31 +1613,11 @@ export const LiquidityEventsDocument = `
     totalCount
   }
 }
-    `;
-
-export const useLiquidityEventsQuery = <
-  TData = LiquidityEventsQuery,
-  TError = unknown,
->(
-  variables: LiquidityEventsQueryVariables,
-  options?: Omit<
-    UseQueryOptions<LiquidityEventsQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<LiquidityEventsQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<LiquidityEventsQuery, TError, TData>({
-    queryKey: ["liquidityEvents", variables],
-    queryFn: fetcher<LiquidityEventsQuery, LiquidityEventsQueryVariables>(
-      LiquidityEventsDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const TopUpsDocument = `
+    `) as unknown as TypedDocumentString<
+  LiquidityEventsQuery,
+  LiquidityEventsQueryVariables
+>;
+export const TopUpsDocument = new TypedDocumentString(`
     query topUps($limit: Int!, $offset: Int!, $poolId: String!) {
   topUps(
     limit: $limit
@@ -1755,60 +1633,4 @@ export const TopUpsDocument = `
     totalCount
   }
 }
-    `;
-
-export const useTopUpsQuery = <TData = TopUpsQuery, TError = unknown>(
-  variables: TopUpsQueryVariables,
-  options?: Omit<UseQueryOptions<TopUpsQuery, TError, TData>, "queryKey"> & {
-    queryKey?: UseQueryOptions<TopUpsQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<TopUpsQuery, TError, TData>({
-    queryKey: ["topUps", variables],
-    queryFn: fetcher<TopUpsQuery, TopUpsQueryVariables>(
-      TopUpsDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const ClaimsDocument = `
-    query claims($limit: Int!, $offset: Int!, $poolId: String!, $providerId: String) {
-  claims(
-    limit: $limit
-    offset: $offset
-    orderBy: timestamp_DESC
-    where: {pool: {id_eq: $poolId}, providerId_eq: $providerId}
-  ) {
-    providerId
-    timestamp
-    txHash
-    blockNumber
-    amount
-    id
-  }
-  claimsConnection(
-    orderBy: id_ASC
-    where: {pool: {id_eq: $poolId}, providerId_eq: $providerId}
-  ) {
-    totalCount
-  }
-}
-    `;
-
-export const useClaimsQuery = <TData = ClaimsQuery, TError = unknown>(
-  variables: ClaimsQueryVariables,
-  options?: Omit<UseQueryOptions<ClaimsQuery, TError, TData>, "queryKey"> & {
-    queryKey?: UseQueryOptions<ClaimsQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<ClaimsQuery, TError, TData>({
-    queryKey: ["claims", variables],
-    queryFn: fetcher<ClaimsQuery, ClaimsQueryVariables>(
-      ClaimsDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
+    `) as unknown as TypedDocumentString<TopUpsQuery, TopUpsQueryVariables>;

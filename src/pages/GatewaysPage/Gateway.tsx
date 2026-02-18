@@ -4,7 +4,8 @@ import { Divider, Stack, styled } from '@mui/material';
 import { Box } from '@mui/system';
 import { useParams, useSearchParams } from 'react-router-dom';
 
-import { useGatewayByPeerId } from '@api/subsquid-network-squid/gateways-graphql';
+import { useQuery } from '@tanstack/react-query';
+import { trpc } from '@api/trpc';
 import { BackButton } from '@components/BackButton';
 import { Card } from '@components/Card';
 import { SquaredChip } from '@components/Chip';
@@ -36,7 +37,9 @@ export const DescValue = styled(Box, {
 
 export const Gateway = ({ backPath }: { backPath: string }) => {
   const { peerId } = useParams<{ peerId: string }>();
-  const { data: gateway, isLoading } = useGatewayByPeerId(peerId);
+  const { data: gateway, isLoading } = useQuery(
+    trpc.gateway.get.queryOptions({ peerId: peerId || '' }, { enabled: !!peerId }),
+  );
 
   const [searchParams] = useSearchParams();
 

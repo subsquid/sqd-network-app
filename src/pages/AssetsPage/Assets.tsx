@@ -6,20 +6,16 @@ import { Group } from '@visx/group';
 import { Pie } from '@visx/shape';
 import BigNumber from 'bignumber.js';
 
-import { useTokenPrice } from '@api/price';
-import {
-  AccountType,
-  SourcesWithAssetsQuery,
-  Worker,
-  useSourcesWithAssetsQuery,
-} from '@api/subsquid-network-squid';
+import { useQuery } from '@tanstack/react-query';
+
+import { trpc } from '@api/trpc';
 import { Card } from '@components/Card/Card';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { Property, PropertyList } from '@components/Property';
 import { demoFeaturesEnabled } from '@hooks/demoFeaturesEnabled';
 import { dollarFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network/utils';
-import { useAccount } from '@hooks/network/useAccount';
+import { useAccount } from 'wagmi';
 import { useContracts } from '@hooks/network/useContracts';
 
 import { ClaimButton } from './ClaimButton';
@@ -95,146 +91,82 @@ function createTokenBalance(
   };
 }
 
-// Custom hook to compute token balances from source accounts
-function useTokenBalances(accounts: SourcesWithAssetsQuery['accounts'] | undefined) {
+function useAssetsSummaryData(address: string | undefined) {
+  return useQuery(
+    trpc.account.assetsSummary.queryOptions(
+      { address: address || '0x' },
+      { enabled: !!address },
+    ),
+  );
+}
+
+function useTokenBalances(
+  serverBalances: { transferable: string; vesting: string; delegated: string; claimable: string; bonded: string; lockedPortal: string } | undefined,
+) {
   const theme = useTheme();
 
   return useMemo((): TokenBalance[] => {
-    const balances = {
-      transferable: createTokenBalance(
-        'Transferable',
-        theme.palette.success.main,
-        theme.palette.success.main,
-        'Liquid tokens, can be freely transferred to external addresses',
-      ),
-      vesting: createTokenBalance(
-        'Vesting',
-        theme.palette.warning.main,
-        theme.palette.warning.main,
-        'Tokens locked in the vesting contracts owned by the wallet. Can be used for bonding (running a worker) and/or delegation',
-      ),
-      claimable: createTokenBalance(
-        'Claimable',
-        theme.palette.info.main,
-        theme.palette.info.main,
-        'Earned but not yet claimed token rewards, aggregated across all workers and delegations',
-      ),
-      bonded: createTokenBalance(
-        'Workers',
-        theme.palette.primary.contrastText,
-        theme.palette.primary.main,
-        'Tokens bonded in the worker registry contract',
-      ),
-      delegated: createTokenBalance(
-        'Delegations',
-        theme.palette.secondary.contrastText,
-        theme.palette.secondary.main,
-        'Tokens delegated to workers',
-      ),
-      lockedPortal: createTokenBalance(
-        'Portals',
-        theme.palette.text.primary,
-        theme.palette.text.primary,
-        'Tokens locked in Portal stake',
-      ),
-    };
-
-    accounts?.forEach(account => {
-      // Account balance
-      if (account.type === AccountType.User) {
-        balances.transferable.value = balances.transferable.value.plus(account.balance);
-      } else if (account.type === AccountType.Vesting) {
-        balances.vesting.value = balances.vesting.value.plus(account.balance);
-      }
-
-      // Delegations
-      account.delegations2.forEach(delegation => {
-        balances.delegated.value = balances.delegated.value.plus(delegation.deposit);
-        balances.claimable.value = balances.claimable.value.plus(delegation.claimableReward);
-      });
-
-      // Workers
-      account.workers2.forEach(worker => {
-        balances.bonded.value = balances.bonded.value.plus(worker.bond);
-        balances.claimable.value = balances.claimable.value.plus(worker.claimableReward);
-      });
-
-      // Gateway stakes
-      account.gatewayStakes.forEach(stake => {
-        balances.lockedPortal.value = balances.lockedPortal.value.plus(stake.amount);
-      });
-    });
-
-    return Object.values(balances);
-  }, [accounts, theme.palette]);
+    return [
+      {
+        ...createTokenBalance(
+          'Transferable',
+          theme.palette.success.main,
+          theme.palette.success.main,
+          'Liquid tokens, can be freely transferred to external addresses',
+        ),
+        value: BigNumber(serverBalances?.transferable || 0),
+      },
+      {
+        ...createTokenBalance(
+          'Vesting',
+          theme.palette.warning.main,
+          theme.palette.warning.main,
+          'Tokens locked in the vesting contracts owned by the wallet. Can be used for bonding (running a worker) and/or delegation',
+        ),
+        value: BigNumber(serverBalances?.vesting || 0),
+      },
+      {
+        ...createTokenBalance(
+          'Claimable',
+          theme.palette.info.main,
+          theme.palette.info.main,
+          'Earned but not yet claimed token rewards, aggregated across all workers and delegations',
+        ),
+        value: BigNumber(serverBalances?.claimable || 0),
+      },
+      {
+        ...createTokenBalance(
+          'Workers',
+          theme.palette.primary.contrastText,
+          theme.palette.primary.main,
+          'Tokens bonded in the worker registry contract',
+        ),
+        value: BigNumber(serverBalances?.bonded || 0),
+      },
+      {
+        ...createTokenBalance(
+          'Delegations',
+          theme.palette.secondary.contrastText,
+          theme.palette.secondary.main,
+          'Tokens delegated to workers',
+        ),
+        value: BigNumber(serverBalances?.delegated || 0),
+      },
+      {
+        ...createTokenBalance(
+          'Portals',
+          theme.palette.text.primary,
+          theme.palette.text.primary,
+          'Tokens locked in Portal stake',
+        ),
+        value: BigNumber(serverBalances?.lockedPortal || 0),
+      },
+    ];
+  }, [serverBalances, theme.palette]);
 }
 
-// Custom hook to compute claimable sources
-function useClaimableSources(accounts: SourcesWithAssetsQuery['accounts'] | undefined) {
-  return useMemo(() => {
-    if (!accounts) return;
-
-    return accounts.map(account => {
-      const claims: (Pick<Worker, 'id' | 'peerId' | 'name'> & {
-        type: 'worker' | 'delegation';
-        claimableReward: string;
-      })[] = [];
-
-      // Add delegation claims
-      account.delegations2.forEach(delegation => {
-        if (delegation.claimableReward === '0') return;
-
-        claims.push({
-          id: delegation.worker.id,
-          peerId: delegation.worker.peerId,
-          name: delegation.worker.name,
-          claimableReward: delegation.claimableReward,
-          type: 'delegation',
-        });
-      });
-
-      // Add worker claims
-      account.workers2.forEach(worker => {
-        if (worker.claimableReward === '0') return;
-
-        claims.push({
-          id: worker.id,
-          peerId: worker.peerId,
-          name: worker.name,
-          claimableReward: worker.claimableReward,
-          type: 'worker',
-        });
-      });
-
-      // Sort claims by reward amount (descending)
-      const sortedClaims = claims.sort(
-        (a, b) => BigNumber(b.claimableReward).comparedTo(a.claimableReward)!,
-      );
-
-      const totalClaimableBalance = claims.reduce(
-        (total, claim) => total.plus(claim.claimableReward),
-        BigNumber(0),
-      );
-
-      return {
-        id: account.id,
-        type: account.type,
-        balance: totalClaimableBalance.toString(),
-        claims: sortedClaims,
-      };
-    });
-  }, [accounts]);
-}
-
-// Custom hook to calculate total balance (excluding claimable)
-function useTotalBalance(balances: TokenBalance[]) {
-  return useMemo(() => {
-    return balances.reduce((total, balance, index) => {
-      // Skip claimable (index 2)
-      if (index === 2) return total;
-      return total.plus(balance.value);
-    }, BigNumber(0));
-  }, [balances]);
+function useTotalBalance(serverTotal: string | undefined) {
+  return useMemo(() => BigNumber(serverTotal || 0), [serverTotal]);
 }
 
 export function MyAssets() {
@@ -242,16 +174,16 @@ export function MyAssets() {
   const account = useAccount();
 
   // Data fetching
-  const { data: sourcesQuery, isLoading: isSourcesLoading } = useSourcesWithAssetsQuery({
-    address: account.address || '0x',
-  });
-  const { data: price, isLoading: isPriceLoading } = useTokenPrice({ address: SQD });
+  const { data: summary, isLoading: isSourcesLoading } = useAssetsSummaryData(account.address);
+  const { data: price, isLoading: isPriceLoading } = useQuery(
+    trpc.price.current.queryOptions(undefined, { enabled: !!SQD }),
+  );
 
   // Computed data
-  const balances = useTokenBalances(sourcesQuery?.accounts);
-  const totalBalance = useTotalBalance(balances);
+  const balances = useTokenBalances(summary?.balances);
+  const totalBalance = useTotalBalance(summary?.totalBalance);
   const rewardsBalance = balances[2]?.value || BigNumber(0);
-  const claimableSources = useClaimableSources(sourcesQuery?.accounts);
+  const claimableSources = summary?.claimableSources;
   const hasAvailableClaims = !!claimableSources?.some(source => source.balance !== '0');
 
   const isLoading = isSourcesLoading || isPriceLoading;

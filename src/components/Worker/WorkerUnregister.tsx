@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { Button, SxProps } from '@mui/material';
 import toast from 'react-hot-toast';
-import { useClient } from 'wagmi';
+import { useAccount, useClient } from 'wagmi';
 
 import { useReadRouterWorkerRegistration, workerRegistryAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
@@ -11,7 +11,6 @@ import { AccountType, SourceWallet, Worker } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { peerIdToHex } from '@lib/network';
-import { useAccount } from '@hooks/network/useAccount';
 import { useContracts } from '@hooks/network/useContracts';
 
 export function WorkerUnregisterButton({

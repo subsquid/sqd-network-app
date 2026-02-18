@@ -17,7 +17,7 @@ export interface PoolOperator {
 
 export interface PendingWithdrawal {
   id: string;
-  amount: BigNumber;
+  amount: string;
   estimatedCompletionAt: Date;
 }
 
@@ -54,7 +54,8 @@ export interface PoolData {
 
 export interface PoolUserData {
   userBalance: BigNumber;
-  userRewards: bigint;
+  userRewards: string;
+  hasRewards: boolean;
   isWhitelisted: boolean;
   whitelistEnabled: boolean;
 }

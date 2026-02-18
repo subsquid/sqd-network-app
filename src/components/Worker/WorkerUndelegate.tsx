@@ -11,12 +11,9 @@ import { useDebounce } from 'use-debounce';
 import { stakingAbi, useReadRouterStaking } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
-import {
-  AccountType,
-  SourceWalletWithBalance,
-  Worker,
-  useCurrentEpoch,
-} from '@api/subsquid-network-squid';
+import { useQuery } from '@tanstack/react-query';
+import { AccountType, SourceWalletWithBalance, Worker } from '@api/subsquid-network-squid';
+import { trpc } from '@api/trpc';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { Form, FormDivider, FormRow, FormikSelect, FormikTextInput } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
@@ -37,7 +34,7 @@ function UnlocksTooltip({ timestamp }: { timestamp: number }) {
 
 export type SourceWalletWithDelegation = SourceWalletWithBalance & {
   locked: boolean;
-  lockEnd?: number;
+  lockEnd?: number | null;
 };
 
 export const undelegateSchema = yup.object({
@@ -68,7 +65,9 @@ export function WorkerUndelegate({
 
   const isLocked = useMemo(() => !!sources?.length && !sources?.some(d => !d.locked), [sources]);
 
-  const { data: currentEpoch } = useCurrentEpoch();
+  const { data: currentEpoch } = useQuery(
+    trpc.network.currentEpoch.queryOptions(undefined, { refetchInterval: 12_000 }),
+  );
   const unlockTimestamp = useMemo(() => {
     if (!currentEpoch) return;
 

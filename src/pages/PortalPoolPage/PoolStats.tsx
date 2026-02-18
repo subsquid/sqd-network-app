@@ -2,7 +2,8 @@ import { type ReactNode, useMemo } from 'react';
 
 import { Box, Skeleton, Stack, Typography } from '@mui/material';
 
-import { useTokenPrice } from '@api/price';
+import { useQuery } from '@tanstack/react-query';
+import { trpc } from '@api/trpc';
 import { Card } from '@components/Card';
 import { HelpTooltip } from '@components/HelpTooltip';
 import {
@@ -44,7 +45,7 @@ function StatItem({
 export function PoolStats({ poolId }: PoolStatsProps) {
   const { data: pool, isLoading } = usePoolData(poolId);
   const { SQD_TOKEN, SQD } = useContracts();
-  const { data: sqdPrice } = useTokenPrice({ address: SQD });
+  const { data: sqdPrice } = useQuery(trpc.price.current.queryOptions());
 
   // APY = (distributionRatePerSecond / tvl.max) * secondsPerYear / sqdPrice
   // Divide in BigNumber first to preserve precision with large raw values

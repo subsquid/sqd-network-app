@@ -14,7 +14,9 @@ import { max, partition } from 'lodash-es';
 import { toast } from 'react-hot-toast';
 import { useBlockNumber } from 'wagmi';
 
-import { useSquid, useSquidNetworkHeightQuery } from '@api/subsquid-network-squid';
+import { useQuery } from '@tanstack/react-query';
+
+import { trpc } from '@api/trpc';
 import { localStorageStringSerializer, useLocalStorageState } from '@hooks/useLocalStorageState';
 
 type HeightHook = { height: number; invalidateQueries: unknown[] };
@@ -47,7 +49,6 @@ export function useSquidHeight() {
 
 export function SquidHeightProvider({ children }: PropsWithChildren) {
   const queryClient = useQueryClient();
-  const dataSource = useSquid();
   const [heightHooksRaw, setHeightHooksRaw] = useLocalStorageState<string>('sqd_height_hooks', {
     defaultValue: '[]',
     serializer: localStorageStringSerializer,
@@ -62,10 +63,9 @@ export function SquidHeightProvider({ children }: PropsWithChildren) {
     query: {},
   });
 
-  const { data, isLoading } = useSquidNetworkHeightQuery({}, {});
-  // const { enqueueSnackbar } = useSnackbar();
+  const { data, isLoading } = useQuery(trpc.account.squidHeight.queryOptions());
 
-  const currentHeight = data?.squidStatus?.height || 0;
+  const currentHeight = data?.height || 0;
 
   const heightHooks: HeightHook[] = useMemo(() => {
     try {

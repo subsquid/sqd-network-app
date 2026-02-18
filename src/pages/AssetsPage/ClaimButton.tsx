@@ -4,7 +4,7 @@ import { TollOutlined } from '@mui/icons-material';
 import { Box, Button, TableBody, TableCell, TableRow } from '@mui/material';
 import { useFormik } from 'formik';
 import toast from 'react-hot-toast';
-import { useClient } from 'wagmi';
+import { useAccount, useClient } from 'wagmi';
 import * as yup from 'yup';
 
 import { rewardTreasuryAbi, useReadRouterRewardTreasury } from '@api/contracts';
@@ -20,7 +20,6 @@ import { WorkerName } from '@components/Worker';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network/utils';
-import { useAccount } from '@hooks/network/useAccount';
 import { useContracts } from '@hooks/network/useContracts';
 
 export const claimSchema = yup.object({

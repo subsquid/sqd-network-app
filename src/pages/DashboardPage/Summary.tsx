@@ -2,7 +2,8 @@ import { PropsWithChildren, useEffect, useMemo, useState } from 'react';
 
 import { Box, Divider, Grid, Stack, Typography, useTheme } from '@mui/material';
 
-import { useCurrentEpoch, useNetworkStats } from '@api/subsquid-network-squid';
+import { useQuery } from '@tanstack/react-query';
+import { trpc } from '@api/trpc';
 import { Card } from '@components/Card/Card';
 import { SquaredChip } from '@components/Chip';
 import { HelpTooltip } from '@components/HelpTooltip';
@@ -29,7 +30,7 @@ export function ColumnValue({ children }: PropsWithChildren) {
 }
 
 function OnlineInfo() {
-  const { data, isLoading } = useNetworkStats();
+  const { data, isLoading } = useQuery(trpc.network.stats.queryOptions());
 
   return (
     <Card
@@ -75,7 +76,9 @@ function CurrentEpochEstimation({ epochEnd }: { epochEnd: number }) {
 }
 
 function CurrentEpoch() {
-  const { data, isLoading } = useCurrentEpoch();
+  const { data, isLoading } = useQuery(
+    trpc.network.currentEpoch.queryOptions(undefined, { refetchInterval: 12_000 }),
+  );
   const [epochEnd, setEpochEnd] = useState<number>(Date.now());
 
   useEffect(() => {
@@ -103,7 +106,7 @@ function CurrentEpoch() {
 }
 
 function Stats() {
-  const { data, isLoading } = useNetworkStats();
+  const { data, isLoading } = useQuery(trpc.network.stats.queryOptions());
   const { SQD_TOKEN } = useContracts();
 
   return (
@@ -113,13 +116,7 @@ function Stats() {
           <Box>
             <ColumnLabel>Total locked value</ColumnLabel>
             <ColumnValue>
-              {tokenFormatter(
-                fromSqd(data?.totalBond)
-                  .plus(fromSqd(data?.totalDelegation))
-                  .plus(fromSqd(data?.totalPortalLock)),
-                SQD_TOKEN,
-                0,
-              )}
+              {tokenFormatter(fromSqd(data?.totalLockedValue), SQD_TOKEN, 0)}
             </ColumnValue>
           </Box>
           <Box>
@@ -142,7 +139,7 @@ function Stats() {
 }
 
 function WorkersApr({ length }: { length?: number }) {
-  const { data, isLoading } = useNetworkStats();
+  const { data, isLoading } = useQuery(trpc.network.stats.queryOptions());
 
   const aprs = useMemo(() => {
     if (!data?.aprs || !data?.workerApr) return 0;
@@ -180,7 +177,7 @@ function WorkersApr({ length }: { length?: number }) {
 }
 
 function DelegatorsApr({ length }: { length?: number }) {
-  const { data, isLoading } = useNetworkStats();
+  const { data, isLoading } = useQuery(trpc.network.stats.queryOptions());
 
   const aprs = useMemo(() => {
     if (!data?.aprs || !data?.stakerApr) return 0;

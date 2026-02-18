@@ -6,9 +6,17 @@ import { CodegenConfig } from '@graphql-codegen/cli';
 
 const isMainnet = process.env.NETWORK === 'mainnet';
 
+const networkSquidSchema = isMainnet
+  ? process.env.MAINNET_SQUID_API_URL!
+  : process.env.TESTNET_SQUID_API_URL!;
+const poolSquidSchema = isMainnet
+  ? process.env.MAINNET_POOL_SQUID_API_URL!
+  : process.env.TESTNET_POOL_SQUID_API_URL!;
+
 const sharedConfig = {
   maybeValue: 'T',
   avoidOptionals: false,
+  skipTypename: true,
   scalars: {
     BigInt: 'string',
     DateTime: 'string',
@@ -21,58 +29,31 @@ export default {
     afterOneFileWrite: ['prettier --write'],
   },
   generates: {
-    // Network Squid endpoint
-    'src/api/subsquid-network-squid/graphql.tsx': {
-      schema: isMainnet ? process.env.MAINNET_SQUID_API_URL! : process.env.TESTNET_SQUID_API_URL!,
-      documents: ['src/api/subsquid-network-squid/schema.graphql'],
-      plugins: [
-        'typescript',
-        'typescript-operations',
-        {
-          'typescript-react-query': {
-            reactQueryVersion: 5,
-          },
-        },
-        {
-          add: {
-            content: '/* eslint-disable */',
-          },
-        },
-      ],
+    // Server: types + document strings (TypedDocumentString)
+    'server/src/generated/network-squid/': {
+      schema: networkSquidSchema,
+      documents: ['graphql/network-squid.graphql'],
+      preset: 'client',
+      presetConfig: {
+        fragmentMasking: false,
+      },
       config: {
         ...sharedConfig,
-        fetcher: {
-          func: './fetcher#fetcher',
-          isReactHook: false,
-        },
+        documentMode: 'string',
+        useTypeImports: true,
       },
     },
-    // Pool Squid endpoint
-    'src/api/pool-squid/graphql.tsx': {
-      schema: isMainnet
-        ? process.env.MAINNET_POOL_SQUID_API_URL!
-        : process.env.TESTNET_POOL_SQUID_API_URL!,
-      documents: ['src/api/pool-squid/schema.graphql'],
-      plugins: [
-        'typescript',
-        'typescript-operations',
-        {
-          'typescript-react-query': {
-            reactQueryVersion: 5,
-          },
-        },
-        {
-          add: {
-            content: '/* eslint-disable */',
-          },
-        },
-      ],
+    'server/src/generated/pool-squid/': {
+      schema: poolSquidSchema,
+      documents: ['graphql/pool-squid.graphql'],
+      preset: 'client',
+      presetConfig: {
+        fragmentMasking: false,
+      },
       config: {
         ...sharedConfig,
-        fetcher: {
-          func: './fetcher#fetcher',
-          isReactHook: false,
-        },
+        documentMode: 'string',
+        useTypeImports: true,
       },
     },
   },

@@ -7,17 +7,12 @@ import { useFormik } from 'formik';
 import toast from 'react-hot-toast';
 import { useDebounce } from 'use-debounce';
 
+import { useQuery } from '@tanstack/react-query';
 import { stakingAbi, useReadRouterStaking } from '@api/contracts';
-import { useCapedStakeAfterDelegation } from '@api/contracts/staking';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
-import {
-  AccountType,
-  SourceWalletWithBalance,
-  Worker,
-  WorkerStatus,
-  useWorkerDelegationInfo,
-} from '@api/subsquid-network-squid';
+import { AccountType, SourceWalletWithBalance, Worker, WorkerStatus } from '@api/subsquid-network-squid';
+import { trpc } from '@api/trpc';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { Form, FormDivider, FormRow, FormikSelect, FormikTextInput } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
@@ -245,16 +240,17 @@ export function useExpectedAprAfterDelegation({
   amount: string;
   enabled?: boolean;
 }) {
-  const { data: rewardStats, isLoading: isRewardStatsLoading } = useWorkerDelegationInfo({
-    workerId,
-    enabled,
-  });
+  const { data: rewardStats, isLoading: isRewardStatsLoading } = useQuery(
+    trpc.worker.delegationInfo.queryOptions({ workerId: workerId || '' }, { enabled }),
+  );
 
-  const { data, isPending: isCapedDelegationLoading } = useCapedStakeAfterDelegation({
-    workerId: workerId || '',
-    amount: amount,
-    enabled: enabled && !!workerId,
-  });
+  const { data: capedStakeData, isPending: isCapedDelegationLoading } = useQuery(
+    trpc.contract.capedStake.queryOptions(
+      { workerId: workerId || '', amount, undelegate: undefined },
+      { enabled: enabled && !!workerId },
+    ),
+  );
+  const data = capedStakeData ?? { capedDelegation: '0', totalDelegation: '0', delegationCapacity: 0 };
 
   const expectedApr = useMemo(() => {
     if (!rewardStats) return;

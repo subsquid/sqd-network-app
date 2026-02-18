@@ -22,7 +22,3 @@ export function encodeGatewayMetadata(req: GetawayMetadata) {
 
   return !isEmpty(md) ? JSON.stringify(md) : '';
 }
-
-export function decodeGatewayMetadata(req: string) {
-  return JSON.parse(req);
-}

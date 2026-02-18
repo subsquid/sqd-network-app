@@ -1,16 +1,10 @@
 import { useMemo } from 'react';
 
-import { UseQueryOptions } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
-import { useAccount } from '@hooks/network/useAccount';
-
-import { useSquid } from './datasource';
-import {
-  AccountType,
-  VestingFragmentFragment,
-  useSourcesQuery,
-  useVestingByAddressQuery,
-} from './graphql';
+import { trpc } from '@api/trpc';
+import { AccountType, type Vesting } from '@api/types';
+import { useAccount } from 'wagmi';
 
 export type SourceWallet = {
   id: string;
@@ -26,19 +20,17 @@ export function useMySources<TData = SourceWalletWithBalance[]>({
   select = data => data as TData,
 }: {
   enabled?: boolean;
-  select?: UseQueryOptions<SourceWalletWithBalance[], unknown, TData>['select'];
+  select?: (data: SourceWalletWithBalance[]) => TData;
 } = {}) {
-  const squid = useSquid();
   const { address } = useAccount();
 
-  const { data: sourcesQuery, isLoading } = useSourcesQuery(
-    { address: address || '0x' },
-    { enabled },
+  const { data: accountsRaw, isLoading } = useQuery(
+    trpc.account.sources.queryOptions({ address: address || '0x' }, { enabled }),
   );
 
   const data: SourceWalletWithBalance[] = useMemo(
     () =>
-      !sourcesQuery?.accounts?.length
+      !accountsRaw?.length
         ? [
             {
               id: address || '0x',
@@ -46,8 +38,8 @@ export function useMySources<TData = SourceWalletWithBalance[]>({
               balance: '0',
             },
           ]
-        : sourcesQuery?.accounts,
-    [address, sourcesQuery?.accounts],
+        : (accountsRaw as SourceWalletWithBalance[]),
+    [address, accountsRaw],
   );
 
   const tData: TData = useMemo(() => select(data), [data, select]);
@@ -58,11 +50,11 @@ export function useMySources<TData = SourceWalletWithBalance[]>({
   };
 }
 
-export interface BlockchainApiVesting extends VestingFragmentFragment {}
+export interface BlockchainApiVesting extends Vesting {}
 
 export class BlockchainApiVesting {
   constructor(
-    vesting: VestingFragmentFragment,
+    vesting: Vesting,
     private address?: string,
   ) {
     Object.assign(this, vesting);
@@ -76,20 +68,19 @@ export class BlockchainApiVesting {
 export function useVestingByAddress({ address }: { address?: string }) {
   const account = useAccount();
 
-  const { data, isPending } = useVestingByAddressQuery(
-    {
-      address: address?.toLowerCase() || '',
-    },
-    {
-      select: res => {
-        if (!res.accountById) return undefined;
-        if (res.accountById.type === AccountType.User) return undefined;
-
-        return new BlockchainApiVesting(res.accountById, account.address);
-      },
-      enabled: !!address,
-    },
+  const { data: raw, isPending } = useQuery(
+    trpc.account.vesting.queryOptions(
+      { address: address?.toLowerCase() || '' },
+      { enabled: !!address },
+    ),
   );
+
+  const data = useMemo(() => {
+    if (!raw) return undefined;
+    if (raw.type === AccountType.User) return undefined;
+
+    return new BlockchainApiVesting(raw, account.address);
+  }, [raw, account.address]);
 
   return {
     data,

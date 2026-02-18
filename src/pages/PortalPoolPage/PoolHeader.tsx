@@ -4,7 +4,7 @@ import { Box, Chip, Divider, Skeleton, Stack, Tooltip, Typography } from '@mui/m
 
 import { Avatar } from '@components/Avatar';
 import { Card } from '@components/Card';
-import { useAccount } from '@network/useAccount';
+import { useAccount } from 'wagmi';
 
 import { EditMetadataButton } from './dialogs/EditMetadataDialog';
 import { usePoolData } from './hooks';

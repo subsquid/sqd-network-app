@@ -1,17 +1,15 @@
 import { useCallback, useMemo, useState } from 'react';
 
 import { Box, Skeleton, ToggleButton, ToggleButtonGroup } from '@mui/material';
-import BigNumber from 'bignumber.js';
 
-import { useApyTimeseriesQuery, useTvlTimeseriesQuery } from '@api/pool-squid/graphql';
-import { useHistoricalTokenPrices } from '@api/price';
+import { useQuery } from '@tanstack/react-query';
+
+import { trpc } from '@api/trpc';
 import { Card } from '@components/Card';
 import { LineChart, SharedCursorProvider } from '@components/Chart';
 import { tokenFormatter } from '@lib/formatters/formatters';
-import { fromSqd } from '@lib/network';
 import { useContracts } from '@hooks/network/useContracts';
 
-import { usePoolData } from './hooks';
 import { CHART_TEXTS } from './texts';
 
 type TimePeriod = '1w' | '1m' | '3m';
@@ -43,94 +41,43 @@ interface ApyLineChartProps {
 }
 
 function ApyLineChart({ poolId, range }: ApyLineChartProps) {
-  const { data: pool, isLoading: isPoolLoading } = usePoolData(poolId);
-  const { data: rewardRateData, isLoading: isApyLoading } = useApyTimeseriesQuery({
-    poolId: poolId.toLowerCase(),
-    from: range.from.toISOString(),
-    to: range.to.toISOString(),
-  });
-
-  const priceRange = useMemo(() => {
-    if (rewardRateData?.apyTimeseries) {
-      return {
-        from: new Date(rewardRateData.apyTimeseries.from),
-        to: new Date(rewardRateData.apyTimeseries.to),
-        period: rewardRateData.apyTimeseries.step,
-      };
-    }
-    return { from: range.from, to: range.to, period: undefined };
-  }, [rewardRateData, range]);
-
-  const { data: chartPrices, isLoading: isPricesLoading } = useHistoricalTokenPrices({
-    address: '0x1337420ded5adb9980cfc35f8f2b054ea86f8ab1',
-    from: priceRange.from,
-    to: range.to,
-  });
+  const { data: chartData, isLoading } = useQuery(
+    trpc.pool.apyTimeseries.queryOptions({
+      poolId: poolId.toLowerCase(),
+      from: range.from,
+      to: range.to,
+    }),
+  );
 
   const series = useMemo(() => {
-    if (
-      !chartPrices ||
-      chartPrices.length === 0 ||
-      !rewardRateData?.apyTimeseries.data ||
-      !pool?.rewardToken
-    ) {
+    if (!chartData?.data?.length) {
       return [];
     }
-
-    const sortedPrices = chartPrices.map(({ timestamp, price }) => ({
-      timestamp: timestamp * 1000,
-      price,
-    }));
-
-    const apyData = rewardRateData.apyTimeseries.data;
-    let priceIdx = 0;
-    const data = apyData.map((entry, i) => {
-      const nextTimestampMs =
-        i < apyData.length - 1 ? new Date(apyData[i + 1].timestamp).getTime() : Infinity;
-
-      // Advance price index to the latest price before the next APY point
-      while (
-        priceIdx < sortedPrices.length - 1 &&
-        sortedPrices[priceIdx + 1].timestamp < nextTimestampMs
-      ) {
-        priceIdx++;
-      }
-
-      const price = sortedPrices[priceIdx].price;
-
-      const apy = BigNumber(entry.value)
-        .shiftedBy(18 - pool.rewardToken.decimals)
-        .div(price)
-        .times(100)
-        .toNumber();
-
-      return {
-        x: new Date(entry.timestamp),
-        y: apy,
-      };
-    });
 
     return [
       {
         name: CHART_TEXTS.labels.apy,
         type: 'line' as const,
         color: '#4A90E2',
-        data,
+        data: chartData.data.map(entry => ({
+          x: new Date(entry.timestamp),
+          y: entry.value,
+        })),
       },
     ];
-  }, [chartPrices, rewardRateData, pool]);
+  }, [chartData]);
 
   const xAxisRange = useMemo(() => {
-    if (rewardRateData?.apyTimeseries) {
+    if (chartData) {
       return {
-        min: new Date(rewardRateData.apyTimeseries.from),
-        max: new Date(rewardRateData.apyTimeseries.to),
+        min: new Date(chartData.from),
+        max: new Date(chartData.to),
       };
     }
     return { min: range.from, max: range.to };
-  }, [rewardRateData, range]);
+  }, [chartData, range]);
 
-  if (isPoolLoading || isApyLoading || isPricesLoading) {
+  if (isLoading) {
     return <Skeleton variant="rectangular" height="100%" sx={{ borderRadius: 1, width: '100%' }} />;
   }
 
@@ -156,48 +103,46 @@ interface TvlLineChartProps {
 }
 
 function TvlLineChart({ poolId, range }: TvlLineChartProps) {
-  const { data: tvlData, isLoading: isTvlLoading } = useTvlTimeseriesQuery({
-    poolId: poolId.toLowerCase(),
-    from: range.from.toISOString(),
-    to: range.to.toISOString(),
-  });
+  const { data: tvlData, isLoading: isTvlLoading } = useQuery(
+    trpc.pool.tvlTimeseries.queryOptions({
+      poolId: poolId.toLowerCase(),
+      from: range.from,
+      to: range.to,
+    }),
+  );
 
   const series = useMemo(() => {
-    if (!tvlData?.tvlTimeseries.data) {
+    if (!tvlData?.data?.length) {
       return [];
     }
-
-    const stableData = tvlData.tvlTimeseries.data.map(entry => ({
-      x: new Date(entry.timestamp),
-      y: fromSqd(BigInt(entry.value.tvlStable)).toNumber(),
-    }));
-
-    const totalData = tvlData.tvlTimeseries.data.map(entry => ({
-      x: new Date(entry.timestamp),
-      y: fromSqd(BigInt(entry.value.tvlTotal)).toNumber(),
-    }));
 
     return [
       {
         name: 'Stable TVL',
         type: 'line' as const,
         color: '#4A90E2',
-        data: stableData,
+        data: tvlData.data.map(entry => ({
+          x: new Date(entry.timestamp),
+          y: entry.tvlStable,
+        })),
       },
       {
         name: 'Total TVL',
         type: 'line' as const,
         color: '#82B1FF',
-        data: totalData,
+        data: tvlData.data.map(entry => ({
+          x: new Date(entry.timestamp),
+          y: entry.tvlTotal,
+        })),
       },
     ];
   }, [tvlData]);
 
   const xAxisRange = useMemo(() => {
-    if (tvlData?.tvlTimeseries) {
+    if (tvlData) {
       return {
-        min: new Date(tvlData.tvlTimeseries.from),
-        max: new Date(tvlData.tvlTimeseries.to),
+        min: new Date(tvlData.from),
+        max: new Date(tvlData.to),
       };
     }
     return { min: range.from, max: range.to };

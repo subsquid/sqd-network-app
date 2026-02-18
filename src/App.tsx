@@ -23,24 +23,24 @@ function App() {
     <>
       <WagmiProvider config={rainbowConfig}>
         <QueryClientProvider client={queryClient}>
-          <ThemeProvider theme={theme}>
-            <RainbowKitProvider
-              modalSize="compact"
-              theme={rainbowkitTheme}
-              initialChain={getChain()}
-            >
-              <TickerProvider>
-                <SquidHeightProvider>
-                  <CssBaseline />
-                  <BrowserRouter>
-                    <AppRoutes />
-                  </BrowserRouter>
-                </SquidHeightProvider>
-              </TickerProvider>
-              {/* </SnackbarProvider> */}
-            </RainbowKitProvider>
-            <Toaster />
-          </ThemeProvider>
+            <ThemeProvider theme={theme}>
+              <RainbowKitProvider
+                modalSize="compact"
+                theme={rainbowkitTheme}
+                initialChain={getChain()}
+              >
+                <TickerProvider>
+                  <SquidHeightProvider>
+                    <CssBaseline />
+                    <BrowserRouter>
+                      <AppRoutes />
+                    </BrowserRouter>
+                  </SquidHeightProvider>
+                </TickerProvider>
+                {/* </SnackbarProvider> */}
+              </RainbowKitProvider>
+              <Toaster />
+            </ThemeProvider>
         </QueryClientProvider>
       </WagmiProvider>
     </>

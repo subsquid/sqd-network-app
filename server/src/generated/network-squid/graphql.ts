@@ -1,8 +1,7 @@
 /* eslint-disable */
-import { useQuery, UseQueryOptions } from "@tanstack/react-query";
-import { fetcher } from "./fetcher";
-export type Maybe<T> = T;
-export type InputMaybe<T> = T;
+import type { DocumentTypeDecoration } from "@graphql-typed-document-node/core";
+export type Maybe<T> = T | null;
+export type InputMaybe<T> = T | null | undefined;
 export type Exact<T extends { [key: string]: unknown }> = {
   [K in keyof T]: T[K];
 };
@@ -28,12 +27,13 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean };
   Int: { input: number; output: number };
   Float: { input: number; output: number };
+  /** Big number integer */
   BigInt: { input: string; output: string };
+  /** A date-time string in simplified extended ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ) */
   DateTime: { input: string; output: string };
 };
 
 export type Account = {
-  __typename?: "Account";
   balance: Scalars["BigInt"]["output"];
   claimableDelegationCount: Scalars["Int"]["output"];
   delegations: Array<Delegation>;
@@ -131,13 +131,11 @@ export type AccountWorkers2Args = {
 };
 
 export type AccountBalanceEntry = {
-  __typename?: "AccountBalanceEntry";
   timestamp: Scalars["DateTime"]["output"];
   value?: Maybe<Scalars["BigInt"]["output"]>;
 };
 
 export type AccountBalanceTimeseries = {
-  __typename?: "AccountBalanceTimeseries";
   data: Array<AccountBalanceEntry>;
   from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
@@ -145,7 +143,6 @@ export type AccountBalanceTimeseries = {
 };
 
 export type AccountEdge = {
-  __typename?: "AccountEdge";
   cursor: Scalars["String"]["output"];
   node: Account;
 };
@@ -220,7 +217,6 @@ export enum AccountOrderByInput {
 }
 
 export type AccountTransfer = {
-  __typename?: "AccountTransfer";
   account: Account;
   balance: Scalars["BigInt"]["output"];
   direction: TransferDirection;
@@ -229,7 +225,6 @@ export type AccountTransfer = {
 };
 
 export type AccountTransferEdge = {
-  __typename?: "AccountTransferEdge";
   cursor: Scalars["String"]["output"];
   node: AccountTransfer;
 };
@@ -356,7 +351,6 @@ export type AccountTransferWhereInput = {
 };
 
 export type AccountTransfersConnection = {
-  __typename?: "AccountTransfersConnection";
   edges: Array<AccountTransferEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
@@ -451,20 +445,17 @@ export type AccountWhereInput = {
 };
 
 export type AccountsConnection = {
-  __typename?: "AccountsConnection";
   edges: Array<AccountEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
 };
 
 export type ActiveWorkersEntry = {
-  __typename?: "ActiveWorkersEntry";
   timestamp: Scalars["DateTime"]["output"];
   value?: Maybe<Scalars["Float"]["output"]>;
 };
 
 export type ActiveWorkersTimeseries = {
-  __typename?: "ActiveWorkersTimeseries";
   data: Array<ActiveWorkersEntry>;
   from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
@@ -472,20 +463,17 @@ export type ActiveWorkersTimeseries = {
 };
 
 export type AprEntry = {
-  __typename?: "AprEntry";
   timestamp: Scalars["DateTime"]["output"];
   value?: Maybe<AprValue>;
 };
 
 export type AprSnapshot = {
-  __typename?: "AprSnapshot";
   stakerApr: Scalars["Float"]["output"];
   timestamp: Scalars["DateTime"]["output"];
   workerApr: Scalars["Float"]["output"];
 };
 
 export type AprTimeseries = {
-  __typename?: "AprTimeseries";
   data: Array<AprEntry>;
   from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
@@ -493,13 +481,11 @@ export type AprTimeseries = {
 };
 
 export type AprValue = {
-  __typename?: "AprValue";
   stakerApr: Scalars["Float"]["output"];
   workerApr: Scalars["Float"]["output"];
 };
 
 export type Block = {
-  __typename?: "Block";
   hash: Scalars["String"]["output"];
   height: Scalars["Int"]["output"];
   id: Scalars["String"]["output"];
@@ -508,7 +494,6 @@ export type Block = {
 };
 
 export type BlockEdge = {
-  __typename?: "BlockEdge";
   cursor: Scalars["String"]["output"];
   node: Block;
 };
@@ -613,14 +598,12 @@ export type BlockWhereInput = {
 };
 
 export type BlocksConnection = {
-  __typename?: "BlocksConnection";
   edges: Array<BlockEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
 };
 
 export type Commitment = {
-  __typename?: "Commitment";
   from: Scalars["DateTime"]["output"];
   fromBlock: Scalars["Int"]["output"];
   id: Scalars["String"]["output"];
@@ -630,7 +613,6 @@ export type Commitment = {
 };
 
 export type CommitmentEdge = {
-  __typename?: "CommitmentEdge";
   cursor: Scalars["String"]["output"];
   node: Commitment;
 };
@@ -669,7 +651,6 @@ export enum CommitmentOrderByInput {
 }
 
 export type CommitmentRecipient = {
-  __typename?: "CommitmentRecipient";
   stakerApr: Scalars["Float"]["output"];
   stakerReward: Scalars["BigInt"]["output"];
   workerApr: Scalars["Float"]["output"];
@@ -737,14 +718,12 @@ export type CommitmentWhereInput = {
 };
 
 export type CommitmentsConnection = {
-  __typename?: "CommitmentsConnection";
   edges: Array<CommitmentEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
 };
 
 export type Contracts = {
-  __typename?: "Contracts";
   distributedRewardsDistribution?: Maybe<Scalars["String"]["output"]>;
   gatewayRegistry?: Maybe<Scalars["String"]["output"]>;
   networkController?: Maybe<Scalars["String"]["output"]>;
@@ -999,25 +978,21 @@ export type ContractsWhereInput = {
 };
 
 export type CumulativeRewardEntry = {
-  __typename?: "CumulativeRewardEntry";
   timestamp: Scalars["DateTime"]["output"];
   value?: Maybe<CumulativeRewardValue>;
 };
 
 export type CumulativeRewardTimeseries = {
-  __typename?: "CumulativeRewardTimeseries";
   data: Array<CumulativeRewardEntry>;
   step: Scalars["Float"]["output"];
 };
 
 export type CumulativeRewardValue = {
-  __typename?: "CumulativeRewardValue";
   stakerReward: Scalars["BigInt"]["output"];
   workerReward: Scalars["BigInt"]["output"];
 };
 
 export type Delegation = {
-  __typename?: "Delegation";
   claimableReward: Scalars["BigInt"]["output"];
   claimedReward: Scalars["BigInt"]["output"];
   deposit: Scalars["BigInt"]["output"];
@@ -1049,7 +1024,6 @@ export type DelegationStatusHistoryArgs = {
 };
 
 export type DelegationEdge = {
-  __typename?: "DelegationEdge";
   cursor: Scalars["String"]["output"];
   node: Delegation;
 };
@@ -1376,7 +1350,6 @@ export enum DelegationOrderByInput {
 }
 
 export type DelegationReward = {
-  __typename?: "DelegationReward";
   amount: Scalars["BigInt"]["output"];
   apr: Scalars["Float"]["output"];
   blockNumber: Scalars["Int"]["output"];
@@ -1386,7 +1359,6 @@ export type DelegationReward = {
 };
 
 export type DelegationRewardEdge = {
-  __typename?: "DelegationRewardEdge";
   cursor: Scalars["String"]["output"];
   node: DelegationReward;
 };
@@ -1533,7 +1505,6 @@ export type DelegationRewardWhereInput = {
 };
 
 export type DelegationRewardsConnection = {
-  __typename?: "DelegationRewardsConnection";
   edges: Array<DelegationRewardEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
@@ -1546,7 +1517,6 @@ export enum DelegationStatus {
 }
 
 export type DelegationStatusChange = {
-  __typename?: "DelegationStatusChange";
   blockNumber: Scalars["Int"]["output"];
   delegation: Delegation;
   id: Scalars["String"]["output"];
@@ -1556,7 +1526,6 @@ export type DelegationStatusChange = {
 };
 
 export type DelegationStatusChangeEdge = {
-  __typename?: "DelegationStatusChangeEdge";
   cursor: Scalars["String"]["output"];
   node: DelegationStatusChange;
 };
@@ -1693,7 +1662,6 @@ export type DelegationStatusChangeWhereInput = {
 };
 
 export type DelegationStatusChangesConnection = {
-  __typename?: "DelegationStatusChangesConnection";
   edges: Array<DelegationStatusChangeEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
@@ -1787,20 +1755,17 @@ export type DelegationWhereInput = {
 };
 
 export type DelegationsConnection = {
-  __typename?: "DelegationsConnection";
   edges: Array<DelegationEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
 };
 
 export type DelegationsEntry = {
-  __typename?: "DelegationsEntry";
   timestamp: Scalars["DateTime"]["output"];
   value?: Maybe<Scalars["Float"]["output"]>;
 };
 
 export type DelegationsTimeseries = {
-  __typename?: "DelegationsTimeseries";
   data: Array<DelegationsEntry>;
   from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
@@ -1808,13 +1773,11 @@ export type DelegationsTimeseries = {
 };
 
 export type DelegatorsEntry = {
-  __typename?: "DelegatorsEntry";
   timestamp: Scalars["DateTime"]["output"];
   value?: Maybe<Scalars["Float"]["output"]>;
 };
 
 export type DelegatorsTimeseries = {
-  __typename?: "DelegatorsTimeseries";
   data: Array<DelegatorsEntry>;
   from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
@@ -1822,7 +1785,6 @@ export type DelegatorsTimeseries = {
 };
 
 export type Epoch = {
-  __typename?: "Epoch";
   activeWorkerIds?: Maybe<Array<Scalars["String"]["output"]>>;
   end: Scalars["Int"]["output"];
   endedAt?: Maybe<Scalars["DateTime"]["output"]>;
@@ -1834,7 +1796,6 @@ export type Epoch = {
 };
 
 export type EpochEdge = {
-  __typename?: "EpochEdge";
   cursor: Scalars["String"]["output"];
   node: Epoch;
 };
@@ -1967,14 +1928,12 @@ export type EpochWhereInput = {
 };
 
 export type EpochesConnection = {
-  __typename?: "EpochesConnection";
   edges: Array<EpochEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
 };
 
 export type Gateway = {
-  __typename?: "Gateway";
   createdAt: Scalars["DateTime"]["output"];
   description?: Maybe<Scalars["String"]["output"]>;
   email?: Maybe<Scalars["String"]["output"]>;
@@ -1997,7 +1956,6 @@ export type GatewayStatusHistoryArgs = {
 };
 
 export type GatewayEdge = {
-  __typename?: "GatewayEdge";
   cursor: Scalars["String"]["output"];
   node: Gateway;
 };
@@ -2150,7 +2108,6 @@ export enum GatewayOrderByInput {
 }
 
 export type GatewayStake = {
-  __typename?: "GatewayStake";
   amount: Scalars["BigInt"]["output"];
   autoExtension: Scalars["Boolean"]["output"];
   computationUnits: Scalars["BigInt"]["output"];
@@ -2172,7 +2129,6 @@ export type GatewayStakeGatewaysArgs = {
 };
 
 export type GatewayStakeEdge = {
-  __typename?: "GatewayStakeEdge";
   cursor: Scalars["String"]["output"];
   node: GatewayStake;
 };
@@ -2359,7 +2315,6 @@ export type GatewayStakeWhereInput = {
 };
 
 export type GatewayStakesConnection = {
-  __typename?: "GatewayStakesConnection";
   edges: Array<GatewayStakeEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
@@ -2372,7 +2327,6 @@ export enum GatewayStatus {
 }
 
 export type GatewayStatusChange = {
-  __typename?: "GatewayStatusChange";
   blockNumber: Scalars["Int"]["output"];
   gateway: Gateway;
   id: Scalars["String"]["output"];
@@ -2381,7 +2335,6 @@ export type GatewayStatusChange = {
 };
 
 export type GatewayStatusChangeEdge = {
-  __typename?: "GatewayStatusChangeEdge";
   cursor: Scalars["String"]["output"];
   node: GatewayStatusChange;
 };
@@ -2509,7 +2462,6 @@ export type GatewayStatusChangeWhereInput = {
 };
 
 export type GatewayStatusChangesConnection = {
-  __typename?: "GatewayStatusChangesConnection";
   edges: Array<GatewayStatusChangeEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
@@ -2646,20 +2598,17 @@ export type GatewayWhereInput = {
 };
 
 export type GatewaysConnection = {
-  __typename?: "GatewaysConnection";
   edges: Array<GatewayEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
 };
 
 export type HoldersCountEntry = {
-  __typename?: "HoldersCountEntry";
   timestamp: Scalars["DateTime"]["output"];
   value?: Maybe<Scalars["Float"]["output"]>;
 };
 
 export type HoldersCountTimeseries = {
-  __typename?: "HoldersCountTimeseries";
   data: Array<HoldersCountEntry>;
   from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
@@ -2667,7 +2616,6 @@ export type HoldersCountTimeseries = {
 };
 
 export type LockedValueTimeseries = {
-  __typename?: "LockedValueTimeseries";
   data: Array<TvlEntry>;
   from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
@@ -2675,7 +2623,6 @@ export type LockedValueTimeseries = {
 };
 
 export type NetworkStats = {
-  __typename?: "NetworkStats";
   aprs: Array<AprSnapshot>;
   blockTime: Scalars["Float"]["output"];
   blockTimeL1: Scalars["Float"]["output"];
@@ -2698,13 +2645,11 @@ export type NetworkStats = {
 };
 
 export type OperatorsEntry = {
-  __typename?: "OperatorsEntry";
   timestamp: Scalars["DateTime"]["output"];
   value?: Maybe<Scalars["Float"]["output"]>;
 };
 
 export type PageInfo = {
-  __typename?: "PageInfo";
   endCursor: Scalars["String"]["output"];
   hasNextPage: Scalars["Boolean"]["output"];
   hasPreviousPage: Scalars["Boolean"]["output"];
@@ -2712,13 +2657,11 @@ export type PageInfo = {
 };
 
 export type QueriesCountEntry = {
-  __typename?: "QueriesCountEntry";
   timestamp: Scalars["DateTime"]["output"];
   value?: Maybe<Scalars["Float"]["output"]>;
 };
 
 export type QueriesCountTimeseries = {
-  __typename?: "QueriesCountTimeseries";
   data: Array<QueriesCountEntry>;
   from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
@@ -2726,7 +2669,6 @@ export type QueriesCountTimeseries = {
 };
 
 export type Query = {
-  __typename?: "Query";
   accountBalanceTimeseries: AccountBalanceTimeseries;
   accountById?: Maybe<Account>;
   accountTransferById?: Maybe<AccountTransfer>;
@@ -3250,13 +3192,11 @@ export type QueryWorkersConnectionArgs = {
 };
 
 export type RewardEntry = {
-  __typename?: "RewardEntry";
   timestamp: Scalars["DateTime"]["output"];
   value?: Maybe<RewardValue>;
 };
 
 export type RewardTimeseries = {
-  __typename?: "RewardTimeseries";
   data: Array<RewardEntry>;
   from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
@@ -3264,19 +3204,16 @@ export type RewardTimeseries = {
 };
 
 export type RewardValue = {
-  __typename?: "RewardValue";
   stakerReward: Scalars["BigInt"]["output"];
   workerReward: Scalars["BigInt"]["output"];
 };
 
 export type ServedDataEntry = {
-  __typename?: "ServedDataEntry";
   timestamp: Scalars["DateTime"]["output"];
   value?: Maybe<Scalars["Float"]["output"]>;
 };
 
 export type ServedDataTimeseries = {
-  __typename?: "ServedDataTimeseries";
   data: Array<ServedDataEntry>;
   from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
@@ -3284,7 +3221,6 @@ export type ServedDataTimeseries = {
 };
 
 export type Settings = {
-  __typename?: "Settings";
   baseApr: Scalars["Float"]["output"];
   bondAmount?: Maybe<Scalars["BigInt"]["output"]>;
   contracts: Contracts;
@@ -3299,14 +3235,12 @@ export type Settings = {
 };
 
 export type SettingsConnection = {
-  __typename?: "SettingsConnection";
   edges: Array<SettingsEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
 };
 
 export type SettingsEdge = {
-  __typename?: "SettingsEdge";
   cursor: Scalars["String"]["output"];
   node: Settings;
 };
@@ -3580,19 +3514,16 @@ export type SettingsWhereInput = {
 };
 
 export type SquidStatus = {
-  __typename?: "SquidStatus";
   finalizedHeight: Scalars["Float"]["output"];
   height: Scalars["Float"]["output"];
 };
 
 export type StoredDataEntry = {
-  __typename?: "StoredDataEntry";
   timestamp: Scalars["DateTime"]["output"];
   value?: Maybe<Scalars["Float"]["output"]>;
 };
 
 export type StoredDataTimeseries = {
-  __typename?: "StoredDataTimeseries";
   data: Array<StoredDataEntry>;
   from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
@@ -3600,7 +3531,6 @@ export type StoredDataTimeseries = {
 };
 
 export type TemporaryHoldingData = {
-  __typename?: "TemporaryHoldingData";
   account: Account;
   admin: Account;
   beneficiary: Account;
@@ -3610,14 +3540,12 @@ export type TemporaryHoldingData = {
 };
 
 export type TemporaryHoldingDataConnection = {
-  __typename?: "TemporaryHoldingDataConnection";
   edges: Array<TemporaryHoldingDataEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
 };
 
 export type TemporaryHoldingDataEdge = {
-  __typename?: "TemporaryHoldingDataEdge";
   cursor: Scalars["String"]["output"];
   node: TemporaryHoldingData;
 };
@@ -3756,7 +3684,6 @@ export type TemporaryHoldingDataWhereInput = {
 };
 
 export type Transfer = {
-  __typename?: "Transfer";
   amount: Scalars["BigInt"]["output"];
   blockNumber: Scalars["Int"]["output"];
   delegation?: Maybe<Delegation>;
@@ -3772,13 +3699,11 @@ export type Transfer = {
 };
 
 export type TransferCountByType = {
-  __typename?: "TransferCountByType";
   timestamp: Scalars["DateTime"]["output"];
   value?: Maybe<TransferCountByTypeValue>;
 };
 
 export type TransferCountByTypeValue = {
-  __typename?: "TransferCountByTypeValue";
   deposit: Scalars["Float"]["output"];
   release: Scalars["Float"]["output"];
   reward: Scalars["Float"]["output"];
@@ -3792,7 +3717,6 @@ export enum TransferDirection {
 }
 
 export type TransferEdge = {
-  __typename?: "TransferEdge";
   cursor: Scalars["String"]["output"];
   node: Transfer;
 };
@@ -4318,7 +4242,6 @@ export type TransferWhereInput = {
 };
 
 export type TransfersByTypeTimeseries = {
-  __typename?: "TransfersByTypeTimeseries";
   data: Array<TransferCountByType>;
   from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
@@ -4326,26 +4249,22 @@ export type TransfersByTypeTimeseries = {
 };
 
 export type TransfersConnection = {
-  __typename?: "TransfersConnection";
   edges: Array<TransferEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
 };
 
 export type TvlEntry = {
-  __typename?: "TvlEntry";
   timestamp: Scalars["DateTime"]["output"];
   value?: Maybe<Scalars["BigInt"]["output"]>;
 };
 
 export type UniqueAccountsEntry = {
-  __typename?: "UniqueAccountsEntry";
   timestamp: Scalars["DateTime"]["output"];
   value?: Maybe<Scalars["Float"]["output"]>;
 };
 
 export type UniqueAccountsTimeseries = {
-  __typename?: "UniqueAccountsTimeseries";
   data: Array<UniqueAccountsEntry>;
   from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
@@ -4353,7 +4272,6 @@ export type UniqueAccountsTimeseries = {
 };
 
 export type UniqueOperatorsTimeseries = {
-  __typename?: "UniqueOperatorsTimeseries";
   data: Array<OperatorsEntry>;
   from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
@@ -4361,13 +4279,11 @@ export type UniqueOperatorsTimeseries = {
 };
 
 export type UptimeEntry = {
-  __typename?: "UptimeEntry";
   timestamp: Scalars["DateTime"]["output"];
   value?: Maybe<Scalars["Float"]["output"]>;
 };
 
 export type UptimeTimeseries = {
-  __typename?: "UptimeTimeseries";
   data: Array<UptimeEntry>;
   from: Scalars["DateTime"]["output"];
   step: Scalars["Float"]["output"];
@@ -4375,7 +4291,6 @@ export type UptimeTimeseries = {
 };
 
 export type Worker = {
-  __typename?: "Worker";
   apr?: Maybe<Scalars["Float"]["output"]>;
   bond: Scalars["BigInt"]["output"];
   capedDelegation: Scalars["BigInt"]["output"];
@@ -4452,19 +4367,16 @@ export type WorkerStatusHistoryArgs = {
 };
 
 export type WorkerDayUptime = {
-  __typename?: "WorkerDayUptime";
   timestamp: Scalars["DateTime"]["output"];
   uptime: Scalars["Float"]["output"];
 };
 
 export type WorkerEdge = {
-  __typename?: "WorkerEdge";
   cursor: Scalars["String"]["output"];
   node: Worker;
 };
 
 export type WorkerMetrics = {
-  __typename?: "WorkerMetrics";
   id: Scalars["String"]["output"];
   pings: Scalars["Int"]["output"];
   queries: Scalars["Int"]["output"];
@@ -4477,14 +4389,12 @@ export type WorkerMetrics = {
 };
 
 export type WorkerMetricsConnection = {
-  __typename?: "WorkerMetricsConnection";
   edges: Array<WorkerMetricsEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
 };
 
 export type WorkerMetricsEdge = {
-  __typename?: "WorkerMetricsEdge";
   cursor: Scalars["String"]["output"];
   node: WorkerMetrics;
 };
@@ -5123,7 +5033,6 @@ export enum WorkerOrderByInput {
 }
 
 export type WorkerReward = {
-  __typename?: "WorkerReward";
   amount: Scalars["BigInt"]["output"];
   apr: Scalars["Float"]["output"];
   blockNumber: Scalars["Int"]["output"];
@@ -5135,7 +5044,6 @@ export type WorkerReward = {
 };
 
 export type WorkerRewardEdge = {
-  __typename?: "WorkerRewardEdge";
   cursor: Scalars["String"]["output"];
   node: WorkerReward;
 };
@@ -5486,14 +5394,12 @@ export type WorkerRewardWhereInput = {
 };
 
 export type WorkerRewardsConnection = {
-  __typename?: "WorkerRewardsConnection";
   edges: Array<WorkerRewardEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
 };
 
 export type WorkerSnapshot = {
-  __typename?: "WorkerSnapshot";
   epoch: Epoch;
   id: Scalars["String"]["output"];
   timestamp: Scalars["DateTime"]["output"];
@@ -5502,13 +5408,11 @@ export type WorkerSnapshot = {
 };
 
 export type WorkerSnapshotDay = {
-  __typename?: "WorkerSnapshotDay";
   timestamp: Scalars["DateTime"]["output"];
   uptime: Scalars["Float"]["output"];
 };
 
 export type WorkerSnapshotEdge = {
-  __typename?: "WorkerSnapshotEdge";
   cursor: Scalars["String"]["output"];
   node: WorkerSnapshot;
 };
@@ -5843,7 +5747,6 @@ export type WorkerSnapshotWhereInput = {
 };
 
 export type WorkerSnapshotsConnection = {
-  __typename?: "WorkerSnapshotsConnection";
   edges: Array<WorkerSnapshotEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
@@ -5859,7 +5762,6 @@ export enum WorkerStatus {
 }
 
 export type WorkerStatusChange = {
-  __typename?: "WorkerStatusChange";
   blockNumber: Scalars["Int"]["output"];
   id: Scalars["String"]["output"];
   pending: Scalars["Boolean"]["output"];
@@ -5869,7 +5771,6 @@ export type WorkerStatusChange = {
 };
 
 export type WorkerStatusChangeEdge = {
-  __typename?: "WorkerStatusChangeEdge";
   cursor: Scalars["String"]["output"];
   node: WorkerStatusChange;
 };
@@ -6180,7 +6081,6 @@ export type WorkerStatusChangeWhereInput = {
 };
 
 export type WorkerStatusChangesConnection = {
-  __typename?: "WorkerStatusChangesConnection";
   edges: Array<WorkerStatusChangeEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
@@ -6578,7 +6478,6 @@ export type WorkerWhereInput = {
 };
 
 export type WorkersConnection = {
-  __typename?: "WorkersConnection";
   edges: Array<WorkerEdge>;
   pageInfo: PageInfo;
   totalCount: Scalars["Int"]["output"];
@@ -6586,85 +6485,56 @@ export type WorkersConnection = {
 
 export type SquidNetworkHeightQueryVariables = Exact<{ [key: string]: never }>;
 
-export type SquidNetworkHeightQuery = {
-  __typename?: "Query";
-  squidStatus: { __typename?: "SquidStatus"; height: number };
-};
+export type SquidNetworkHeightQuery = { squidStatus: { height: number } };
 
 export type SettingsQueryVariables = Exact<{ [key: string]: never }>;
 
 export type SettingsQuery = {
-  __typename?: "Query";
   settingsConnection: {
-    __typename?: "SettingsConnection";
     edges: Array<{
-      __typename?: "SettingsEdge";
       node: {
-        __typename?: "Settings";
         id: string;
-        bondAmount?: string;
+        bondAmount?: string | null;
         delegationLimitCoefficient: number;
-        minimalWorkerVersion?: string;
-        recommendedWorkerVersion?: string;
+        minimalWorkerVersion?: string | null;
+        recommendedWorkerVersion?: string | null;
       };
     }>;
   };
 };
 
 export type AccountFragmentFragment = {
-  __typename?: "Account";
   id: string;
   type: AccountType;
   balance: string;
 };
 
-export type OwnerFragmentFragment = {
-  __typename?: "Account";
-  id: string;
-  type: AccountType;
-};
+export type OwnerFragmentFragment = { id: string; type: AccountType };
 
 export type VestingFragmentFragment = {
-  __typename?: "Account";
   id: string;
   type: AccountType;
   balance: string;
-  owner?: { __typename?: "Account"; id: string };
+  owner?: { id: string } | null;
 };
 
 export type DelegationFragmentFragment = {
-  __typename?: "Delegation";
   deposit: string;
   claimableReward: string;
   claimedReward: string;
-  locked?: boolean;
-  lockEnd?: number;
-  owner: {
-    __typename?: "Account";
-    id: string;
-    type: AccountType;
-    owner?: { __typename?: "Account"; id: string };
-  };
+  locked?: boolean | null;
+  lockEnd?: number | null;
+  owner: { id: string; type: AccountType; owner?: { id: string } | null };
 };
 
-export type GatewayStakeBaseFragmentFragment = {
-  __typename?: "GatewayStake";
-  id: string;
-  amount: string;
-};
+export type GatewayStakeBaseFragmentFragment = { id: string; amount: string };
 
 export type SourcesQueryVariables = Exact<{
   address: Scalars["String"]["input"];
 }>;
 
 export type SourcesQuery = {
-  __typename?: "Query";
-  accounts: Array<{
-    __typename?: "Account";
-    id: string;
-    type: AccountType;
-    balance: string;
-  }>;
+  accounts: Array<{ id: string; type: AccountType; balance: string }>;
 };
 
 export type VestingsByAccountQueryVariables = Exact<{
@@ -6672,13 +6542,7 @@ export type VestingsByAccountQueryVariables = Exact<{
 }>;
 
 export type VestingsByAccountQuery = {
-  __typename?: "Query";
-  accounts: Array<{
-    __typename?: "Account";
-    id: string;
-    type: AccountType;
-    balance: string;
-  }>;
+  accounts: Array<{ id: string; type: AccountType; balance: string }>;
 };
 
 export type TemporaryHoldingsByAccountQueryVariables = Exact<{
@@ -6686,13 +6550,11 @@ export type TemporaryHoldingsByAccountQueryVariables = Exact<{
 }>;
 
 export type TemporaryHoldingsByAccountQuery = {
-  __typename?: "Query";
   accounts: Array<{
-    __typename?: "Account";
     id: string;
     type: AccountType;
     balance: string;
-    temporaryHolding?: { __typename?: "TemporaryHoldingData"; locked: boolean };
+    temporaryHolding?: { locked: boolean } | null;
   }>;
 };
 
@@ -6701,45 +6563,27 @@ export type SourcesWithAssetsQueryVariables = Exact<{
 }>;
 
 export type SourcesWithAssetsQuery = {
-  __typename?: "Query";
   accounts: Array<{
-    __typename?: "Account";
     id: string;
     type: AccountType;
     balance: string;
     workers2: Array<{
-      __typename?: "Worker";
       bond: string;
       claimableReward: string;
       id: string;
-      name?: string;
+      name?: string | null;
       peerId: string;
     }>;
     delegations2: Array<{
-      __typename?: "Delegation";
       deposit: string;
       claimableReward: string;
       claimedReward: string;
-      locked?: boolean;
-      lockEnd?: number;
-      worker: {
-        __typename?: "Worker";
-        id: string;
-        name?: string;
-        peerId: string;
-      };
-      owner: {
-        __typename?: "Account";
-        id: string;
-        type: AccountType;
-        owner?: { __typename?: "Account"; id: string };
-      };
+      locked?: boolean | null;
+      lockEnd?: number | null;
+      worker: { id: string; name?: string | null; peerId: string };
+      owner: { id: string; type: AccountType; owner?: { id: string } | null };
     }>;
-    gatewayStakes: Array<{
-      __typename?: "GatewayStake";
-      id: string;
-      amount: string;
-    }>;
+    gatewayStakes: Array<{ id: string; amount: string }>;
   }>;
 };
 
@@ -6749,31 +6593,18 @@ export type SourcesWithDelegationsQueryVariables = Exact<{
 }>;
 
 export type SourcesWithDelegationsQuery = {
-  __typename?: "Query";
   accounts: Array<{
-    __typename?: "Account";
     id: string;
     type: AccountType;
     balance: string;
     delegations2: Array<{
-      __typename?: "Delegation";
       deposit: string;
       claimableReward: string;
       claimedReward: string;
-      locked?: boolean;
-      lockEnd?: number;
-      worker: {
-        __typename?: "Worker";
-        id: string;
-        name?: string;
-        peerId: string;
-      };
-      owner: {
-        __typename?: "Account";
-        id: string;
-        type: AccountType;
-        owner?: { __typename?: "Account"; id: string };
-      };
+      locked?: boolean | null;
+      lockEnd?: number | null;
+      worker: { id: string; name?: string | null; peerId: string };
+      owner: { id: string; type: AccountType; owner?: { id: string } | null };
     }>;
   }>;
 };
@@ -6783,66 +6614,58 @@ export type VestingByAddressQueryVariables = Exact<{
 }>;
 
 export type VestingByAddressQuery = {
-  __typename?: "Query";
   accountById?: {
-    __typename?: "Account";
     id: string;
     type: AccountType;
     balance: string;
-    owner?: { __typename?: "Account"; id: string };
-  };
+    owner?: { id: string } | null;
+  } | null;
 };
 
 export type WorkerBaseFragmentFragment = {
-  __typename?: "Worker";
   id: string;
-  name?: string;
+  name?: string | null;
   peerId: string;
 };
 
 export type WorkerStatusFragmentFragment = {
-  __typename?: "Worker";
   status: WorkerStatus;
-  online?: boolean;
-  jailed?: boolean;
-  dialOk?: boolean;
-  jailReason?: string;
+  online?: boolean | null;
+  jailed?: boolean | null;
+  dialOk?: boolean | null;
+  jailReason?: string | null;
   statusHistory: Array<{
-    __typename?: "WorkerStatusChange";
     blockNumber: number;
     pending: boolean;
-    timestamp?: string;
+    timestamp?: string | null;
   }>;
 };
 
 export type WorkerStatsFragmentFragment = {
-  __typename?: "Worker";
-  version?: string;
+  version?: string | null;
   createdAt: string;
-  uptime90Days?: number;
-  uptime24Hours?: number;
-  apr?: number;
-  stakerApr?: number;
+  uptime90Days?: number | null;
+  uptime24Hours?: number | null;
+  apr?: number | null;
+  stakerApr?: number | null;
   totalDelegation: string;
   capedDelegation: string;
   delegationCount: number;
-  locked?: boolean;
-  lockEnd?: number;
+  locked?: boolean | null;
+  lockEnd?: number | null;
 };
 
 export type WorkerMetricsFragmentFragment = {
-  __typename?: "Worker";
-  queries24Hours?: string;
-  queries90Days?: string;
-  scannedData24Hours?: string;
-  scannedData90Days?: string;
-  servedData24Hours?: string;
-  servedData90Days?: string;
-  storedData?: string;
+  queries24Hours?: string | null;
+  queries90Days?: string | null;
+  scannedData24Hours?: string | null;
+  scannedData90Days?: string | null;
+  servedData24Hours?: string | null;
+  servedData90Days?: string | null;
+  storedData?: string | null;
 };
 
 export type WorkerRewardsFragmentFragment = {
-  __typename?: "Worker";
   bond: string;
   claimableReward: string;
   claimedReward: string;
@@ -6850,148 +6673,115 @@ export type WorkerRewardsFragmentFragment = {
 };
 
 export type WorkerProfileFragmentFragment = {
-  __typename?: "Worker";
-  website?: string;
-  email?: string;
-  description?: string;
+  website?: string | null;
+  email?: string | null;
+  description?: string | null;
 };
 
 export type WorkerOwnershipFragmentFragment = {
-  __typename?: "Worker";
-  owner: {
-    __typename?: "Account";
-    id: string;
-    type: AccountType;
-    owner?: { __typename?: "Account"; id: string };
-  };
+  owner: { id: string; type: AccountType; owner?: { id: string } | null };
 };
 
 export type WorkerFragmentFragment = {
-  __typename?: "Worker";
   id: string;
-  name?: string;
+  name?: string | null;
   peerId: string;
   status: WorkerStatus;
-  online?: boolean;
-  jailed?: boolean;
-  dialOk?: boolean;
-  jailReason?: string;
-  version?: string;
+  online?: boolean | null;
+  jailed?: boolean | null;
+  dialOk?: boolean | null;
+  jailReason?: string | null;
+  version?: string | null;
   createdAt: string;
-  uptime90Days?: number;
-  uptime24Hours?: number;
-  apr?: number;
-  stakerApr?: number;
+  uptime90Days?: number | null;
+  uptime24Hours?: number | null;
+  apr?: number | null;
+  stakerApr?: number | null;
   totalDelegation: string;
   capedDelegation: string;
   delegationCount: number;
-  locked?: boolean;
-  lockEnd?: number;
+  locked?: boolean | null;
+  lockEnd?: number | null;
   statusHistory: Array<{
-    __typename?: "WorkerStatusChange";
     blockNumber: number;
     pending: boolean;
-    timestamp?: string;
+    timestamp?: string | null;
   }>;
-  owner: {
-    __typename?: "Account";
-    id: string;
-    type: AccountType;
-    owner?: { __typename?: "Account"; id: string };
-  };
+  owner: { id: string; type: AccountType; owner?: { id: string } | null };
 };
 
 export type WorkerDetailedFragmentFragment = {
-  __typename?: "Worker";
   bond: string;
   claimableReward: string;
   claimedReward: string;
   totalDelegationRewards: string;
-  queries24Hours?: string;
-  queries90Days?: string;
-  scannedData24Hours?: string;
-  scannedData90Days?: string;
-  servedData24Hours?: string;
-  servedData90Days?: string;
-  storedData?: string;
-  website?: string;
-  email?: string;
-  description?: string;
+  queries24Hours?: string | null;
+  queries90Days?: string | null;
+  scannedData24Hours?: string | null;
+  scannedData90Days?: string | null;
+  servedData24Hours?: string | null;
+  servedData90Days?: string | null;
+  storedData?: string | null;
+  website?: string | null;
+  email?: string | null;
+  description?: string | null;
   id: string;
-  name?: string;
+  name?: string | null;
   peerId: string;
   status: WorkerStatus;
-  online?: boolean;
-  jailed?: boolean;
-  dialOk?: boolean;
-  jailReason?: string;
-  version?: string;
+  online?: boolean | null;
+  jailed?: boolean | null;
+  dialOk?: boolean | null;
+  jailReason?: string | null;
+  version?: string | null;
   createdAt: string;
-  uptime90Days?: number;
-  uptime24Hours?: number;
-  apr?: number;
-  stakerApr?: number;
+  uptime90Days?: number | null;
+  uptime24Hours?: number | null;
+  apr?: number | null;
+  stakerApr?: number | null;
   totalDelegation: string;
   capedDelegation: string;
   delegationCount: number;
-  locked?: boolean;
-  lockEnd?: number;
-  dayUptimes?: Array<{
-    __typename?: "WorkerDayUptime";
-    timestamp: string;
-    uptime: number;
-  }>;
+  locked?: boolean | null;
+  lockEnd?: number | null;
+  dayUptimes?: Array<{ timestamp: string; uptime: number }> | null;
   statusHistory: Array<{
-    __typename?: "WorkerStatusChange";
     blockNumber: number;
     pending: boolean;
-    timestamp?: string;
+    timestamp?: string | null;
   }>;
-  owner: {
-    __typename?: "Account";
-    id: string;
-    type: AccountType;
-    owner?: { __typename?: "Account"; id: string };
-  };
+  owner: { id: string; type: AccountType; owner?: { id: string } | null };
 };
 
 export type AllWorkersQueryVariables = Exact<{ [key: string]: never }>;
 
 export type AllWorkersQuery = {
-  __typename?: "Query";
   workers: Array<{
-    __typename?: "Worker";
     id: string;
-    name?: string;
+    name?: string | null;
     peerId: string;
     status: WorkerStatus;
-    online?: boolean;
-    jailed?: boolean;
-    dialOk?: boolean;
-    jailReason?: string;
-    version?: string;
+    online?: boolean | null;
+    jailed?: boolean | null;
+    dialOk?: boolean | null;
+    jailReason?: string | null;
+    version?: string | null;
     createdAt: string;
-    uptime90Days?: number;
-    uptime24Hours?: number;
-    apr?: number;
-    stakerApr?: number;
+    uptime90Days?: number | null;
+    uptime24Hours?: number | null;
+    apr?: number | null;
+    stakerApr?: number | null;
     totalDelegation: string;
     capedDelegation: string;
     delegationCount: number;
-    locked?: boolean;
-    lockEnd?: number;
+    locked?: boolean | null;
+    lockEnd?: number | null;
     statusHistory: Array<{
-      __typename?: "WorkerStatusChange";
       blockNumber: number;
       pending: boolean;
-      timestamp?: string;
+      timestamp?: string | null;
     }>;
-    owner: {
-      __typename?: "Account";
-      id: string;
-      type: AccountType;
-      owner?: { __typename?: "Account"; id: string };
-    };
+    owner: { id: string; type: AccountType; owner?: { id: string } | null };
   }>;
 };
 
@@ -7001,73 +6791,55 @@ export type WorkerByPeerIdQueryVariables = Exact<{
 }>;
 
 export type WorkerByPeerIdQuery = {
-  __typename?: "Query";
   workers: Array<{
-    __typename?: "Worker";
     bond: string;
     claimableReward: string;
     claimedReward: string;
     totalDelegationRewards: string;
-    queries24Hours?: string;
-    queries90Days?: string;
-    scannedData24Hours?: string;
-    scannedData90Days?: string;
-    servedData24Hours?: string;
-    servedData90Days?: string;
-    storedData?: string;
-    website?: string;
-    email?: string;
-    description?: string;
+    queries24Hours?: string | null;
+    queries90Days?: string | null;
+    scannedData24Hours?: string | null;
+    scannedData90Days?: string | null;
+    servedData24Hours?: string | null;
+    servedData90Days?: string | null;
+    storedData?: string | null;
+    website?: string | null;
+    email?: string | null;
+    description?: string | null;
     id: string;
-    name?: string;
+    name?: string | null;
     peerId: string;
     status: WorkerStatus;
-    online?: boolean;
-    jailed?: boolean;
-    dialOk?: boolean;
-    jailReason?: string;
-    version?: string;
+    online?: boolean | null;
+    jailed?: boolean | null;
+    dialOk?: boolean | null;
+    jailReason?: string | null;
+    version?: string | null;
     createdAt: string;
-    uptime90Days?: number;
-    uptime24Hours?: number;
-    apr?: number;
-    stakerApr?: number;
+    uptime90Days?: number | null;
+    uptime24Hours?: number | null;
+    apr?: number | null;
+    stakerApr?: number | null;
     totalDelegation: string;
     capedDelegation: string;
     delegationCount: number;
-    locked?: boolean;
-    lockEnd?: number;
+    locked?: boolean | null;
+    lockEnd?: number | null;
     delegations: Array<{
-      __typename?: "Delegation";
       deposit: string;
       claimableReward: string;
       claimedReward: string;
-      locked?: boolean;
-      lockEnd?: number;
-      owner: {
-        __typename?: "Account";
-        id: string;
-        type: AccountType;
-        owner?: { __typename?: "Account"; id: string };
-      };
+      locked?: boolean | null;
+      lockEnd?: number | null;
+      owner: { id: string; type: AccountType; owner?: { id: string } | null };
     }>;
-    dayUptimes?: Array<{
-      __typename?: "WorkerDayUptime";
-      timestamp: string;
-      uptime: number;
-    }>;
+    dayUptimes?: Array<{ timestamp: string; uptime: number }> | null;
     statusHistory: Array<{
-      __typename?: "WorkerStatusChange";
       blockNumber: number;
       pending: boolean;
-      timestamp?: string;
+      timestamp?: string | null;
     }>;
-    owner: {
-      __typename?: "Account";
-      id: string;
-      type: AccountType;
-      owner?: { __typename?: "Account"; id: string };
-    };
+    owner: { id: string; type: AccountType; owner?: { id: string } | null };
   }>;
 };
 
@@ -7077,12 +6849,7 @@ export type WorkerDaysUptimeByIdQueryVariables = Exact<{
 }>;
 
 export type WorkerDaysUptimeByIdQuery = {
-  __typename?: "Query";
-  workerSnapshotsByDay: Array<{
-    __typename?: "WorkerSnapshotDay";
-    timestamp: string;
-    uptime: number;
-  }>;
+  workerSnapshotsByDay: Array<{ timestamp: string; uptime: number }>;
 };
 
 export type MyWorkersQueryVariables = Exact<{
@@ -7090,44 +6857,36 @@ export type MyWorkersQueryVariables = Exact<{
 }>;
 
 export type MyWorkersQuery = {
-  __typename?: "Query";
   workers: Array<{
-    __typename?: "Worker";
     bond: string;
     claimableReward: string;
     claimedReward: string;
     totalDelegationRewards: string;
     id: string;
-    name?: string;
+    name?: string | null;
     peerId: string;
     status: WorkerStatus;
-    online?: boolean;
-    jailed?: boolean;
-    dialOk?: boolean;
-    jailReason?: string;
-    version?: string;
+    online?: boolean | null;
+    jailed?: boolean | null;
+    dialOk?: boolean | null;
+    jailReason?: string | null;
+    version?: string | null;
     createdAt: string;
-    uptime90Days?: number;
-    uptime24Hours?: number;
-    apr?: number;
-    stakerApr?: number;
+    uptime90Days?: number | null;
+    uptime24Hours?: number | null;
+    apr?: number | null;
+    stakerApr?: number | null;
     totalDelegation: string;
     capedDelegation: string;
     delegationCount: number;
-    locked?: boolean;
-    lockEnd?: number;
+    locked?: boolean | null;
+    lockEnd?: number | null;
     statusHistory: Array<{
-      __typename?: "WorkerStatusChange";
       blockNumber: number;
       pending: boolean;
-      timestamp?: string;
+      timestamp?: string | null;
     }>;
-    owner: {
-      __typename?: "Account";
-      id: string;
-      type: AccountType;
-      owner?: { __typename?: "Account"; id: string };
-    };
+    owner: { id: string; type: AccountType; owner?: { id: string } | null };
   }>;
 };
 
@@ -7135,31 +6894,22 @@ export type MyWorkersCountQueryVariables = Exact<{
   address: Scalars["String"]["input"];
 }>;
 
-export type MyWorkersCountQuery = {
-  __typename?: "Query";
-  workersConnection: { __typename?: "WorkersConnection"; totalCount: number };
-};
+export type MyWorkersCountQuery = { workersConnection: { totalCount: number } };
 
 export type WorkerDelegationInfoQueryVariables = Exact<{
   workerId: Scalars["String"]["input"];
 }>;
 
 export type WorkerDelegationInfoQuery = {
-  __typename?: "Query";
   workerById?: {
-    __typename?: "Worker";
     bond: string;
     totalDelegation: string;
     capedDelegation: string;
-    liveness?: number;
-    dTenure?: number;
-    trafficWeight?: number;
-  };
-  settings: Array<{
-    __typename?: "Settings";
-    utilizedStake: string;
-    baseApr: number;
-  }>;
+    liveness?: number | null;
+    dTenure?: number | null;
+    trafficWeight?: number | null;
+  } | null;
+  settings: Array<{ utilizedStake: string; baseApr: number }>;
 };
 
 export type WorkerOwnerQueryVariables = Exact<{
@@ -7167,16 +6917,9 @@ export type WorkerOwnerQueryVariables = Exact<{
 }>;
 
 export type WorkerOwnerQuery = {
-  __typename?: "Query";
   workerById?: {
-    __typename?: "Worker";
-    owner: {
-      __typename?: "Account";
-      id: string;
-      type: AccountType;
-      owner?: { __typename?: "Account"; id: string };
-    };
-  };
+    owner: { id: string; type: AccountType; owner?: { id: string } | null };
+  } | null;
 };
 
 export type MyDelegationsQueryVariables = Exact<{
@@ -7185,54 +6928,40 @@ export type MyDelegationsQueryVariables = Exact<{
 }>;
 
 export type MyDelegationsQuery = {
-  __typename?: "Query";
   workers: Array<{
-    __typename?: "Worker";
     id: string;
-    name?: string;
+    name?: string | null;
     peerId: string;
     status: WorkerStatus;
-    online?: boolean;
-    jailed?: boolean;
-    dialOk?: boolean;
-    jailReason?: string;
-    version?: string;
+    online?: boolean | null;
+    jailed?: boolean | null;
+    dialOk?: boolean | null;
+    jailReason?: string | null;
+    version?: string | null;
     createdAt: string;
-    uptime90Days?: number;
-    uptime24Hours?: number;
-    apr?: number;
-    stakerApr?: number;
+    uptime90Days?: number | null;
+    uptime24Hours?: number | null;
+    apr?: number | null;
+    stakerApr?: number | null;
     totalDelegation: string;
     capedDelegation: string;
     delegationCount: number;
-    locked?: boolean;
-    lockEnd?: number;
+    locked?: boolean | null;
+    lockEnd?: number | null;
     delegations: Array<{
-      __typename?: "Delegation";
       deposit: string;
       claimableReward: string;
       claimedReward: string;
-      locked?: boolean;
-      lockEnd?: number;
-      owner: {
-        __typename?: "Account";
-        id: string;
-        type: AccountType;
-        owner?: { __typename?: "Account"; id: string };
-      };
+      locked?: boolean | null;
+      lockEnd?: number | null;
+      owner: { id: string; type: AccountType; owner?: { id: string } | null };
     }>;
     statusHistory: Array<{
-      __typename?: "WorkerStatusChange";
       blockNumber: number;
       pending: boolean;
-      timestamp?: string;
+      timestamp?: string | null;
     }>;
-    owner: {
-      __typename?: "Account";
-      id: string;
-      type: AccountType;
-      owner?: { __typename?: "Account"; id: string };
-    };
+    owner: { id: string; type: AccountType; owner?: { id: string } | null };
   }>;
 };
 
@@ -7241,53 +6970,43 @@ export type MyClaimsQueryVariables = Exact<{
 }>;
 
 export type MyClaimsQuery = {
-  __typename?: "Query";
   delegations: Array<{
-    __typename?: "Delegation";
     claimableReward: string;
     deposit: string;
-    worker: {
-      __typename?: "Worker";
-      id: string;
-      name?: string;
-      peerId: string;
-    };
-    owner: { __typename?: "Account"; id: string; type: AccountType };
+    worker: { id: string; name?: string | null; peerId: string };
+    owner: { id: string; type: AccountType };
   }>;
   workers: Array<{
-    __typename?: "Worker";
     claimableReward: string;
     id: string;
-    name?: string;
+    name?: string | null;
     peerId: string;
-    owner: { __typename?: "Account"; id: string; type: AccountType };
+    owner: { id: string; type: AccountType };
   }>;
 };
 
 export type GatewayFragmentFragment = {
-  __typename?: "Gateway";
   id: string;
-  name?: string;
+  name?: string | null;
   status: GatewayStatus;
-  description?: string;
-  email?: string;
-  endpointUrl?: string;
-  website?: string;
+  description?: string | null;
+  email?: string | null;
+  endpointUrl?: string | null;
+  website?: string | null;
   createdAt: string;
-  owner: { __typename?: "Account"; id: string; type: AccountType };
+  owner: { id: string; type: AccountType };
 };
 
 export type GatewayStakeFragmentFragment = {
-  __typename?: "GatewayStake";
   autoExtension: boolean;
   computationUnits: string;
-  computationUnitsPending?: string;
+  computationUnitsPending?: string | null;
   locked: boolean;
-  lockStart?: number;
-  lockEnd?: number;
+  lockStart?: number | null;
+  lockEnd?: number | null;
   id: string;
   amount: string;
-  owner: { __typename?: "Account"; id: string; type: AccountType };
+  owner: { id: string; type: AccountType };
 };
 
 export type GatewayByPeerIdQueryVariables = Exact<{
@@ -7295,19 +7014,17 @@ export type GatewayByPeerIdQueryVariables = Exact<{
 }>;
 
 export type GatewayByPeerIdQuery = {
-  __typename?: "Query";
   gatewayById?: {
-    __typename?: "Gateway";
     id: string;
-    name?: string;
+    name?: string | null;
     status: GatewayStatus;
-    description?: string;
-    email?: string;
-    endpointUrl?: string;
-    website?: string;
+    description?: string | null;
+    email?: string | null;
+    endpointUrl?: string | null;
+    website?: string | null;
     createdAt: string;
-    owner: { __typename?: "Account"; id: string; type: AccountType };
-  };
+    owner: { id: string; type: AccountType };
+  } | null;
 };
 
 export type MyGatewaysQueryVariables = Exact<{
@@ -7315,18 +7032,16 @@ export type MyGatewaysQueryVariables = Exact<{
 }>;
 
 export type MyGatewaysQuery = {
-  __typename?: "Query";
   gateways: Array<{
-    __typename?: "Gateway";
     id: string;
-    name?: string;
+    name?: string | null;
     status: GatewayStatus;
-    description?: string;
-    email?: string;
-    endpointUrl?: string;
-    website?: string;
+    description?: string | null;
+    email?: string | null;
+    endpointUrl?: string | null;
+    website?: string | null;
     createdAt: string;
-    owner: { __typename?: "Account"; id: string; type: AccountType };
+    owner: { id: string; type: AccountType };
   }>;
 };
 
@@ -7335,21 +7050,18 @@ export type MyGatewayStakesQueryVariables = Exact<{
 }>;
 
 export type MyGatewayStakesQuery = {
-  __typename?: "Query";
   gatewayStakes: Array<{
-    __typename?: "GatewayStake";
     autoExtension: boolean;
     computationUnits: string;
-    computationUnitsPending?: string;
+    computationUnitsPending?: string | null;
     locked: boolean;
-    lockStart?: number;
-    lockEnd?: number;
+    lockStart?: number | null;
+    lockEnd?: number | null;
     id: string;
     amount: string;
-    owner: { __typename?: "Account"; id: string; type: AccountType };
+    owner: { id: string; type: AccountType };
   }>;
   networkStats: {
-    __typename?: "NetworkStats";
     blockTimeL1: number;
     lastBlockL1: number;
     lastBlockTimestampL1: string;
@@ -7359,9 +7071,7 @@ export type MyGatewayStakesQuery = {
 export type NetworkSummaryQueryVariables = Exact<{ [key: string]: never }>;
 
 export type NetworkSummaryQuery = {
-  __typename?: "Query";
   networkStats: {
-    __typename?: "NetworkStats";
     onlineWorkersCount: number;
     queries90Days: string;
     queries24Hours: string;
@@ -7374,31 +7084,19 @@ export type NetworkSummaryQuery = {
     storedData: string;
     workerApr: number;
     workersCount: number;
-    aprs: Array<{
-      __typename?: "AprSnapshot";
-      stakerApr: number;
-      timestamp: string;
-      workerApr: number;
-    }>;
+    aprs: Array<{ stakerApr: number; timestamp: string; workerApr: number }>;
   };
 };
 
 export type CurrentEpochQueryVariables = Exact<{ [key: string]: never }>;
 
 export type CurrentEpochQuery = {
-  __typename?: "Query";
   networkStats: {
-    __typename?: "NetworkStats";
     blockTimeL1: number;
     lastBlockL1: number;
     lastBlockTimestampL1: string;
   };
-  epoches: Array<{
-    __typename?: "Epoch";
-    number: number;
-    start: number;
-    end: number;
-  }>;
+  epoches: Array<{ number: number; start: number; end: number }>;
 };
 
 export type HoldersCountTimeseriesQueryVariables = Exact<{
@@ -7408,17 +7106,11 @@ export type HoldersCountTimeseriesQueryVariables = Exact<{
 }>;
 
 export type HoldersCountTimeseriesQuery = {
-  __typename?: "Query";
   holdersCountTimeseries: {
-    __typename?: "HoldersCountTimeseries";
     step: number;
     from: string;
     to: string;
-    data: Array<{
-      __typename?: "HoldersCountEntry";
-      timestamp: string;
-      value?: number;
-    }>;
+    data: Array<{ timestamp: string; value?: number | null }>;
   };
 };
 
@@ -7429,13 +7121,11 @@ export type LockedValueTimeseriesQueryVariables = Exact<{
 }>;
 
 export type LockedValueTimeseriesQuery = {
-  __typename?: "Query";
   lockedValueTimeseries: {
-    __typename?: "LockedValueTimeseries";
     step: number;
     from: string;
     to: string;
-    data: Array<{ __typename?: "TvlEntry"; timestamp: string; value?: string }>;
+    data: Array<{ timestamp: string; value?: string | null }>;
   };
 };
 
@@ -7446,17 +7136,11 @@ export type ActiveWorkersTimeseriesQueryVariables = Exact<{
 }>;
 
 export type ActiveWorkersTimeseriesQuery = {
-  __typename?: "Query";
   activeWorkersTimeseries: {
-    __typename?: "ActiveWorkersTimeseries";
     step: number;
     from: string;
     to: string;
-    data: Array<{
-      __typename?: "ActiveWorkersEntry";
-      timestamp: string;
-      value?: number;
-    }>;
+    data: Array<{ timestamp: string; value?: number | null }>;
   };
 };
 
@@ -7467,17 +7151,11 @@ export type UniqueOperatorsTimeseriesQueryVariables = Exact<{
 }>;
 
 export type UniqueOperatorsTimeseriesQuery = {
-  __typename?: "Query";
   uniqueOperatorsTimeseries: {
-    __typename?: "UniqueOperatorsTimeseries";
     step: number;
     from: string;
     to: string;
-    data: Array<{
-      __typename?: "OperatorsEntry";
-      timestamp: string;
-      value?: number;
-    }>;
+    data: Array<{ timestamp: string; value?: number | null }>;
   };
 };
 
@@ -7488,17 +7166,11 @@ export type DelegationsTimeseriesQueryVariables = Exact<{
 }>;
 
 export type DelegationsTimeseriesQuery = {
-  __typename?: "Query";
   delegationsTimeseries: {
-    __typename?: "DelegationsTimeseries";
     step: number;
     from: string;
     to: string;
-    data: Array<{
-      __typename?: "DelegationsEntry";
-      timestamp: string;
-      value?: number;
-    }>;
+    data: Array<{ timestamp: string; value?: number | null }>;
   };
 };
 
@@ -7509,17 +7181,11 @@ export type DelegatorsTimeseriesQueryVariables = Exact<{
 }>;
 
 export type DelegatorsTimeseriesQuery = {
-  __typename?: "Query";
   delegatorsTimeseries: {
-    __typename?: "DelegatorsTimeseries";
     step: number;
     from: string;
     to: string;
-    data: Array<{
-      __typename?: "DelegatorsEntry";
-      timestamp: string;
-      value?: number;
-    }>;
+    data: Array<{ timestamp: string; value?: number | null }>;
   };
 };
 
@@ -7530,23 +7196,19 @@ export type TransfersByTypeTimeseriesQueryVariables = Exact<{
 }>;
 
 export type TransfersByTypeTimeseriesQuery = {
-  __typename?: "Query";
   transfersByTypeTimeseries: {
-    __typename?: "TransfersByTypeTimeseries";
     step: number;
     from: string;
     to: string;
     data: Array<{
-      __typename?: "TransferCountByType";
       timestamp: string;
       value?: {
-        __typename?: "TransferCountByTypeValue";
         deposit: number;
         withdraw: number;
         transfer: number;
         reward: number;
         release: number;
-      };
+      } | null;
     }>;
   };
 };
@@ -7558,17 +7220,11 @@ export type UniqueAccountsTimeseriesQueryVariables = Exact<{
 }>;
 
 export type UniqueAccountsTimeseriesQuery = {
-  __typename?: "Query";
   uniqueAccountsTimeseries: {
-    __typename?: "UniqueAccountsTimeseries";
     step: number;
     from: string;
     to: string;
-    data: Array<{
-      __typename?: "UniqueAccountsEntry";
-      timestamp: string;
-      value?: number;
-    }>;
+    data: Array<{ timestamp: string; value?: number | null }>;
   };
 };
 
@@ -7580,17 +7236,11 @@ export type QueriesCountTimeseriesQueryVariables = Exact<{
 }>;
 
 export type QueriesCountTimeseriesQuery = {
-  __typename?: "Query";
   queriesCountTimeseries: {
-    __typename?: "QueriesCountTimeseries";
     step: number;
     from: string;
     to: string;
-    data: Array<{
-      __typename?: "QueriesCountEntry";
-      timestamp: string;
-      value?: number;
-    }>;
+    data: Array<{ timestamp: string; value?: number | null }>;
   };
 };
 
@@ -7602,17 +7252,11 @@ export type ServedDataTimeseriesQueryVariables = Exact<{
 }>;
 
 export type ServedDataTimeseriesQuery = {
-  __typename?: "Query";
   servedDataTimeseries: {
-    __typename?: "ServedDataTimeseries";
     step: number;
     from: string;
     to: string;
-    data: Array<{
-      __typename?: "ServedDataEntry";
-      timestamp: string;
-      value?: number;
-    }>;
+    data: Array<{ timestamp: string; value?: number | null }>;
   };
 };
 
@@ -7624,17 +7268,11 @@ export type StoredDataTimeseriesQueryVariables = Exact<{
 }>;
 
 export type StoredDataTimeseriesQuery = {
-  __typename?: "Query";
   storedDataTimeseries: {
-    __typename?: "StoredDataTimeseries";
     step: number;
     from: string;
     to: string;
-    data: Array<{
-      __typename?: "StoredDataEntry";
-      timestamp: string;
-      value?: number;
-    }>;
+    data: Array<{ timestamp: string; value?: number | null }>;
   };
 };
 
@@ -7646,20 +7284,13 @@ export type RewardTimeseriesQueryVariables = Exact<{
 }>;
 
 export type RewardTimeseriesQuery = {
-  __typename?: "Query";
   rewardTimeseries: {
-    __typename?: "RewardTimeseries";
     step: number;
     from: string;
     to: string;
     data: Array<{
-      __typename?: "RewardEntry";
       timestamp: string;
-      value?: {
-        __typename?: "RewardValue";
-        workerReward: string;
-        stakerReward: string;
-      };
+      value?: { workerReward: string; stakerReward: string } | null;
     }>;
   };
 };
@@ -7672,16 +7303,13 @@ export type AprTimeseriesQueryVariables = Exact<{
 }>;
 
 export type AprTimeseriesQuery = {
-  __typename?: "Query";
   aprTimeseries: {
-    __typename?: "AprTimeseries";
     step: number;
     from: string;
     to: string;
     data: Array<{
-      __typename?: "AprEntry";
       timestamp: string;
-      value?: { __typename?: "AprValue"; workerApr: number; stakerApr: number };
+      value?: { workerApr: number; stakerApr: number } | null;
     }>;
   };
 };
@@ -7694,28 +7322,46 @@ export type UptimeTimeseriesQueryVariables = Exact<{
 }>;
 
 export type UptimeTimeseriesQuery = {
-  __typename?: "Query";
   uptimeTimeseries: {
-    __typename?: "UptimeTimeseries";
     step: number;
     from: string;
     to: string;
-    data: Array<{
-      __typename?: "UptimeEntry";
-      timestamp: string;
-      value?: number;
-    }>;
+    data: Array<{ timestamp: string; value?: number | null }>;
   };
 };
 
-export const AccountFragmentFragmentDoc = `
+export class TypedDocumentString<TResult, TVariables>
+  extends String
+  implements DocumentTypeDecoration<TResult, TVariables>
+{
+  __apiType?: NonNullable<
+    DocumentTypeDecoration<TResult, TVariables>["__apiType"]
+  >;
+  private value: string;
+  public __meta__?: Record<string, any> | undefined;
+
+  constructor(value: string, __meta__?: Record<string, any> | undefined) {
+    super(value);
+    this.value = value;
+    this.__meta__ = __meta__;
+  }
+
+  override toString(): string & DocumentTypeDecoration<TResult, TVariables> {
+    return this.value;
+  }
+}
+export const AccountFragmentFragmentDoc = new TypedDocumentString(
+  `
     fragment AccountFragment on Account {
   id
   type
   balance
 }
-    `;
-export const VestingFragmentFragmentDoc = `
+    `,
+  { fragmentName: "AccountFragment" },
+) as unknown as TypedDocumentString<AccountFragmentFragment, unknown>;
+export const VestingFragmentFragmentDoc = new TypedDocumentString(
+  `
     fragment VestingFragment on Account {
   id
   type
@@ -7724,8 +7370,11 @@ export const VestingFragmentFragmentDoc = `
     id
   }
 }
-    `;
-export const DelegationFragmentFragmentDoc = `
+    `,
+  { fragmentName: "VestingFragment" },
+) as unknown as TypedDocumentString<VestingFragmentFragment, unknown>;
+export const DelegationFragmentFragmentDoc = new TypedDocumentString(
+  `
     fragment DelegationFragment on Delegation {
   deposit
   claimableReward
@@ -7740,15 +7389,21 @@ export const DelegationFragmentFragmentDoc = `
     }
   }
 }
-    `;
-export const WorkerBaseFragmentFragmentDoc = `
+    `,
+  { fragmentName: "DelegationFragment" },
+) as unknown as TypedDocumentString<DelegationFragmentFragment, unknown>;
+export const WorkerBaseFragmentFragmentDoc = new TypedDocumentString(
+  `
     fragment WorkerBaseFragment on Worker {
   id
   name
   peerId
 }
-    `;
-export const WorkerStatusFragmentFragmentDoc = `
+    `,
+  { fragmentName: "WorkerBaseFragment" },
+) as unknown as TypedDocumentString<WorkerBaseFragmentFragment, unknown>;
+export const WorkerStatusFragmentFragmentDoc = new TypedDocumentString(
+  `
     fragment WorkerStatusFragment on Worker {
   status
   online
@@ -7761,8 +7416,11 @@ export const WorkerStatusFragmentFragmentDoc = `
     timestamp
   }
 }
-    `;
-export const WorkerStatsFragmentFragmentDoc = `
+    `,
+  { fragmentName: "WorkerStatusFragment" },
+) as unknown as TypedDocumentString<WorkerStatusFragmentFragment, unknown>;
+export const WorkerStatsFragmentFragmentDoc = new TypedDocumentString(
+  `
     fragment WorkerStatsFragment on Worker {
   version
   createdAt
@@ -7776,14 +7434,20 @@ export const WorkerStatsFragmentFragmentDoc = `
   locked
   lockEnd
 }
-    `;
-export const OwnerFragmentFragmentDoc = `
+    `,
+  { fragmentName: "WorkerStatsFragment" },
+) as unknown as TypedDocumentString<WorkerStatsFragmentFragment, unknown>;
+export const OwnerFragmentFragmentDoc = new TypedDocumentString(
+  `
     fragment OwnerFragment on Account {
   id
   type
 }
-    `;
-export const WorkerOwnershipFragmentFragmentDoc = `
+    `,
+  { fragmentName: "OwnerFragment" },
+) as unknown as TypedDocumentString<OwnerFragmentFragment, unknown>;
+export const WorkerOwnershipFragmentFragmentDoc = new TypedDocumentString(
+  `
     fragment WorkerOwnershipFragment on Worker {
   owner {
     ...OwnerFragment
@@ -7792,27 +7456,77 @@ export const WorkerOwnershipFragmentFragmentDoc = `
     }
   }
 }
-    ${OwnerFragmentFragmentDoc}`;
-export const WorkerFragmentFragmentDoc = `
+    fragment OwnerFragment on Account {
+  id
+  type
+}`,
+  { fragmentName: "WorkerOwnershipFragment" },
+) as unknown as TypedDocumentString<WorkerOwnershipFragmentFragment, unknown>;
+export const WorkerFragmentFragmentDoc = new TypedDocumentString(
+  `
     fragment WorkerFragment on Worker {
   ...WorkerBaseFragment
   ...WorkerStatusFragment
   ...WorkerStatsFragment
   ...WorkerOwnershipFragment
 }
-    ${WorkerBaseFragmentFragmentDoc}
-${WorkerStatusFragmentFragmentDoc}
-${WorkerStatsFragmentFragmentDoc}
-${WorkerOwnershipFragmentFragmentDoc}`;
-export const WorkerRewardsFragmentFragmentDoc = `
+    fragment OwnerFragment on Account {
+  id
+  type
+}
+fragment WorkerBaseFragment on Worker {
+  id
+  name
+  peerId
+}
+fragment WorkerStatusFragment on Worker {
+  status
+  online
+  jailed
+  dialOk
+  jailReason
+  statusHistory(orderBy: id_DESC, limit: 1) {
+    blockNumber
+    pending
+    timestamp
+  }
+}
+fragment WorkerStatsFragment on Worker {
+  version
+  createdAt
+  uptime90Days
+  uptime24Hours
+  apr
+  stakerApr
+  totalDelegation
+  capedDelegation
+  delegationCount
+  locked
+  lockEnd
+}
+fragment WorkerOwnershipFragment on Worker {
+  owner {
+    ...OwnerFragment
+    owner {
+      id
+    }
+  }
+}`,
+  { fragmentName: "WorkerFragment" },
+) as unknown as TypedDocumentString<WorkerFragmentFragment, unknown>;
+export const WorkerRewardsFragmentFragmentDoc = new TypedDocumentString(
+  `
     fragment WorkerRewardsFragment on Worker {
   bond
   claimableReward
   claimedReward
   totalDelegationRewards
 }
-    `;
-export const WorkerMetricsFragmentFragmentDoc = `
+    `,
+  { fragmentName: "WorkerRewardsFragment" },
+) as unknown as TypedDocumentString<WorkerRewardsFragmentFragment, unknown>;
+export const WorkerMetricsFragmentFragmentDoc = new TypedDocumentString(
+  `
     fragment WorkerMetricsFragment on Worker {
   queries24Hours
   queries90Days
@@ -7822,15 +7536,21 @@ export const WorkerMetricsFragmentFragmentDoc = `
   servedData90Days
   storedData
 }
-    `;
-export const WorkerProfileFragmentFragmentDoc = `
+    `,
+  { fragmentName: "WorkerMetricsFragment" },
+) as unknown as TypedDocumentString<WorkerMetricsFragmentFragment, unknown>;
+export const WorkerProfileFragmentFragmentDoc = new TypedDocumentString(
+  `
     fragment WorkerProfileFragment on Worker {
   website
   email
   description
 }
-    `;
-export const WorkerDetailedFragmentFragmentDoc = `
+    `,
+  { fragmentName: "WorkerProfileFragment" },
+) as unknown as TypedDocumentString<WorkerProfileFragmentFragment, unknown>;
+export const WorkerDetailedFragmentFragmentDoc = new TypedDocumentString(
+  `
     fragment WorkerDetailedFragment on Worker {
   ...WorkerFragment
   ...WorkerRewardsFragment
@@ -7841,11 +7561,78 @@ export const WorkerDetailedFragmentFragmentDoc = `
     uptime
   }
 }
-    ${WorkerFragmentFragmentDoc}
-${WorkerRewardsFragmentFragmentDoc}
-${WorkerMetricsFragmentFragmentDoc}
-${WorkerProfileFragmentFragmentDoc}`;
-export const GatewayFragmentFragmentDoc = `
+    fragment OwnerFragment on Account {
+  id
+  type
+}
+fragment WorkerBaseFragment on Worker {
+  id
+  name
+  peerId
+}
+fragment WorkerStatusFragment on Worker {
+  status
+  online
+  jailed
+  dialOk
+  jailReason
+  statusHistory(orderBy: id_DESC, limit: 1) {
+    blockNumber
+    pending
+    timestamp
+  }
+}
+fragment WorkerStatsFragment on Worker {
+  version
+  createdAt
+  uptime90Days
+  uptime24Hours
+  apr
+  stakerApr
+  totalDelegation
+  capedDelegation
+  delegationCount
+  locked
+  lockEnd
+}
+fragment WorkerMetricsFragment on Worker {
+  queries24Hours
+  queries90Days
+  scannedData24Hours
+  scannedData90Days
+  servedData24Hours
+  servedData90Days
+  storedData
+}
+fragment WorkerRewardsFragment on Worker {
+  bond
+  claimableReward
+  claimedReward
+  totalDelegationRewards
+}
+fragment WorkerProfileFragment on Worker {
+  website
+  email
+  description
+}
+fragment WorkerOwnershipFragment on Worker {
+  owner {
+    ...OwnerFragment
+    owner {
+      id
+    }
+  }
+}
+fragment WorkerFragment on Worker {
+  ...WorkerBaseFragment
+  ...WorkerStatusFragment
+  ...WorkerStatsFragment
+  ...WorkerOwnershipFragment
+}`,
+  { fragmentName: "WorkerDetailedFragment" },
+) as unknown as TypedDocumentString<WorkerDetailedFragmentFragment, unknown>;
+export const GatewayFragmentFragmentDoc = new TypedDocumentString(
+  `
     fragment GatewayFragment on Gateway {
   id
   name
@@ -7859,14 +7646,23 @@ export const GatewayFragmentFragmentDoc = `
     ...OwnerFragment
   }
 }
-    ${OwnerFragmentFragmentDoc}`;
-export const GatewayStakeBaseFragmentFragmentDoc = `
+    fragment OwnerFragment on Account {
+  id
+  type
+}`,
+  { fragmentName: "GatewayFragment" },
+) as unknown as TypedDocumentString<GatewayFragmentFragment, unknown>;
+export const GatewayStakeBaseFragmentFragmentDoc = new TypedDocumentString(
+  `
     fragment GatewayStakeBaseFragment on GatewayStake {
   id
   amount
 }
-    `;
-export const GatewayStakeFragmentFragmentDoc = `
+    `,
+  { fragmentName: "GatewayStakeBaseFragment" },
+) as unknown as TypedDocumentString<GatewayStakeBaseFragmentFragment, unknown>;
+export const GatewayStakeFragmentFragmentDoc = new TypedDocumentString(
+  `
     fragment GatewayStakeFragment on GatewayStake {
   ...GatewayStakeBaseFragment
   owner {
@@ -7879,46 +7675,27 @@ export const GatewayStakeFragmentFragmentDoc = `
   lockStart
   lockEnd
 }
-    ${GatewayStakeBaseFragmentFragmentDoc}
-${OwnerFragmentFragmentDoc}`;
-export const SquidNetworkHeightDocument = `
+    fragment OwnerFragment on Account {
+  id
+  type
+}
+fragment GatewayStakeBaseFragment on GatewayStake {
+  id
+  amount
+}`,
+  { fragmentName: "GatewayStakeFragment" },
+) as unknown as TypedDocumentString<GatewayStakeFragmentFragment, unknown>;
+export const SquidNetworkHeightDocument = new TypedDocumentString(`
     query squidNetworkHeight {
   squidStatus {
     height
   }
 }
-    `;
-
-export const useSquidNetworkHeightQuery = <
-  TData = SquidNetworkHeightQuery,
-  TError = unknown,
->(
-  variables?: SquidNetworkHeightQueryVariables,
-  options?: Omit<
-    UseQueryOptions<SquidNetworkHeightQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      SquidNetworkHeightQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<SquidNetworkHeightQuery, TError, TData>({
-    queryKey:
-      variables === undefined
-        ? ["squidNetworkHeight"]
-        : ["squidNetworkHeight", variables],
-    queryFn: fetcher<SquidNetworkHeightQuery, SquidNetworkHeightQueryVariables>(
-      SquidNetworkHeightDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const SettingsDocument = `
+    `) as unknown as TypedDocumentString<
+  SquidNetworkHeightQuery,
+  SquidNetworkHeightQueryVariables
+>;
+export const SettingsDocument = new TypedDocumentString(`
     query settings {
   settingsConnection(orderBy: id_ASC) {
     edges {
@@ -7932,25 +7709,8 @@ export const SettingsDocument = `
     }
   }
 }
-    `;
-
-export const useSettingsQuery = <TData = SettingsQuery, TError = unknown>(
-  variables?: SettingsQueryVariables,
-  options?: Omit<UseQueryOptions<SettingsQuery, TError, TData>, "queryKey"> & {
-    queryKey?: UseQueryOptions<SettingsQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<SettingsQuery, TError, TData>({
-    queryKey: variables === undefined ? ["settings"] : ["settings", variables],
-    queryFn: fetcher<SettingsQuery, SettingsQueryVariables>(
-      SettingsDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const SourcesDocument = `
+    `) as unknown as TypedDocumentString<SettingsQuery, SettingsQueryVariables>;
+export const SourcesDocument = new TypedDocumentString(`
     query sources($address: String!) {
   accounts(
     where: {OR: [{id_eq: $address}, {owner: {id_eq: $address}}]}
@@ -7959,59 +7719,26 @@ export const SourcesDocument = `
     ...AccountFragment
   }
 }
-    ${AccountFragmentFragmentDoc}`;
-
-export const useSourcesQuery = <TData = SourcesQuery, TError = unknown>(
-  variables: SourcesQueryVariables,
-  options?: Omit<UseQueryOptions<SourcesQuery, TError, TData>, "queryKey"> & {
-    queryKey?: UseQueryOptions<SourcesQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<SourcesQuery, TError, TData>({
-    queryKey: ["sources", variables],
-    queryFn: fetcher<SourcesQuery, SourcesQueryVariables>(
-      SourcesDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const VestingsByAccountDocument = `
+    fragment AccountFragment on Account {
+  id
+  type
+  balance
+}`) as unknown as TypedDocumentString<SourcesQuery, SourcesQueryVariables>;
+export const VestingsByAccountDocument = new TypedDocumentString(`
     query vestingsByAccount($address: String!) {
   accounts(where: {owner: {id_eq: $address}, type_eq: VESTING}) {
     ...AccountFragment
   }
 }
-    ${AccountFragmentFragmentDoc}`;
-
-export const useVestingsByAccountQuery = <
-  TData = VestingsByAccountQuery,
-  TError = unknown,
->(
-  variables: VestingsByAccountQueryVariables,
-  options?: Omit<
-    UseQueryOptions<VestingsByAccountQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      VestingsByAccountQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<VestingsByAccountQuery, TError, TData>({
-    queryKey: ["vestingsByAccount", variables],
-    queryFn: fetcher<VestingsByAccountQuery, VestingsByAccountQueryVariables>(
-      VestingsByAccountDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const TemporaryHoldingsByAccountDocument = `
+    fragment AccountFragment on Account {
+  id
+  type
+  balance
+}`) as unknown as TypedDocumentString<
+  VestingsByAccountQuery,
+  VestingsByAccountQueryVariables
+>;
+export const TemporaryHoldingsByAccountDocument = new TypedDocumentString(`
     query temporaryHoldingsByAccount($address: String!) {
   accounts(
     where: {OR: [{temporaryHolding: {beneficiary: {id_eq: $address}}}, {owner: {id_eq: $address}, type_eq: TEMPORARY_HOLDING}]}
@@ -8022,35 +7749,15 @@ export const TemporaryHoldingsByAccountDocument = `
     }
   }
 }
-    ${AccountFragmentFragmentDoc}`;
-
-export const useTemporaryHoldingsByAccountQuery = <
-  TData = TemporaryHoldingsByAccountQuery,
-  TError = unknown,
->(
-  variables: TemporaryHoldingsByAccountQueryVariables,
-  options?: Omit<
-    UseQueryOptions<TemporaryHoldingsByAccountQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      TemporaryHoldingsByAccountQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<TemporaryHoldingsByAccountQuery, TError, TData>({
-    queryKey: ["temporaryHoldingsByAccount", variables],
-    queryFn: fetcher<
-      TemporaryHoldingsByAccountQuery,
-      TemporaryHoldingsByAccountQueryVariables
-    >(TemporaryHoldingsByAccountDocument, variables),
-    ...options,
-  });
-};
-
-export const SourcesWithAssetsDocument = `
+    fragment AccountFragment on Account {
+  id
+  type
+  balance
+}`) as unknown as TypedDocumentString<
+  TemporaryHoldingsByAccountQuery,
+  TemporaryHoldingsByAccountQueryVariables
+>;
+export const SourcesWithAssetsDocument = new TypedDocumentString(`
     query sourcesWithAssets($address: String!) {
   accounts(
     where: {OR: [{id_eq: $address}, {owner: {id_eq: $address}}]}
@@ -8073,38 +7780,38 @@ export const SourcesWithAssetsDocument = `
     }
   }
 }
-    ${AccountFragmentFragmentDoc}
-${WorkerBaseFragmentFragmentDoc}
-${DelegationFragmentFragmentDoc}
-${GatewayStakeBaseFragmentFragmentDoc}`;
-
-export const useSourcesWithAssetsQuery = <
-  TData = SourcesWithAssetsQuery,
-  TError = unknown,
->(
-  variables: SourcesWithAssetsQueryVariables,
-  options?: Omit<
-    UseQueryOptions<SourcesWithAssetsQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      SourcesWithAssetsQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<SourcesWithAssetsQuery, TError, TData>({
-    queryKey: ["sourcesWithAssets", variables],
-    queryFn: fetcher<SourcesWithAssetsQuery, SourcesWithAssetsQueryVariables>(
-      SourcesWithAssetsDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const SourcesWithDelegationsDocument = `
+    fragment AccountFragment on Account {
+  id
+  type
+  balance
+}
+fragment DelegationFragment on Delegation {
+  deposit
+  claimableReward
+  claimedReward
+  locked
+  lockEnd
+  owner {
+    id
+    type
+    owner {
+      id
+    }
+  }
+}
+fragment GatewayStakeBaseFragment on GatewayStake {
+  id
+  amount
+}
+fragment WorkerBaseFragment on Worker {
+  id
+  name
+  peerId
+}`) as unknown as TypedDocumentString<
+  SourcesWithAssetsQuery,
+  SourcesWithAssetsQueryVariables
+>;
+export const SourcesWithDelegationsDocument = new TypedDocumentString(`
     query sourcesWithDelegations($address: String!, $peerId: String) {
   accounts(
     where: {OR: [{id_eq: $address}, {owner: {id_eq: $address}}]}
@@ -8121,99 +7828,108 @@ export const SourcesWithDelegationsDocument = `
     }
   }
 }
-    ${AccountFragmentFragmentDoc}
-${DelegationFragmentFragmentDoc}
-${WorkerBaseFragmentFragmentDoc}`;
-
-export const useSourcesWithDelegationsQuery = <
-  TData = SourcesWithDelegationsQuery,
-  TError = unknown,
->(
-  variables: SourcesWithDelegationsQueryVariables,
-  options?: Omit<
-    UseQueryOptions<SourcesWithDelegationsQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      SourcesWithDelegationsQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<SourcesWithDelegationsQuery, TError, TData>({
-    queryKey: ["sourcesWithDelegations", variables],
-    queryFn: fetcher<
-      SourcesWithDelegationsQuery,
-      SourcesWithDelegationsQueryVariables
-    >(SourcesWithDelegationsDocument, variables),
-    ...options,
-  });
-};
-
-export const VestingByAddressDocument = `
+    fragment AccountFragment on Account {
+  id
+  type
+  balance
+}
+fragment DelegationFragment on Delegation {
+  deposit
+  claimableReward
+  claimedReward
+  locked
+  lockEnd
+  owner {
+    id
+    type
+    owner {
+      id
+    }
+  }
+}
+fragment WorkerBaseFragment on Worker {
+  id
+  name
+  peerId
+}`) as unknown as TypedDocumentString<
+  SourcesWithDelegationsQuery,
+  SourcesWithDelegationsQueryVariables
+>;
+export const VestingByAddressDocument = new TypedDocumentString(`
     query vestingByAddress($address: String!) {
   accountById(id: $address) {
     ...VestingFragment
   }
 }
-    ${VestingFragmentFragmentDoc}`;
-
-export const useVestingByAddressQuery = <
-  TData = VestingByAddressQuery,
-  TError = unknown,
->(
-  variables: VestingByAddressQueryVariables,
-  options?: Omit<
-    UseQueryOptions<VestingByAddressQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      VestingByAddressQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<VestingByAddressQuery, TError, TData>({
-    queryKey: ["vestingByAddress", variables],
-    queryFn: fetcher<VestingByAddressQuery, VestingByAddressQueryVariables>(
-      VestingByAddressDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const AllWorkersDocument = `
+    fragment VestingFragment on Account {
+  id
+  type
+  balance
+  owner {
+    id
+  }
+}`) as unknown as TypedDocumentString<
+  VestingByAddressQuery,
+  VestingByAddressQueryVariables
+>;
+export const AllWorkersDocument = new TypedDocumentString(`
     query allWorkers {
   workers(where: {status_eq: ACTIVE}, orderBy: totalDelegation_ASC) {
     ...WorkerFragment
   }
 }
-    ${WorkerFragmentFragmentDoc}`;
-
-export const useAllWorkersQuery = <TData = AllWorkersQuery, TError = unknown>(
-  variables?: AllWorkersQueryVariables,
-  options?: Omit<
-    UseQueryOptions<AllWorkersQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<AllWorkersQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<AllWorkersQuery, TError, TData>({
-    queryKey:
-      variables === undefined ? ["allWorkers"] : ["allWorkers", variables],
-    queryFn: fetcher<AllWorkersQuery, AllWorkersQueryVariables>(
-      AllWorkersDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const WorkerByPeerIdDocument = `
+    fragment OwnerFragment on Account {
+  id
+  type
+}
+fragment WorkerBaseFragment on Worker {
+  id
+  name
+  peerId
+}
+fragment WorkerStatusFragment on Worker {
+  status
+  online
+  jailed
+  dialOk
+  jailReason
+  statusHistory(orderBy: id_DESC, limit: 1) {
+    blockNumber
+    pending
+    timestamp
+  }
+}
+fragment WorkerStatsFragment on Worker {
+  version
+  createdAt
+  uptime90Days
+  uptime24Hours
+  apr
+  stakerApr
+  totalDelegation
+  capedDelegation
+  delegationCount
+  locked
+  lockEnd
+}
+fragment WorkerOwnershipFragment on Worker {
+  owner {
+    ...OwnerFragment
+    owner {
+      id
+    }
+  }
+}
+fragment WorkerFragment on Worker {
+  ...WorkerBaseFragment
+  ...WorkerStatusFragment
+  ...WorkerStatsFragment
+  ...WorkerOwnershipFragment
+}`) as unknown as TypedDocumentString<
+  AllWorkersQuery,
+  AllWorkersQueryVariables
+>;
+export const WorkerByPeerIdDocument = new TypedDocumentString(`
     query workerByPeerId($peerId: String!, $address: String) {
   workers(where: {peerId_eq: $peerId}, limit: 1) {
     ...WorkerDetailedFragment
@@ -8224,67 +7940,113 @@ export const WorkerByPeerIdDocument = `
     }
   }
 }
-    ${WorkerDetailedFragmentFragmentDoc}
-${DelegationFragmentFragmentDoc}`;
-
-export const useWorkerByPeerIdQuery = <
-  TData = WorkerByPeerIdQuery,
-  TError = unknown,
->(
-  variables: WorkerByPeerIdQueryVariables,
-  options?: Omit<
-    UseQueryOptions<WorkerByPeerIdQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<WorkerByPeerIdQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<WorkerByPeerIdQuery, TError, TData>({
-    queryKey: ["workerByPeerId", variables],
-    queryFn: fetcher<WorkerByPeerIdQuery, WorkerByPeerIdQueryVariables>(
-      WorkerByPeerIdDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const WorkerDaysUptimeByIdDocument = `
+    fragment OwnerFragment on Account {
+  id
+  type
+}
+fragment DelegationFragment on Delegation {
+  deposit
+  claimableReward
+  claimedReward
+  locked
+  lockEnd
+  owner {
+    id
+    type
+    owner {
+      id
+    }
+  }
+}
+fragment WorkerBaseFragment on Worker {
+  id
+  name
+  peerId
+}
+fragment WorkerStatusFragment on Worker {
+  status
+  online
+  jailed
+  dialOk
+  jailReason
+  statusHistory(orderBy: id_DESC, limit: 1) {
+    blockNumber
+    pending
+    timestamp
+  }
+}
+fragment WorkerStatsFragment on Worker {
+  version
+  createdAt
+  uptime90Days
+  uptime24Hours
+  apr
+  stakerApr
+  totalDelegation
+  capedDelegation
+  delegationCount
+  locked
+  lockEnd
+}
+fragment WorkerMetricsFragment on Worker {
+  queries24Hours
+  queries90Days
+  scannedData24Hours
+  scannedData90Days
+  servedData24Hours
+  servedData90Days
+  storedData
+}
+fragment WorkerRewardsFragment on Worker {
+  bond
+  claimableReward
+  claimedReward
+  totalDelegationRewards
+}
+fragment WorkerProfileFragment on Worker {
+  website
+  email
+  description
+}
+fragment WorkerOwnershipFragment on Worker {
+  owner {
+    ...OwnerFragment
+    owner {
+      id
+    }
+  }
+}
+fragment WorkerFragment on Worker {
+  ...WorkerBaseFragment
+  ...WorkerStatusFragment
+  ...WorkerStatsFragment
+  ...WorkerOwnershipFragment
+}
+fragment WorkerDetailedFragment on Worker {
+  ...WorkerFragment
+  ...WorkerRewardsFragment
+  ...WorkerMetricsFragment
+  ...WorkerProfileFragment
+  dayUptimes {
+    timestamp
+    uptime
+  }
+}`) as unknown as TypedDocumentString<
+  WorkerByPeerIdQuery,
+  WorkerByPeerIdQueryVariables
+>;
+export const WorkerDaysUptimeByIdDocument = new TypedDocumentString(`
     query workerDaysUptimeById($id: String!, $from: DateTime!) {
   workerSnapshotsByDay(workerId: $id, from: $from) {
     timestamp
     uptime
   }
 }
-    `;
-
-export const useWorkerDaysUptimeByIdQuery = <
-  TData = WorkerDaysUptimeByIdQuery,
-  TError = unknown,
->(
-  variables: WorkerDaysUptimeByIdQueryVariables,
-  options?: Omit<
-    UseQueryOptions<WorkerDaysUptimeByIdQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      WorkerDaysUptimeByIdQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<WorkerDaysUptimeByIdQuery, TError, TData>({
-    queryKey: ["workerDaysUptimeById", variables],
-    queryFn: fetcher<
-      WorkerDaysUptimeByIdQuery,
-      WorkerDaysUptimeByIdQueryVariables
-    >(WorkerDaysUptimeByIdDocument, variables),
-    ...options,
-  });
-};
-
-export const MyWorkersDocument = `
+    `) as unknown as TypedDocumentString<
+  WorkerDaysUptimeByIdQuery,
+  WorkerDaysUptimeByIdQueryVariables
+>;
+export const MyWorkersDocument = new TypedDocumentString(`
     query myWorkers($address: String!) {
   workers(
     orderBy: id_ASC
@@ -8294,26 +8056,61 @@ export const MyWorkersDocument = `
     ...WorkerRewardsFragment
   }
 }
-    ${WorkerFragmentFragmentDoc}
-${WorkerRewardsFragmentFragmentDoc}`;
-
-export const useMyWorkersQuery = <TData = MyWorkersQuery, TError = unknown>(
-  variables: MyWorkersQueryVariables,
-  options?: Omit<UseQueryOptions<MyWorkersQuery, TError, TData>, "queryKey"> & {
-    queryKey?: UseQueryOptions<MyWorkersQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<MyWorkersQuery, TError, TData>({
-    queryKey: ["myWorkers", variables],
-    queryFn: fetcher<MyWorkersQuery, MyWorkersQueryVariables>(
-      MyWorkersDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const MyWorkersCountDocument = `
+    fragment OwnerFragment on Account {
+  id
+  type
+}
+fragment WorkerBaseFragment on Worker {
+  id
+  name
+  peerId
+}
+fragment WorkerStatusFragment on Worker {
+  status
+  online
+  jailed
+  dialOk
+  jailReason
+  statusHistory(orderBy: id_DESC, limit: 1) {
+    blockNumber
+    pending
+    timestamp
+  }
+}
+fragment WorkerStatsFragment on Worker {
+  version
+  createdAt
+  uptime90Days
+  uptime24Hours
+  apr
+  stakerApr
+  totalDelegation
+  capedDelegation
+  delegationCount
+  locked
+  lockEnd
+}
+fragment WorkerRewardsFragment on Worker {
+  bond
+  claimableReward
+  claimedReward
+  totalDelegationRewards
+}
+fragment WorkerOwnershipFragment on Worker {
+  owner {
+    ...OwnerFragment
+    owner {
+      id
+    }
+  }
+}
+fragment WorkerFragment on Worker {
+  ...WorkerBaseFragment
+  ...WorkerStatusFragment
+  ...WorkerStatsFragment
+  ...WorkerOwnershipFragment
+}`) as unknown as TypedDocumentString<MyWorkersQuery, MyWorkersQueryVariables>;
+export const MyWorkersCountDocument = new TypedDocumentString(`
     query myWorkersCount($address: String!) {
   workersConnection(
     orderBy: id_ASC
@@ -8322,31 +8119,11 @@ export const MyWorkersCountDocument = `
     totalCount
   }
 }
-    `;
-
-export const useMyWorkersCountQuery = <
-  TData = MyWorkersCountQuery,
-  TError = unknown,
->(
-  variables: MyWorkersCountQueryVariables,
-  options?: Omit<
-    UseQueryOptions<MyWorkersCountQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<MyWorkersCountQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<MyWorkersCountQuery, TError, TData>({
-    queryKey: ["myWorkersCount", variables],
-    queryFn: fetcher<MyWorkersCountQuery, MyWorkersCountQueryVariables>(
-      MyWorkersCountDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const WorkerDelegationInfoDocument = `
+    `) as unknown as TypedDocumentString<
+  MyWorkersCountQuery,
+  MyWorkersCountQueryVariables
+>;
+export const WorkerDelegationInfoDocument = new TypedDocumentString(`
     query workerDelegationInfo($workerId: String!) {
   workerById(id: $workerId) {
     bond
@@ -8361,62 +8138,32 @@ export const WorkerDelegationInfoDocument = `
     baseApr
   }
 }
-    `;
-
-export const useWorkerDelegationInfoQuery = <
-  TData = WorkerDelegationInfoQuery,
-  TError = unknown,
->(
-  variables: WorkerDelegationInfoQueryVariables,
-  options?: Omit<
-    UseQueryOptions<WorkerDelegationInfoQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      WorkerDelegationInfoQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<WorkerDelegationInfoQuery, TError, TData>({
-    queryKey: ["workerDelegationInfo", variables],
-    queryFn: fetcher<
-      WorkerDelegationInfoQuery,
-      WorkerDelegationInfoQueryVariables
-    >(WorkerDelegationInfoDocument, variables),
-    ...options,
-  });
-};
-
-export const WorkerOwnerDocument = `
+    `) as unknown as TypedDocumentString<
+  WorkerDelegationInfoQuery,
+  WorkerDelegationInfoQueryVariables
+>;
+export const WorkerOwnerDocument = new TypedDocumentString(`
     query workerOwner($workerId: String!) {
   workerById(id: $workerId) {
     ...WorkerOwnershipFragment
   }
 }
-    ${WorkerOwnershipFragmentFragmentDoc}`;
-
-export const useWorkerOwnerQuery = <TData = WorkerOwnerQuery, TError = unknown>(
-  variables: WorkerOwnerQueryVariables,
-  options?: Omit<
-    UseQueryOptions<WorkerOwnerQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<WorkerOwnerQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<WorkerOwnerQuery, TError, TData>({
-    queryKey: ["workerOwner", variables],
-    queryFn: fetcher<WorkerOwnerQuery, WorkerOwnerQueryVariables>(
-      WorkerOwnerDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const MyDelegationsDocument = `
+    fragment OwnerFragment on Account {
+  id
+  type
+}
+fragment WorkerOwnershipFragment on Worker {
+  owner {
+    ...OwnerFragment
+    owner {
+      id
+    }
+  }
+}`) as unknown as TypedDocumentString<
+  WorkerOwnerQuery,
+  WorkerOwnerQueryVariables
+>;
+export const MyDelegationsDocument = new TypedDocumentString(`
     query myDelegations($address: String!, $workerId: String) {
   workers(
     orderBy: id_ASC
@@ -8430,32 +8177,72 @@ export const MyDelegationsDocument = `
     }
   }
 }
-    ${WorkerFragmentFragmentDoc}
-${DelegationFragmentFragmentDoc}`;
-
-export const useMyDelegationsQuery = <
-  TData = MyDelegationsQuery,
-  TError = unknown,
->(
-  variables: MyDelegationsQueryVariables,
-  options?: Omit<
-    UseQueryOptions<MyDelegationsQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<MyDelegationsQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<MyDelegationsQuery, TError, TData>({
-    queryKey: ["myDelegations", variables],
-    queryFn: fetcher<MyDelegationsQuery, MyDelegationsQueryVariables>(
-      MyDelegationsDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const MyClaimsDocument = `
+    fragment OwnerFragment on Account {
+  id
+  type
+}
+fragment DelegationFragment on Delegation {
+  deposit
+  claimableReward
+  claimedReward
+  locked
+  lockEnd
+  owner {
+    id
+    type
+    owner {
+      id
+    }
+  }
+}
+fragment WorkerBaseFragment on Worker {
+  id
+  name
+  peerId
+}
+fragment WorkerStatusFragment on Worker {
+  status
+  online
+  jailed
+  dialOk
+  jailReason
+  statusHistory(orderBy: id_DESC, limit: 1) {
+    blockNumber
+    pending
+    timestamp
+  }
+}
+fragment WorkerStatsFragment on Worker {
+  version
+  createdAt
+  uptime90Days
+  uptime24Hours
+  apr
+  stakerApr
+  totalDelegation
+  capedDelegation
+  delegationCount
+  locked
+  lockEnd
+}
+fragment WorkerOwnershipFragment on Worker {
+  owner {
+    ...OwnerFragment
+    owner {
+      id
+    }
+  }
+}
+fragment WorkerFragment on Worker {
+  ...WorkerBaseFragment
+  ...WorkerStatusFragment
+  ...WorkerStatsFragment
+  ...WorkerOwnershipFragment
+}`) as unknown as TypedDocumentString<
+  MyDelegationsQuery,
+  MyDelegationsQueryVariables
+>;
+export const MyClaimsDocument = new TypedDocumentString(`
     query myClaims($address: String!) {
   delegations(
     where: {OR: [{owner: {id_eq: $address}, claimableReward_gt: 0}, {owner: {owner: {id_eq: $address}}, claimableReward_gt: 0}]}
@@ -8479,83 +8266,68 @@ export const MyClaimsDocument = `
     }
   }
 }
-    ${WorkerBaseFragmentFragmentDoc}
-${OwnerFragmentFragmentDoc}`;
-
-export const useMyClaimsQuery = <TData = MyClaimsQuery, TError = unknown>(
-  variables: MyClaimsQueryVariables,
-  options?: Omit<UseQueryOptions<MyClaimsQuery, TError, TData>, "queryKey"> & {
-    queryKey?: UseQueryOptions<MyClaimsQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<MyClaimsQuery, TError, TData>({
-    queryKey: ["myClaims", variables],
-    queryFn: fetcher<MyClaimsQuery, MyClaimsQueryVariables>(
-      MyClaimsDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const GatewayByPeerIdDocument = `
+    fragment OwnerFragment on Account {
+  id
+  type
+}
+fragment WorkerBaseFragment on Worker {
+  id
+  name
+  peerId
+}`) as unknown as TypedDocumentString<MyClaimsQuery, MyClaimsQueryVariables>;
+export const GatewayByPeerIdDocument = new TypedDocumentString(`
     query gatewayByPeerId($peerId: String!) {
   gatewayById(id: $peerId) {
     ...GatewayFragment
   }
 }
-    ${GatewayFragmentFragmentDoc}`;
-
-export const useGatewayByPeerIdQuery = <
-  TData = GatewayByPeerIdQuery,
-  TError = unknown,
->(
-  variables: GatewayByPeerIdQueryVariables,
-  options?: Omit<
-    UseQueryOptions<GatewayByPeerIdQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<GatewayByPeerIdQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<GatewayByPeerIdQuery, TError, TData>({
-    queryKey: ["gatewayByPeerId", variables],
-    queryFn: fetcher<GatewayByPeerIdQuery, GatewayByPeerIdQueryVariables>(
-      GatewayByPeerIdDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const MyGatewaysDocument = `
+    fragment OwnerFragment on Account {
+  id
+  type
+}
+fragment GatewayFragment on Gateway {
+  id
+  name
+  status
+  description
+  email
+  endpointUrl
+  website
+  createdAt
+  owner {
+    ...OwnerFragment
+  }
+}`) as unknown as TypedDocumentString<
+  GatewayByPeerIdQuery,
+  GatewayByPeerIdQueryVariables
+>;
+export const MyGatewaysDocument = new TypedDocumentString(`
     query myGateways($address: String!) {
   gateways(where: {owner: {id_eq: $address}, status_not_eq: DEREGISTERED}) {
     ...GatewayFragment
   }
 }
-    ${GatewayFragmentFragmentDoc}`;
-
-export const useMyGatewaysQuery = <TData = MyGatewaysQuery, TError = unknown>(
-  variables: MyGatewaysQueryVariables,
-  options?: Omit<
-    UseQueryOptions<MyGatewaysQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<MyGatewaysQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<MyGatewaysQuery, TError, TData>({
-    queryKey: ["myGateways", variables],
-    queryFn: fetcher<MyGatewaysQuery, MyGatewaysQueryVariables>(
-      MyGatewaysDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const MyGatewayStakesDocument = `
+    fragment OwnerFragment on Account {
+  id
+  type
+}
+fragment GatewayFragment on Gateway {
+  id
+  name
+  status
+  description
+  email
+  endpointUrl
+  website
+  createdAt
+  owner {
+    ...OwnerFragment
+  }
+}`) as unknown as TypedDocumentString<
+  MyGatewaysQuery,
+  MyGatewaysQueryVariables
+>;
+export const MyGatewayStakesDocument = new TypedDocumentString(`
     query myGatewayStakes($address: String!) {
   gatewayStakes(
     where: {OR: [{owner: {id_eq: $address}, amount_gt: "0"}, {owner: {owner: {id_eq: $address}}, amount_gt: "0"}]}
@@ -8568,31 +8340,30 @@ export const MyGatewayStakesDocument = `
     lastBlockTimestampL1
   }
 }
-    ${GatewayStakeFragmentFragmentDoc}`;
-
-export const useMyGatewayStakesQuery = <
-  TData = MyGatewayStakesQuery,
-  TError = unknown,
->(
-  variables: MyGatewayStakesQueryVariables,
-  options?: Omit<
-    UseQueryOptions<MyGatewayStakesQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<MyGatewayStakesQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<MyGatewayStakesQuery, TError, TData>({
-    queryKey: ["myGatewayStakes", variables],
-    queryFn: fetcher<MyGatewayStakesQuery, MyGatewayStakesQueryVariables>(
-      MyGatewayStakesDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const NetworkSummaryDocument = `
+    fragment OwnerFragment on Account {
+  id
+  type
+}
+fragment GatewayStakeBaseFragment on GatewayStake {
+  id
+  amount
+}
+fragment GatewayStakeFragment on GatewayStake {
+  ...GatewayStakeBaseFragment
+  owner {
+    ...OwnerFragment
+  }
+  autoExtension
+  computationUnits
+  computationUnitsPending
+  locked
+  lockStart
+  lockEnd
+}`) as unknown as TypedDocumentString<
+  MyGatewayStakesQuery,
+  MyGatewayStakesQueryVariables
+>;
+export const NetworkSummaryDocument = new TypedDocumentString(`
     query networkSummary {
   networkStats {
     onlineWorkersCount
@@ -8614,34 +8385,11 @@ export const NetworkSummaryDocument = `
     }
   }
 }
-    `;
-
-export const useNetworkSummaryQuery = <
-  TData = NetworkSummaryQuery,
-  TError = unknown,
->(
-  variables?: NetworkSummaryQueryVariables,
-  options?: Omit<
-    UseQueryOptions<NetworkSummaryQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<NetworkSummaryQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<NetworkSummaryQuery, TError, TData>({
-    queryKey:
-      variables === undefined
-        ? ["networkSummary"]
-        : ["networkSummary", variables],
-    queryFn: fetcher<NetworkSummaryQuery, NetworkSummaryQueryVariables>(
-      NetworkSummaryDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const CurrentEpochDocument = `
+    `) as unknown as TypedDocumentString<
+  NetworkSummaryQuery,
+  NetworkSummaryQueryVariables
+>;
+export const CurrentEpochDocument = new TypedDocumentString(`
     query currentEpoch {
   networkStats {
     blockTimeL1
@@ -8654,32 +8402,11 @@ export const CurrentEpochDocument = `
     end
   }
 }
-    `;
-
-export const useCurrentEpochQuery = <
-  TData = CurrentEpochQuery,
-  TError = unknown,
->(
-  variables?: CurrentEpochQueryVariables,
-  options?: Omit<
-    UseQueryOptions<CurrentEpochQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<CurrentEpochQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<CurrentEpochQuery, TError, TData>({
-    queryKey:
-      variables === undefined ? ["currentEpoch"] : ["currentEpoch", variables],
-    queryFn: fetcher<CurrentEpochQuery, CurrentEpochQueryVariables>(
-      CurrentEpochDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const HoldersCountTimeseriesDocument = `
+    `) as unknown as TypedDocumentString<
+  CurrentEpochQuery,
+  CurrentEpochQueryVariables
+>;
+export const HoldersCountTimeseriesDocument = new TypedDocumentString(`
     query HoldersCountTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   holdersCountTimeseries(from: $from, to: $to, step: $step) {
     data {
@@ -8691,35 +8418,11 @@ export const HoldersCountTimeseriesDocument = `
     to
   }
 }
-    `;
-
-export const useHoldersCountTimeseriesQuery = <
-  TData = HoldersCountTimeseriesQuery,
-  TError = unknown,
->(
-  variables: HoldersCountTimeseriesQueryVariables,
-  options?: Omit<
-    UseQueryOptions<HoldersCountTimeseriesQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      HoldersCountTimeseriesQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<HoldersCountTimeseriesQuery, TError, TData>({
-    queryKey: ["HoldersCountTimeseries", variables],
-    queryFn: fetcher<
-      HoldersCountTimeseriesQuery,
-      HoldersCountTimeseriesQueryVariables
-    >(HoldersCountTimeseriesDocument, variables),
-    ...options,
-  });
-};
-
-export const LockedValueTimeseriesDocument = `
+    `) as unknown as TypedDocumentString<
+  HoldersCountTimeseriesQuery,
+  HoldersCountTimeseriesQueryVariables
+>;
+export const LockedValueTimeseriesDocument = new TypedDocumentString(`
     query LockedValueTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   lockedValueTimeseries(from: $from, to: $to, step: $step) {
     data {
@@ -8731,35 +8434,11 @@ export const LockedValueTimeseriesDocument = `
     to
   }
 }
-    `;
-
-export const useLockedValueTimeseriesQuery = <
-  TData = LockedValueTimeseriesQuery,
-  TError = unknown,
->(
-  variables: LockedValueTimeseriesQueryVariables,
-  options?: Omit<
-    UseQueryOptions<LockedValueTimeseriesQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      LockedValueTimeseriesQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<LockedValueTimeseriesQuery, TError, TData>({
-    queryKey: ["LockedValueTimeseries", variables],
-    queryFn: fetcher<
-      LockedValueTimeseriesQuery,
-      LockedValueTimeseriesQueryVariables
-    >(LockedValueTimeseriesDocument, variables),
-    ...options,
-  });
-};
-
-export const ActiveWorkersTimeseriesDocument = `
+    `) as unknown as TypedDocumentString<
+  LockedValueTimeseriesQuery,
+  LockedValueTimeseriesQueryVariables
+>;
+export const ActiveWorkersTimeseriesDocument = new TypedDocumentString(`
     query ActiveWorkersTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   activeWorkersTimeseries(from: $from, to: $to, step: $step) {
     data {
@@ -8771,35 +8450,11 @@ export const ActiveWorkersTimeseriesDocument = `
     to
   }
 }
-    `;
-
-export const useActiveWorkersTimeseriesQuery = <
-  TData = ActiveWorkersTimeseriesQuery,
-  TError = unknown,
->(
-  variables: ActiveWorkersTimeseriesQueryVariables,
-  options?: Omit<
-    UseQueryOptions<ActiveWorkersTimeseriesQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      ActiveWorkersTimeseriesQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<ActiveWorkersTimeseriesQuery, TError, TData>({
-    queryKey: ["ActiveWorkersTimeseries", variables],
-    queryFn: fetcher<
-      ActiveWorkersTimeseriesQuery,
-      ActiveWorkersTimeseriesQueryVariables
-    >(ActiveWorkersTimeseriesDocument, variables),
-    ...options,
-  });
-};
-
-export const UniqueOperatorsTimeseriesDocument = `
+    `) as unknown as TypedDocumentString<
+  ActiveWorkersTimeseriesQuery,
+  ActiveWorkersTimeseriesQueryVariables
+>;
+export const UniqueOperatorsTimeseriesDocument = new TypedDocumentString(`
     query UniqueOperatorsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   uniqueOperatorsTimeseries(from: $from, to: $to, step: $step) {
     data {
@@ -8811,35 +8466,11 @@ export const UniqueOperatorsTimeseriesDocument = `
     to
   }
 }
-    `;
-
-export const useUniqueOperatorsTimeseriesQuery = <
-  TData = UniqueOperatorsTimeseriesQuery,
-  TError = unknown,
->(
-  variables: UniqueOperatorsTimeseriesQueryVariables,
-  options?: Omit<
-    UseQueryOptions<UniqueOperatorsTimeseriesQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      UniqueOperatorsTimeseriesQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<UniqueOperatorsTimeseriesQuery, TError, TData>({
-    queryKey: ["UniqueOperatorsTimeseries", variables],
-    queryFn: fetcher<
-      UniqueOperatorsTimeseriesQuery,
-      UniqueOperatorsTimeseriesQueryVariables
-    >(UniqueOperatorsTimeseriesDocument, variables),
-    ...options,
-  });
-};
-
-export const DelegationsTimeseriesDocument = `
+    `) as unknown as TypedDocumentString<
+  UniqueOperatorsTimeseriesQuery,
+  UniqueOperatorsTimeseriesQueryVariables
+>;
+export const DelegationsTimeseriesDocument = new TypedDocumentString(`
     query DelegationsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   delegationsTimeseries(from: $from, to: $to, step: $step) {
     data {
@@ -8851,35 +8482,11 @@ export const DelegationsTimeseriesDocument = `
     to
   }
 }
-    `;
-
-export const useDelegationsTimeseriesQuery = <
-  TData = DelegationsTimeseriesQuery,
-  TError = unknown,
->(
-  variables: DelegationsTimeseriesQueryVariables,
-  options?: Omit<
-    UseQueryOptions<DelegationsTimeseriesQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      DelegationsTimeseriesQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<DelegationsTimeseriesQuery, TError, TData>({
-    queryKey: ["DelegationsTimeseries", variables],
-    queryFn: fetcher<
-      DelegationsTimeseriesQuery,
-      DelegationsTimeseriesQueryVariables
-    >(DelegationsTimeseriesDocument, variables),
-    ...options,
-  });
-};
-
-export const DelegatorsTimeseriesDocument = `
+    `) as unknown as TypedDocumentString<
+  DelegationsTimeseriesQuery,
+  DelegationsTimeseriesQueryVariables
+>;
+export const DelegatorsTimeseriesDocument = new TypedDocumentString(`
     query DelegatorsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   delegatorsTimeseries(from: $from, to: $to, step: $step) {
     data {
@@ -8891,35 +8498,11 @@ export const DelegatorsTimeseriesDocument = `
     to
   }
 }
-    `;
-
-export const useDelegatorsTimeseriesQuery = <
-  TData = DelegatorsTimeseriesQuery,
-  TError = unknown,
->(
-  variables: DelegatorsTimeseriesQueryVariables,
-  options?: Omit<
-    UseQueryOptions<DelegatorsTimeseriesQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      DelegatorsTimeseriesQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<DelegatorsTimeseriesQuery, TError, TData>({
-    queryKey: ["DelegatorsTimeseries", variables],
-    queryFn: fetcher<
-      DelegatorsTimeseriesQuery,
-      DelegatorsTimeseriesQueryVariables
-    >(DelegatorsTimeseriesDocument, variables),
-    ...options,
-  });
-};
-
-export const TransfersByTypeTimeseriesDocument = `
+    `) as unknown as TypedDocumentString<
+  DelegatorsTimeseriesQuery,
+  DelegatorsTimeseriesQueryVariables
+>;
+export const TransfersByTypeTimeseriesDocument = new TypedDocumentString(`
     query TransfersByTypeTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   transfersByTypeTimeseries(from: $from, to: $to, step: $step) {
     data {
@@ -8937,35 +8520,11 @@ export const TransfersByTypeTimeseriesDocument = `
     to
   }
 }
-    `;
-
-export const useTransfersByTypeTimeseriesQuery = <
-  TData = TransfersByTypeTimeseriesQuery,
-  TError = unknown,
->(
-  variables: TransfersByTypeTimeseriesQueryVariables,
-  options?: Omit<
-    UseQueryOptions<TransfersByTypeTimeseriesQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      TransfersByTypeTimeseriesQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<TransfersByTypeTimeseriesQuery, TError, TData>({
-    queryKey: ["TransfersByTypeTimeseries", variables],
-    queryFn: fetcher<
-      TransfersByTypeTimeseriesQuery,
-      TransfersByTypeTimeseriesQueryVariables
-    >(TransfersByTypeTimeseriesDocument, variables),
-    ...options,
-  });
-};
-
-export const UniqueAccountsTimeseriesDocument = `
+    `) as unknown as TypedDocumentString<
+  TransfersByTypeTimeseriesQuery,
+  TransfersByTypeTimeseriesQueryVariables
+>;
+export const UniqueAccountsTimeseriesDocument = new TypedDocumentString(`
     query UniqueAccountsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   uniqueAccountsTimeseries(from: $from, to: $to, step: $step) {
     data {
@@ -8977,35 +8536,11 @@ export const UniqueAccountsTimeseriesDocument = `
     to
   }
 }
-    `;
-
-export const useUniqueAccountsTimeseriesQuery = <
-  TData = UniqueAccountsTimeseriesQuery,
-  TError = unknown,
->(
-  variables: UniqueAccountsTimeseriesQueryVariables,
-  options?: Omit<
-    UseQueryOptions<UniqueAccountsTimeseriesQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      UniqueAccountsTimeseriesQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<UniqueAccountsTimeseriesQuery, TError, TData>({
-    queryKey: ["UniqueAccountsTimeseries", variables],
-    queryFn: fetcher<
-      UniqueAccountsTimeseriesQuery,
-      UniqueAccountsTimeseriesQueryVariables
-    >(UniqueAccountsTimeseriesDocument, variables),
-    ...options,
-  });
-};
-
-export const QueriesCountTimeseriesDocument = `
+    `) as unknown as TypedDocumentString<
+  UniqueAccountsTimeseriesQuery,
+  UniqueAccountsTimeseriesQueryVariables
+>;
+export const QueriesCountTimeseriesDocument = new TypedDocumentString(`
     query QueriesCountTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
   queriesCountTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
     data {
@@ -9017,35 +8552,11 @@ export const QueriesCountTimeseriesDocument = `
     to
   }
 }
-    `;
-
-export const useQueriesCountTimeseriesQuery = <
-  TData = QueriesCountTimeseriesQuery,
-  TError = unknown,
->(
-  variables: QueriesCountTimeseriesQueryVariables,
-  options?: Omit<
-    UseQueryOptions<QueriesCountTimeseriesQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      QueriesCountTimeseriesQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<QueriesCountTimeseriesQuery, TError, TData>({
-    queryKey: ["QueriesCountTimeseries", variables],
-    queryFn: fetcher<
-      QueriesCountTimeseriesQuery,
-      QueriesCountTimeseriesQueryVariables
-    >(QueriesCountTimeseriesDocument, variables),
-    ...options,
-  });
-};
-
-export const ServedDataTimeseriesDocument = `
+    `) as unknown as TypedDocumentString<
+  QueriesCountTimeseriesQuery,
+  QueriesCountTimeseriesQueryVariables
+>;
+export const ServedDataTimeseriesDocument = new TypedDocumentString(`
     query ServedDataTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
   servedDataTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
     data {
@@ -9057,35 +8568,11 @@ export const ServedDataTimeseriesDocument = `
     to
   }
 }
-    `;
-
-export const useServedDataTimeseriesQuery = <
-  TData = ServedDataTimeseriesQuery,
-  TError = unknown,
->(
-  variables: ServedDataTimeseriesQueryVariables,
-  options?: Omit<
-    UseQueryOptions<ServedDataTimeseriesQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      ServedDataTimeseriesQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<ServedDataTimeseriesQuery, TError, TData>({
-    queryKey: ["ServedDataTimeseries", variables],
-    queryFn: fetcher<
-      ServedDataTimeseriesQuery,
-      ServedDataTimeseriesQueryVariables
-    >(ServedDataTimeseriesDocument, variables),
-    ...options,
-  });
-};
-
-export const StoredDataTimeseriesDocument = `
+    `) as unknown as TypedDocumentString<
+  ServedDataTimeseriesQuery,
+  ServedDataTimeseriesQueryVariables
+>;
+export const StoredDataTimeseriesDocument = new TypedDocumentString(`
     query StoredDataTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
   storedDataTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
     data {
@@ -9097,35 +8584,11 @@ export const StoredDataTimeseriesDocument = `
     to
   }
 }
-    `;
-
-export const useStoredDataTimeseriesQuery = <
-  TData = StoredDataTimeseriesQuery,
-  TError = unknown,
->(
-  variables: StoredDataTimeseriesQueryVariables,
-  options?: Omit<
-    UseQueryOptions<StoredDataTimeseriesQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      StoredDataTimeseriesQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<StoredDataTimeseriesQuery, TError, TData>({
-    queryKey: ["StoredDataTimeseries", variables],
-    queryFn: fetcher<
-      StoredDataTimeseriesQuery,
-      StoredDataTimeseriesQueryVariables
-    >(StoredDataTimeseriesDocument, variables),
-    ...options,
-  });
-};
-
-export const RewardTimeseriesDocument = `
+    `) as unknown as TypedDocumentString<
+  StoredDataTimeseriesQuery,
+  StoredDataTimeseriesQueryVariables
+>;
+export const RewardTimeseriesDocument = new TypedDocumentString(`
     query RewardTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
   rewardTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
     data {
@@ -9140,35 +8603,11 @@ export const RewardTimeseriesDocument = `
     to
   }
 }
-    `;
-
-export const useRewardTimeseriesQuery = <
-  TData = RewardTimeseriesQuery,
-  TError = unknown,
->(
-  variables: RewardTimeseriesQueryVariables,
-  options?: Omit<
-    UseQueryOptions<RewardTimeseriesQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      RewardTimeseriesQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<RewardTimeseriesQuery, TError, TData>({
-    queryKey: ["RewardTimeseries", variables],
-    queryFn: fetcher<RewardTimeseriesQuery, RewardTimeseriesQueryVariables>(
-      RewardTimeseriesDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const AprTimeseriesDocument = `
+    `) as unknown as TypedDocumentString<
+  RewardTimeseriesQuery,
+  RewardTimeseriesQueryVariables
+>;
+export const AprTimeseriesDocument = new TypedDocumentString(`
     query AprTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
   aprTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
     data {
@@ -9183,31 +8622,11 @@ export const AprTimeseriesDocument = `
     to
   }
 }
-    `;
-
-export const useAprTimeseriesQuery = <
-  TData = AprTimeseriesQuery,
-  TError = unknown,
->(
-  variables: AprTimeseriesQueryVariables,
-  options?: Omit<
-    UseQueryOptions<AprTimeseriesQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<AprTimeseriesQuery, TError, TData>["queryKey"];
-  },
-) => {
-  return useQuery<AprTimeseriesQuery, TError, TData>({
-    queryKey: ["AprTimeseries", variables],
-    queryFn: fetcher<AprTimeseriesQuery, AprTimeseriesQueryVariables>(
-      AprTimeseriesDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
-
-export const UptimeTimeseriesDocument = `
+    `) as unknown as TypedDocumentString<
+  AprTimeseriesQuery,
+  AprTimeseriesQueryVariables
+>;
+export const UptimeTimeseriesDocument = new TypedDocumentString(`
     query UptimeTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
   uptimeTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
     data {
@@ -9219,30 +8638,7 @@ export const UptimeTimeseriesDocument = `
     to
   }
 }
-    `;
-
-export const useUptimeTimeseriesQuery = <
-  TData = UptimeTimeseriesQuery,
-  TError = unknown,
->(
-  variables: UptimeTimeseriesQueryVariables,
-  options?: Omit<
-    UseQueryOptions<UptimeTimeseriesQuery, TError, TData>,
-    "queryKey"
-  > & {
-    queryKey?: UseQueryOptions<
-      UptimeTimeseriesQuery,
-      TError,
-      TData
-    >["queryKey"];
-  },
-) => {
-  return useQuery<UptimeTimeseriesQuery, TError, TData>({
-    queryKey: ["UptimeTimeseries", variables],
-    queryFn: fetcher<UptimeTimeseriesQuery, UptimeTimeseriesQueryVariables>(
-      UptimeTimeseriesDocument,
-      variables,
-    ),
-    ...options,
-  });
-};
+    `) as unknown as TypedDocumentString<
+  UptimeTimeseriesQuery,
+  UptimeTimeseriesQueryVariables
+>;

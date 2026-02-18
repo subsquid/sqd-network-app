@@ -5,7 +5,9 @@ import { CircleRounded } from '@mui/icons-material';
 import { Box, Chip as MaterialChip, Tooltip, chipClasses, styled } from '@mui/material';
 import capitalize from 'lodash-es/capitalize';
 
-import { WorkerStatus as Status, useCurrentEpoch } from '@api/subsquid-network-squid';
+import { useQuery } from '@tanstack/react-query';
+import { WorkerStatus as Status } from '@api/subsquid-network-squid';
+import { trpc } from '@api/trpc';
 import { useCountdown } from '@hooks/useCountdown';
 
 export type WorkerStatusLabel =
@@ -18,9 +20,9 @@ export type WorkerStatusLabel =
 
 export function getWorkerStatus(worker?: {
   status?: string;
-  jailReason?: string;
-  jailed?: boolean;
-  online?: boolean;
+  jailReason?: string | null;
+  jailed?: boolean | null;
+  online?: boolean | null;
 }): {
   label: WorkerStatusLabel | string;
   color: 'error' | 'warning' | 'success' | 'primary';
@@ -75,9 +77,9 @@ export function WorkerStatusChip({
   status?: WorkerStatusLabel | string;
   worker?: {
     status?: string;
-    jailReason?: string;
-    jailed?: boolean;
-    online?: boolean;
+    jailReason?: string | null;
+    jailed?: boolean | null;
+    online?: boolean | null;
     statusHistory?: {
       blockNumber: number;
       pending: boolean;
@@ -118,7 +120,9 @@ export function WorkerStatusChip({
     };
   }, [status, worker]);
 
-  const { data: currentEpoch } = useCurrentEpoch();
+  const { data: currentEpoch } = useQuery(
+    trpc.network.currentEpoch.queryOptions(undefined, { refetchInterval: 12_000 }),
+  );
   const applyTimestamp = useMemo(() => {
     if (!currentEpoch || !worker?.statusHistory?.length) return;
 

@@ -6,8 +6,6 @@ import { defineConfig } from 'vite';
 import { createHtmlPlugin } from 'vite-plugin-html';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
-const require = createRequire(import.meta.url);
-
 import 'dotenv/config';
 
 const encode = JSON.stringify;
@@ -47,6 +45,16 @@ export default defineConfig({
     'process.env.MAINNET_POOL_SQUID_API_URL': encode(
       process.env.MAINNET_POOL_SQUID_API_URL || 'http://localhost:4350',
     ),
+  },
+
+  server: {
+    proxy: {
+      '/api/trpc': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/api\/trpc/, ''),
+      },
+    },
   },
 
   optimizeDeps: {

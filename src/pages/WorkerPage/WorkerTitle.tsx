@@ -1,6 +1,6 @@
 import { Stack, Typography, useTheme } from '@mui/material';
 
-import { Account, type Worker as ApiWorker } from '@api/subsquid-network-squid';
+import type { WorkerDetailed } from '@api/subsquid-network-squid';
 import { CopyToClipboard } from '@components/CopyToClipboard';
 
 import { WorkerEdit } from './WorkerEdit';
@@ -10,8 +10,8 @@ export function WorkerTitle({
   owner,
   canEdit,
 }: {
-  worker: Pick<ApiWorker, 'id' | 'status' | 'peerId' | 'name'>;
-  owner: Pick<Account, 'id' | 'type'>;
+  worker: Pick<WorkerDetailed, 'id' | 'status' | 'peerId' | 'name'>;
+  owner: { id: string; type: string };
   canEdit: boolean;
 }) {
   const theme = useTheme();

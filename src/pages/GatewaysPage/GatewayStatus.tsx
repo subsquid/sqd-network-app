@@ -1,6 +1,6 @@
 import { Chip as MaterialChip, chipClasses, styled } from '@mui/material';
 
-import { GatewayFragmentFragment } from '@api/subsquid-network-squid';
+import type { Gateway } from '@api/subsquid-network-squid';
 
 export const Chip = styled(MaterialChip)(({ theme: { spacing } }) => ({
   fontSize: '0.75rem',
@@ -23,7 +23,7 @@ export const Chip = styled(MaterialChip)(({ theme: { spacing } }) => ({
   },
 }));
 
-export function GatewayStatus({ gateway }: { gateway: GatewayFragmentFragment }) {
+export function GatewayStatus({ gateway }: { gateway: Gateway }) {
   return (
     <Chip color="success" label="Active" />
     // <>

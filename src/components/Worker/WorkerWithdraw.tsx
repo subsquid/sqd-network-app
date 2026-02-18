@@ -4,17 +4,18 @@ import { dateFormat } from '@i18n';
 import { Lock } from '@mui/icons-material';
 import { Box, Button, SxProps, Tooltip } from '@mui/material';
 import toast from 'react-hot-toast';
-import { useClient } from 'wagmi';
+import { useAccount, useClient } from 'wagmi';
 
 import { useReadRouterWorkerRegistration, workerRegistryAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
-import { AccountType, SourceWallet, Worker, useCurrentEpoch } from '@api/subsquid-network-squid';
+import { useQuery } from '@tanstack/react-query';
+import { AccountType, SourceWallet, Worker } from '@api/subsquid-network-squid';
+import { trpc } from '@api/trpc';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { useCountdown } from '@hooks/useCountdown';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { peerIdToHex } from '@lib/network';
-import { useAccount } from '@hooks/network/useAccount';
 import { useContracts } from '@hooks/network/useContracts';
 
 function UnlocksTooltip({ timestamp }: { timestamp?: number }) {
@@ -33,13 +34,15 @@ export function WorkerWithdrawButton({
   worker: Pick<Worker, 'id' | 'status' | 'peerId'>;
   source: SourceWallet & {
     locked: boolean;
-    lockEnd?: number;
+    lockEnd?: number | null;
   };
   disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
-  const { data: currentEpoch } = useCurrentEpoch();
+  const { data: currentEpoch } = useQuery(
+    trpc.network.currentEpoch.queryOptions(undefined, { refetchInterval: 12_000 }),
+  );
   const unlockTimestamp = useMemo(() => {
     if (!currentEpoch || !source.lockEnd) return;
 

@@ -1,4 +1,6 @@
-import { useIsWorkerOperator } from '@api/subsquid-network-squid';
+import { useQuery } from '@tanstack/react-query';
+import { useAccount } from 'wagmi';
+import { trpc } from '@api/trpc';
 import { demoFeaturesEnabled } from '@hooks/demoFeaturesEnabled';
 import { BuySqdIcon } from '@icons/BuySqdIcon.tsx';
 import {
@@ -139,7 +141,11 @@ export const Item = ({
 };
 
 export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
-  const { isWorkerOperator } = useIsWorkerOperator();
+  const { address } = useAccount();
+  const { data: workersCount } = useQuery(
+    trpc.worker.countMine.queryOptions({ address: address || '' }, { enabled: !!address }),
+  );
+  const isWorkerOperator = workersCount ? workersCount > 0 : false;
   const workersChatUrl = useWorkersChatUrl();
   const location = useLocation();
   const previousPathRef = useRef<string>('/dashboard');

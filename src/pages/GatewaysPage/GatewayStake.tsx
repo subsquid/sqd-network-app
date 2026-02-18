@@ -19,7 +19,9 @@ import {
 } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
-import { AccountType, useCurrentEpoch } from '@api/subsquid-network-squid';
+import { useQuery } from '@tanstack/react-query';
+import { AccountType } from '@api/subsquid-network-squid';
+import { trpc } from '@api/trpc';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { Form, FormDivider, FormRow, FormikSelect, FormikTextInput } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
@@ -106,7 +108,9 @@ export function GatewayStakeDialog({ open, onClose }: { open: boolean; onClose: 
 
   const gatewayRegistryContract = useWriteSQDTransaction();
 
-  const { data: currentEpoch, isLoading: isCurrentEpochLoading } = useCurrentEpoch();
+  const { data: currentEpoch, isLoading: isCurrentEpochLoading } = useQuery(
+    trpc.network.currentEpoch.queryOptions(undefined, { refetchInterval: 12_000 }),
+  );
 
   const isLoading =
     isCurrentEpochLoading ||

@@ -24,7 +24,7 @@ import { Location, useLocationState } from '@hooks/useLocationState';
 import { percentFormatter, tokenFormatter } from '@lib/formatters/formatters.ts';
 import { fromSqd, isOwned } from '@lib/network';
 import { ConnectedWalletRequired } from '@components/ConnectedWalletRequired';
-import { useAccount } from '@hooks/network/useAccount';
+import { useAccount } from 'wagmi';
 import { useContracts } from '@hooks/network/useContracts';
 
 import { AddWorkerButton } from './AddNewWorker';
@@ -117,10 +117,7 @@ export function MyWorkers() {
                         {worker.apr != null ? percentFormatter(worker.apr) : '-'}
                       </TableCell>
                       <TableCell>
-                        {tokenFormatter(
-                          fromSqd(worker.claimableReward).plus(fromSqd(worker.claimedReward)),
-                          SQD_TOKEN,
-                        )}
+                        {tokenFormatter(fromSqd(worker.totalReward), SQD_TOKEN)}
                       </TableCell>
                       <TableCell>
                         <Box display="flex" justifyContent="flex-end">

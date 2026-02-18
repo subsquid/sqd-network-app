@@ -1,4 +1,4 @@
-import { useAccount } from '@hooks/network/useAccount';
+import { useAccount } from 'wagmi';
 import { NetworkName, getNetworkName } from '@hooks/network/useSubsquidNetwork';
 
 interface ExplorerUrls {

@@ -4,7 +4,7 @@ import { MulticallResponse, toHex } from 'viem';
 
 import { SQD_DECIMALS } from '../../api/contracts/consts';
 
-export function fromSqd(value?: string | number | bigint | BigNumber): BigNumber {
+export function fromSqd(value?: string | number | bigint | BigNumber | null): BigNumber {
   if (!value) return BigNumber('0');
 
   value = BigNumber(typeof value === 'bigint' ? value.toString() : value);
@@ -33,7 +33,7 @@ export function getBlockTime(blocksCount: number | bigint) {
 }
 
 export function isOwned(
-  something: { owner: { id: string; owner?: { id: string } } },
+  something: { owner: { id: string; owner?: { id: string } | null } },
   address: string | undefined,
 ) {
   return (

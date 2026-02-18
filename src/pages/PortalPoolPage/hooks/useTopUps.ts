@@ -1,4 +1,12 @@
-import { useTopUpsQuery } from '@api/pool-squid/graphql';
+import { useQuery } from '@tanstack/react-query';
+
+import { trpc } from '@api/trpc';
+
+interface TopUp {
+  txHash: string;
+  timestamp: string;
+  amount: string;
+}
 
 interface UseTopUpsProps {
   poolId: string;
@@ -7,7 +15,7 @@ interface UseTopUpsProps {
 }
 
 export function useTopUps({ poolId, limit = 15, offset = 0 }: UseTopUpsProps) {
-  const { data, isLoading, error } = useTopUpsQuery(
+  const { data, isLoading, error } = useQuery(trpc.pool.topUps.queryOptions(
     {
       poolId: poolId.toLowerCase(),
       limit,
@@ -15,13 +23,13 @@ export function useTopUps({ poolId, limit = 15, offset = 0 }: UseTopUpsProps) {
     },
     {
       enabled: !!poolId,
-      refetchInterval: 30000, // Refetch every 30 seconds
+      refetchInterval: 30000,
     },
-  );
+  ));
 
   return {
-    topUps: data?.topUps || [],
-    totalCount: data?.topUpsConnection?.totalCount || 0,
+    topUps: (data?.topUps as TopUp[]) || [],
+    totalCount: data?.totalCount || 0,
     isLoading,
     error,
   };

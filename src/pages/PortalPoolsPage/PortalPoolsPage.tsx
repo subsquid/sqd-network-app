@@ -4,7 +4,7 @@ import { CenteredPageWrapper } from '@layouts/NetworkLayout';
 import { Button, Stack, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import { parseMetadata } from '@pages/PortalPoolPage/hooks';
 import { Link, Outlet, Link as RouterLink } from 'react-router-dom';
-import { useReadContract, useReadContracts } from 'wagmi';
+import { useAccount, useReadContract, useReadContracts } from 'wagmi';
 
 import { portalPoolAbi, portalPoolFactoryAbi, portalRegistryAbi } from '@api/contracts';
 import { SortDir, useMySources } from '@api/subsquid-network-squid';
@@ -16,7 +16,6 @@ import { DashboardTable, NoItems, SortableHeaderCell } from '@components/Table';
 import { Location, useLocationState } from '@hooks/useLocationState';
 import { unwrapMulticallResult } from '@lib/network';
 import { ConnectedWalletRequired } from '@components/ConnectedWalletRequired';
-import { useAccount } from '@hooks/network/useAccount';
 import { useContracts } from '@hooks/network/useContracts';
 
 import { AddPortalButton } from './AddNewPortalPool';

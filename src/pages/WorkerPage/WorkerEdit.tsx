@@ -5,18 +5,17 @@ import { IconButton, SxProps } from '@mui/material';
 import * as yup from '@schema';
 import { useFormik } from 'formik';
 import toast from 'react-hot-toast';
-import { useClient } from 'wagmi';
+import { useAccount, useClient } from 'wagmi';
 
 import { useReadRouterWorkerRegistration, workerRegistryAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { errorMessage } from '@api/contracts/utils';
 import { encodeWorkerMetadata } from '@api/contracts/worker-registration/WorkerMetadata';
-import { Account, AccountType, Worker } from '@api/subsquid-network-squid';
+import { AccountType, type WorkerDetailed } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { Form, FormRow, FormikTextInput } from '@components/Form';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { peerIdToHex } from '@lib/network';
-import { useAccount } from '@hooks/network/useAccount';
 import { useContracts } from '@hooks/network/useContracts';
 
 export const editWorkerSchema = yup.object({
@@ -34,8 +33,8 @@ export function WorkerEdit({
 }: {
   sx?: SxProps;
   disabled?: boolean;
-  worker: Pick<Worker, 'peerId' | 'name' | 'website' | 'description' | 'email'>;
-  owner: Pick<Account, 'id' | 'type'>;
+  worker: Pick<WorkerDetailed, 'peerId' | 'name' | 'website' | 'description' | 'email'>;
+  owner: { id: string; type: string };
 }) {
   const [open, setOpen] = useState(false);
 
@@ -60,8 +59,8 @@ function WorkerEditDialog({
   open,
   onResult,
 }: {
-  worker: Pick<Worker, 'name' | 'description' | 'website' | 'email' | 'peerId'>;
-  owner: Pick<Account, 'id' | 'type'>;
+  worker: Pick<WorkerDetailed, 'name' | 'description' | 'website' | 'email' | 'peerId'>;
+  owner: { id: string; type: string };
   open: boolean;
   onResult: (confirmed: boolean) => void;
 }) {

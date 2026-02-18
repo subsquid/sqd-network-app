@@ -1,32 +1,32 @@
 import { useMemo } from 'react';
 
 import { Chip, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
-import { keepPreviousData } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import chunk from 'lodash-es/chunk';
 import { Link } from 'react-router-dom';
 import { erc20Abi } from 'viem';
-import { useReadContracts } from 'wagmi';
+import { useAccount, useReadContracts } from 'wagmi';
 
 import { vestingAbi } from '@api/contracts';
-import { useTemporaryHoldingsByAccountQuery } from '@api/subsquid-network-squid';
+import { trpc } from '@api/trpc';
 import { Card } from '@components/Card';
 import { NameWithAvatar } from '@components/SourceWalletName';
 import { DashboardTable, NoItems } from '@components/Table';
 import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, unwrapMulticallResult } from '@lib/network/utils';
-import { useAccount } from '@hooks/network/useAccount';
 import { useContracts } from '@hooks/network/useContracts';
 
 export function MyTemporaryHoldings() {
   const account = useAccount();
 
-  const temporaryHoldingsQuery = useTemporaryHoldingsByAccountQuery({
-    address: account.address as `0x${string}`,
-  });
+  const temporaryHoldingsQuery = useQuery(trpc.account.temporaryHoldings.queryOptions(
+    { address: (account.address as string) || '0x' },
+    { enabled: !!account.address },
+  ));
   const { SQD_TOKEN, SQD } = useContracts();
 
   const temporaryHoldingsData = useReadContracts({
-    contracts: temporaryHoldingsQuery.data?.accounts?.flatMap(s => {
+    contracts: (temporaryHoldingsQuery.data as any[])?.flatMap((s: any) => {
       const vestingContract = { abi: vestingAbi, address: s.id as `0x${string}` } as const;
       return [
         {
@@ -48,7 +48,7 @@ export function MyTemporaryHoldings() {
     }),
     allowFailure: true,
     query: {
-      enabled: !!temporaryHoldingsQuery.data?.accounts?.length,
+      enabled: !!(temporaryHoldingsQuery.data as any[])?.length,
       placeholderData: keepPreviousData,
       select: res => {
         if (res?.some(r => r.status === 'success')) {
@@ -70,11 +70,11 @@ export function MyTemporaryHoldings() {
 
   const data = useMemo(
     () =>
-      temporaryHoldingsQuery.data?.accounts?.map((temporaryHolding, i) => ({
+      (temporaryHoldingsQuery.data as any[])?.map((temporaryHolding: any, i: number) => ({
         ...temporaryHolding,
         ...temporaryHoldingsData.data?.[i],
       })) || [],
-    [temporaryHoldingsQuery.data?.accounts, temporaryHoldingsData],
+    [temporaryHoldingsQuery.data, temporaryHoldingsData],
   );
 
   return (
@@ -97,7 +97,7 @@ export function MyTemporaryHoldings() {
                   <NameWithAvatar
                     title={`${temporaryHolding.type
                       .split('_')
-                      .map(word => word[0]?.toUpperCase() + word.slice(1).toLowerCase())
+                      .map((word: string) => word[0]?.toUpperCase() + word.slice(1).toLowerCase())
                       .join(' ')} contract`}
                     subtitle={
                       <Link to={`/assets/vestings/${temporaryHolding.id}`}>

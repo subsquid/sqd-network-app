@@ -28,8 +28,10 @@ import {
 import { ColumnLabel, ColumnValue } from '@pages/DashboardPage/Summary';
 import { Link, Outlet } from 'react-router-dom';
 
+import { useQuery } from '@tanstack/react-query';
+
 import { useStakeInfo } from '@api/contracts/useStakeInfo';
-import { useMyGatewaysQuery } from '@api/subsquid-network-squid';
+import { trpc } from '@api/trpc';
 import { Card } from '@components/Card';
 import { SquaredChip } from '@components/Chip';
 import { FormikSelect } from '@components/Form';
@@ -149,9 +151,9 @@ export function MyGateways() {
   const { selectedSource } = useSourceContext();
   const selectedSourceAddress = (selectedSource?.id || '0x') as `0x${string}`;
 
-  const { data: gatewaysQuery, isLoading: isGatewaysQueryLoading } = useMyGatewaysQuery({
+  const { data: gatewaysQuery, isLoading: isGatewaysQueryLoading } = useQuery(trpc.gateway.listMine.queryOptions({
     address: selectedSourceAddress,
-  });
+  }));
 
   const isLoading = isGatewaysQueryLoading;
 
@@ -184,8 +186,8 @@ export function MyGateways() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {gatewaysQuery?.gateways.length ? (
-            gatewaysQuery.gateways.map(gateway => (
+          {(gatewaysQuery as any[])?.length ? (
+            (gatewaysQuery as any[]).map(gateway => (
               <TableRow key={gateway.id}>
                 <TableCell>
                   <GatewayName gateway={gateway} to={`/portals/${gateway.id}`} />

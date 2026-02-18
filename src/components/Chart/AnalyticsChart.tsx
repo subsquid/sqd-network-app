@@ -38,8 +38,8 @@ export const CHART_FORMATTERS = {
   },
 } as const;
 
-interface TimeSeriesData<V = unknown> {
-  data: Array<{ timestamp: string; value: number | V | null | undefined }>;
+export interface TimeSeriesData<V = unknown> {
+  data: Array<{ timestamp: string; value?: number | V | null }>;
   step?: number;
   from?: string;
   to?: string;
@@ -57,10 +57,7 @@ interface StackConfig<V = unknown> {
   color?: string;
 }
 
-export interface AnalyticsChartProps<
-  T extends Record<string, unknown> = Record<string, unknown>,
-  V = unknown,
-> {
+export interface AnalyticsChartProps<T = TimeSeriesData, V = unknown> {
   title?: string;
   subtitle?: string;
   action?: React.ReactNode;
@@ -189,7 +186,7 @@ function buildSimpleSeries(
   };
 }
 
-function createSeries<T extends Record<string, unknown>, V>(
+function createSeries<T, V>(
   props: AnalyticsChartProps<T, V>,
   data: T,
   title?: string,
@@ -212,16 +209,13 @@ function createSeries<T extends Record<string, unknown>, V>(
   );
 }
 
-export function createSimpleChart<T extends Record<string, unknown> = Record<string, unknown>>(
+export function createSimpleChart<T = TimeSeriesData>(
   config: Omit<AnalyticsChartProps<T, number>, 'range' | 'step' | 'series' | 'stacks'>,
 ): Omit<AnalyticsChartProps<T, number>, 'range' | 'step'> {
   return config;
 }
 
-export function createMultiSeriesChart<
-  T extends Record<string, unknown> = Record<string, unknown>,
-  V = unknown,
->(
+export function createMultiSeriesChart<T = TimeSeriesData, V = unknown>(
   config: Omit<
     AnalyticsChartProps<T, V>,
     'range' | 'step' | 'seriesName' | 'valueTransform' | 'stacks'
@@ -232,10 +226,7 @@ export function createMultiSeriesChart<
   return config;
 }
 
-export function createStackedChart<
-  T extends Record<string, unknown> = Record<string, unknown>,
-  V = unknown,
->(
+export function createStackedChart<T = TimeSeriesData, V = unknown>(
   config: Omit<
     AnalyticsChartProps<T, V>,
     'range' | 'step' | 'seriesName' | 'valueTransform' | 'series' | 'type' | 'grouped'
@@ -246,10 +237,9 @@ export function createStackedChart<
   return config;
 }
 
-export function AnalyticsChart<
-  T extends Record<string, unknown> = Record<string, unknown>,
-  V = unknown,
->(props: AnalyticsChartProps<T, V>) {
+export function AnalyticsChart<T = TimeSeriesData, V = unknown>(
+  props: AnalyticsChartProps<T, V>,
+) {
   const {
     title,
     subtitle,

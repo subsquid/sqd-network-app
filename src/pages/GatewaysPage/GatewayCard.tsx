@@ -3,7 +3,7 @@ import { IconButton, Stack, Typography, styled, useTheme } from '@mui/material';
 import { Box } from '@mui/system';
 import { Link } from 'react-router-dom';
 
-import { GatewayFragmentFragment } from '@api/subsquid-network-squid';
+import type { Gateway } from '@api/subsquid-network-squid';
 import { Avatar } from '@components/Avatar';
 import { CopyToClipboard } from '@components/CopyToClipboard';
 
@@ -28,7 +28,7 @@ function GatewayTitle({
   gateway,
   canEdit,
 }: {
-  gateway: GatewayFragmentFragment;
+  gateway: Gateway;
   canEdit: boolean;
 }) {
   const theme = useTheme();
@@ -64,7 +64,7 @@ export const GatewayCard = ({
   gateway,
   canEdit,
 }: {
-  gateway: GatewayFragmentFragment;
+  gateway: Gateway;
   canEdit: boolean;
 }) => {
   return (

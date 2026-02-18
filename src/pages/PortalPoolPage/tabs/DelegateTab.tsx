@@ -1,12 +1,12 @@
 import { useCallback, useMemo } from 'react';
 
 import { Button, Divider, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import BigNumber from 'bignumber.js';
 
 import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { useTokenPrice } from '@api/price';
+import { trpc } from '@api/trpc';
 import { Card } from '@components/Card';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { dollarFormatter, tokenFormatter } from '@lib/formatters/formatters';
@@ -26,7 +26,7 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
   const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
   const { data: userData, isLoading: userDataLoading } = usePoolUserData(poolId);
   const { SQD_TOKEN, SQD } = useContracts();
-  const { data: sqdPrice } = useTokenPrice({ address: SQD });
+  const { data: sqdPrice } = useQuery(trpc.price.current.queryOptions());
   const queryClient = useQueryClient();
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
 
@@ -36,13 +36,8 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
   const balanceInUsd = sqdPrice ? balance.toNumber() * sqdPrice : undefined;
 
   const rewards = useMemo(
-    () =>
-      userData
-        ? new BigNumber(userData.userRewards.toString()).div(
-            10 ** (pool?.rewardToken.decimals ?? 6),
-          )
-        : BigNumber(0),
-    [userData, pool?.rewardToken.decimals],
+    () => (userData ? BigNumber(userData.userRewards) : BigNumber(0)),
+    [userData],
   );
 
   const dailyRewardRate = useMemo(() => {
@@ -58,7 +53,7 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
     return dailyDistribution.multipliedBy(userShare);
   }, [pool, userData, balance, pool?.rewardToken.decimals]);
 
-  const hasRewards = userData ? userData.userRewards > BigInt(0) : false;
+  const hasRewards = userData?.hasRewards ?? false;
 
   const handleClaimRewards = useCallback(async () => {
     try {

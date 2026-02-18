@@ -3,27 +3,28 @@ import { Warning } from '@mui/icons-material';
 import { Alert, Box, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 
-import { useSourcesQuery, useSquid } from '@api/subsquid-network-squid';
+import { useQuery } from '@tanstack/react-query';
+
+import { trpc } from '@api/trpc';
 import { SectionHeader } from '@components/SectionHeader';
 import { NameWithAvatar } from '@components/SourceWalletName';
 import { DashboardTable, NoItems } from '@components/Table';
 import { ConnectedWalletRequired } from '@components/ConnectedWalletRequired';
-import { useAccount } from '@hooks/network/useAccount';
+import { useAccount } from 'wagmi';
 import { useContracts } from '@hooks/network/useContracts';
 
 import { DepositButton } from './DepositButton';
 
 export function OtcContracts() {
   const account = useAccount();
-  const squid = useSquid();
 
-  const { data: sourcesQuery, isLoading: isSourcesQueryLoading } = useSourcesQuery({
-    address: account.address as `0x${string}`,
-  });
+  const { data: sources, isLoading: isSourcesQueryLoading } = useQuery(trpc.account.sources.queryOptions(
+    { address: (account.address as string) || '0x' },
+    { enabled: !!account.address },
+  ));
   const { BUYBACK } = useContracts();
 
   const BUYBACKs = [BUYBACK];
-  const sources = sourcesQuery?.accounts;
 
   const isLoading = isSourcesQueryLoading;
 
@@ -46,7 +47,7 @@ export function OtcContracts() {
                 </TableCell>
                 <TableCell className="pinned">
                   <Box display="flex" justifyContent="flex-end">
-                    <DepositButton address={address} sources={sources} />
+                    <DepositButton address={address} sources={sources as any} />
                   </Box>
                 </TableCell>
               </TableRow>

@@ -14,12 +14,11 @@ import {
   Typography,
 } from '@mui/material';
 import { ColumnDef } from '@tanstack/react-table';
-import BigNumber from 'bignumber.js';
 import { Link } from 'react-router-dom';
 
 import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { LiquidityEventType } from '@api/pool-squid/graphql';
+import { LiquidityEventType } from '@api/types';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { PaginatedTable } from '@components/Table';
 import { useContracts } from '@hooks/network/useContracts';
@@ -116,10 +115,7 @@ function PendingWithdrawalsTable({
         id: 'amount',
         accessorFn: row => row.amount,
         header: () => WITHDRAWALS_TEXTS.table.amount,
-        cell: info => {
-          const amount = info.getValue() as string;
-          return tokenFormatter(BigNumber(amount), SQD_TOKEN, 2);
-        },
+        cell: info => tokenFormatter(Number(info.getValue() as string), SQD_TOKEN, 2),
       },
       {
         id: 'timeLeft',
@@ -265,14 +261,9 @@ function ActivityTable({ poolId }: { poolId: string }) {
         id: 'amount',
         accessorFn: row => row.amount,
         header: () => ACTIVITY_TEXTS.table.amount,
-        cell: ({ row, getValue }) => (
+        cell: ({ getValue }) => (
           <Typography variant="body1" fontWeight={500}>
-            {pool &&
-              tokenFormatter(
-                BigNumber((getValue() as string) || 0).shiftedBy(-pool.lptToken.decimals),
-                SQD_TOKEN,
-                2,
-              )}
+            {tokenFormatter(Number((getValue() as string) || 0), SQD_TOKEN, 2)}
           </Typography>
         ),
       },
@@ -312,7 +303,7 @@ function ActivityTable({ poolId }: { poolId: string }) {
         ),
       },
     ],
-    [pool, SQD_TOKEN, explorer],
+    [SQD_TOKEN, explorer],
   );
 
   if (!pool) return null;
@@ -358,12 +349,7 @@ function TopUpsTable({ poolId }: { poolId: string }) {
         header: () => TOP_UPS_TEXTS.table.amount,
         cell: ({ getValue }) => (
           <Typography variant="body1" fontWeight={500}>
-            {pool &&
-              tokenFormatter(
-                BigNumber((getValue() as string) || 0).shiftedBy(-pool.rewardToken.decimals),
-                pool.rewardToken.symbol,
-                2,
-              )}
+            {pool && tokenFormatter(Number((getValue() as string) || 0), pool.rewardToken.symbol, 2)}
           </Typography>
         ),
       },

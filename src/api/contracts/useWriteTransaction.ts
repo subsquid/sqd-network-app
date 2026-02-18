@@ -14,10 +14,9 @@ import {
   erc20Abi,
   http,
 } from 'viem';
-import { useConfig, useWriteContract } from 'wagmi';
+import { useAccount, useConfig, useWriteContract } from 'wagmi';
 import { arbitrum } from 'wagmi/chains';
 
-import { useAccount } from '@hooks/network/useAccount';
 import { useContracts } from '@hooks/network/useContracts';
 import { NetworkName, getSubsquidNetwork } from '@hooks/network/useSubsquidNetwork';
 

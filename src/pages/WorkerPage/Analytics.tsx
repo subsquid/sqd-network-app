@@ -7,15 +7,9 @@ import { useMemo } from 'react';
 import { Box, Grid, MenuItem, Select } from '@mui/material';
 import { useParams } from 'react-router-dom';
 
-import {
-  useAprTimeseriesQuery,
-  useQueriesCountTimeseriesQuery,
-  useRewardTimeseriesQuery,
-  useServedDataTimeseriesQuery,
-  useStoredDataTimeseriesQuery,
-  useUptimeTimeseriesQuery,
-  useWorkerByPeerId,
-} from '@api/subsquid-network-squid';
+import { useQuery } from '@tanstack/react-query';
+import { useWorkerByPeerId } from '@api/subsquid-network-squid';
+import { trpc } from '@api/trpc';
 import {
   AnalyticsChart,
   type AnalyticsChartProps,
@@ -42,8 +36,8 @@ const createWorkerChartConfigs = (
       subtitle: 'Rewards distributed to worker and delegators',
       primaryColor: '#10B981',
       queryHook: opts =>
-        useRewardTimeseriesQuery({ from: opts.from, to: opts.to, step: opts.step, workerId }),
-      dataPath: (data: any) => data.rewardTimeseries,
+        useQuery(trpc.timeseries.reward.queryOptions({ ...opts, workerId })),
+      dataPath: (data: any) => data,
       stacks: [
         {
           key: 'Worker Reward',
@@ -69,8 +63,8 @@ const createWorkerChartConfigs = (
       subtitle: 'Annual percentage rate for this worker and its delegators',
       primaryColor: '#6B7280',
       queryHook: opts =>
-        useAprTimeseriesQuery({ from: opts.from, to: opts.to, step: opts.step, workerId }),
-      dataPath: (data: any) => data.aprTimeseries,
+        useQuery(trpc.timeseries.apr.queryOptions({ ...opts, workerId })),
+      dataPath: (data: any) => data,
       series: [
         { name: 'Worker APR', valuePath: (v: any) => v?.workerApr, color: '#5B8FF9' },
         { name: 'Delegator APR', valuePath: (v: any) => v?.stakerApr, color: '#61CDBB' },
@@ -88,8 +82,8 @@ const createWorkerChartConfigs = (
       subtitle: 'Worker uptime percentage over time',
       primaryColor: '#10B981',
       queryHook: opts =>
-        useUptimeTimeseriesQuery({ from: opts.from, to: opts.to, step: opts.step, workerId }),
-      dataPath: (data: any) => data.uptimeTimeseries,
+        useQuery(trpc.timeseries.uptime.queryOptions({ ...opts, workerId })),
+      dataPath: (data: any) => data,
       seriesName: 'Uptime',
       type: 'bar',
       tooltipFormat: { y: CHART_FORMATTERS.percent.tooltip },
@@ -106,8 +100,8 @@ const createWorkerChartConfigs = (
       subtitle: 'Queries processed by this worker',
       primaryColor: '#8B5CF6',
       queryHook: opts =>
-        useQueriesCountTimeseriesQuery({ from: opts.from, to: opts.to, step: opts.step, workerId }),
-      dataPath: (data: any) => data.queriesCountTimeseries,
+        useQuery(trpc.timeseries.queriesCount.queryOptions({ ...opts, workerId })),
+      dataPath: (data: any) => data,
       seriesName: 'Queries',
       type: 'line',
       tooltipFormat: { y: CHART_FORMATTERS.number.tooltip },
@@ -124,8 +118,8 @@ const createWorkerChartConfigs = (
       subtitle: 'Data served by this worker',
       primaryColor: '#F59E0B',
       queryHook: opts =>
-        useServedDataTimeseriesQuery({ from: opts.from, to: opts.to, step: opts.step, workerId }),
-      dataPath: (data: any) => data.servedDataTimeseries,
+        useQuery(trpc.timeseries.servedData.queryOptions({ ...opts, workerId })),
+      dataPath: (data: any) => data,
       type: 'line',
       tooltipFormat: { y: CHART_FORMATTERS.bytes.tooltip },
       axisFormat: { y: CHART_FORMATTERS.bytes.axis },
@@ -141,8 +135,8 @@ const createWorkerChartConfigs = (
       subtitle: 'Data stored by this worker',
       primaryColor: '#4A90E2',
       queryHook: opts =>
-        useStoredDataTimeseriesQuery({ from: opts.from, to: opts.to, step: opts.step, workerId }),
-      dataPath: (data: any) => data.storedDataTimeseries,
+        useQuery(trpc.timeseries.storedData.queryOptions({ ...opts, workerId })),
+      dataPath: (data: any) => data,
       tooltipFormat: { y: CHART_FORMATTERS.bytes.tooltip },
       axisFormat: { y: CHART_FORMATTERS.bytes.axis },
       strokeWidth: 2,

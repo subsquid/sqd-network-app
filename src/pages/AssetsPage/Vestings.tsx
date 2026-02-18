@@ -1,21 +1,20 @@
 import { useMemo } from 'react';
 
 import { Box, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
-import { keepPreviousData } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import BigNumber from 'bignumber.js';
 import chunk from 'lodash-es/chunk';
 import { Link } from 'react-router-dom';
 import { erc20Abi } from 'viem';
-import { useReadContracts } from 'wagmi';
+import { useAccount, useReadContracts } from 'wagmi';
 
 import { vestingAbi } from '@api/contracts';
-import { useVestingsByAccountQuery } from '@api/subsquid-network-squid';
+import { trpc } from '@api/trpc';
 import { Card } from '@components/Card';
 import { NameWithAvatar } from '@components/SourceWalletName';
 import { DashboardTable, NoItems } from '@components/Table';
 import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, unwrapMulticallResult } from '@lib/network/utils';
-import { useAccount } from '@hooks/network/useAccount';
 import { useContracts } from '@hooks/network/useContracts';
 
 import { ReleaseButton } from './ReleaseButton';
@@ -23,13 +22,14 @@ import { ReleaseButton } from './ReleaseButton';
 export function MyVestings() {
   const account = useAccount();
 
-  const { data: vestingsQuery, isLoading: isSourcesLoading } = useVestingsByAccountQuery({
-    address: account.address as `0x${string}`,
-  });
+  const { data: vestingsData, isLoading: isSourcesLoading } = useQuery(trpc.account.vestings.queryOptions(
+    { address: (account.address as string) || '0x' },
+    { enabled: !!account.address },
+  ));
   const { SQD_TOKEN, SQD } = useContracts();
 
   const { data: vestings, isLoading: isVestingsLoading } = useReadContracts({
-    contracts: vestingsQuery?.accounts?.flatMap(s => {
+    contracts: (vestingsData as any[])?.flatMap((s: any) => {
       const vestingContract = { abi: vestingAbi, address: s.id as `0x${string}` } as const;
       return [
         {
@@ -56,7 +56,7 @@ export function MyVestings() {
     }),
     allowFailure: true,
     query: {
-      enabled: !!vestingsQuery?.accounts?.length,
+      enabled: !!(vestingsData as any[])?.length,
       placeholderData: keepPreviousData,
       select: res => {
         if (res?.some(r => r.status === 'success')) {
@@ -79,11 +79,11 @@ export function MyVestings() {
 
   const data = useMemo(
     () =>
-      vestingsQuery?.accounts?.map((vesting, i) => ({
+      (vestingsData as any[])?.map((vesting: any, i: number) => ({
         ...vesting,
         ...vestings?.[i],
       })) || [],
-    [vestingsQuery?.accounts, vestings],
+    [vestingsData, vestings],
   );
 
   return (
@@ -113,7 +113,7 @@ export function MyVestings() {
                     <NameWithAvatar
                       title={`${vesting.type
                         .split('_')
-                        .map(word => word[0]?.toUpperCase() + word.slice(1).toLowerCase())
+                        .map((word: string) => word[0]?.toUpperCase() + word.slice(1).toLowerCase())
                         .join(' ')} contract`}
                       subtitle={
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
