@@ -11,7 +11,7 @@
     "build:client": "turbo build --filter=@subsquid/client",
     "build:server": "turbo build --filter=@subsquid/server",
     "build:common": "turbo build --filter=@subsquid/common",
-    "start": "yarn workspace @subsquid/client start",
+    "start:client": "yarn workspace @subsquid/client start",
     "start:server": "yarn workspace @subsquid/server start",
     "preview": "yarn workspace @subsquid/client preview",
     "analyze": "yarn workspace @subsquid/client analyze",
