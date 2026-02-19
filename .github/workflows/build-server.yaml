@@ -24,6 +24,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Record start time
+        id: start
+        run: echo "time=$(date +%s)" >> $GITHUB_OUTPUT
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -56,13 +60,6 @@ jobs:
 
       - run: yarn install --immutable
 
-      - name: Cache turbo
-        uses: actions/cache@v4
-        with:
-          path: .turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
-          restore-keys: ${{ runner.os }}-turbo-
-
       # Check compile errors before build
       - run: npx turbo tsc --filter=@subsquid/server
 
@@ -74,16 +71,10 @@ jobs:
           APP_ENV: ${{ steps.env.outputs.app_env }}
           TAG: ${{ steps.env.outputs.tag }}
 
-      - id: auth
-        uses: google-github-actions/auth@v0.4.0
-        with:
-          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
-
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v0.2.1
-
-      - name: 'gcloud cli --> docker credential helper'
-        run: gcloud auth configure-docker -q
+      - name: Configure Docker
+        run: echo "$GCR_KEY" | docker login -u _json_key --password-stdin https://gcr.io
+        env:
+          GCR_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
 
       - name: Push server image
         run: |
@@ -93,21 +84,24 @@ jobs:
           APP_ENV: ${{ steps.env.outputs.app_env }}
           TAG: ${{ steps.env.outputs.tag }}
 
-      - name: Slack notification success
-        uses: 8398a7/action-slack@v3
+      - name: Compute elapsed time
+        id: elapsed
+        if: always()
+        run: |
+          elapsed=$(( $(date +%s) - ${{ steps.start.outputs.time }} ))
+          echo "value=$(( elapsed / 60 )) min $(( elapsed % 60 )) sec" >> $GITHUB_OUTPUT
+
+      - name: Slack notification
+        if: always()
+        uses: slackapi/slack-github-action@v2
         with:
-          channel: ${ process.env.SLACK_CHANNEL }
-          status: custom
-          fields: message,workflow,job,commit,repo,ref,author,took
-          custom_payload: |
+          webhook: ${{ secrets.slack_webhook_url }}
+          webhook-type: incoming-webhook
+          payload: |
             {
-              attachments: [{
-                title: `A new server (${process.env.APP_ENV}) version has been deployed`,
-                color: '${{ job.status }}' === 'success' ? 'good' : '${{ job.status }}' === 'failure' ? 'danger' : 'warning',
-                text: `${process.env.AS_MESSAGE}\n${process.env.AS_COMMIT} by ${process.env.AS_AUTHOR} in ${process.env.AS_TOOK}`,
+              "attachments": [{
+                "title": "${{ job.status == 'success' && '✅ Deployed' || job.status == 'failure' && '❌ Failed' || '⚠️ Cancelled' }} server [${{ steps.env.outputs.app_env }}]",
+                "color": "${{ job.status == 'success' && 'good' || job.status == 'failure' && 'danger' || 'warning' }}",
+                "text": "${{ github.event.head_commit.message }}\n<${{ github.event.head_commit.url }}|${{ steps.env.outputs.tag }}> by ${{ github.event.head_commit.author.name }} in ${{ steps.elapsed.outputs.value }}"
               }]
             }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.slack_webhook_url }}
-          SLACK_CHANNEL: ${{ steps.env.outputs.slack_channel }}
-          APP_ENV: ${{ steps.env.outputs.app_env }}

@@ -1,7 +1,7 @@
 export type NetworkName = 'mainnet' | 'tethys';
 
 function getEnv(key: string, fallback?: string): string {
-  const value = process.env[key] ?? fallback;
+  const value = process.env[key] || fallback;
   if (value === undefined) {
     throw new Error(`Missing environment variable: ${key}`);
   }
@@ -31,7 +31,7 @@ export function getRpcUrl(): string {
 }
 
 export function getPort(): number {
-  return Number(process.env.SERVER_PORT ?? '3001');
+  return Number(getEnv('SERVER_PORT', '3001'));
 }
 
 import { CONTRACT_ADDRESSES, type ContractAddresses } from '@subsquid/common';
