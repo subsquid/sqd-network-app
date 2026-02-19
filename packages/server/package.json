@@ -1,0 +1,32 @@
+{
+  "name": "@subsquid/server",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "start": "tsx --env-file=../../.env --watch src/main.ts",
+    "build": "rolldown -c rolldown.config.ts",
+    "tsc": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@graphql-typed-document-node/core": "^3.2.0",
+    "@subsquid/common": "workspace:*",
+    "@trpc/server": "^11",
+    "bignumber.js": "^9.3.1",
+    "graphql": "^16.11.0",
+    "viem": "^2.38.5",
+    "zod": "^3"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^6.0.1",
+    "@graphql-codegen/client-preset": "^5.2.2",
+    "@types/node": "^22",
+    "dotenv": "^17.2.3",
+    "rolldown": "^1.0.0-rc.4",
+    "tsx": "^4",
+    "typescript": "^5.9.3"
+  }
+}
