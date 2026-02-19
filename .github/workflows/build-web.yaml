@@ -84,7 +84,7 @@ jobs:
       # Check compile errors before build
       - run: npx turbo tsc --filter=@subsquid/client
 
-      - run: npx turbo build --filter=@subsquid/client
+      - run: npx turbo build --filter=@subsquid/client --no-cache
         env:
           APP_ENV: ${{ steps.env.outputs.app_env }}
           APP_VERSION: ${{ steps.env.outputs.tag }}

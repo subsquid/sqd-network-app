@@ -3,10 +3,28 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["build/**"]
+      "outputs": ["build/**"],
+      "env": [
+        "APP_VERSION",
+        "NETWORK",
+        "WALLET_CONNECT_PROJECT_ID",
+        "ENABLE_DEMO_FEATURES",
+        "TESTNET_SQUID_API_URL",
+        "MAINNET_SQUID_API_URL",
+        "TESTNET_POOL_SQUID_API_URL",
+        "MAINNET_POOL_SQUID_API_URL",
+        "TESTNET_WORKERS_CHAT_URL",
+        "MAINNET_WORKERS_CHAT_URL",
+        "SENTRY_DSN",
+        "HOST_URL",
+        "NODE_ENV"
+      ],
+      "passThroughEnv": [
+        "*"
+      ]
     },
     "tsc": {
-      "dependsOn": ["^build"],
+      "dependsOn": [],
       "outputs": []
     }
   }

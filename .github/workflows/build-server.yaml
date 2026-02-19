@@ -63,7 +63,7 @@ jobs:
       # Check compile errors before build
       - run: npx turbo tsc --filter=@subsquid/server
 
-      - run: npx turbo build --filter=@subsquid/server
+      - run: npx turbo build --filter=@subsquid/server --no-cache
 
       - name: Build server image
         run: docker build --progress=plain --target server -t "gcr.io/${PROJECT_ID}/subsquid-network-app-${APP_ENV}-server:${TAG}" -t "gcr.io/${PROJECT_ID}/subsquid-network-app-${APP_ENV}-server:latest" .
