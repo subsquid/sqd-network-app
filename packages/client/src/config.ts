@@ -1,0 +1,55 @@
+import { getDefaultConfig } from '@rainbow-me/rainbowkit';
+import {
+  baseAccount,
+  coinbaseWallet,
+  metaMaskWallet,
+  rabbyWallet,
+  rainbowWallet,
+  safeWallet,
+  trustWallet,
+  walletConnectWallet,
+} from '@rainbow-me/rainbowkit/wallets';
+import { upperFirst } from 'lodash-es';
+import { fallback, http } from 'wagmi';
+import { arbitrum, arbitrumSepolia } from 'wagmi/chains';
+
+import { NetworkName, getSubsquidNetwork } from './hooks/network/useSubsquidNetwork';
+
+// export let CHAIN: Chain = arbitrumSepolia;
+// if (process.env.NETWORK === 'hardhat') {
+//   CHAIN = {
+//     ...hardhat,
+//     contracts: {
+//       multicall3: {
+//         address: process.env.MULTICALL_3_CONTRACT_ADDRESS,
+//       } as any,
+//     },
+//   };
+// }
+
+const network = getSubsquidNetwork();
+
+export const rainbowConfig = getDefaultConfig({
+  appName: `Subsquid Network ${upperFirst(network)}`,
+  projectId: process.env.WALLET_CONNECT_PROJECT_ID || '',
+  transports: {
+    [arbitrum.id]: fallback([http()]),
+    [arbitrumSepolia.id]: fallback([http()]),
+  },
+  chains: network === NetworkName.Mainnet ? [arbitrum] : [arbitrumSepolia],
+  wallets: [
+    {
+      groupName: 'Popular',
+      wallets: [
+        metaMaskWallet,
+        rabbyWallet,
+        safeWallet,
+        rainbowWallet,
+        baseAccount,
+        trustWallet,
+        coinbaseWallet,
+        walletConnectWallet,
+      ],
+    },
+  ],
+});

@@ -1,0 +1,113 @@
+name: build-server
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [main, develop]
+    paths:
+      - 'packages/server/**'
+      - 'packages/common/**'
+      - 'Dockerfile'
+      - 'package.json'
+      - 'yarn.lock'
+      - '.yarnrc.yml'
+      - 'turbo.json'
+
+env:
+  PROJECT_ID: bright-meridian-316511
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Yarn
+        run: corepack enable
+
+      # Yarn dependencies cannot be cached until yarn is installed
+      # WORKAROUND: https://github.com/actions/setup-node/issues/531
+      - name: Extract cached dependencies
+        uses: actions/setup-node@v4
+        with:
+          cache: yarn
+
+      - name: env
+        id: env
+        run: |
+          echo "tag=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          if [ "$REF" = "refs/heads/main" ]; then
+              echo "app_env=prod" >> $GITHUB_OUTPUT
+          else
+              echo "app_env=dev" >> $GITHUB_OUTPUT
+          fi
+        env:
+          REF: ${{ github.ref }}
+
+      - run: yarn install --immutable
+
+      - name: Cache turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-turbo-
+
+      # Check compile errors before build
+      - run: npx turbo tsc --filter=@subsquid/server
+
+      - run: npx turbo build --filter=@subsquid/server
+
+      - name: Build server image
+        run: docker build --progress=plain --target server -t "gcr.io/${PROJECT_ID}/subsquid-network-app-${APP_ENV}-server:${TAG}" -t "gcr.io/${PROJECT_ID}/subsquid-network-app-${APP_ENV}-server:latest" .
+        env:
+          APP_ENV: ${{ steps.env.outputs.app_env }}
+          TAG: ${{ steps.env.outputs.tag }}
+
+      - id: auth
+        uses: google-github-actions/auth@v0.4.0
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0.2.1
+
+      - name: 'gcloud cli --> docker credential helper'
+        run: gcloud auth configure-docker -q
+
+      - name: Push server image
+        run: |
+          docker push "gcr.io/${PROJECT_ID}/subsquid-network-app-${APP_ENV}-server:${TAG}"
+          docker push "gcr.io/${PROJECT_ID}/subsquid-network-app-${APP_ENV}-server:latest"
+        env:
+          APP_ENV: ${{ steps.env.outputs.app_env }}
+          TAG: ${{ steps.env.outputs.tag }}
+
+      - name: Slack notification success
+        uses: 8398a7/action-slack@v3
+        with:
+          channel: ${ process.env.SLACK_CHANNEL }
+          status: custom
+          fields: message,workflow,job,commit,repo,ref,author,took
+          custom_payload: |
+            {
+              attachments: [{
+                title: `A new server (${process.env.APP_ENV}) version has been deployed`,
+                color: '${{ job.status }}' === 'success' ? 'good' : '${{ job.status }}' === 'failure' ? 'danger' : 'warning',
+                text: `${process.env.AS_MESSAGE}\n${process.env.AS_COMMIT} by ${process.env.AS_AUTHOR} in ${process.env.AS_TOOK}`,
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.slack_webhook_url }}
+          SLACK_CHANNEL: ${{ steps.env.outputs.slack_channel }}
+          APP_ENV: ${{ steps.env.outputs.app_env }}
