@@ -11,4 +11,5 @@ const server = createHTTPServer({
   createContext,
 });
 
+// biome-ignore lint/suspicious/noConsole: start indicator
 server.listen(port, () => console.log(`Server is running on port ${port}`));

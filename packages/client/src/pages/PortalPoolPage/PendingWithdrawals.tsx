@@ -29,11 +29,11 @@ import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
 
 import type { PendingWithdrawal } from './hooks';
 import { usePoolData, usePoolPendingWithdrawals } from './hooks';
+import { useClaims } from './hooks/useClaims';
 import { useLiquidityEvents } from './hooks/useLiquidityEvents';
 import { useTopUps } from './hooks/useTopUps';
-import { useClaims } from './hooks/useClaims';
-import { useAccount } from '@hooks/network/useAccount';
 import { ACTIVITY_TEXTS, CLAIMS_TEXTS, TOP_UPS_TEXTS, WITHDRAWALS_TEXTS } from './texts';
+import { useAccount } from 'wagmi';
 
 const PAGE_SIZE = 10;
 
@@ -429,7 +429,7 @@ function ClaimsTable({ poolId, providerId }: { poolId: string; providerId?: stri
   // Calculate total page count from totalCount
   const pageCount = Math.ceil(totalCount / PAGE_SIZE) || 1;
 
-  const columns = useMemo<ColumnDef<(typeof claims)[number]>[]>(
+  const columns = useMemo<ColumnDef<any>[]>(
     () => [
       {
         id: 'account',

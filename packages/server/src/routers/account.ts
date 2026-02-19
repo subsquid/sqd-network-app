@@ -6,8 +6,6 @@ import {
   type SourcesQuery,
   SourcesWithAssetsDocument,
   type SourcesWithAssetsQuery,
-  SquidNetworkHeightDocument,
-  type SquidNetworkHeightQuery,
   TemporaryHoldingsByAccountDocument,
   type TemporaryHoldingsByAccountQuery,
   VestingByAddressDocument,
