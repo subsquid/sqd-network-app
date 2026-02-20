@@ -124,7 +124,7 @@ export function EditMetadataDialog({ open, onClose, poolId }: EditMetadataDialog
               formik={formik}
               showErrorOnlyOfTouched
               autoComplete="off"
-              placeholder="My Portal Pool"
+              placeholder="My Portal Pool…"
             />
           </FormRow>
           <FormRow>
@@ -134,7 +134,7 @@ export function EditMetadataDialog({ open, onClose, poolId }: EditMetadataDialog
               formik={formik}
               showErrorOnlyOfTouched
               autoComplete="off"
-              placeholder="A brief description of your pool"
+              placeholder="A brief description of your pool…"
               multiline
               rows={3}
             />
@@ -164,8 +164,8 @@ export function EditMetadataButton({ poolId, disabled }: { poolId: string; disab
   return (
     <>
       <Tooltip title="Edit metadata">
-        <IconButton size="small" onClick={handleOpen} disabled={disabled}>
-          <EditOutlined fontSize="small" />
+        <IconButton size="small" aria-label="Edit pool metadata" onClick={handleOpen} disabled={disabled}>
+          <EditOutlined fontSize="small" aria-hidden="true" />
         </IconButton>
       </Tooltip>
       <EditMetadataDialog open={dialogOpen} onClose={handleClose} poolId={poolId} />

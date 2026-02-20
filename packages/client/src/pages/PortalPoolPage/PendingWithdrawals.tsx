@@ -14,7 +14,9 @@ import {
   Typography,
 } from '@mui/material';
 import { ColumnDef } from '@tanstack/react-table';
+import BigNumber from 'bignumber.js';
 import { Link } from 'react-router-dom';
+import { useAccount } from 'wagmi';
 
 import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
@@ -29,11 +31,10 @@ import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
 
 import type { PendingWithdrawal } from './hooks';
 import { usePoolData, usePoolPendingWithdrawals } from './hooks';
-import { useClaims } from './hooks/useClaims';
+import { type ClaimRecord, useClaims } from './hooks/useClaims';
 import { useLiquidityEvents } from './hooks/useLiquidityEvents';
 import { useTopUps } from './hooks/useTopUps';
 import { ACTIVITY_TEXTS, CLAIMS_TEXTS, TOP_UPS_TEXTS, WITHDRAWALS_TEXTS } from './texts';
-import { useAccount } from 'wagmi';
 
 const PAGE_SIZE = 10;
 
@@ -87,14 +88,17 @@ function PendingWithdrawalsTable({
   claimingId,
   onClaim,
   isLoading,
+  pageIndex,
+  onPageChange,
 }: {
   pendingWithdrawals: PendingWithdrawal[];
   claimingId: string | null;
   onClaim: (id: string) => void;
   isLoading: boolean;
+  pageIndex: number;
+  onPageChange: (page: number) => void;
 }) {
   const { SQD_TOKEN } = useContracts();
-  const [pageIndex, setPageIndex] = useState(0);
 
   // Client-side pagination
   const pageCount = Math.ceil(pendingWithdrawals.length / PAGE_SIZE) || 1;
@@ -156,28 +160,28 @@ function PendingWithdrawalsTable({
       columns={columns}
       pageIndex={pageIndex}
       pageCount={pageCount}
-      onPageChange={setPageIndex}
+      onPageChange={onPageChange}
       isLoading={isLoading}
       emptyMessage={WITHDRAWALS_TEXTS.noRequests}
     />
   );
 }
 
-function formatTimeAgo(timestamp: string): string {
-  const now = new Date().getTime();
-  const time = new Date(timestamp).getTime();
-  const diffSeconds = Math.floor((now - time) / 1000);
+const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
 
-  if (diffSeconds < 60) return `${diffSeconds}s ago`;
+function formatTimeAgo(timestamp: string): string {
+  const diffSeconds = Math.floor((Date.now() - new Date(timestamp).getTime()) / 1000);
+
+  if (diffSeconds < 60) return rtf.format(-diffSeconds, 'second');
 
   const diffMinutes = Math.floor(diffSeconds / 60);
-  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  if (diffMinutes < 60) return rtf.format(-diffMinutes, 'minute');
 
   const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffHours < 24) return rtf.format(-diffHours, 'hour');
 
   const diffDays = Math.floor(diffHours / 24);
-  return `${diffDays}d ago`;
+  return rtf.format(-diffDays, 'day');
 }
 
 function getEventTypeLabel(eventType: LiquidityEventType): string {
@@ -208,25 +212,27 @@ function getEventTypeColor(
   }
 }
 
-function ActivityTable({ poolId }: { poolId: string }) {
-  const [pageIndex, setPageIndex] = useState(0);
-
+function ActivityTable({
+  poolId,
+  pageIndex,
+  onPageChange,
+}: {
+  poolId: string;
+  pageIndex: number;
+  onPageChange: (page: number) => void;
+}) {
   const {
     events,
     totalCount,
-    isLoading: isLoadingEvents,
+    isLoading,
   } = useLiquidityEvents({
     poolId,
     limit: PAGE_SIZE,
     offset: pageIndex * PAGE_SIZE,
   });
-  const { data: pool, isLoading: isLoadingPool } = usePoolData(poolId);
   const explorer = useExplorer();
   const { SQD_TOKEN } = useContracts();
 
-  const isLoading = isLoadingEvents || isLoadingPool;
-
-  // Calculate total page count from totalCount
   const pageCount = Math.ceil(totalCount / PAGE_SIZE) || 1;
 
   const columns = useMemo<ColumnDef<(typeof events)[number]>[]>(
@@ -289,14 +295,15 @@ function ActivityTable({ poolId }: { poolId: string }) {
         header: () => '',
         cell: info => (
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Tooltip title={`Open in Explorer`}>
+            <Tooltip title="Open in Explorer">
               <IconButton
                 size="small"
+                aria-label="Open in Explorer"
                 component={Link}
                 to={explorer.getTxUrl(info.getValue() as string)}
                 target="_blank"
               >
-                <ExplorerIcon fontSize="small" />
+                <ExplorerIcon fontSize="small" aria-hidden="true" />
               </IconButton>
             </Tooltip>
           </Box>
@@ -306,24 +313,28 @@ function ActivityTable({ poolId }: { poolId: string }) {
     [SQD_TOKEN, explorer],
   );
 
-  if (!pool) return null;
-
   return (
     <PaginatedTable
       data={events}
       columns={columns}
       pageIndex={pageIndex}
       pageCount={pageCount}
-      onPageChange={setPageIndex}
+      onPageChange={onPageChange}
       isLoading={isLoading}
       emptyMessage={ACTIVITY_TEXTS.noActivity}
     />
   );
 }
 
-function TopUpsTable({ poolId }: { poolId: string }) {
-  const [pageIndex, setPageIndex] = useState(0);
-
+function TopUpsTable({
+  poolId,
+  pageIndex,
+  onPageChange,
+}: {
+  poolId: string;
+  pageIndex: number;
+  onPageChange: (page: number) => void;
+}) {
   const {
     topUps,
     totalCount,
@@ -333,12 +344,9 @@ function TopUpsTable({ poolId }: { poolId: string }) {
     limit: PAGE_SIZE,
     offset: pageIndex * PAGE_SIZE,
   });
-  const { data: pool, isLoading: isLoadingPool } = usePoolData(poolId);
+  const { data: pool } = usePoolData(poolId);
   const explorer = useExplorer();
 
-  const isLoading = isLoadingTopUps || isLoadingPool;
-
-  // Calculate total page count from totalCount
   const pageCount = Math.ceil(totalCount / PAGE_SIZE) || 1;
 
   const columns = useMemo<ColumnDef<(typeof topUps)[number]>[]>(
@@ -376,14 +384,15 @@ function TopUpsTable({ poolId }: { poolId: string }) {
         header: () => '',
         cell: info => (
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Tooltip title={`Open in Explorer`}>
+            <Tooltip title="Open in Explorer">
               <IconButton
                 size="small"
+                aria-label="Open in Explorer"
                 component={Link}
                 to={explorer.getTxUrl(info.getValue() as string)}
                 target="_blank"
               >
-                <ExplorerIcon fontSize="small" />
+                <ExplorerIcon fontSize="small" aria-hidden="true" />
               </IconButton>
             </Tooltip>
           </Box>
@@ -393,24 +402,30 @@ function TopUpsTable({ poolId }: { poolId: string }) {
     [pool, explorer],
   );
 
-  if (!pool) return null;
-
   return (
     <PaginatedTable
       data={topUps}
       columns={columns}
       pageIndex={pageIndex}
       pageCount={pageCount}
-      onPageChange={setPageIndex}
-      isLoading={isLoading}
+      onPageChange={onPageChange}
+      isLoading={isLoadingTopUps}
       emptyMessage={TOP_UPS_TEXTS.noTopUps}
     />
   );
 }
 
-function ClaimsTable({ poolId, providerId }: { poolId: string; providerId?: string }) {
-  const [pageIndex, setPageIndex] = useState(0);
-
+function ClaimsTable({
+  poolId,
+  providerId,
+  pageIndex,
+  onPageChange,
+}: {
+  poolId: string;
+  providerId?: string;
+  pageIndex: number;
+  onPageChange: (page: number) => void;
+}) {
   const {
     claims,
     totalCount,
@@ -421,15 +436,12 @@ function ClaimsTable({ poolId, providerId }: { poolId: string; providerId?: stri
     limit: PAGE_SIZE,
     offset: pageIndex * PAGE_SIZE,
   });
-  const { data: pool, isLoading: isLoadingPool } = usePoolData(poolId);
+  const { data: pool } = usePoolData(poolId);
   const explorer = useExplorer();
 
-  const isLoading = isLoadingClaims || isLoadingPool;
-
-  // Calculate total page count from totalCount
   const pageCount = Math.ceil(totalCount / PAGE_SIZE) || 1;
 
-  const columns = useMemo<ColumnDef<any>[]>(
+  const columns = useMemo<ColumnDef<ClaimRecord>[]>(
     () => [
       {
         id: 'account',
@@ -480,14 +492,15 @@ function ClaimsTable({ poolId, providerId }: { poolId: string; providerId?: stri
         header: () => '',
         cell: info => (
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Tooltip title={`Open in Explorer`}>
+            <Tooltip title="Open in Explorer">
               <IconButton
                 size="small"
+                aria-label="Open in Explorer"
                 component={Link}
                 to={explorer.getTxUrl(info.getValue() as string)}
                 target="_blank"
               >
-                <ExplorerIcon fontSize="small" />
+                <ExplorerIcon fontSize="small" aria-hidden="true" />
               </IconButton>
             </Tooltip>
           </Box>
@@ -497,16 +510,14 @@ function ClaimsTable({ poolId, providerId }: { poolId: string; providerId?: stri
     [pool, explorer],
   );
 
-  if (!pool) return null;
-
   return (
     <PaginatedTable
       data={claims}
       columns={columns}
       pageIndex={pageIndex}
       pageCount={pageCount}
-      onPageChange={setPageIndex}
-      isLoading={isLoading}
+      onPageChange={onPageChange}
+      isLoading={isLoadingClaims}
       emptyMessage={CLAIMS_TEXTS.noClaims}
     />
   );
@@ -516,6 +527,10 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
   const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
   const [claimingId, setClaimingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState(0);
+  const [activityPage, setActivityPage] = useState(0);
+  const [topUpsPage, setTopUpsPage] = useState(0);
+  const [claimsPage, setClaimsPage] = useState(0);
+  const [withdrawalsPage, setWithdrawalsPage] = useState(0);
   const { writeTransactionAsync } = useWriteSQDTransaction();
   const { data: pendingWithdrawals = [], isLoading: withdrawalsLoading } =
     usePoolPendingWithdrawals(poolId);
@@ -554,15 +569,28 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
         <Tab label={CLAIMS_TEXTS.title} />
         <Tab label={WITHDRAWALS_TEXTS.tabTitle} />
       </Tabs>
-      {activeTab === 0 && <ActivityTable poolId={poolId} />}
-      {activeTab === 1 && <TopUpsTable poolId={poolId} />}
-      {activeTab === 2 && <ClaimsTable poolId={poolId} providerId={address} />}
+      {activeTab === 0 && (
+        <ActivityTable poolId={poolId} pageIndex={activityPage} onPageChange={setActivityPage} />
+      )}
+      {activeTab === 1 && (
+        <TopUpsTable poolId={poolId} pageIndex={topUpsPage} onPageChange={setTopUpsPage} />
+      )}
+      {activeTab === 2 && (
+        <ClaimsTable
+          poolId={poolId}
+          providerId={address}
+          pageIndex={claimsPage}
+          onPageChange={setClaimsPage}
+        />
+      )}
       {activeTab === 3 && (
         <PendingWithdrawalsTable
           pendingWithdrawals={pendingWithdrawals}
           claimingId={claimingId}
           onClaim={handleClaim}
           isLoading={poolLoading || withdrawalsLoading}
+          pageIndex={withdrawalsPage}
+          onPageChange={setWithdrawalsPage}
         />
       )}
     </Box>

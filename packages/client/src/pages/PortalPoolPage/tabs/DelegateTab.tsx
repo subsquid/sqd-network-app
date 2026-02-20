@@ -51,7 +51,7 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
     const userShare = balance.div(pool.tvl.max);
 
     return dailyDistribution.multipliedBy(userShare);
-  }, [pool, userData, balance, pool?.rewardToken.decimals]);
+  }, [pool, userData, balance]);
 
   const hasRewards = userData?.hasRewards ?? false;
 
@@ -132,8 +132,8 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
                 disabled={!hasRewards || isPending || isLoading}
                 loading={isPending}
               >
-                CLAIM
-              </Button>
+              CLAIM
+            </Button>
             </span>
           </Tooltip>
         </Stack>

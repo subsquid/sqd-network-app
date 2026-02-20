@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo } from 'react';
+import { type ReactNode, memo, useMemo } from 'react';
 
 import { Box, Skeleton, Stack, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
@@ -20,7 +20,7 @@ interface PoolStatsProps {
   poolId: string;
 }
 
-function StatItem({
+const StatItem = memo(function StatItem({
   label,
   value,
   tooltip,
@@ -40,7 +40,7 @@ function StatItem({
       <Box sx={{ '& > *': { lineHeight: 1.3 } }}>{value}</Box>
     </Box>
   );
-}
+});
 
 export function PoolStats({ poolId }: PoolStatsProps) {
   const { data: pool, isLoading } = usePoolData(poolId);

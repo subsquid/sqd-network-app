@@ -37,18 +37,22 @@ export function PaginatedTable<TData>({
   emptyMessage = 'No items to display',
 }: PaginatedTableProps<TData>) {
   const [previousData, setPreviousData] = useState<TData[]>(data);
+  const [stablePageCount, setStablePageCount] = useState(pageCount > 1 ? pageCount : 0);
   const previousPageIndexRef = useRef(pageIndex);
 
   const isLoadingNewPage = isLoading && previousPageIndexRef.current !== pageIndex;
   const displayData = isLoadingNewPage ? previousData : data;
 
-  // Update previous data when new data arrives
+  // Once a real response arrives, snapshot pageCount and keep it stable during subsequent loads.
   useEffect(() => {
-    if (!isLoading && data.length > 0) {
-      setPreviousData(data);
-      previousPageIndexRef.current = pageIndex;
+    if (!isLoading) {
+      if (pageCount > 0) setStablePageCount(pageCount);
+      if (data.length > 0) {
+        setPreviousData(data);
+        previousPageIndexRef.current = pageIndex;
+      }
     }
-  }, [isLoading, data, pageIndex]);
+  }, [isLoading, data, pageIndex, pageCount]);
 
   const table = useReactTable({
     data: displayData,
@@ -58,8 +62,7 @@ export function PaginatedTable<TData>({
     pageCount,
   });
 
-  const showEmptyState = table.getRowModel().rows.length === 0 && !isLoading;
-  const rowOpacity = isLoadingNewPage ? 0.5 : 1;
+  const showEmptyState = !isLoading && table.getRowModel().rows.length === 0;
 
   return (
     <>
@@ -86,7 +89,7 @@ export function PaginatedTable<TData>({
                 </NoItems>
               ) : (
                 table.getRowModel().rows.map(row => (
-                  <TableRow key={row.id} sx={{ opacity: rowOpacity }}>
+                  <TableRow key={row.id} sx={{ opacity: isLoading ? 0.5 : 1 }}>
                     {row.getVisibleCells().map(cell => (
                       <TableCell key={cell.id} align={getAlignment(cell.column.id)}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -97,28 +100,30 @@ export function PaginatedTable<TData>({
               )}
             </TableBody>
           </DashboardTable>
-          {isLoadingNewPage && (
+          {isLoading && (
             <Box
               sx={{
                 position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                zIndex: 1,
+                inset: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
-              <CircularProgress />
+              <CircularProgress color="secondary" size={40} thickness={4} />
             </Box>
           )}
         </Box>
       </Card>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-        <Pagination
-          count={pageCount}
-          page={pageIndex + 1}
-          onChange={(_, page) => onPageChange(page - 1)}
-        />
-      </Box>
+      {stablePageCount > 0 && (
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+          <Pagination
+            count={stablePageCount}
+            page={pageIndex + 1}
+            onChange={(_, page) => onPageChange(page - 1)}
+          />
+        </Box>
+      )}
     </>
   );
 }

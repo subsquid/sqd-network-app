@@ -1,4 +1,4 @@
-import { ReactNode, useCallback } from 'react';
+import { ReactNode, memo, useCallback } from 'react';
 
 import { dateFormat } from '@i18n';
 import {
@@ -39,18 +39,24 @@ function AddressActions({ address, explorerUrl, onAddToWallet }: AddressActionsP
         <IconButton
           size="small"
           color="inherit"
+          aria-label={INFO_TEXTS.actions.openInExplorer}
           component={Link}
           to={explorerUrl}
           rel="noreferrer"
           target="_blank"
         >
-          <ExplorerIcon fontSize="inherit" />
+          <ExplorerIcon fontSize="inherit" aria-hidden="true" />
         </IconButton>
       </Tooltip>
       {onAddToWallet && (
         <Tooltip title={INFO_TEXTS.actions.addToWallet}>
-          <IconButton size="small" color="inherit" onClick={onAddToWallet}>
-            <WalletIcon fontSize="inherit" />
+          <IconButton
+            size="small"
+            color="inherit"
+            aria-label={INFO_TEXTS.actions.addToWallet}
+            onClick={onAddToWallet}
+          >
+            <WalletIcon fontSize="inherit" aria-hidden="true" />
           </IconButton>
         </Tooltip>
       )}
@@ -65,7 +71,7 @@ interface InfoFieldProps {
   actions?: ReactNode;
 }
 
-function InfoField({ label, value, tooltip, actions }: InfoFieldProps) {
+const InfoField = memo(function InfoField({ label, value, tooltip, actions }: InfoFieldProps) {
   const labelContent = tooltip ? (
     <Stack direction="row" alignItems="center" spacing={0.5}>
       <span>{label}</span>
@@ -92,7 +98,7 @@ function InfoField({ label, value, tooltip, actions }: InfoFieldProps) {
       <Typography>{valueContent}</Typography>
     </Stack>
   );
-}
+});
 
 export function InfoTab({ poolId }: InfoTabProps) {
   const { SQD_TOKEN } = useContracts();

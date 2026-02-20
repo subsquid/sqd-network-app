@@ -122,8 +122,8 @@ export function EditCapacityButton({ poolId, disabled }: { poolId: string; disab
 
   return (
     <>
-      <IconButton size="small" onClick={handleOpen} disabled={disabled}>
-        <EditOutlined fontSize="small" />
+      <IconButton size="small" aria-label="Edit pool capacity" onClick={handleOpen} disabled={disabled}>
+        <EditOutlined fontSize="small" aria-hidden="true" />
       </IconButton>
       <EditCapacityDialog open={dialogOpen} onClose={handleClose} poolId={poolId} />
     </>
@@ -252,8 +252,8 @@ export function EditDistributionRateButton({
 
   return (
     <>
-      <IconButton size="small" onClick={handleOpen} disabled={disabled}>
-        <EditOutlined fontSize="small" />
+      <IconButton size="small" aria-label="Edit distribution rate" onClick={handleOpen} disabled={disabled}>
+        <EditOutlined fontSize="small" aria-hidden="true" />
       </IconButton>
       <EditDistributionRateDialog open={dialogOpen} onClose={handleClose} poolId={poolId} />
     </>
