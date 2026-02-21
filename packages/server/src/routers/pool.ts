@@ -246,25 +246,14 @@ export const poolRouter = router({
         };
       }
 
-      // Get reward token decimals
-      const tokens = await readERC20Tokens([rewardTokenAddress as Address]);
+      // Fetch ERC20 token metadata and historical prices in parallel
+      const [tokens, prices] = await Promise.all([
+        readERC20Tokens([rewardTokenAddress as Address]),
+        fetchHistoricalPrices(new Date(timeseries.from), new Date(timeseries.to)),
+      ]);
+
       const rewardToken = tokens[0];
-      if (!rewardToken) {
-        return {
-          data: [] as { value: number; timestamp: string }[],
-          from: timeseries.from,
-          to: timeseries.to,
-          step: timeseries.step,
-        };
-      }
-
-      // Fetch historical prices for the timeseries range
-      const prices = await fetchHistoricalPrices(
-        new Date(timeseries.from),
-        new Date(timeseries.to),
-      );
-
-      if (prices.length === 0) {
+      if (!rewardToken || prices.length === 0) {
         return {
           data: [] as { value: number; timestamp: string }[],
           from: timeseries.from,
