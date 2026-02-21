@@ -24,6 +24,7 @@ import {
   ListItemButtonProps,
   ListItemIcon,
   ListItemText,
+  Tooltip,
   styled,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
@@ -36,6 +37,7 @@ import { useWorkersChatUrl } from '@hooks/network/useWorkersChat';
 
 interface NetworkMenuProps {
   onItemClick: () => void;
+  collapsed?: boolean;
 }
 
 const MenuList = styled(List, {
@@ -67,6 +69,8 @@ const MenuListItemButton = styled(ListItemButton, {
   paddingRight: theme.spacing(1.5),
   borderRadius: theme.shape.borderRadius,
   height: 42,
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
 }));
 
 const MenuListItemIcon = styled(ListItemIcon, {
@@ -99,6 +103,7 @@ interface ItemProps {
   label?: string;
   onClick?: () => void;
   textSx?: Record<string, unknown>;
+  collapsed?: boolean;
 }
 
 export const Item = ({
@@ -111,11 +116,12 @@ export const Item = ({
   RightIcon,
   textSx,
   onClick,
+  collapsed,
 }: ItemProps) => {
   const startIcon = typeof LeftIcon === 'function' ? LeftIcon(selected) : LeftIcon;
   const endIcon = typeof RightIcon === 'function' ? RightIcon(selected) : RightIcon;
 
-  return (
+  const button = (
     <MenuListItem disablePadding>
       <MenuListItemButton
         component={Link}
@@ -126,22 +132,38 @@ export const Item = ({
         target={target}
         rel={target ? 'noreferrer' : undefined}
       >
-        <MenuListItemIcon>{startIcon}</MenuListItemIcon>
-        <ListItemText
-          slotProps={{
-            primary: {
-              sx: textSx,
-            },
-          }}
-          primary={label}
-        />
-        {endIcon && <MenuListItemSecondaryIcon>{endIcon}</MenuListItemSecondaryIcon>}
+        <MenuListItemIcon>
+          {startIcon}
+        </MenuListItemIcon>
+        {!collapsed && (
+          <ListItemText
+            slotProps={{
+              primary: {
+                sx: textSx,
+              },
+            }}
+            primary={label}
+          />
+        )}
+        {!collapsed && endIcon && (
+          <MenuListItemSecondaryIcon>{endIcon}</MenuListItemSecondaryIcon>
+        )}
       </MenuListItemButton>
     </MenuListItem>
   );
+
+  if (collapsed && label) {
+    return (
+      <Tooltip title={label} placement="right" arrow>
+        <span>{button}</span>
+      </Tooltip>
+    );
+  }
+
+  return button;
 };
 
-export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
+export const NetworkMenu = ({ onItemClick, collapsed }: NetworkMenuProps) => {
   const { address } = useAccount();
   const { data: workersCount } = useQuery(
     trpc.worker.countMine.queryOptions({ address: address || '' }, { enabled: !!address }),
@@ -176,6 +198,7 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
         onClick={onItemClick}
         path="/dashboard"
         selected={activePath === '/dashboard'}
+        collapsed={collapsed}
       />
       <Item
         LeftIcon={active => (active ? <Savings /> : <SavingsOutlined />)}
@@ -183,6 +206,7 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
         onClick={onItemClick}
         path="/assets"
         selected={activePath === '/assets'}
+        collapsed={collapsed}
       />
       <Item
         LeftIcon={active => (active ? <Lan /> : <LanOutlined />)}
@@ -190,6 +214,7 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
         onClick={onItemClick}
         path="/workers"
         selected={activePath === '/workers'}
+        collapsed={collapsed}
       />
       {demoFeaturesEnabled() && (
         <Item
@@ -198,6 +223,7 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
           onClick={onItemClick}
           path="/portals"
           selected={activePath === '/portals'}
+          collapsed={collapsed}
         />
       )}
       {demoFeaturesEnabled() && (
@@ -207,6 +233,7 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
           onClick={onItemClick}
           path="/portal-pools"
           selected={activePath === '/portal-pools'}
+          collapsed={collapsed}
         />
       )}
       <Item
@@ -215,6 +242,7 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
         onClick={onItemClick}
         path="/delegations"
         selected={activePath === '/delegations'}
+        collapsed={collapsed}
       />
       {/* <Item
         LeftIcon={active => (active ? <Sensors /> : <SensorsOutlined />)}
@@ -242,6 +270,7 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
           RightIcon={<ArrowOutwardOutlined />}
           onClick={onItemClick}
           selected={false}
+          collapsed={collapsed}
         />
       )}
       <Item
@@ -252,6 +281,7 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
         RightIcon={<ArrowOutwardOutlined />}
         onClick={onItemClick}
         selected={false}
+        collapsed={collapsed}
       />
       <Item
         label="Purchase SQD Token"
@@ -264,6 +294,7 @@ export const NetworkMenu = ({ onItemClick }: NetworkMenuProps) => {
         RightIcon={<ArrowOutwardOutlined />}
         onClick={onItemClick}
         selected={false}
+        collapsed={collapsed}
       />
     </MenuList>
   );

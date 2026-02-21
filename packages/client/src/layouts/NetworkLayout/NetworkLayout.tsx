@@ -1,7 +1,7 @@
 import '@rainbow-me/rainbowkit/styles.css';
-import { PropsWithChildren, useEffect, useState } from 'react';
+import { PropsWithChildren, useCallback, useEffect, useState } from 'react';
 
-import { MenuIcon } from '@icons/MenuIcon';
+import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 import {
   AppBar as AppBarMaterial,
   Drawer,
@@ -12,11 +12,11 @@ import {
   useTheme,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
-import classnames from 'classnames';
 import { Outlet } from 'react-router-dom';
 import { useAccount, useDisconnect } from 'wagmi';
 
 import { trpc } from '@api/trpc';
+import { localStorageBoolSerializer, useLocalStorageState } from '@hooks/useLocalStorageState';
 import { Logo } from '@components/Logo';
 import { useBannerHeight } from '@components/TopBanner';
 import { useContracts } from '@hooks/network/useContracts';
@@ -28,31 +28,27 @@ import { UserMenu } from './UserMenu';
 
 const APP_BAR_HEIGHT = 60;
 const SIDEBAR_WIDTH = 232;
+const SIDEBAR_COLLAPSED_WIDTH = 64;
 
 const Main = styled('div', {
   name: 'Main',
-})(({ theme }) => ({
+})(() => ({
   display: 'flex',
   minHeight: '100vh',
 }));
 
 const AppBar = styled(AppBarMaterial, {
   name: 'AppBar',
-  shouldForwardProp: prop => prop !== 'bannerHeight',
-})<{ bannerHeight: number }>(({ theme, bannerHeight }) => ({
+  shouldForwardProp: prop => prop !== 'bannerHeight' && prop !== 'sidebarWidth',
+})<{ bannerHeight: number; sidebarWidth: number }>(({ theme, bannerHeight, sidebarWidth }) => ({
   position: 'fixed',
-  width: '100%',
-  marginLeft: 0,
   top: bannerHeight,
+  width: `calc(100% - ${sidebarWidth}px)`,
+  marginLeft: sidebarWidth,
   transition: theme.transitions.create(['width', 'margin'], {
     easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
+    duration: theme.transitions.duration.enteringScreen,
   }),
-
-  [theme.breakpoints.up('lg')]: {
-    width: `calc(100% - ${SIDEBAR_WIDTH}px)`,
-    marginLeft: SIDEBAR_WIDTH,
-  },
 }));
 
 const AppToolbar = styled('div', {
@@ -63,9 +59,6 @@ const AppToolbar = styled('div', {
   alignItems: 'center',
   height: APP_BAR_HEIGHT,
   padding: theme.spacing(0, 2),
-  [theme.breakpoints.up('lg')]: {
-    padding: theme.spacing(0, 3),
-  },
 }));
 
 const UserMenuContainer = styled('div', {
@@ -79,17 +72,17 @@ const UserMenuContainer = styled('div', {
 
 const NavContainer = styled('nav', {
   name: 'NavContainer',
-})(({ theme }) => ({
-  [theme.breakpoints.up('lg')]: {
-    width: SIDEBAR_WIDTH,
-    flexShrink: 0,
-  },
+  shouldForwardProp: prop => prop !== 'sidebarWidth',
+})<{ sidebarWidth: number }>(({ sidebarWidth }) => ({
+  width: sidebarWidth,
+  flexShrink: 0,
+  transition: 'width 225ms cubic-bezier(0.4, 0, 0.6, 1) 0ms',
 }));
 
 const Sidebar = styled(Drawer, {
   name: 'Sidebar',
-  shouldForwardProp: prop => prop !== 'bannerHeight',
-})<{ bannerHeight: number }>(({ theme, bannerHeight }) => ({
+  shouldForwardProp: prop => prop !== 'bannerHeight' && prop !== 'sidebarWidth',
+})<{ bannerHeight: number; sidebarWidth: number }>(({ theme, bannerHeight, sidebarWidth }) => ({
   '& .MuiListItemButton-root': {
     color: theme.palette.primary.contrastText,
 
@@ -108,12 +101,17 @@ const Sidebar = styled(Drawer, {
     background: theme.palette.primary.main,
     border: 'none',
     padding: theme.spacing(0, 1, 2, 1),
-    width: SIDEBAR_WIDTH,
+    width: sidebarWidth,
     boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
     top: bannerHeight,
     height: `calc(100vh - ${bannerHeight}px)`,
+    overflowX: 'hidden',
+    transition: theme.transitions.create('width', {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
   },
 }));
 
@@ -122,27 +120,34 @@ const SidebarLogo = styled('div', {
 })(({ theme }) => ({
   padding: theme.spacing(2, 1),
   marginBottom: theme.spacing(1),
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  minHeight: APP_BAR_HEIGHT,
+  flexShrink: 0,
 }));
 
-const MenuButton = styled(IconButton, {
-  name: 'MenuButton',
+const CollapseButton = styled(IconButton, {
+  name: 'CollapseButton',
 })(({ theme }) => ({
-  display: 'none',
-
-  [theme.breakpoints.down('lg')]: {
-    display: 'inline-block',
+  color: theme.palette.primary.contrastText,
+  padding: theme.spacing(0.5),
+  flexShrink: 0,
+  '&:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
+}));
 
-  transition: theme.transitions.create('transform', {
-    duration: theme.transitions.duration.short,
-  }),
-
-  '&.open': {
-    transform: 'rotateZ(90deg)',
+const ExpandButton = styled(IconButton, {
+  name: 'ExpandButton',
+})(({ theme }) => ({
+  color: theme.palette.primary.contrastText,
+  padding: theme.spacing(0.5),
+  '&:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
-
-  '& path': {
-    stroke: theme.palette.primary.contrastText,
+  '& .MuiSvgIcon-root': {
+    color: theme.palette.primary.contrastText,
   },
 }));
 
@@ -156,21 +161,25 @@ const AppBarSpacer = styled('div', {
 
 const MainContent = styled('main', {
   name: 'MainContent',
-})(({ theme }) => ({
+  shouldForwardProp: prop => prop !== 'sidebarWidth',
+})<{ sidebarWidth: number }>(({ theme, sidebarWidth }) => ({
   flexGrow: 1,
   paddingLeft: theme.spacing(2),
   paddingRight: theme.spacing(2),
   paddingTop: theme.spacing(2),
   paddingBottom: theme.spacing(10),
-  width: '100%',
+  width: `calc(100% - ${sidebarWidth}px)`,
   minHeight: '100vh',
+  transition: theme.transitions.create('width', {
+    easing: theme.transitions.easing.sharp,
+    duration: theme.transitions.duration.enteringScreen,
+  }),
 
-  [theme.breakpoints.up('lg')]: {
+  [theme.breakpoints.up('sm')]: {
     paddingLeft: theme.spacing(3),
     paddingRight: theme.spacing(3),
     paddingTop: theme.spacing(3),
     paddingBottom: theme.spacing(10),
-    width: `calc(100% - ${SIDEBAR_WIDTH}px)`,
   },
 }));
 
@@ -181,13 +190,20 @@ export const NetworkLayout = ({
   stretchContent?: boolean;
 }>) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
-  const [isMenuOpen, setisMenuOpen] = useState(false);
+  // Mobile: temporary overlay drawer (no collapsed mode)
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  // Narrow non-mobile: permanent sidebar, starts collapsed
+  const isNarrow = useMediaQuery(theme.breakpoints.between('sm', 'lg'));
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useLocalStorageState('sidebar:collapsed', {
+    defaultValue: isNarrow,
+    serializer: localStorageBoolSerializer,
+  });
   const { isConnected, chain } = useAccount();
   const { disconnect } = useDisconnect();
   const network = getSubsquidNetwork();
   const bannerHeight = useBannerHeight();
-  const { SQD, SQD_TOKEN } = useContracts();
+  const { SQD_TOKEN } = useContracts();
   const price = useQuery(trpc.price.current.queryOptions());
 
   useEffect(() => {
@@ -196,41 +212,64 @@ export const NetworkLayout = ({
     disconnect();
   }, [isConnected, chain?.id, network, disconnect]);
 
-  // Close mobile menu when switching to desktop view
+  // Close mobile menu when switching away from mobile
   useEffect(() => {
-    if (!isMobile && isMenuOpen) {
-      setisMenuOpen(false);
-    }
-  }, [isMobile, isMenuOpen]);
+    if (!isMobile) setIsMenuOpen(false);
+  }, [isMobile]);
 
-  const handleMenuToggle = () => {
-    setisMenuOpen(prev => !prev);
-  };
+  // Auto-collapse when entering narrow non-mobile range
+  useEffect(() => {
+    if (isNarrow) setIsCollapsed(true);
+  }, [isNarrow, setIsCollapsed]);
 
-  const handleMenuClose = () => {
-    setisMenuOpen(false);
-  };
+  const handleMenuToggle = useCallback(() => {
+    setIsMenuOpen(prev => !prev);
+  }, []);
+
+  const handleMenuClose = useCallback(() => {
+    setIsMenuOpen(false);
+  }, []);
+
+  const handleCollapseToggle = useCallback(() => {
+    setIsCollapsed(prev => !prev);
+  }, [setIsCollapsed]);
+
+  // On mobile: sidebar is an overlay, takes no layout space
+  // On non-mobile: sidebar reserves space, may be collapsed
+  const collapsed = !isMobile && isCollapsed;
+  const sidebarWidth = isMobile ? 0 : collapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH;
 
   const drawer = (
     <>
       <SidebarLogo>
-        <Logo />
+        <Logo compact={collapsed} />
+        {isMobile && (
+          <CollapseButton onClick={handleMenuClose} aria-label="Close sidebar">
+            <ChevronLeft />
+          </CollapseButton>
+        )}
+        {!isMobile && !collapsed && (
+          <CollapseButton onClick={handleCollapseToggle} aria-label="Collapse sidebar">
+            <ChevronLeft />
+          </CollapseButton>
+        )}
       </SidebarLogo>
-      <NetworkMenu onItemClick={handleMenuClose} />
+      <NetworkMenu onItemClick={isMobile ? handleMenuClose : () => {}} collapsed={collapsed} />
     </>
   );
 
   return (
     <Main>
-      <AppBar bannerHeight={bannerHeight} elevation={0}>
+      <AppBar bannerHeight={bannerHeight} sidebarWidth={sidebarWidth} elevation={0}>
         <AppToolbar>
-          <MenuButton
-            className={classnames({ open: isMenuOpen })}
-            onClick={handleMenuToggle}
-            aria-label="toggle menu"
-          >
-            <MenuIcon />
-          </MenuButton>
+          {(isMobile || collapsed) && (
+            <ExpandButton
+              onClick={isMobile ? handleMenuToggle : handleCollapseToggle}
+              aria-label="Expand sidebar"
+            >
+              <ChevronRight />
+            </ExpandButton>
+          )}
           <UserMenuContainer>
             <Typography variant="body2">
               {SQD_TOKEN}: {dollarFormatter(price.data || 0)}
@@ -240,29 +279,26 @@ export const NetworkLayout = ({
         </AppToolbar>
       </AppBar>
 
-      <NavContainer aria-label="navigation menu">
+      <NavContainer aria-label="navigation menu" sidebarWidth={sidebarWidth}>
         {isMobile ? (
-          // Mobile drawer
           <Sidebar
             variant="temporary"
             open={isMenuOpen}
             onClose={handleMenuClose}
             bannerHeight={bannerHeight}
-            ModalProps={{
-              keepMounted: true, // Better open performance on mobile
-            }}
+            sidebarWidth={SIDEBAR_WIDTH}
+            ModalProps={{ keepMounted: true }}
           >
             {drawer}
           </Sidebar>
         ) : (
-          // Desktop drawer
-          <Sidebar variant="permanent" open bannerHeight={bannerHeight}>
+          <Sidebar variant="permanent" open bannerHeight={bannerHeight} sidebarWidth={sidebarWidth}>
             {drawer}
           </Sidebar>
         )}
       </NavContainer>
 
-      <MainContent>
+      <MainContent sidebarWidth={sidebarWidth}>
         <AppBarSpacer bannerHeight={bannerHeight} />
         {children}
         <Outlet />

@@ -1,9 +1,9 @@
 export function LogoFull() {
   return (
     <svg
-      width="112"
+      width="115"
       height="32"
-      viewBox="0 0 112 32"
+      viewBox="-3.17 0 115 32"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
