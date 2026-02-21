@@ -24,6 +24,8 @@ import {
   ListItemButtonProps,
   ListItemIcon,
   ListItemText,
+  SxProps,
+  Theme,
   Tooltip,
   styled,
 } from '@mui/material';
@@ -71,6 +73,7 @@ const MenuListItemButton = styled(ListItemButton, {
   height: 42,
   whiteSpace: 'nowrap',
   overflow: 'hidden',
+  textOverflow: 'ellipsis',
 }));
 
 const MenuListItemIcon = styled(ListItemIcon, {
@@ -102,7 +105,7 @@ interface ItemProps {
   RightIcon?: React.ReactNode | ((active: boolean) => React.ReactNode);
   label?: string;
   onClick?: () => void;
-  textSx?: Record<string, unknown>;
+  textSx?: SxProps<Theme>;
   collapsed?: boolean;
 }
 
@@ -131,10 +134,9 @@ export const Item = ({
         disabled={disabled}
         target={target}
         rel={target ? 'noreferrer' : undefined}
+        aria-current={selected ? 'page' : undefined}
       >
-        <MenuListItemIcon>
-          {startIcon}
-        </MenuListItemIcon>
+        <MenuListItemIcon>{startIcon}</MenuListItemIcon>
         {!collapsed && (
           <ListItemText
             slotProps={{
@@ -145,9 +147,7 @@ export const Item = ({
             primary={label}
           />
         )}
-        {!collapsed && endIcon && (
-          <MenuListItemSecondaryIcon>{endIcon}</MenuListItemSecondaryIcon>
-        )}
+        {!collapsed && endIcon && <MenuListItemSecondaryIcon>{endIcon}</MenuListItemSecondaryIcon>}
       </MenuListItemButton>
     </MenuListItem>
   );
@@ -261,10 +261,10 @@ export const NetworkMenu = ({ onItemClick, collapsed }: NetworkMenuProps) => {
         />
       )} */}
       <MenuSpacer />
-      {isWorkerOperator && (
+      {isWorkerOperator && workersChatUrl && (
         <Item
           label="Operators Chat"
-          path={workersChatUrl || '/null'}
+          path={workersChatUrl}
           target="_blank"
           LeftIcon={<SmsOutlined />}
           RightIcon={<ArrowOutwardOutlined />}
@@ -273,16 +273,18 @@ export const NetworkMenu = ({ onItemClick, collapsed }: NetworkMenuProps) => {
           collapsed={collapsed}
         />
       )}
-      <Item
-        label="Community Chat"
-        path={process.env.DISCORD_API_URL || '/null'}
-        target="_blank"
-        LeftIcon={<SmsOutlined />}
-        RightIcon={<ArrowOutwardOutlined />}
-        onClick={onItemClick}
-        selected={false}
-        collapsed={collapsed}
-      />
+      {process.env.DISCORD_API_URL && (
+        <Item
+          label="Community Chat"
+          path={process.env.DISCORD_API_URL}
+          target="_blank"
+          LeftIcon={<SmsOutlined />}
+          RightIcon={<ArrowOutwardOutlined />}
+          onClick={onItemClick}
+          selected={false}
+          collapsed={collapsed}
+        />
+      )}
       <Item
         label="Purchase SQD Token"
         path="https://1inch.com/swap?src=42161:USDC&dst=42161:0x1337420ded5adb9980cfc35f8f2b054ea86f8ab1"

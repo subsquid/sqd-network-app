@@ -21,9 +21,7 @@ export interface LogoProps {
 
 export function Logo({ compact = false, sx, clickable = true, to = '/dashboard' }: LogoProps) {
   const logoContent = (
-    <LogoWrapper sx={sx}>
-      {compact ? <LogoCompactSvg /> : <LogoFull />}
-    </LogoWrapper>
+    <LogoWrapper sx={sx}>{compact ? <LogoCompactSvg /> : <LogoFull />}</LogoWrapper>
   );
 
   if (clickable) {

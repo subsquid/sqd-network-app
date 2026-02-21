@@ -10,7 +10,10 @@ export function WorkerTitle({
   owner,
   canEdit,
 }: {
-  worker: Pick<WorkerDetailed, 'id' | 'status' | 'peerId' | 'name' | 'description' | 'website' | 'email'>;
+  worker: Pick<
+    WorkerDetailed,
+    'id' | 'status' | 'peerId' | 'name' | 'description' | 'website' | 'email'
+  >;
   owner: { id: string; type: string };
   canEdit: boolean;
 }) {

@@ -164,7 +164,12 @@ export function EditMetadataButton({ poolId, disabled }: { poolId: string; disab
   return (
     <>
       <Tooltip title="Edit metadata">
-        <IconButton size="small" aria-label="Edit pool metadata" onClick={handleOpen} disabled={disabled}>
+        <IconButton
+          size="small"
+          aria-label="Edit pool metadata"
+          onClick={handleOpen}
+          disabled={disabled}
+        >
           <EditOutlined fontSize="small" aria-hidden="true" />
         </IconButton>
       </Tooltip>

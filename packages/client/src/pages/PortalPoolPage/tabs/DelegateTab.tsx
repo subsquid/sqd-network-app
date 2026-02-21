@@ -132,8 +132,8 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
                 disabled={!hasRewards || isPending || isLoading}
                 loading={isPending}
               >
-              CLAIM
-            </Button>
+                CLAIM
+              </Button>
             </span>
           </Tooltip>
         </Stack>

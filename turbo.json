@@ -19,9 +19,7 @@
         "HOST_URL",
         "NODE_ENV"
       ],
-      "passThroughEnv": [
-        "*"
-      ]
+      "passThroughEnv": ["*"]
     },
     "tsc": {
       "dependsOn": [],

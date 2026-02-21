@@ -12,7 +12,7 @@ import { LogoutMenuItem } from './LogoutMenuItem';
 
 export const UserMenuStyled = styled(Menu, {
   name: 'UserMenuStyled',
-})(({ theme }) => ({
+})(() => ({
   minWidth: '100%',
 }));
 
@@ -27,7 +27,7 @@ export function UserMenu() {
   const ref = useRef<HTMLButtonElement | null>(null);
   const popupState = usePopupState({
     variant: 'popover',
-    popupId: 'filter',
+    popupId: 'user-menu',
     disableAutoFocus: true,
   });
 
@@ -53,7 +53,6 @@ export function UserMenu() {
               transition: 'transform 300ms ease-out',
               transform: popupState.isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
               color: 'primary.contrastText',
-              // opacity: 0.2,
               width: 20,
               height: 20,
             }}
@@ -65,7 +64,6 @@ export function UserMenu() {
       <UserMenuStyled
         {...bindMenu(popupState)}
         anchorEl={ref.current}
-        disableEscapeKeyDown
         slotProps={{
           paper: {
             sx: {

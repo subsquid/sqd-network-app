@@ -221,11 +221,7 @@ function ActivityTable({
   pageIndex: number;
   onPageChange: (page: number) => void;
 }) {
-  const {
-    events,
-    totalCount,
-    isLoading,
-  } = useLiquidityEvents({
+  const { events, totalCount, isLoading } = useLiquidityEvents({
     poolId,
     limit: PAGE_SIZE,
     offset: pageIndex * PAGE_SIZE,

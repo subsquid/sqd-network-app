@@ -1,6 +1,5 @@
-import type { inferRouterOutputs } from '@trpc/server';
-
 import type { AppRouter } from '@subsquid/server';
+import type { inferRouterOutputs } from '@trpc/server';
 
 export type RouterOutput = inferRouterOutputs<AppRouter>;
 

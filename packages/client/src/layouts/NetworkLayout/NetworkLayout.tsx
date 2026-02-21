@@ -7,6 +7,7 @@ import {
   Drawer,
   IconButton,
   Typography,
+  alpha,
   styled,
   useMediaQuery,
   useTheme,
@@ -16,11 +17,11 @@ import { Outlet } from 'react-router-dom';
 import { useAccount, useDisconnect } from 'wagmi';
 
 import { trpc } from '@api/trpc';
-import { localStorageBoolSerializer, useLocalStorageState } from '@hooks/useLocalStorageState';
 import { Logo } from '@components/Logo';
 import { useBannerHeight } from '@components/TopBanner';
 import { useContracts } from '@hooks/network/useContracts';
 import { getChain, getSubsquidNetwork } from '@hooks/network/useSubsquidNetwork';
+import { localStorageBoolSerializer, useLocalStorageState } from '@hooks/useLocalStorageState';
 import { dollarFormatter } from '@lib/formatters/formatters';
 
 import { NetworkMenu } from './NetworkMenu';
@@ -37,6 +38,32 @@ const Main = styled('div', {
   minHeight: '100vh',
 }));
 
+const SkipLink = styled('a', {
+  name: 'SkipLink',
+})(({ theme }) => ({
+  position: 'absolute',
+  left: '-9999px',
+  top: 'auto',
+  width: '1px',
+  height: '1px',
+  overflow: 'hidden',
+  zIndex: theme.zIndex.tooltip + 1,
+  '&:focus-visible': {
+    position: 'fixed',
+    top: theme.spacing(1),
+    left: theme.spacing(1),
+    width: 'auto',
+    height: 'auto',
+    padding: theme.spacing(1, 2),
+    background: theme.palette.background.paper,
+    color: theme.palette.text.primary,
+    borderRadius: theme.shape.borderRadius,
+    border: `2px solid ${theme.palette.primary.main}`,
+    textDecoration: 'none',
+    fontWeight: 600,
+  },
+}));
+
 const AppBar = styled(AppBarMaterial, {
   name: 'AppBar',
   shouldForwardProp: prop => prop !== 'bannerHeight' && prop !== 'sidebarWidth',
@@ -49,6 +76,9 @@ const AppBar = styled(AppBarMaterial, {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.enteringScreen,
   }),
+  '@media (prefers-reduced-motion: reduce)': {
+    transition: 'none',
+  },
 }));
 
 const AppToolbar = styled('div', {
@@ -77,6 +107,9 @@ const NavContainer = styled('nav', {
   width: sidebarWidth,
   flexShrink: 0,
   transition: 'width 225ms cubic-bezier(0.4, 0, 0.6, 1) 0ms',
+  '@media (prefers-reduced-motion: reduce)': {
+    transition: 'none',
+  },
 }));
 
 const Sidebar = styled(Drawer, {
@@ -112,6 +145,9 @@ const Sidebar = styled(Drawer, {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.enteringScreen,
     }),
+    '@media (prefers-reduced-motion: reduce)': {
+      transition: 'none',
+    },
   },
 }));
 
@@ -134,7 +170,7 @@ const CollapseButton = styled(IconButton, {
   padding: theme.spacing(0.5),
   flexShrink: 0,
   '&:hover': {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: alpha(theme.palette.primary.contrastText, 0.1),
   },
 }));
 
@@ -144,7 +180,7 @@ const ExpandButton = styled(IconButton, {
   color: theme.palette.primary.contrastText,
   padding: theme.spacing(0.5),
   '&:hover': {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: alpha(theme.palette.primary.contrastText, 0.08),
   },
   '& .MuiSvgIcon-root': {
     color: theme.palette.primary.contrastText,
@@ -174,6 +210,9 @@ const MainContent = styled('main', {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.enteringScreen,
   }),
+  '@media (prefers-reduced-motion: reduce)': {
+    transition: 'none',
+  },
 
   [theme.breakpoints.up('sm')]: {
     paddingLeft: theme.spacing(3),
@@ -260,6 +299,7 @@ export const NetworkLayout = ({
 
   return (
     <Main>
+      <SkipLink href="#main-content">Skip to main content</SkipLink>
       <AppBar bannerHeight={bannerHeight} sidebarWidth={sidebarWidth} elevation={0}>
         <AppToolbar>
           {(isMobile || collapsed) && (
@@ -287,7 +327,7 @@ export const NetworkLayout = ({
             onClose={handleMenuClose}
             bannerHeight={bannerHeight}
             sidebarWidth={SIDEBAR_WIDTH}
-            ModalProps={{ keepMounted: true }}
+            slotProps={{ root: { keepMounted: true } }}
           >
             {drawer}
           </Sidebar>
@@ -298,7 +338,7 @@ export const NetworkLayout = ({
         )}
       </NavContainer>
 
-      <MainContent sidebarWidth={sidebarWidth}>
+      <MainContent id="main-content" sidebarWidth={sidebarWidth}>
         <AppBarSpacer bannerHeight={bannerHeight} />
         {children}
         <Outlet />

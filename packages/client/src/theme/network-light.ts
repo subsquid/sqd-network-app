@@ -1,5 +1,4 @@
-import { PaletteOptions } from '@mui/material';
-import { alpha } from '@mui/system/colorManipulator';
+import { PaletteOptions, alpha } from '@mui/material';
 
 export const NetworkLightTheme = {
   primary: {
