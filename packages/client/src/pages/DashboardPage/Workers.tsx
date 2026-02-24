@@ -14,7 +14,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { Box } from '@mui/system';
+import { Box } from '@mui/material';
 
 import { SortDir, WorkerSortBy, useMySources, useWorkers } from '@api/subsquid-network-squid';
 import { Card } from '@components/Card';

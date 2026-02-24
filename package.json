@@ -3,24 +3,18 @@
   "version": "0.0.1",
   "type": "module",
   "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
   "scripts": {
-    "build": "turbo build",
-    "build:client": "turbo build --filter=@subsquid/client",
-    "build:server": "turbo build --filter=@subsquid/server",
-    "build:common": "turbo build --filter=@subsquid/common",
-    "start:client": "yarn workspace @subsquid/client start",
-    "start:server": "yarn workspace @subsquid/server start",
-    "preview": "yarn workspace @subsquid/client preview",
-    "analyze": "yarn workspace @subsquid/client analyze",
-    "tsc": "turbo tsc",
-    "lint": "biome check packages --fix",
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "build:client": "turbo run build --filter=@subsquid/client",
+    "build:server": "turbo run build --filter=@subsquid/server",
+    "build:common": "turbo run build --filter=@subsquid/common",
+    "tsc": "turbo run tsc",
+    "lint": "turbo run lint",
     "codegen:graphql": "npx graphql-codegen --config packages/server/graphql.config.ts",
-    "codegen:wagmi": "yarn workspace @subsquid/client codegen:wagmi",
-    "codegen": "yarn codegen:graphql && yarn codegen:wagmi",
-    "upg": "yarn upgrade-interactive"
+    "codegen:wagmi": "pnpm --filter @subsquid/client codegen:wagmi",
+    "codegen": "pnpm codegen:graphql && pnpm codegen:wagmi",
+    "upg": "pnpm update --interactive -r"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.11",
@@ -30,5 +24,5 @@
     "turbo": "^2.8.10",
     "typescript": "^5.9.3"
   },
-  "packageManager": "yarn@4.1.1"
+  "packageManager": "pnpm@9.15.0"
 }

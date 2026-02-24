@@ -1,5 +1,5 @@
 import { Stack, Typography, styled } from '@mui/material';
-import { Box } from '@mui/system';
+import { Box } from '@mui/material';
 import { Link } from 'react-router-dom';
 
 import { Gateway } from '@api/subsquid-network-squid';

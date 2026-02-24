@@ -5,7 +5,7 @@ import {
   Theme,
   styled,
 } from '@mui/material';
-import { SxProps } from '@mui/system/styleFunctionSx';
+import { SxProps } from '@mui/material';
 
 export type CircularProgressColor =
   | 'primary'

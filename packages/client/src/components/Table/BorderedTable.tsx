@@ -1,7 +1,7 @@
 import React, { PropsWithChildren, SyntheticEvent } from 'react';
 
 import { Stack, SxProps, Table, TableCell, TableProps, Tooltip, styled } from '@mui/material';
-import { Box } from '@mui/system';
+import { Box } from '@mui/material';
 
 import { SortDir } from '@api/subsquid-network-squid';
 import { SortIcon } from '@components/SortIcon';

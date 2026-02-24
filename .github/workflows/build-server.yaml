@@ -9,10 +9,10 @@ on:
       - 'packages/common/**'
       - 'Dockerfile'
       - 'package.json'
-      - 'yarn.lock'
-      - '.yarnrc.yml'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
       - 'turbo.json'
-
+    
 env:
   PROJECT_ID: bright-meridian-316511
 
@@ -36,15 +36,13 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install Yarn
-        run: corepack enable
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
 
-      # Yarn dependencies cannot be cached until yarn is installed
-      # WORKAROUND: https://github.com/actions/setup-node/issues/531
       - name: Extract cached dependencies
         uses: actions/setup-node@v4
         with:
-          cache: yarn
+          cache: pnpm
 
       - name: env
         id: env
@@ -58,7 +56,7 @@ jobs:
         env:
           REF: ${{ github.ref }}
 
-      - run: yarn install --immutable
+      - run: pnpm install --frozen-lockfile
 
       # Check compile errors before build
       - run: npx turbo tsc --filter=@subsquid/server

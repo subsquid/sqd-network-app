@@ -1,7 +1,7 @@
 import { dateFormat } from '@i18n';
 import { CenteredPageWrapper } from '@layouts/NetworkLayout';
 import { Divider, Stack, styled } from '@mui/material';
-import { Box } from '@mui/system';
+import { Box } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { useParams, useSearchParams } from 'react-router-dom';
 

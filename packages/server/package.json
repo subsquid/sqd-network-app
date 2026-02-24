@@ -7,9 +7,11 @@
     ".": "./src/index.ts"
   },
   "scripts": {
+    "dev": "tsx --env-file=../../.env --watch src/main.ts",
     "start": "tsx --env-file=../../.env --watch src/main.ts",
     "build": "rolldown -c rolldown.config.ts",
-    "tsc": "tsc --noEmit"
+    "tsc": "tsc --noEmit",
+    "lint": "biome check src --fix"
   },
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.2.0",

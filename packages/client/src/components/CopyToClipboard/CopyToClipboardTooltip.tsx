@@ -1,6 +1,6 @@
 import CheckIcon from '@mui/icons-material/Check';
 import { Stack, Tooltip } from '@mui/material';
-import { Box, SxProps, Theme } from '@mui/system';
+import { Box, SxProps, Theme } from '@mui/material';
 
 export interface CopyToClipboardTooltipProps {
   children: React.ReactElement;

@@ -1,11 +1,11 @@
 import { createHTTPServer } from '@trpc/server/adapters/standalone';
 
 import {
+  getContractAddresses,
   getNetworkSquidUrl,
   getPoolSquidUrl,
-  getContractAddresses,
-  getRpcUrl,
   getPort,
+  getRpcUrl,
 } from './env.js';
 import { appRouter } from './router.js';
 import { createContext } from './trpc.js';
