@@ -19,6 +19,7 @@ import {
 import { getPublicClient, readERC20Tokens } from '../services/blockchain.js';
 import { queryPoolSquid } from '../services/graphql.js';
 import { publicProcedure, router } from '../trpc.js';
+import { evmAddressSchema, paginationSchema } from '../validation.js';
 import { fetchHistoricalPrices } from './price.js';
 
 const SQD_DECIMALS = 18;
@@ -60,159 +61,164 @@ function parseMetadata(value?: string): {
   }
 }
 
+async function isPortalPool(
+  publicClient: ReturnType<typeof getPublicClient>,
+  poolAddress: Address,
+): Promise<boolean> {
+  const contracts = getContractAddresses();
+  return publicClient.readContract({
+    address: contracts.PORTAL_POOL_FACTORY,
+    abi: portalPoolFactoryAbi,
+    functionName: 'isPortal',
+    args: [poolAddress],
+  });
+}
+
 export const poolRouter = router({
-  get: publicProcedure
-    .input(z.object({ poolId: z.string().toLowerCase() }))
-    .query(async ({ input }) => {
-      const { poolId } = input;
-      const address = poolId as Address;
-      const contracts = getContractAddresses();
-      const publicClient = getPublicClient();
+  get: publicProcedure.input(z.object({ poolId: evmAddressSchema })).query(async ({ input }) => {
+    const { poolId } = input;
+    const address = poolId as Address;
+    const publicClient = getPublicClient();
 
-      const portalPoolContract = {
-        abi: portalPoolAbi,
-        address,
-      } as const;
+    const portalPoolContract = {
+      abi: portalPoolAbi,
+      address,
+    } as const;
 
-      // Step 1: Verify this is a valid portal pool
-      const isPortal = await publicClient.readContract({
-        address: contracts.PORTAL_POOL_FACTORY,
-        abi: portalPoolFactoryAbi,
-        functionName: 'isPortal',
+    // Step 1: Verify this is a valid portal pool
+    if (!(await isPortalPool(publicClient, address))) {
+      return null;
+    }
+
+    const contracts = getContractAddresses();
+
+    // Step 2: Fetch all contract data + GraphQL data in parallel
+    const [
+      activeStake,
+      poolInfo,
+      distributionRatePerSecond,
+      lptTokenAddress,
+      credit,
+      minCapacity,
+      rewardTokenAddress,
+      cluster,
+      poolIndexedData,
+    ] = await Promise.all([
+      publicClient.readContract({
+        ...portalPoolContract,
+        functionName: 'getActiveStake',
+      }),
+      publicClient.readContract({
+        ...portalPoolContract,
+        functionName: 'getPoolInfo',
+      }),
+      publicClient.readContract({
+        ...portalPoolContract,
+        functionName: 'providerRatePerSec',
+      }),
+      publicClient.readContract({
+        ...portalPoolContract,
+        functionName: 'lptToken',
+      }),
+      publicClient
+        .readContract({
+          ...portalPoolContract,
+          functionName: 'getCredit',
+        })
+        .catch(() => 0n),
+      publicClient
+        .readContract({
+          ...portalPoolContract,
+          functionName: 'getMinCapacity',
+        })
+        .catch(() => undefined),
+      publicClient.readContract({
+        ...portalPoolContract,
+        functionName: 'getRewardToken',
+      }),
+      publicClient.readContract({
+        address: contracts.PORTAL_REGISTRY,
+        abi: portalRegistryAbi,
+        functionName: 'getClusterByAddress',
         args: [address],
-      });
+      }),
+      queryPoolSquid<PoolByIdQuery>(PoolByIdDocument, {
+        id: poolId.toLowerCase(),
+      }),
+    ]);
 
-      if (!isPortal) {
-        return null;
-      }
+    // Step 3: Fetch ERC20 token metadata for LP and reward tokens
+    const tokenAddresses: Address[] = [lptTokenAddress as Address];
+    if (rewardTokenAddress) {
+      tokenAddresses.push(rewardTokenAddress as Address);
+    }
+    const tokens = await readERC20Tokens(tokenAddresses);
 
-      // Step 2: Fetch all contract data + GraphQL data in parallel
-      const [
-        activeStake,
-        poolInfo,
-        distributionRatePerSecond,
-        lptTokenAddress,
-        credit,
-        minCapacity,
-        rewardTokenAddress,
-        cluster,
-        poolIndexedData,
-      ] = await Promise.all([
-        publicClient.readContract({
-          ...portalPoolContract,
-          functionName: 'getActiveStake',
-        }),
-        publicClient.readContract({
-          ...portalPoolContract,
-          functionName: 'getPoolInfo',
-        }),
-        publicClient.readContract({
-          ...portalPoolContract,
-          functionName: 'providerRatePerSec',
-        }),
-        publicClient.readContract({
-          ...portalPoolContract,
-          functionName: 'lptToken',
-        }),
-        publicClient
-          .readContract({
-            ...portalPoolContract,
-            functionName: 'getCredit',
-          })
-          .catch(() => 0n),
-        publicClient
-          .readContract({
-            ...portalPoolContract,
-            functionName: 'getMinCapacity',
-          })
-          .catch(() => undefined),
-        publicClient.readContract({
-          ...portalPoolContract,
-          functionName: 'getRewardToken',
-        }),
-        publicClient.readContract({
-          address: contracts.PORTAL_REGISTRY,
-          abi: portalRegistryAbi,
-          functionName: 'getClusterByAddress',
-          args: [address],
-        }),
-        queryPoolSquid<PoolByIdQuery>(PoolByIdDocument, {
-          id: poolId.toLowerCase(),
-        }),
-      ]);
+    const lptToken = tokens.find(
+      t => t.address.toLowerCase() === (lptTokenAddress as string).toLowerCase(),
+    );
+    const rewardToken = rewardTokenAddress
+      ? tokens.find(t => t.address.toLowerCase() === (rewardTokenAddress as string).toLowerCase())
+      : undefined;
 
-      // Step 3: Fetch ERC20 token metadata for LP and reward tokens
-      const tokenAddresses: Address[] = [lptTokenAddress as Address];
-      if (rewardTokenAddress) {
-        tokenAddresses.push(rewardTokenAddress as Address);
-      }
-      const tokens = await readERC20Tokens(tokenAddresses);
+    if (!lptToken || !rewardToken) {
+      return null;
+    }
 
-      const lptToken = tokens.find(
-        t => t.address.toLowerCase() === (lptTokenAddress as string).toLowerCase(),
-      );
-      const rewardToken = rewardTokenAddress
-        ? tokens.find(t => t.address.toLowerCase() === (rewardTokenAddress as string).toLowerCase())
-        : undefined;
+    // Extract pool info fields
+    const { operator, state, capacity, depositDeadline, totalStaked } = poolInfo as {
+      operator: Address;
+      state: number;
+      capacity: bigint;
+      depositDeadline: bigint;
+      totalStaked: bigint;
+    };
 
-      if (!lptToken || !rewardToken) {
-        return null;
-      }
+    const metadata = parseMetadata((cluster as { metadata: string }).metadata);
+    const isOutOfMoney = !credit;
 
-      // Extract pool info fields
-      const { operator, state, capacity, depositDeadline, totalStaked } = poolInfo as {
-        operator: Address;
-        state: number;
-        capacity: bigint;
-        depositDeadline: bigint;
-        totalStaked: bigint;
-      };
+    const depositWindowEndsAt = new Date(Number(depositDeadline) * 1000).toISOString();
+    const createdAt = poolIndexedData.poolById?.createdAt ?? new Date(0).toISOString();
 
-      const metadata = parseMetadata((cluster as { metadata: string }).metadata);
-      const isOutOfMoney = !credit;
+    const distRate = BigNumber(distributionRatePerSecond.toString())
+      .div(DISTRIBUTION_RATE_BPS)
+      .shiftedBy(-rewardToken.decimals)
+      .toFixed();
 
-      const depositWindowEndsAt = new Date(Number(depositDeadline) * 1000).toISOString();
-      const createdAt = poolIndexedData.poolById?.createdAt ?? new Date(0).toISOString();
+    const totalRewardsToppedUp = BigNumber(poolIndexedData.poolById?.totalRewardsToppedUp ?? '0')
+      .shiftedBy(-rewardToken.decimals)
+      .toFixed();
 
-      const distRate = BigNumber(distributionRatePerSecond.toString())
-        .div(DISTRIBUTION_RATE_BPS)
-        .shiftedBy(-rewardToken.decimals)
-        .toFixed();
-
-      const totalRewardsToppedUp = BigNumber(poolIndexedData.poolById?.totalRewardsToppedUp ?? '0')
-        .shiftedBy(-rewardToken.decimals)
-        .toFixed();
-
-      return {
-        id: poolId,
-        name: metadata.name ?? 'Portal Pool',
-        description: metadata.description,
-        website: metadata.website,
-        operator: {
-          name: operator,
-          address: operator,
-        },
-        phase: getPhase(state, isOutOfMoney),
-        distributionRatePerSecond: distRate,
-        tvl: {
-          current: fromSqd(activeStake as bigint),
-          max: fromSqd(capacity),
-          min: fromSqd(minCapacity ?? 0n),
-          total: fromSqd(totalStaked),
-        },
-        depositWindowEndsAt,
-        maxDepositPerAddress: fromSqd(BigInt(toSqd(100_000))),
-        lptToken,
-        rewardToken,
-        createdAt,
-        totalRewardsToppedUp,
-      };
-    }),
+    return {
+      id: poolId,
+      name: metadata.name ?? 'Portal Pool',
+      description: metadata.description,
+      website: metadata.website,
+      operator: {
+        name: operator,
+        address: operator,
+      },
+      phase: getPhase(state, isOutOfMoney),
+      distributionRatePerSecond: distRate,
+      tvl: {
+        current: fromSqd(activeStake as bigint),
+        max: fromSqd(capacity),
+        min: fromSqd(minCapacity ?? 0n),
+        total: fromSqd(totalStaked),
+      },
+      depositWindowEndsAt,
+      maxDepositPerAddress: fromSqd(BigInt(toSqd(100_000))),
+      lptToken,
+      rewardToken,
+      createdAt,
+      totalRewardsToppedUp,
+    };
+  }),
 
   apyTimeseries: publicProcedure
     .input(
       z.object({
-        poolId: z.string().toLowerCase(),
+        poolId: evmAddressSchema,
         from: z.date({ coerce: true }),
         to: z.date({ coerce: true }),
       }),
@@ -309,7 +315,7 @@ export const poolRouter = router({
   tvlTimeseries: publicProcedure
     .input(
       z.object({
-        poolId: z.string().toLowerCase(),
+        poolId: evmAddressSchema,
         from: z.date({ coerce: true }),
         to: z.date({ coerce: true }),
       }),
@@ -334,7 +340,7 @@ export const poolRouter = router({
     }),
 
   liquidityEvents: publicProcedure
-    .input(z.object({ poolId: z.string().toLowerCase(), limit: z.number(), offset: z.number() }))
+    .input(paginationSchema.extend({ poolId: evmAddressSchema }))
     .query(async ({ input }) => {
       const publicClient = getPublicClient();
       const [data, lptTokenAddress] = await Promise.all([
@@ -360,7 +366,7 @@ export const poolRouter = router({
     }),
 
   topUps: publicProcedure
-    .input(z.object({ poolId: z.string().toLowerCase(), limit: z.number(), offset: z.number() }))
+    .input(paginationSchema.extend({ poolId: evmAddressSchema }))
     .query(async ({ input }) => {
       const publicClient = getPublicClient();
       const [data, rewardTokenAddress] = await Promise.all([
@@ -386,61 +392,57 @@ export const poolRouter = router({
     }),
 
   userData: publicProcedure
-    .input(z.object({ poolId: z.string().toLowerCase(), address: z.string().toLowerCase() }))
+    .input(z.object({ poolId: evmAddressSchema, address: evmAddressSchema }))
     .query(async ({ input }) => {
       const { poolId, address } = input;
       const publicClient = getPublicClient();
+      const poolAddress = poolId as Address;
+
+      if (!(await isPortalPool(publicClient, poolAddress))) return null;
 
       const portalPoolContract = {
         abi: portalPoolAbi,
-        address: poolId as Address,
+        address: poolAddress,
       } as const;
 
-      const [multicallResults, rewardTokenAddress] = await Promise.all([
-        publicClient.multicall({
-          contracts: [
-            {
-              ...portalPoolContract,
-              functionName: 'getPoolStatusWithRewards',
-              args: [address as Address],
-            },
-            {
-              ...portalPoolContract,
-              functionName: 'whitelistEnabled',
-            },
-            {
-              ...portalPoolContract,
-              functionName: 'isWhitelisted',
-              args: [address as Address],
-            },
-          ],
-        }),
-        publicClient.readContract({
-          ...portalPoolContract,
-          functionName: 'getRewardToken',
-        }),
-      ]);
-
-      const statusResult =
-        multicallResults[0].status === 'success'
-          ? (multicallResults[0].result as unknown as unknown[])
-          : null;
-      const whitelistEnabled =
-        multicallResults[1].status === 'success' ? (multicallResults[1].result as boolean) : false;
-      const isWhitelisted =
-        multicallResults[2].status === 'success' ? (multicallResults[2].result as boolean) : false;
+      const [statusResult, whitelistEnabled, isWhitelisted, rewardTokenAddress] = await Promise.all(
+        [
+          publicClient.readContract({
+            ...portalPoolContract,
+            functionName: 'getPoolStatusWithRewards',
+            args: [address as Address],
+          }),
+          publicClient.readContract({
+            ...portalPoolContract,
+            functionName: 'whitelistEnabled',
+          }),
+          publicClient.readContract({
+            ...portalPoolContract,
+            functionName: 'isWhitelisted',
+            args: [address as Address],
+          }),
+          publicClient.readContract({
+            ...portalPoolContract,
+            functionName: 'getRewardToken',
+          }),
+        ],
+      );
 
       if (!statusResult) return null;
+      if (!rewardTokenAddress) {
+        throw new Error('Failed to load reward token for pool');
+      }
 
       const rawRewards = String(statusResult[5] ?? '0');
       const userStake = String(statusResult[6] ?? '0');
 
       const tokens = await readERC20Tokens([rewardTokenAddress as Address]);
       const rewardToken = tokens[0];
+      if (!rewardToken) {
+        throw new Error('Failed to load reward token metadata');
+      }
 
-      const userRewards = BigNumber(rawRewards)
-        .shiftedBy(-(rewardToken?.decimals ?? 6))
-        .toFixed();
+      const userRewards = BigNumber(rawRewards).shiftedBy(-rewardToken.decimals).toFixed();
 
       return {
         userBalance: fromSqd(BigInt(userStake)),
@@ -452,14 +454,17 @@ export const poolRouter = router({
     }),
 
   pendingWithdrawals: publicProcedure
-    .input(z.object({ poolId: z.string().toLowerCase(), address: z.string().toLowerCase() }))
+    .input(z.object({ poolId: evmAddressSchema, address: evmAddressSchema }))
     .query(async ({ input }) => {
       const { poolId, address } = input;
       const publicClient = getPublicClient();
+      const poolAddress = poolId as Address;
+
+      if (!(await isPortalPool(publicClient, poolAddress))) return null;
 
       const portalPoolContract = {
         abi: portalPoolAbi,
-        address: poolId as Address,
+        address: poolAddress,
       } as const;
 
       const ticketCount = await publicClient.readContract({
@@ -473,54 +478,38 @@ export const poolRouter = router({
 
       const ticketIds = Array.from({ length: count }, (_, i) => BigInt(i));
 
-      const contracts = ticketIds.flatMap(ticketId => [
-        {
-          ...portalPoolContract,
-          functionName: 'getExitTicket' as const,
-          args: [address as Address, ticketId] as const,
-        },
-        {
-          ...portalPoolContract,
-          functionName: 'getQueueStatusWithTimestamp' as const,
-          args: [address as Address, ticketId] as const,
-        },
-      ]);
+      const maybeWithdrawals = await Promise.all(
+        ticketIds.map(async ticketId => {
+          const [exitTicket, queueStatus] = await Promise.all([
+            publicClient.readContract({
+              ...portalPoolContract,
+              functionName: 'getExitTicket',
+              args: [address as Address, ticketId],
+            }),
+            publicClient.readContract({
+              ...portalPoolContract,
+              functionName: 'getQueueStatusWithTimestamp',
+              args: [address as Address, ticketId],
+            }),
+          ]);
 
-      const results = await publicClient.multicall({ contracts });
+          if (exitTicket.withdrawn) return null;
+
+          const unlockTimestampMs = Number(queueStatus[4]) * 1000;
+
+          return {
+            id: ticketId.toString(),
+            amount: fromSqd(exitTicket.amount),
+            estimatedCompletionAt: new Date(unlockTimestampMs).toISOString(),
+          };
+        }),
+      );
 
       const withdrawals: Array<{
         id: string;
         amount: string;
         estimatedCompletionAt: string;
-      }> = [];
-
-      for (let i = 0; i < ticketIds.length; i++) {
-        const exitTicketResult = results[i * 2];
-        const queueStatusResult = results[i * 2 + 1];
-
-        const exitTicket =
-          exitTicketResult.status === 'success'
-            ? (exitTicketResult.result as {
-                endPosition: bigint;
-                amount: bigint;
-                withdrawn: boolean;
-              })
-            : null;
-        const queueStatus =
-          queueStatusResult.status === 'success'
-            ? (queueStatusResult.result as readonly [bigint, bigint, bigint, boolean, bigint])
-            : null;
-
-        if (!exitTicket || exitTicket.withdrawn || !queueStatus) continue;
-
-        const unlockTimestampMs = Number(queueStatus[4]) * 1000;
-
-        withdrawals.push({
-          id: ticketIds[i].toString(),
-          amount: fromSqd(exitTicket.amount),
-          estimatedCompletionAt: new Date(unlockTimestampMs).toISOString(),
-        });
-      }
+      }> = maybeWithdrawals.filter(withdrawal => withdrawal !== null);
 
       return withdrawals;
     }),

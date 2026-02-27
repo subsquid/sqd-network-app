@@ -17,6 +17,7 @@ import {
 } from '../generated/network-squid/graphql.js';
 import { queryNetworkSquid } from '../services/graphql.js';
 import { publicProcedure, router } from '../trpc.js';
+import { bigintStringSchema, evmAddressSchema } from '../validation.js';
 
 function calculateDelegationCapacity(totalDelegation: string): number {
   return BigNumber(totalDelegation).div(20_000_000_000_000_000_000n).times(100).toNumber();
@@ -32,7 +33,7 @@ export const workerRouter = router({
   }),
 
   get: publicProcedure
-    .input(z.object({ peerId: z.string(), address: z.string().toLowerCase().optional() }))
+    .input(z.object({ peerId: z.string(), address: evmAddressSchema.optional() }))
     .query(async ({ input }) => {
       const data = await queryNetworkSquid<WorkerByPeerIdQuery>(WorkerByPeerIdDocument, input);
       return data.workers.map(w => ({
@@ -43,7 +44,7 @@ export const workerRouter = router({
     }),
 
   listMine: publicProcedure
-    .input(z.object({ address: z.string().toLowerCase() }))
+    .input(z.object({ address: evmAddressSchema }))
     .query(async ({ input }) => {
       const data = await queryNetworkSquid<MyWorkersQuery>(MyWorkersDocument, input);
       return data.workers.map(w => ({
@@ -53,14 +54,14 @@ export const workerRouter = router({
     }),
 
   countMine: publicProcedure
-    .input(z.object({ address: z.string().toLowerCase() }))
+    .input(z.object({ address: evmAddressSchema }))
     .query(async ({ input }) => {
       const data = await queryNetworkSquid<MyWorkersCountQuery>(MyWorkersCountDocument, input);
       return data.workersConnection.totalCount;
     }),
 
   delegations: publicProcedure
-    .input(z.object({ address: z.string().toLowerCase(), workerId: z.string().optional() }))
+    .input(z.object({ address: evmAddressSchema, workerId: bigintStringSchema.optional() }))
     .query(async ({ input }) => {
       const data = await queryNetworkSquid<MyDelegationsQuery>(MyDelegationsDocument, input);
       return data.workers.map(w => ({
@@ -78,7 +79,7 @@ export const workerRouter = router({
     }),
 
   delegationInfo: publicProcedure
-    .input(z.object({ workerId: z.string() }))
+    .input(z.object({ workerId: bigintStringSchema }))
     .query(async ({ input }) => {
       const data = await queryNetworkSquid<WorkerDelegationInfoQuery>(
         WorkerDelegationInfoDocument,

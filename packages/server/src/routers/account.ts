@@ -15,24 +15,25 @@ import {
 } from '../generated/network-squid/graphql.js';
 import { queryNetworkSquid } from '../services/graphql.js';
 import { publicProcedure, router } from '../trpc.js';
+import { evmAddressSchema } from '../validation.js';
 
 export const accountRouter = router({
   sources: publicProcedure
-    .input(z.object({ address: z.string().toLowerCase() }))
+    .input(z.object({ address: evmAddressSchema }))
     .query(async ({ input }) => {
       const data = await queryNetworkSquid<SourcesQuery>(SourcesDocument, input);
       return data.accounts;
     }),
 
   vesting: publicProcedure
-    .input(z.object({ address: z.string().toLowerCase() }))
+    .input(z.object({ address: evmAddressSchema }))
     .query(async ({ input }) => {
       const data = await queryNetworkSquid<VestingByAddressQuery>(VestingByAddressDocument, input);
       return data.accountById;
     }),
 
   vestings: publicProcedure
-    .input(z.object({ address: z.string().toLowerCase() }))
+    .input(z.object({ address: evmAddressSchema }))
     .query(async ({ input }) => {
       const data = await queryNetworkSquid<VestingsByAccountQuery>(
         VestingsByAccountDocument,
@@ -42,7 +43,7 @@ export const accountRouter = router({
     }),
 
   temporaryHoldings: publicProcedure
-    .input(z.object({ address: z.string().toLowerCase() }))
+    .input(z.object({ address: evmAddressSchema }))
     .query(async ({ input }) => {
       const data = await queryNetworkSquid<TemporaryHoldingsByAccountQuery>(
         TemporaryHoldingsByAccountDocument,
@@ -52,7 +53,7 @@ export const accountRouter = router({
     }),
 
   assetsSummary: publicProcedure
-    .input(z.object({ address: z.string().toLowerCase() }))
+    .input(z.object({ address: evmAddressSchema }))
     .query(async ({ input }) => {
       const data = await queryNetworkSquid<SourcesWithAssetsQuery>(
         SourcesWithAssetsDocument,

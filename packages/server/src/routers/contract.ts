@@ -16,6 +16,7 @@ import {
 import { getPublicClient } from '../services/blockchain.js';
 import { queryNetworkSquid } from '../services/graphql.js';
 import { publicProcedure, router } from '../trpc.js';
+import { bigintStringSchema, evmAddressSchema } from '../validation.js';
 
 const BLOCK_TIME_MS = 12000;
 
@@ -25,7 +26,7 @@ function getBlockTime(blocks: number): number {
 
 export const contractRouter = router({
   stakeInfo: publicProcedure
-    .input(z.object({ sourceAddress: z.string() }))
+    .input(z.object({ sourceAddress: evmAddressSchema }))
     .query(async ({ input }) => {
       const { sourceAddress } = input;
       const contracts = getContractAddresses();
@@ -143,8 +144,8 @@ export const contractRouter = router({
   capedStake: publicProcedure
     .input(
       z.object({
-        workerId: z.string(),
-        amount: z.string(),
+        workerId: bigintStringSchema,
+        amount: bigintStringSchema,
         undelegate: z.boolean().optional(),
       }),
     )
