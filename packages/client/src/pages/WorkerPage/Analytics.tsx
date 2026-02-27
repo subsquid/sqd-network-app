@@ -156,7 +156,7 @@ const DEFAULT_TIME_RANGE = '30d';
 
 export function WorkerAnalytics() {
   const { peerId } = useParams<{ peerId: string }>();
-  const { data: worker, isLoading: isPending } = useWorkerByPeerId(peerId);
+  const { data: worker } = useWorkerByPeerId(peerId);
 
   const [state, setState] = useLocationState({
     timeRange: new Location.String(DEFAULT_TIME_RANGE),

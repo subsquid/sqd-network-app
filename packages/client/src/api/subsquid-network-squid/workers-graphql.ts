@@ -240,9 +240,10 @@ export function useWorkerByPeerId(peerId?: string) {
 export function useMyDelegations({ sortBy, sortDir }: MyWorkersParams) {
   const { address } = useAccount();
   const { isPending: isSettingsLoading } = useNetworkSettings();
+  const enabled = !!address;
 
   const { data: rawDelegations, isLoading: isDelegationsQueryLoading } = useQuery(
-    trpc.worker.delegations.queryOptions({ address: address || '0x' }),
+    trpc.worker.delegations.queryOptions({ address: address ?? '' }, { enabled }),
   );
 
   const data = useMemo(

@@ -154,33 +154,7 @@ function WorkerEditDialog({
         <FormRow>
           <FormikTextInput showErrorOnlyOfTouched id="website" label="Website" formik={formik} />
         </FormRow>
-        {/* <Box mt={3} justifyContent="flex-end" display="flex">
-        <LoadingButton disabled={isUpdating} variant="contained" type="submit" color="info">
-          APPLY
-        </LoadingButton>
-      </Box> */}
       </Form>
     </ContractCallDialog>
   );
 }
-
-// export function WorkerEdit() {
-//   const { peerId } = useParams<{ peerId: string }>();
-//   const { data: worker, isPending } = useWorkerByPeerId(peerId);
-//   const { address } = useAccount();
-
-//   return (
-//     <CenteredPageWrapper>
-//       <ConnectedWalletRequired>
-//         <NetworkPageTitle backPath={`/workers/${peerId}`} />
-//         {isPending ? (
-//           <Loader />
-//         ) : !worker || worker.realOwner.id !== address ? (
-//           <NotFound id={peerId} item="worker" />
-//         ) : (
-//           <WorkerForm worker={worker} />
-//         )}
-//       </ConnectedWalletRequired>
-//     </CenteredPageWrapper>
-//   );
-// }

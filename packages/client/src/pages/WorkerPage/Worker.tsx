@@ -26,12 +26,11 @@ import {
   WorkerVersion,
   WorkerWithdrawButton,
 } from '@components/Worker';
-import { useContracts } from '@hooks/network/useContracts';
 import { isOwned } from '@lib/network';
 
 import { WorkerTitle } from './WorkerTitle';
 
-export const Worker = ({ backPath }: { backPath: string }) => {
+export const Worker = ({ backPath: _backPath }: { backPath: string }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -47,11 +46,14 @@ export const Worker = ({ backPath }: { backPath: string }) => {
 
   const { data: worker, isLoading: isPending } = useWorkerByPeerId(peerId);
   const { address } = useAccount();
-  const { SQD_TOKEN } = useContracts();
 
   const { data: sources, isLoading: isSourcesLoading } = useMySources();
+  const isDelegationsEnabled = Boolean(peerId && address);
   const { data: delegationsData, isLoading: isDelegationsLoading } = useQuery(
-    trpc.worker.delegations.queryOptions({ workerId: peerId || '', address: address || '' }),
+    trpc.worker.delegations.queryOptions(
+      { peerId: peerId ?? '', address: address ?? '' },
+      { enabled: isDelegationsEnabled },
+    ),
   );
   const delegations = delegationsData?.[0]?.delegations;
 
@@ -65,14 +67,6 @@ export const Worker = ({ backPath }: { backPath: string }) => {
       worker.status,
     );
   }, [worker, address]);
-
-  if (isLoading) {
-    return <Loader />;
-  }
-
-  if (!worker || !peerId) {
-    return <NotFound item="worker" id={peerId} />;
-  }
 
   if (isLoading) {
     return <Loader />;

@@ -32,7 +32,7 @@ export default {
     // Server: types + document strings (TypedDocumentString)
     'packages/server/src/generated/network-squid/': {
       schema: networkSquidSchema,
-      documents: ['graphql/network-squid.graphql'],
+      documents: ['packages/server/graphql/network-squid.graphql'],
       preset: 'client',
       presetConfig: {
         fragmentMasking: false,
@@ -45,7 +45,7 @@ export default {
     },
     'packages/server/src/generated/pool-squid/': {
       schema: poolSquidSchema,
-      documents: ['graphql/pool-squid.graphql'],
+      documents: ['packages/server/graphql/pool-squid.graphql'],
       preset: 'client',
       presetConfig: {
         fragmentMasking: false,

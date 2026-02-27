@@ -61,7 +61,12 @@ export const workerRouter = router({
     }),
 
   delegations: publicProcedure
-    .input(z.object({ address: evmAddressSchema, workerId: bigintStringSchema.optional() }))
+    .input(
+      z.object({
+        address: evmAddressSchema,
+        peerId: z.string().trim().min(1).optional(),
+      }),
+    )
     .query(async ({ input }) => {
       const data = await queryNetworkSquid<MyDelegationsQuery>(MyDelegationsDocument, input);
       return data.workers.map(w => ({

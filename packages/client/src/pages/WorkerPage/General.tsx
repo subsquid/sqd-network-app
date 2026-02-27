@@ -1,17 +1,8 @@
-import { useMemo } from 'react';
-
 import { dateFormat } from '@i18n';
 import { Grid } from '@mui/material';
-import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
-import { useAccount } from 'wagmi';
 
-import {
-  WorkerStatus as ApiWorkerStatus,
-  useMySources,
-  useWorkerByPeerId,
-} from '@api/subsquid-network-squid';
-import { trpc } from '@api/trpc';
+import { useWorkerByPeerId } from '@api/subsquid-network-squid';
 import { Card } from '@components/Card';
 import { Loader } from '@components/Loader';
 import { NotFound } from '@components/NotFound';
@@ -25,31 +16,15 @@ import {
   tokenFormatter,
   urlFormatter,
 } from '@lib/formatters/formatters';
-import { fromSqd, isOwned } from '@lib/network';
+import { fromSqd } from '@lib/network';
 
 export function WorkerGeneral() {
   const { peerId } = useParams<{ peerId: string }>();
 
   const { data: worker, isLoading: isPending } = useWorkerByPeerId(peerId);
-  const { address } = useAccount();
   const { SQD_TOKEN } = useContracts();
 
-  const { data: sources, isLoading: isSourcesLoading } = useMySources();
-  const { data: delegationsData, isLoading: isDelegationsLoading } = useQuery(
-    trpc.worker.delegations.queryOptions({ workerId: peerId || '', address: address || '' }),
-  );
-  const delegations = delegationsData?.[0]?.delegations;
-
-  const isLoading = isPending || isSourcesLoading || isDelegationsLoading;
-
-  const canEdit = useMemo(() => {
-    if (!worker) return false;
-    if (worker.status === ApiWorkerStatus.Withdrawn) return false;
-    if (!isOwned(worker, address)) return false;
-    return ([ApiWorkerStatus.Active, ApiWorkerStatus.Registering] as string[]).includes(
-      worker.status,
-    );
-  }, [worker, address]);
+  const isLoading = isPending;
 
   if (isLoading) {
     return <Loader />;

@@ -325,11 +325,11 @@ query workerOwner($workerId: String!) {
 }
 
 # Get user's delegations to workers
-query myDelegations($address: String!, $workerId: String) {
+query myDelegations($address: String!, $peerId: String) {
   workers(
     orderBy: id_ASC
     where: {
-      peerId_eq: $workerId
+      peerId_eq: $peerId
       delegations_some: {
         OR: [
           { owner: { id_eq: $address }, deposit_gt: 0 }
