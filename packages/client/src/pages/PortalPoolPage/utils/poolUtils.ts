@@ -140,7 +140,10 @@ export async function invalidatePoolQueries(
       // Invalidate readContract queries for this pool
       if (key[0] === 'readContract' && typeof key[1] === 'object' && key[1] !== null) {
         const params = key[1] as any;
-        return params.address === poolId;
+        return (
+          typeof params.address === 'string' &&
+          params.address.toLowerCase() === poolId.toLowerCase()
+        );
       }
 
       // Invalidate readContracts queries (user data, etc)

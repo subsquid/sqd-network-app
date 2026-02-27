@@ -61,7 +61,7 @@ export class BlockchainApiVesting {
   }
 
   isOwn() {
-    return this.owner?.id === this.address?.toLowerCase();
+    return this.owner?.id?.toLowerCase() === this.address?.toLowerCase();
   }
 }
 
