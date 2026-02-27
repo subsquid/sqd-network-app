@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.2.0",
+    "@sentry/node": "^10.40.0",
     "@subsquid/common": "workspace:*",
     "@trpc/server": "^11",
     "bignumber.js": "^9.3.1",

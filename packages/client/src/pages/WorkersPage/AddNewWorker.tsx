@@ -4,7 +4,6 @@ import { Add } from '@mui/icons-material';
 import { Button, SxProps } from '@mui/material';
 import * as yup from '@schema';
 import { useFormik } from 'formik';
-import toast from 'react-hot-toast';
 import useLocalStorageState from 'use-local-storage-state';
 
 import {
@@ -13,7 +12,6 @@ import {
   workerRegistryAbi,
 } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { errorMessage } from '@api/contracts/utils';
 import { encodeWorkerMetadata } from '@api/contracts/worker-registration/WorkerMetadata';
 import { AccountType, SourceWalletWithBalance, WorkerStatus } from '@api/subsquid-network-squid';
 import { useWorkerByPeerId } from '@api/subsquid-network-squid/workers-graphql';
@@ -168,30 +166,26 @@ export function AddNewWorkerDialog({
     onSubmit: async values => {
       if (!workerRegistryAddress || !bondAmount) return;
 
-      try {
-        const { peerId, source: sourceId, ...metadata } = addWorkerSchema.cast(values);
+      const { peerId, source: sourceId, ...metadata } = addWorkerSchema.cast(values);
 
-        const source = sources?.find(s => s.id === sourceId);
-        if (!source) return;
+      const source = sources?.find(s => s.id === sourceId);
+      if (!source) return;
 
-        const peerIdHex = peerIdToHex(peerId);
+      const peerIdHex = peerIdToHex(peerId);
 
-        const receipt = await contractWriter.writeTransactionAsync({
-          address: workerRegistryAddress,
-          abi: workerRegistryAbi,
-          functionName: 'register',
-          args: [peerIdHex, encodeWorkerMetadata(metadata)],
-          vesting: source.type === AccountType.User ? undefined : (source.id as `0x${string}`),
-          approve: bondAmount,
-        });
-        setWaitHeight(receipt.blockNumber, []);
+      const receipt = await contractWriter.writeTransactionAsync({
+        address: workerRegistryAddress,
+        abi: workerRegistryAbi,
+        functionName: 'register',
+        args: [peerIdHex, encodeWorkerMetadata(metadata)],
+        vesting: source.type === AccountType.User ? undefined : (source.id as `0x${string}`),
+        approve: bondAmount,
+      });
+      setWaitHeight(receipt.blockNumber, []);
 
-        formik.resetForm();
+      formik.resetForm();
 
-        onResult(true);
-      } catch (error) {
-        toast.error(errorMessage(error));
-      }
+      onResult(true);
     },
   });
 

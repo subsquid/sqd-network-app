@@ -56,17 +56,13 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
   const hasRewards = userData?.hasRewards ?? false;
 
   const handleClaimRewards = useCallback(async () => {
-    try {
-      await writeTransactionAsync({
-        address: poolId as `0x${string}`,
-        abi: portalPoolAbi,
-        functionName: 'claimRewards',
-        args: [],
-      });
-      await invalidatePoolQueries(queryClient, poolId);
-    } catch (error) {
-      // Error handling is done by useWriteSQDTransaction
-    }
+    await writeTransactionAsync({
+      address: poolId as `0x${string}`,
+      abi: portalPoolAbi,
+      functionName: 'claimRewards',
+      args: [],
+    });
+    await invalidatePoolQueries(queryClient, poolId);
   }, [poolId, writeTransactionAsync, queryClient]);
 
   if (!pool && !isLoading) return null;

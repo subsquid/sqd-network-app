@@ -7,7 +7,6 @@ import * as yup from '@schema';
 import { useQuery } from '@tanstack/react-query';
 import BigNumber from 'bignumber.js';
 import { useFormik } from 'formik';
-import toast from 'react-hot-toast';
 import { useDebounce } from 'use-debounce';
 import { useReadContracts } from 'wagmi';
 
@@ -19,7 +18,6 @@ import {
   useReadRouterNetworkController,
 } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { errorMessage } from '@api/contracts/utils';
 import { AccountType } from '@api/subsquid-network-squid';
 import { trpc } from '@api/trpc';
 import { ContractCallDialog } from '@components/ContractCallDialog';
@@ -140,40 +138,36 @@ export function GatewayStakeDialog({ open, onClose }: { open: boolean; onClose: 
     enableReinitialize: true,
 
     onSubmit: async values => {
-      try {
-        const { amount, durationBlocks, source: sourceId } = stakeSchema.cast(values);
+      const { amount, durationBlocks, source: sourceId } = stakeSchema.cast(values);
 
-        const source = sources?.find(s => s.id === sourceId);
-        if (!source) return;
+      const source = sources?.find(s => s.id === sourceId);
+      if (!source) return;
 
-        const sqdAmount = BigInt(toSqd(amount));
+      const sqdAmount = BigInt(toSqd(amount));
 
-        const functionData = {
-          abi: gatewayRegistryAbi,
-          address: GATEWAY_REGISTRATION,
-          approve: sqdAmount,
-          vesting: source.type === AccountType.Vesting ? (source.id as `0x${string}`) : undefined,
-        };
+      const functionData = {
+        abi: gatewayRegistryAbi,
+        address: GATEWAY_REGISTRATION,
+        approve: sqdAmount,
+        vesting: source.type === AccountType.Vesting ? (source.id as `0x${string}`) : undefined,
+      };
 
-        const receipt = await gatewayRegistryContract.writeTransactionAsync(
-          selectedStake?.amount && selectedStake.amount > 0n
-            ? {
-                ...functionData,
-                functionName: 'addStake',
-                args: [sqdAmount],
-              }
-            : {
-                ...functionData,
-                functionName: 'stake',
-                args: [sqdAmount, BigInt(durationBlocks), false],
-              },
-        );
+      const receipt = await gatewayRegistryContract.writeTransactionAsync(
+        selectedStake?.amount && selectedStake.amount > 0n
+          ? {
+              ...functionData,
+              functionName: 'addStake',
+              args: [sqdAmount],
+            }
+          : {
+              ...functionData,
+              functionName: 'stake',
+              args: [sqdAmount, BigInt(durationBlocks), false],
+            },
+      );
 
-        setWaitHeight(receipt.blockNumber, []);
-        onClose();
-      } catch (e: unknown) {
-        toast.error(errorMessage(e));
-      }
+      setWaitHeight(receipt.blockNumber, []);
+      onClose();
     },
   });
 

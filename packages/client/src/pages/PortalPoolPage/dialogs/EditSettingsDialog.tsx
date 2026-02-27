@@ -5,12 +5,10 @@ import { IconButton } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import { BigNumber } from 'bignumber.js';
 import { useFormik } from 'formik';
-import toast from 'react-hot-toast';
 import * as yup from 'yup';
 
 import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { errorMessage } from '@api/contracts/utils';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
 import { Loader } from '@components/Loader';
@@ -58,22 +56,18 @@ export function EditCapacityDialog({ open, onClose, poolId }: EditCapacityDialog
     validateOnBlur: true,
     enableReinitialize: true,
     onSubmit: async values => {
-      try {
-        const newCapacity = BigInt(toSqd(values.capacity));
+      const newCapacity = BigInt(toSqd(values.capacity));
 
-        await writeTransactionAsync({
-          address: poolId as `0x${string}`,
-          abi: portalPoolAbi,
-          functionName: 'setCapacity',
-          args: [newCapacity],
-        });
+      await writeTransactionAsync({
+        address: poolId as `0x${string}`,
+        abi: portalPoolAbi,
+        functionName: 'setCapacity',
+        args: [newCapacity],
+      });
 
-        await invalidatePoolQueries(queryClient, poolId);
-        formik.resetForm();
-        onClose();
-      } catch (error) {
-        toast.error(errorMessage(error));
-      }
+      await invalidatePoolQueries(queryClient, poolId);
+      formik.resetForm();
+      onClose();
     },
   });
 
@@ -175,32 +169,28 @@ export function EditDistributionRateDialog({
     validateOnBlur: true,
     enableReinitialize: true,
     onSubmit: async values => {
-      try {
-        if (!pool) return;
+      if (!pool) return;
 
-        const rewardDecimals = pool.rewardToken.decimals;
+      const rewardDecimals = pool.rewardToken.decimals;
 
-        // Convert daily rate to per-second rate with reward token decimals
-        const distributionRatePerSecond = BigInt(
-          BigNumber(values.distributionRate)
-            .div(86400) // Convert daily to per-second
-            .multipliedBy(10 ** rewardDecimals)
-            .toFixed(0),
-        );
+      // Convert daily rate to per-second rate with reward token decimals
+      const distributionRatePerSecond = BigInt(
+        BigNumber(values.distributionRate)
+          .div(86400) // Convert daily to per-second
+          .multipliedBy(10 ** rewardDecimals)
+          .toFixed(0),
+      );
 
-        await writeTransactionAsync({
-          address: poolId as `0x${string}`,
-          abi: portalPoolAbi,
-          functionName: 'setDistributionRate',
-          args: [distributionRatePerSecond],
-        });
+      await writeTransactionAsync({
+        address: poolId as `0x${string}`,
+        abi: portalPoolAbi,
+        functionName: 'setDistributionRate',
+        args: [distributionRatePerSecond],
+      });
 
-        await invalidatePoolQueries(queryClient, poolId);
-        formik.resetForm();
-        onClose();
-      } catch (error) {
-        toast.error(errorMessage(error));
-      }
+      await invalidatePoolQueries(queryClient, poolId);
+      formik.resetForm();
+      onClose();
     },
   });
 

@@ -4,12 +4,10 @@ import { dateFormat } from '@i18n';
 import { Lock } from '@mui/icons-material';
 import { Box, Button, SxProps, Tooltip } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
 import { useAccount, useClient } from 'wagmi';
 
 import { useReadRouterWorkerRegistration, workerRegistryAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { errorMessage } from '@api/contracts/utils';
 import { AccountType, SourceWallet, Worker } from '@api/subsquid-network-squid';
 import { trpc } from '@api/trpc';
 import { ContractCallDialog } from '@components/ContractCallDialog';
@@ -123,22 +121,18 @@ export function WorkerWithdrawDialog({
     if (!client) return;
     if (!account.address || !registrationAddress) return;
 
-    try {
-      const peerIdHex = peerIdToHex(worker.peerId);
+    const peerIdHex = peerIdToHex(worker.peerId);
 
-      const receipt = await contractWriter.writeTransactionAsync({
-        address: registrationAddress,
-        abi: workerRegistryAbi,
-        functionName: 'withdraw',
-        args: [peerIdHex],
-        vesting: source.type === AccountType.User ? undefined : (source.id as `0x${string}`),
-      });
-      setWaitHeight(receipt.blockNumber, []);
+    const receipt = await contractWriter.writeTransactionAsync({
+      address: registrationAddress,
+      abi: workerRegistryAbi,
+      functionName: 'withdraw',
+      args: [peerIdHex],
+      vesting: source.type === AccountType.User ? undefined : (source.id as `0x${string}`),
+    });
+    setWaitHeight(receipt.blockNumber, []);
 
-      onClose();
-    } catch (e: unknown) {
-      toast.error(errorMessage(e));
-    }
+    onClose();
   };
 
   return (

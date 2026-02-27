@@ -1,12 +1,10 @@
 import { useState } from 'react';
 
 import { Button, SxProps } from '@mui/material';
-import toast from 'react-hot-toast';
 import { useClient } from 'wagmi';
 
 import { gatewayRegistryAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { errorMessage } from '@api/contracts/utils';
 import { AccountType, Gateway } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { useSourceContext } from '@contexts/SourceContext';
@@ -59,23 +57,17 @@ export function GatewayUnregisterDialog({
   const handleSubmit = async () => {
     if (!client) return;
 
-    try {
-      const receipt = await gatewayRegistryContract.writeTransactionAsync({
-        address: contracts.GATEWAY_REGISTRATION,
-        abi: gatewayRegistryAbi,
-        functionName: 'unregister',
-        args: [peerIdToHex(gateway.id)],
-        vesting:
-          selectedSource?.type === AccountType.Vesting
-            ? (selectedSource.id as `0x${string}`)
-            : undefined,
-      });
-      setWaitHeight(receipt.blockNumber, []);
+    const receipt = await gatewayRegistryContract.writeTransactionAsync({
+      address: contracts.GATEWAY_REGISTRATION,
+      abi: gatewayRegistryAbi,
+      functionName: 'unregister',
+      args: [peerIdToHex(gateway.id)],
+      vesting:
+        selectedSource?.type === AccountType.Vesting ? (selectedSource.id as `0x${string}`) : undefined,
+    });
+    setWaitHeight(receipt.blockNumber, []);
 
-      onClose();
-    } catch (e: unknown) {
-      toast.error(errorMessage(e));
-    }
+    onClose();
   };
 
   return (

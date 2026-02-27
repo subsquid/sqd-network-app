@@ -9,7 +9,6 @@ import * as yup from 'yup';
 
 import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { errorMessage } from '@api/contracts/utils';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
 import { Loader } from '@components/Loader';
@@ -60,37 +59,33 @@ export function EditMetadataDialog({ open, onClose, poolId }: EditMetadataDialog
     validateOnBlur: true,
     enableReinitialize: true,
     onSubmit: async values => {
-      try {
-        // Create metadata JSON object
-        const metadata = {
-          name: values.name,
-          description: values.description || undefined,
-          website: values.website || undefined,
-        };
+      // Create metadata JSON object
+      const metadata = {
+        name: values.name,
+        description: values.description || undefined,
+        website: values.website || undefined,
+      };
 
-        // Remove undefined values
-        const cleanMetadata = Object.fromEntries(
-          Object.entries(metadata).filter(([_, v]) => v !== undefined),
-        );
+      // Remove undefined values
+      const cleanMetadata = Object.fromEntries(
+        Object.entries(metadata).filter(([_, v]) => v !== undefined),
+      );
 
-        const metadataString = JSON.stringify(cleanMetadata);
+      const metadataString = JSON.stringify(cleanMetadata);
 
-        // Call setMetadata on the pool contract
-        // The pool contract will update the portal registry
-        await writeTransactionAsync({
-          address: poolId as `0x${string}`,
-          abi: portalPoolAbi,
-          functionName: 'setMetadata',
-          args: [metadataString],
-        });
+      // Call setMetadata on the pool contract
+      // The pool contract will update the portal registry
+      await writeTransactionAsync({
+        address: poolId as `0x${string}`,
+        abi: portalPoolAbi,
+        functionName: 'setMetadata',
+        args: [metadataString],
+      });
 
-        await invalidatePoolQueries(queryClient, poolId);
-        formik.resetForm();
-        onClose();
-        toast.success('Pool metadata updated successfully');
-      } catch (error) {
-        toast.error(errorMessage(error));
-      }
+      await invalidatePoolQueries(queryClient, poolId);
+      formik.resetForm();
+      onClose();
+      toast.success('Pool metadata updated successfully');
     },
   });
 

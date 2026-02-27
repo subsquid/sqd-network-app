@@ -545,8 +545,6 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
           functionName: 'withdrawExit',
           args: [BigInt(withdrawalId)],
         });
-      } catch (error) {
-        // Error is already handled by useWriteSQDTransaction
       } finally {
         setClaimingId(null);
       }

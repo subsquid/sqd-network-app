@@ -3,14 +3,12 @@ import { useState } from 'react';
 import { dateFormat } from '@i18n';
 import { Lock } from '@mui/icons-material';
 import { Box, Button, SxProps, Tooltip } from '@mui/material';
-import toast from 'react-hot-toast';
 import { useClient } from 'wagmi';
 import * as yup from 'yup';
 
 import { gatewayRegistryAbi } from '@api/contracts';
 import { useStakeInfo } from '@api/contracts/useStakeInfo';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { errorMessage } from '@api/contracts/utils';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { useSourceContext } from '@contexts/SourceContext';
 import { useContracts } from '@hooks/network/useContracts';
@@ -96,19 +94,15 @@ export function GatewayUnstakeDialog({ onClose, open }: { onClose: () => void; o
   const handleSubmit = async () => {
     if (!client) return;
 
-    try {
-      const receipt = await gatewayRegistryContract.writeTransactionAsync({
-        address: contracts.GATEWAY_REGISTRATION,
-        abi: gatewayRegistryAbi,
-        functionName: 'unstake',
-        args: [],
-      });
-      setWaitHeight(receipt.blockNumber, []);
+    const receipt = await gatewayRegistryContract.writeTransactionAsync({
+      address: contracts.GATEWAY_REGISTRATION,
+      abi: gatewayRegistryAbi,
+      functionName: 'unstake',
+      args: [],
+    });
+    setWaitHeight(receipt.blockNumber, []);
 
-      onClose();
-    } catch (e: unknown) {
-      toast.error(errorMessage(e));
-    }
+    onClose();
   };
 
   return (

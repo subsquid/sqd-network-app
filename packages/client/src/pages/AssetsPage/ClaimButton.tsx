@@ -3,13 +3,11 @@ import { useMemo, useState } from 'react';
 import { TollOutlined } from '@mui/icons-material';
 import { Box, Button, TableBody, TableCell, TableRow } from '@mui/material';
 import { useFormik } from 'formik';
-import toast from 'react-hot-toast';
 import { useAccount, useClient } from 'wagmi';
 import * as yup from 'yup';
 
 import { rewardTreasuryAbi, useReadRouterRewardTreasury } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { errorMessage } from '@api/contracts/utils';
 import { AccountType, SourceWalletWithBalance, Worker } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { Form, FormRow, FormikSelect } from '@components/Form';
@@ -104,25 +102,21 @@ export function ClaimDialog({
       if (!rewardTreasuryAddress.data) return;
       if (!sources) return;
 
-      try {
-        const { source } = claimSchema.cast(values);
+      const { source } = claimSchema.cast(values);
 
-        const wallet = sources.find(w => w?.id === source);
-        if (!wallet) return;
+      const wallet = sources.find(w => w?.id === source);
+      if (!wallet) return;
 
-        const receipt = await contractWriter.writeTransactionAsync({
-          address: rewardTreasuryAddress.data,
-          abi: rewardTreasuryAbi,
-          functionName: 'claimFor',
-          args: [contracts.REWARD_DISTRIBUTION, account.address],
-          vesting: wallet.type === AccountType.User ? undefined : (wallet.id as `0x${string}`),
-        });
-        setWaitHeight(receipt.blockNumber, []);
+      const receipt = await contractWriter.writeTransactionAsync({
+        address: rewardTreasuryAddress.data,
+        abi: rewardTreasuryAbi,
+        functionName: 'claimFor',
+        args: [contracts.REWARD_DISTRIBUTION, account.address],
+        vesting: wallet.type === AccountType.User ? undefined : (wallet.id as `0x${string}`),
+      });
+      setWaitHeight(receipt.blockNumber, []);
 
-        onClose();
-      } catch (e: unknown) {
-        toast.error(errorMessage(e));
-      }
+      onClose();
     },
   });
 

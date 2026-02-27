@@ -5,13 +5,11 @@ import { Button, Chip, Divider, Stack, Tooltip, Typography } from '@mui/material
 import { useQueryClient } from '@tanstack/react-query';
 import BigNumber from 'bignumber.js';
 import { useFormik } from 'formik';
-import toast from 'react-hot-toast';
 import { useReadContract } from 'wagmi';
 import * as yup from 'yup';
 
 import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { errorMessage } from '@api/contracts/utils';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
@@ -66,21 +64,17 @@ export function WithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
 
   const handleSubmit = useCallback(
     async (values: { amount: string }) => {
-      try {
-        const sqdAmount = BigInt(toSqd(values.amount));
+      const sqdAmount = BigInt(toSqd(values.amount));
 
-        await writeTransactionAsync({
-          address: poolId as `0x${string}`,
-          abi: portalPoolAbi,
-          functionName: 'requestExit',
-          args: [sqdAmount],
-        });
+      await writeTransactionAsync({
+        address: poolId as `0x${string}`,
+        abi: portalPoolAbi,
+        functionName: 'requestExit',
+        args: [sqdAmount],
+      });
 
-        await invalidatePoolQueries(queryClient, poolId);
-        onClose();
-      } catch (error) {
-        toast.error(errorMessage(error));
-      }
+      await invalidatePoolQueries(queryClient, poolId);
+      onClose();
     },
     [poolId, writeTransactionAsync, queryClient, onClose],
   );

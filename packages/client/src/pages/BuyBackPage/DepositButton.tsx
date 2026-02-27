@@ -3,11 +3,9 @@ import { useCallback, useMemo, useState } from 'react';
 import { Button, Chip } from '@mui/material';
 import * as yup from '@schema';
 import { useFormik } from 'formik';
-import toast from 'react-hot-toast';
 
 import { buyBackAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { errorMessage } from '@api/contracts/utils';
 import { AccountType, SourceWalletWithBalance } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { Form, FormRow, FormikSelect, FormikTextInput } from '@components/Form';
@@ -102,28 +100,24 @@ export function DepositDialog({
     onSubmit: async values => {
       if (!address) return;
 
-      try {
-        const { amount, source: sourceId } = depositSchema.cast(values);
+      const { amount, source: sourceId } = depositSchema.cast(values);
 
-        const source = sources?.find(w => w?.id === sourceId);
-        if (!source) return;
+      const source = sources?.find(w => w?.id === sourceId);
+      if (!source) return;
 
-        const sqdAmount = BigInt(toSqd(amount));
+      const sqdAmount = BigInt(toSqd(amount));
 
-        const receipt = await writeTransactionAsync({
-          abi: buyBackAbi,
-          address: address as `0x${string}`,
-          functionName: 'deposit',
-          args: [sqdAmount],
-          vesting: source.type === AccountType.User ? undefined : (source.id as `0x${string}`),
-          approve: sqdAmount,
-        });
-        setWaitHeight(receipt.blockNumber, []);
+      const receipt = await writeTransactionAsync({
+        abi: buyBackAbi,
+        address: address as `0x${string}`,
+        functionName: 'deposit',
+        args: [sqdAmount],
+        vesting: source.type === AccountType.User ? undefined : (source.id as `0x${string}`),
+        approve: sqdAmount,
+      });
+      setWaitHeight(receipt.blockNumber, []);
 
-        onClose();
-      } catch (e) {
-        toast.error(errorMessage(e));
-      }
+      onClose();
     },
   });
 

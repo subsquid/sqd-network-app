@@ -4,12 +4,10 @@ import { EditOutlined } from '@mui/icons-material';
 import { IconButton, SxProps } from '@mui/material';
 import * as yup from '@schema';
 import { useFormik } from 'formik';
-import toast from 'react-hot-toast';
 import { useAccount, useClient } from 'wagmi';
 
 import { useReadRouterWorkerRegistration, workerRegistryAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { errorMessage } from '@api/contracts/utils';
 import { encodeWorkerMetadata } from '@api/contracts/worker-registration/WorkerMetadata';
 import { AccountType, type WorkerDetailed } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
@@ -96,24 +94,20 @@ function WorkerEditDialog({
     onSubmit: async values => {
       if (!client || !account.address || !registrationAddress) return;
 
-      try {
-        const metadata = editWorkerSchema.cast(values);
+      const metadata = editWorkerSchema.cast(values);
 
-        const peerIdHex = peerIdToHex(worker.peerId);
+      const peerIdHex = peerIdToHex(worker.peerId);
 
-        const receipt = await contractWriter.writeTransactionAsync({
-          address: registrationAddress,
-          abi: workerRegistryAbi,
-          functionName: 'updateMetadata',
-          args: [peerIdHex, encodeWorkerMetadata(metadata)],
-          vesting: owner.type === AccountType.User ? undefined : (owner.id as `0x${string}`),
-        });
-        setWaitHeight(receipt.blockNumber, []);
+      const receipt = await contractWriter.writeTransactionAsync({
+        address: registrationAddress,
+        abi: workerRegistryAbi,
+        functionName: 'updateMetadata',
+        args: [peerIdHex, encodeWorkerMetadata(metadata)],
+        vesting: owner.type === AccountType.User ? undefined : (owner.id as `0x${string}`),
+      });
+      setWaitHeight(receipt.blockNumber, []);
 
-        onResult(true);
-      } catch (error) {
-        toast.error(errorMessage(error));
-      }
+      onResult(true);
     },
   });
 

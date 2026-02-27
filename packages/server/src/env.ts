@@ -34,6 +34,11 @@ export function getPort(): number {
   return Number(getEnv('SERVER_PORT', '3001'));
 }
 
+export function getSentryDsn(): string | undefined {
+  const dsn = process.env.SENTRY_DSN?.trim();
+  return dsn ? dsn : undefined;
+}
+
 import { CONTRACT_ADDRESSES, type ContractAddresses } from '@subsquid/common';
 
 export type { ContractAddresses };

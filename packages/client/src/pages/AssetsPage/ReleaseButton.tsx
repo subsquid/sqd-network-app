@@ -1,10 +1,8 @@
 import { Button } from '@mui/material';
-import { toast } from 'react-hot-toast';
 import * as yup from 'yup';
 
 import { vestingAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { errorMessage } from '@api/contracts/utils';
 import { SourceWallet } from '@api/subsquid-network-squid';
 import { useContracts } from '@hooks/network/useContracts';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
@@ -26,17 +24,13 @@ export function ReleaseButton({
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction({});
 
   const onClick = async () => {
-    try {
-      const receipt = await writeTransactionAsync({
-        abi: vestingAbi,
-        functionName: 'release',
-        args: [SQD],
-        address: vesting.id as `0x${string}`,
-      });
-      setWaitHeight(receipt.blockNumber, []);
-    } catch (e: unknown) {
-      toast.error(errorMessage(e));
-    }
+    const receipt = await writeTransactionAsync({
+      abi: vestingAbi,
+      functionName: 'release',
+      args: [SQD],
+      address: vesting.id as `0x${string}`,
+    });
+    setWaitHeight(receipt.blockNumber, []);
   };
 
   return (

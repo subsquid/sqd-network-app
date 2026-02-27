@@ -3,13 +3,11 @@ import { useMemo, useState } from 'react';
 import { Add } from '@mui/icons-material';
 import { Button, SxProps } from '@mui/material';
 import { useFormik } from 'formik';
-import toast from 'react-hot-toast';
 import { useClient } from 'wagmi';
 
 import { gatewayRegistryAbi } from '@api/contracts';
 import { encodeGatewayMetadata } from '@api/contracts/gateway-registration/GatewayMetadata';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { errorMessage } from '@api/contracts/utils';
 import { AccountType } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { Form, FormRow, FormikSwitch, FormikTextInput } from '@components/Form';
@@ -83,25 +81,21 @@ export function AddGatewayDialog({ open, onClose }: { open: boolean; onClose: ()
       const source = sources?.find(s => s.id === values.source);
       if (!source) return;
 
-      try {
-        const castedValues = addGatewaySchema.cast(values);
-        if (!castedValues.public) {
-          delete castedValues.email;
-        }
-
-        const receipt = await writeTransactionAsync({
-          address: contracts.GATEWAY_REGISTRATION,
-          abi: gatewayRegistryAbi,
-          functionName: 'register',
-          args: [peerIdToHex(castedValues.peerId), encodeGatewayMetadata(castedValues)],
-          vesting: source.type === AccountType.Vesting ? (source.id as `0x${string}`) : undefined,
-        });
-        setWaitHeight(receipt.blockNumber, []);
-
-        onClose();
-      } catch (e: unknown) {
-        toast.error(errorMessage(e));
+      const castedValues = addGatewaySchema.cast(values);
+      if (!castedValues.public) {
+        delete castedValues.email;
       }
+
+      const receipt = await writeTransactionAsync({
+        address: contracts.GATEWAY_REGISTRATION,
+        abi: gatewayRegistryAbi,
+        functionName: 'register',
+        args: [peerIdToHex(castedValues.peerId), encodeGatewayMetadata(castedValues)],
+        vesting: source.type === AccountType.Vesting ? (source.id as `0x${string}`) : undefined,
+      });
+      setWaitHeight(receipt.blockNumber, []);
+
+      onClose();
     },
   });
 

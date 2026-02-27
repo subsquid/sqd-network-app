@@ -4,12 +4,10 @@ import { Alert, Box, Button, Chip, Divider, Stack, Tooltip, Typography } from '@
 import { useQueryClient } from '@tanstack/react-query';
 import BigNumber from 'bignumber.js';
 import { useFormik } from 'formik';
-import toast from 'react-hot-toast';
 import * as yup from 'yup';
 
 import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { errorMessage } from '@api/contracts/utils';
 import { AccountType, useMySources } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikSelect, FormikTextInput } from '@components/Form';
@@ -137,22 +135,18 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
     async (values: { amount: string }) => {
       if (!pool) return;
 
-      try {
-        const sqdAmount = BigInt(toSqd(values.amount));
+      const sqdAmount = BigInt(toSqd(values.amount));
 
-        await writeTransactionAsync({
-          address: poolId as `0x${string}`,
-          abi: portalPoolAbi,
-          functionName: 'deposit',
-          args: [sqdAmount],
-          approve: sqdAmount,
-        });
+      await writeTransactionAsync({
+        address: poolId as `0x${string}`,
+        abi: portalPoolAbi,
+        functionName: 'deposit',
+        args: [sqdAmount],
+        approve: sqdAmount,
+      });
 
-        await invalidatePoolQueries(queryClient, poolId);
-        onClose();
-      } catch (error) {
-        toast.error(errorMessage(error));
-      }
+      await invalidatePoolQueries(queryClient, poolId);
+      onClose();
     },
     [pool, poolId, writeTransactionAsync, queryClient, onClose],
   );

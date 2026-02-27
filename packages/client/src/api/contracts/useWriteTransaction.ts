@@ -1,6 +1,5 @@
-import { useState } from 'react';
-
 import * as Sentry from '@sentry/react';
+import { useMutation } from '@tanstack/react-query';
 import { readContract, waitForTransactionReceipt, writeContract } from '@wagmi/core';
 import {
   Abi,
@@ -16,11 +15,13 @@ import {
 } from 'viem';
 import { useAccount, useConfig, useWriteContract } from 'wagmi';
 import { arbitrum } from 'wagmi/chains';
+import toast from 'react-hot-toast';
 
 import { useContracts } from '@hooks/network/useContracts';
 import { NetworkName, getSubsquidNetwork } from '@hooks/network/useSubsquidNetwork';
 
 import { vestingAbi } from './subsquid.generated';
+import { errorMessage } from './utils';
 
 type WriteTransactionParams<TAbi extends Abi, TFunctionName extends ContractFunctionName<TAbi>> = {
   abi: TAbi;
@@ -44,23 +45,14 @@ type WriteTransactionResult = {
 export function useWriteSQDTransaction({}: object = {}): WriteTransactionResult {
   const config = useConfig();
   const { writeContractAsync, ...result } = useWriteContract();
-  const [isPending, setPending] = useState<boolean>(false);
-  const [error, setError] = useState<Error | null>(null);
   const { SQD } = useContracts();
   const account = useAccount();
-
-  return {
-    ...result,
-    isPending,
-    error,
-    isError: !!error,
-    writeTransactionAsync: async <
-      TAbi extends Abi,
-      TFunctionName extends ContractFunctionName<TAbi>,
-    >(
-      params: WriteTransactionParams<TAbi, TFunctionName>,
-    ) => {
-      setPending(true);
+  const mutation = useMutation<
+    TransactionReceipt,
+    Error,
+    WriteTransactionParams<Abi, ContractFunctionName<Abi>>
+  >({
+    mutationFn: async params => {
       try {
         let hash: `0x${string}`;
         if (params.vesting) {
@@ -164,14 +156,26 @@ export function useWriteSQDTransaction({}: object = {}): WriteTransactionResult 
           });
         }
 
-        // biome-ignore lint/suspicious/noConsole: <explanation>
-        console.error(e);
-        setError(e as Error);
-        throw e;
-      } finally {
-        setPending(false);
+        const message = errorMessage(e);
+
+        toast.error(message);
+
+        throw new Error(message);
       }
     },
+  });
+
+  return {
+    ...result,
+    isPending: mutation.isPending,
+    error: mutation.error ?? null,
+    isError: mutation.isError,
+    writeTransactionAsync: async <
+      TAbi extends Abi,
+      TFunctionName extends ContractFunctionName<TAbi>,
+    >(
+      params: WriteTransactionParams<TAbi, TFunctionName>,
+    ) => mutation.mutateAsync(params as WriteTransactionParams<Abi, ContractFunctionName<Abi>>),
   };
 }
 

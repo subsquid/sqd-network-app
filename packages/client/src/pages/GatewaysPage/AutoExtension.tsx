@@ -1,10 +1,8 @@
 import { Box, FormControlLabel, FormGroup, Switch, Typography } from '@mui/material';
-import toast from 'react-hot-toast';
 import { usePublicClient } from 'wagmi';
 
 import { gatewayRegistryAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { errorMessage } from '@api/contracts/utils';
 import { useContracts } from '@hooks/network/useContracts';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 
@@ -17,25 +15,21 @@ export function AutoExtension({ value, disabled }: { value?: boolean; disabled?:
   const handleChange = async () => {
     if (!client) return;
 
-    try {
-      const receipt = value
-        ? await writeTransactionAsync({
-            address: contracts.GATEWAY_REGISTRATION,
-            abi: gatewayRegistryAbi,
-            functionName: 'disableAutoExtension',
-            args: [],
-          })
-        : await writeTransactionAsync({
-            address: contracts.GATEWAY_REGISTRATION,
-            abi: gatewayRegistryAbi,
-            functionName: 'enableAutoExtension',
-            args: [],
-          });
+    const receipt = value
+      ? await writeTransactionAsync({
+          address: contracts.GATEWAY_REGISTRATION,
+          abi: gatewayRegistryAbi,
+          functionName: 'disableAutoExtension',
+          args: [],
+        })
+      : await writeTransactionAsync({
+          address: contracts.GATEWAY_REGISTRATION,
+          abi: gatewayRegistryAbi,
+          functionName: 'enableAutoExtension',
+          args: [],
+        });
 
-      setWaitHeight(receipt.blockNumber, []);
-    } catch (e) {
-      toast.error(errorMessage(e));
-    }
+    setWaitHeight(receipt.blockNumber, []);
   };
 
   return (

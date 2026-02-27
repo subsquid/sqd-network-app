@@ -5,12 +5,10 @@ import * as yup from '@schema';
 import { useQuery } from '@tanstack/react-query';
 import BigNumber from 'bignumber.js';
 import { useFormik } from 'formik';
-import toast from 'react-hot-toast';
 import { useDebounce } from 'use-debounce';
 
 import { stakingAbi, useReadRouterStaking } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { errorMessage } from '@api/contracts/utils';
 import {
   AccountType,
   SourceWalletWithBalance,
@@ -127,28 +125,24 @@ export function WorkerDelegateDialog({
       if (!stakingAddress) return;
       if (!worker) return;
 
-      try {
-        const { amount, source: sourceId } = delegateSchema.cast(values);
+      const { amount, source: sourceId } = delegateSchema.cast(values);
 
-        const source = sources?.find(w => w?.id === sourceId);
-        if (!source) return;
+      const source = sources?.find(w => w?.id === sourceId);
+      if (!source) return;
 
-        const sqdAmount = BigInt(toSqd(amount));
+      const sqdAmount = BigInt(toSqd(amount));
 
-        const receipt = await writeTransactionAsync({
-          abi: stakingAbi,
-          address: stakingAddress,
-          functionName: 'deposit',
-          args: [BigInt(worker.id), sqdAmount],
-          vesting: source.type === AccountType.User ? undefined : (source.id as `0x${string}`),
-          approve: sqdAmount,
-        });
-        setWaitHeight(receipt.blockNumber, []);
+      const receipt = await writeTransactionAsync({
+        abi: stakingAbi,
+        address: stakingAddress,
+        functionName: 'deposit',
+        args: [BigInt(worker.id), sqdAmount],
+        vesting: source.type === AccountType.User ? undefined : (source.id as `0x${string}`),
+        approve: sqdAmount,
+      });
+      setWaitHeight(receipt.blockNumber, []);
 
-        onClose();
-      } catch (e) {
-        toast.error(errorMessage(e));
-      }
+      onClose();
     },
   });
 

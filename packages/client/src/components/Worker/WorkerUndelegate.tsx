@@ -6,12 +6,10 @@ import { Box, Button, Chip, Skeleton, Stack, Tooltip, Typography } from '@mui/ma
 import * as yup from '@schema';
 import { useQuery } from '@tanstack/react-query';
 import { useFormik } from 'formik';
-import toast from 'react-hot-toast';
 import { useDebounce } from 'use-debounce';
 
 import { stakingAbi, useReadRouterStaking } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { errorMessage } from '@api/contracts/utils';
 import { AccountType, SourceWalletWithBalance, Worker } from '@api/subsquid-network-squid';
 import { trpc } from '@api/trpc';
 import { ContractCallDialog } from '@components/ContractCallDialog';
@@ -175,27 +173,23 @@ function WorkerUndelegateDialog({
       if (!stakingAddress) return;
       if (!worker) return;
 
-      try {
-        const { amount, source: sourceId } = undelegateSchema.cast(values);
+      const { amount, source: sourceId } = undelegateSchema.cast(values);
 
-        const source = sources?.find(w => w?.id === sourceId);
-        if (!source) return;
+      const source = sources?.find(w => w?.id === sourceId);
+      if (!source) return;
 
-        const sqdAmount = BigInt(toSqd(amount));
+      const sqdAmount = BigInt(toSqd(amount));
 
-        const receipt = await writeTransactionAsync({
-          abi: stakingAbi,
-          address: stakingAddress,
-          functionName: 'withdraw',
-          args: [BigInt(worker.id), sqdAmount],
-          vesting: source.type === AccountType.User ? undefined : (source.id as `0x${string}`),
-        });
-        setWaitHeight(receipt.blockNumber, []);
+      const receipt = await writeTransactionAsync({
+        abi: stakingAbi,
+        address: stakingAddress,
+        functionName: 'withdraw',
+        args: [BigInt(worker.id), sqdAmount],
+        vesting: source.type === AccountType.User ? undefined : (source.id as `0x${string}`),
+      });
+      setWaitHeight(receipt.blockNumber, []);
 
-        onClose();
-      } catch (e) {
-        toast.error(errorMessage(e));
-      }
+      onClose();
     },
   });
 

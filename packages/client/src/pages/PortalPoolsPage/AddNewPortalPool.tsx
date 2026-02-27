@@ -25,7 +25,6 @@ import {
   useReadPortalPoolFactoryGetMinCapacity,
 } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { errorMessage } from '@api/contracts/utils';
 import { SourceWalletWithBalance } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { Form, FormDivider, FormRow, FormikTextInput } from '@components/Form';
@@ -169,57 +168,53 @@ function AddNewPortalDialog({
     validateOnMount: true,
     enableReinitialize: true,
     onSubmit: async values => {
-      try {
-        if (!selectedToken) {
-          toast.error('Please select a reward token');
-          return;
-        }
-
-        const distributionRatePerSecond = BigInt(
-          getRate(values.earnings, values.rateType)
-            .div(86400)
-            .times(10 ** selectedToken.decimals)
-            .times(DISTRIBUTION_RATE_BPS)
-            .toFixed(0),
-        );
-
-        const initialDeposit = BigInt(
-          BigNumber(values.initialDeposit)
-            .times(10 ** selectedToken.decimals)
-            .toFixed(0),
-        );
-
-        const receipt = await writeTransactionAsync({
-          abi: portalPoolFactoryAbi,
-          address: PORTAL_POOL_FACTORY,
-          functionName: 'createPortalPool',
-          approve: initialDeposit,
-          approveToken: selectedToken.address,
-          args: [
-            {
-              operator: initialSource?.id as `0x${string}`,
-              capacity: BigInt(toSqd(values.capacity)),
-              tokenSuffix: collapseTokenName(values.name),
-              distributionRatePerSecond,
-              initialDeposit,
-              metadata: JSON.stringify({
-                name: values.name,
-                description: values.description,
-                website: values.website,
-              }),
-              rewardToken: selectedToken.address,
-            },
-          ],
-        });
-
-        setWaitHeight(receipt.blockNumber, []);
-
-        formik.resetForm();
-
-        onResult(true);
-      } catch (error) {
-        toast.error(errorMessage(error));
+      if (!selectedToken) {
+        toast.error('Please select a reward token');
+        return;
       }
+
+      const distributionRatePerSecond = BigInt(
+        getRate(values.earnings, values.rateType)
+          .div(86400)
+          .times(10 ** selectedToken.decimals)
+          .times(DISTRIBUTION_RATE_BPS)
+          .toFixed(0),
+      );
+
+      const initialDeposit = BigInt(
+        BigNumber(values.initialDeposit)
+          .times(10 ** selectedToken.decimals)
+          .toFixed(0),
+      );
+
+      const receipt = await writeTransactionAsync({
+        abi: portalPoolFactoryAbi,
+        address: PORTAL_POOL_FACTORY,
+        functionName: 'createPortalPool',
+        approve: initialDeposit,
+        approveToken: selectedToken.address,
+        args: [
+          {
+            operator: initialSource?.id as `0x${string}`,
+            capacity: BigInt(toSqd(values.capacity)),
+            tokenSuffix: collapseTokenName(values.name),
+            distributionRatePerSecond,
+            initialDeposit,
+            metadata: JSON.stringify({
+              name: values.name,
+              description: values.description,
+              website: values.website,
+            }),
+            rewardToken: selectedToken.address,
+          },
+        ],
+      });
+
+      setWaitHeight(receipt.blockNumber, []);
+
+      formik.resetForm();
+
+      onResult(true);
     },
   });
 

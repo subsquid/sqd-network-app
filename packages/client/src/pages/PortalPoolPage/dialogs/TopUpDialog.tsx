@@ -3,12 +3,10 @@ import { useCallback, useState } from 'react';
 import { Button, Divider, Stack, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
-import toast from 'react-hot-toast';
 import * as yup from 'yup';
 
 import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { errorMessage } from '@api/contracts/utils';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
 import { Loader } from '@components/Loader';
@@ -96,25 +94,21 @@ export function TopUpDialog({ open, onClose, poolId }: TopUpDialogProps) {
     onSubmit: async values => {
       if (!pool) return;
 
-      try {
-        const decimals = pool.rewardToken.decimals;
-        const rewardAmount = BigInt(Math.floor(parseFloat(values.amount) * 10 ** decimals));
+      const decimals = pool.rewardToken.decimals;
+      const rewardAmount = BigInt(Math.floor(parseFloat(values.amount) * 10 ** decimals));
 
-        await writeTransactionAsync({
-          address: poolId as `0x${string}`,
-          abi: portalPoolAbi,
-          functionName: 'topUpRewards',
-          args: [rewardAmount],
-          approve: rewardAmount,
-          approveToken: pool.rewardToken.address,
-        });
+      await writeTransactionAsync({
+        address: poolId as `0x${string}`,
+        abi: portalPoolAbi,
+        functionName: 'topUpRewards',
+        args: [rewardAmount],
+        approve: rewardAmount,
+        approveToken: pool.rewardToken.address,
+      });
 
-        await invalidatePoolQueries(queryClient, poolId);
-        formik.resetForm();
-        onClose();
-      } catch (error) {
-        toast.error(errorMessage(error));
-      }
+      await invalidatePoolQueries(queryClient, poolId);
+      formik.resetForm();
+      onClose();
     },
   });
 
