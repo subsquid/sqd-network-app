@@ -1,7 +1,13 @@
 import React, { PropsWithChildren } from 'react';
 
-import { Box, Card as MuiCard, CardProps as MuiCardProps, Theme, styled } from '@mui/material';
-import { SxProps } from '@mui/material';
+import {
+  Box,
+  Card as MuiCard,
+  CardProps as MuiCardProps,
+  SxProps,
+  Theme,
+  styled,
+} from '@mui/material';
 
 import { Loader } from '@components/Loader';
 import { SectionHeader } from '@components/SectionHeader';

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { dateFormat } from '@i18n';
 import { ArrowBackIosNew, ArrowForwardIos, FilterList } from '@mui/icons-material';
 import {
+  Box,
   Collapse,
   IconButton,
   Pagination,
@@ -14,7 +15,6 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { Box } from '@mui/material';
 
 import { SortDir, WorkerSortBy, useMySources, useWorkers } from '@api/subsquid-network-squid';
 import { Card } from '@components/Card';

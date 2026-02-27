@@ -1,7 +1,6 @@
 import { PropsWithChildren, ReactNode } from 'react';
 
-import { Box, Typography, styled } from '@mui/material';
-import { SxProps } from '@mui/material';
+import { Box, SxProps, Typography, styled } from '@mui/material';
 
 import { BackButton } from '@components/BackButton';
 

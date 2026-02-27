@@ -1,6 +1,5 @@
 import { EditIcon } from '@icons/EditIcon';
-import { IconButton, Stack, Typography, styled, useTheme } from '@mui/material';
-import { Box } from '@mui/material';
+import { Box, IconButton, Stack, Typography, styled, useTheme } from '@mui/material';
 import { Link } from 'react-router-dom';
 
 import type { Gateway } from '@api/subsquid-network-squid';

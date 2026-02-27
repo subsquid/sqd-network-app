@@ -2,10 +2,10 @@ import {
   Box,
   CircularProgress as MaterialCircularProgress,
   Stack,
+  SxProps,
   Theme,
   styled,
 } from '@mui/material';
-import { SxProps } from '@mui/material';
 
 export type CircularProgressColor =
   | 'primary'
