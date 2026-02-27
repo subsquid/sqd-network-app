@@ -154,7 +154,7 @@ const Sidebar = styled(Drawer, {
 const SidebarLogo = styled('div', {
   name: 'SidebarLogo',
 })(({ theme }) => ({
-  padding: theme.spacing(2, 1),
+  padding: theme.spacing(2, 0, 2, 1),
   marginBottom: theme.spacing(1),
   display: 'flex',
   alignItems: 'center',
