@@ -52,10 +52,13 @@ export function SquidHeightProvider({ children }: PropsWithChildren) {
     storageSync: false,
   });
 
-  const [isSyncing, setIsSyncing] = useState(false);
   const [isToastHidden, setIsToastHidden] = useState(false);
 
-  const { data, isLoading } = useQuery(trpc.status.get.queryOptions());
+  const { data, isLoading } = useQuery(
+    trpc.status.get.queryOptions(undefined, {
+      refetchInterval: 1_000,
+    }),
+  );
 
   const currentHeight = data?.height || 0;
   const chainHeight = data?.height || 0;
@@ -96,7 +99,6 @@ export function SquidHeightProvider({ children }: PropsWithChildren) {
     if (isLoading || !chainHeight) return;
 
     const syncing = currentHeight < chainHeight - 50;
-    setIsSyncing(syncing);
 
     if (isToastHidden) return;
 
