@@ -36,7 +36,11 @@ export function isOwned(
   something: { owner: { id: string; owner?: { id: string } | null } },
   address: string | undefined,
 ) {
-  return (
-    address != null && (something.owner.id === address || something.owner.owner?.id === address)
-  );
+  if (address == null) return false;
+
+  const normalizedAddress = address.toLowerCase();
+  const ownerAddress = something.owner.id.toLowerCase();
+  const nestedOwnerAddress = something.owner.owner?.id?.toLowerCase();
+
+  return ownerAddress === normalizedAddress || nestedOwnerAddress === normalizedAddress;
 }
