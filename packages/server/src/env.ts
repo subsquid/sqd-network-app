@@ -26,8 +26,9 @@ export function getPoolSquidUrl(): string {
     : getEnv('MAINNET_POOL_SQUID_API_URL', 'http://localhost:4350');
 }
 
-export function getRpcUrl(): string {
-  return getEnv('BLOCK_CHAIN_NODE_ADDRESS', 'https://arb1.arbitrum.io/rpc');
+export function getRpcUrl(): string | undefined {
+  const rpcUrl = process.env.RPC_URL?.trim();
+  return rpcUrl || undefined;
 }
 
 export function getPort(): number {

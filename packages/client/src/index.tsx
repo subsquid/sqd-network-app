@@ -20,7 +20,7 @@ declare global {
       NETWORK: string;
       SQUID_API_URL: string;
       WALLET_CONNECT_PROJECT_ID: string;
-      BLOCK_CHAIN_NODE_ADDRESS: string;
+      RPC_URL: string;
       SQD_CONTRACT_ADDRESS: string;
       WORKER_REGISTRATION_CONTRACT_ADDRESS: string;
       STAKING_REGISTRATION_CONTRACT_ADDRESS: string;

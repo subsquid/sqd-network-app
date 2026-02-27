@@ -89,7 +89,7 @@ pnpm dev               # client (port 3005) + server (port 3001) in parallel
 | `MAINNET_SQUID_API_URL`         | Squid GraphQL endpoint for mainnet                    |
 | `TESTNET_POOL_SQUID_API_URL`    | Pool Squid GraphQL endpoint for testnet               |
 | `MAINNET_POOL_SQUID_API_URL`    | Pool Squid GraphQL endpoint for mainnet               |
-| `BLOCK_CHAIN_NODE_ADDRESS`      | Arbitrum RPC endpoint (default: Arbitrum One public)  |
+| `RPC_URL`                       | Arbitrum RPC endpoint                                  |
 | `SERVER_PORT`                   | Port for the tRPC server (default: `3001`)            |
 | `SENTRY_DSN`                    | Sentry DSN (dev only — not set in prod)               |
 | `ENABLE_DEMO_FEATURES`          | `true` on `develop`, `false` on `main`                |
