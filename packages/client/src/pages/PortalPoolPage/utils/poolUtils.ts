@@ -1,6 +1,8 @@
 import type { QueryClient } from '@tanstack/react-query';
 import BigNumber from 'bignumber.js';
 
+import { trpc } from '@api/trpc';
+
 import type { PoolData, PoolPhase } from '../hooks/types';
 
 export interface CapacityInfo {
@@ -126,34 +128,21 @@ export function getPhaseTooltip(phase: PoolPhase): string {
 
 /**
  * Invalidates all queries related to a specific pool
- * This includes readContract queries for the pool and all readContracts queries
+ * Uses tRPC typed query filters to avoid manual query-key parsing
  */
 export async function invalidatePoolQueries(
   queryClient: QueryClient,
   poolId: string,
 ): Promise<void> {
-  await queryClient.invalidateQueries({
-    predicate: query => {
-      const key = query.queryKey;
-      if (!Array.isArray(key)) return false;
-
-      // Invalidate readContract queries for this pool
-      if (key[0] === 'readContract' && typeof key[1] === 'object' && key[1] !== null) {
-        const params = key[1] as any;
-        return (
-          typeof params.address === 'string' &&
-          params.address.toLowerCase() === poolId.toLowerCase()
-        );
-      }
-
-      // Invalidate readContracts queries (user data, etc)
-      if (key[0] === 'readContracts') {
-        return true;
-      }
-
-      return false;
-    },
-  });
+  await Promise.all([
+    queryClient.invalidateQueries(trpc.pool.get.queryFilter({ poolId })),
+    queryClient.invalidateQueries(trpc.pool.userData.queryFilter({ poolId })),
+    queryClient.invalidateQueries(trpc.pool.pendingWithdrawals.queryFilter({ poolId })),
+    queryClient.invalidateQueries(trpc.pool.liquidityEvents.queryFilter({ poolId })),
+    queryClient.invalidateQueries(trpc.pool.topUps.queryFilter({ poolId })),
+    queryClient.invalidateQueries(trpc.pool.apyTimeseries.queryFilter({ poolId })),
+    queryClient.invalidateQueries(trpc.pool.tvlTimeseries.queryFilter({ poolId })),
+  ]);
 }
 
 /**
