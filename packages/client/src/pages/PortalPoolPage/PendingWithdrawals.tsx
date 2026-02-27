@@ -25,6 +25,7 @@ import { HelpTooltip } from '@components/HelpTooltip';
 import { PaginatedTable } from '@components/Table';
 import { useContracts } from '@hooks/network/useContracts';
 import { useCountdown } from '@hooks/useCountdown';
+import { demoFeaturesEnabled } from '@hooks/demoFeaturesEnabled';
 import { useExplorer } from '@hooks/useExplorer';
 import { useTicker } from '@hooks/useTicker';
 import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
@@ -521,6 +522,7 @@ function ClaimsTable({
 
 export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
   const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
+  const isDemoFeaturesEnabled = demoFeaturesEnabled();
   const [claimingId, setClaimingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState(0);
   const [activityPage, setActivityPage] = useState(0);
@@ -531,6 +533,7 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
   const { data: pendingWithdrawals = [], isLoading: withdrawalsLoading } =
     usePoolPendingWithdrawals(poolId);
   const { address } = useAccount();
+  const withdrawalsTabIndex = isDemoFeaturesEnabled ? 3 : 2;
 
   const handleClaim = useCallback(
     async (withdrawalId: string) => {
@@ -562,7 +565,7 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
       <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 2 }}>
         <Tab label={ACTIVITY_TEXTS.title} />
         <Tab label={TOP_UPS_TEXTS.title} />
-        <Tab label={CLAIMS_TEXTS.title} />
+        {isDemoFeaturesEnabled && <Tab label={CLAIMS_TEXTS.title} />}
         <Tab label={WITHDRAWALS_TEXTS.tabTitle} />
       </Tabs>
       {activeTab === 0 && (
@@ -571,7 +574,7 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
       {activeTab === 1 && (
         <TopUpsTable poolId={poolId} pageIndex={topUpsPage} onPageChange={setTopUpsPage} />
       )}
-      {activeTab === 2 && (
+      {isDemoFeaturesEnabled && activeTab === 2 && (
         <ClaimsTable
           poolId={poolId}
           providerId={address}
@@ -579,7 +582,7 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
           onPageChange={setClaimsPage}
         />
       )}
-      {activeTab === 3 && (
+      {activeTab === withdrawalsTabIndex && (
         <PendingWithdrawalsTable
           pendingWithdrawals={pendingWithdrawals}
           claimingId={claimingId}
