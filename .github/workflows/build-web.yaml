@@ -1,0 +1,140 @@
+name: build-web
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [main, develop]
+    paths:
+      - "packages/client/**"
+      - "packages/common/**"
+      - "nginx/**"
+      - "Dockerfile"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "turbo.json"
+
+env:
+  PROJECT_ID: bright-meridian-316511
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        network: [mainnet, tethys]
+    steps:
+      - name: Record start time
+        id: start
+        run: echo "time=$(date +%s)" >> $GITHUB_OUTPUT
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Extract cached dependencies
+        uses: actions/setup-node@v4
+        with:
+          cache: pnpm
+
+      - name: env
+        id: env
+        run: |
+          echo "tag=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          if [ "$REF" = "refs/heads/main" ]; then
+              echo "app_env=prod" >> $GITHUB_OUTPUT
+              echo "testnet_squid_api_url=https://subsquid.squids.live/subsquid-network-testnet:prod/api/graphql" >> $GITHUB_OUTPUT
+              echo "mainnet_squid_api_url=https://subsquid.squids.live/subsquid-network-mainnet:prod/api/graphql" >> $GITHUB_OUTPUT
+              echo "testnet_pool_squid_api_url=https://subsquid.squids.live/portal-pools-testnet@v1/api/graphql" >> $GITHUB_OUTPUT
+              echo "mainnet_pool_squid_api_url=https://subsquid.squids.live/portal-pools-mainnet@v1/api/graphql" >> $GITHUB_OUTPUT
+              echo "enable_demo_features=false" >> $GITHUB_OUTPUT
+          else
+              echo "app_env=dev" >> $GITHUB_OUTPUT
+              echo "testnet_squid_api_url=https://subsquid.squids.live/subsquid-network-testnet:dev/api/graphql" >> $GITHUB_OUTPUT
+              echo "mainnet_squid_api_url=https://subsquid.squids.live/subsquid-network-mainnet:dev/api/graphql" >> $GITHUB_OUTPUT
+              echo "testnet_pool_squid_api_url=https://subsquid.squids.live/portal-pools-testnet@v1/api/graphql" >> $GITHUB_OUTPUT
+              echo "mainnet_pool_squid_api_url=https://subsquid.squids.live/portal-pools-mainnet@v1/api/graphql" >> $GITHUB_OUTPUT
+              echo "enable_demo_features=true" >> $GITHUB_OUTPUT
+              echo "sentry_dsn=https://3a283cbad35b86e2afa2acd0e6b66794@o1149243.ingest.us.sentry.io/4509162478960640" >> $GITHUB_OUTPUT
+          fi
+          if [ "$NETWORK" = "mainnet" ]; then
+            echo "wc_project_id=475eff0658d0f3300ca18971418d261b" >> $GITHUB_OUTPUT
+          else
+            echo "wc_project_id=ec2facac9eaaca7cc0584baadc935c01" >> $GITHUB_OUTPUT
+          fi
+        env:
+          REF: ${{ github.ref }}
+          NETWORK: ${{ matrix.network }}
+
+      - run: pnpm install --frozen-lockfile
+
+      # Check compile errors before build
+      - run: npx turbo tsc --filter=@subsquid/client
+
+      - run: npx turbo build --filter=@subsquid/client --no-cache
+        env:
+          APP_ENV: ${{ steps.env.outputs.app_env }}
+          APP_VERSION: ${{ steps.env.outputs.tag }}
+          WALLET_CONNECT_PROJECT_ID: ${{ steps.env.outputs.wc_project_id }}
+          ENABLE_DEMO_FEATURES: ${{ steps.env.outputs.enable_demo_features }}
+          NETWORK: ${{ matrix.network }}
+          TESTNET_SQUID_API_URL: ${{ steps.env.outputs.testnet_squid_api_url }}
+          MAINNET_SQUID_API_URL: ${{ steps.env.outputs.mainnet_squid_api_url }}
+          TESTNET_POOL_SQUID_API_URL: ${{ steps.env.outputs.testnet_pool_squid_api_url }}
+          MAINNET_POOL_SQUID_API_URL: ${{ steps.env.outputs.mainnet_pool_squid_api_url }}
+          NODE_ENV: production
+          SENTRY_DSN: ${{ steps.env.outputs.sentry_dsn }}
+
+      - name: Build web image
+        run: docker build --progress=plain --target web -t "gcr.io/${PROJECT_ID}/subsquid-network-app-${NETWORK}-${APP_ENV}-web:${TAG}" -t "gcr.io/${PROJECT_ID}/subsquid-network-app-${NETWORK}-${APP_ENV}-web:latest" .
+        env:
+          APP_ENV: ${{ steps.env.outputs.app_env }}
+          NETWORK: ${{ matrix.network }}
+          TAG: ${{ steps.env.outputs.tag }}
+
+      - name: Configure Docker
+        run: echo "$GCR_KEY" | docker login -u _json_key --password-stdin https://gcr.io
+        env:
+          GCR_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+      - name: Push web image
+        run: |
+          docker push "gcr.io/${PROJECT_ID}/subsquid-network-app-${NETWORK}-${APP_ENV}-web:${TAG}"
+          docker push "gcr.io/${PROJECT_ID}/subsquid-network-app-${NETWORK}-${APP_ENV}-web:latest"
+        env:
+          APP_ENV: ${{ steps.env.outputs.app_env }}
+          NETWORK: ${{ matrix.network }}
+          TAG: ${{ steps.env.outputs.tag }}
+
+      - name: Compute elapsed time
+        id: elapsed
+        if: always()
+        run: |
+          elapsed=$(( $(date +%s) - ${{ steps.start.outputs.time }} ))
+          echo "value=$(( elapsed / 60 )) min $(( elapsed % 60 )) sec" >> $GITHUB_OUTPUT
+
+      - name: Slack notification
+        if: always()
+        uses: slackapi/slack-github-action@v2
+        with:
+          webhook: ${{ secrets.slack_webhook_url }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "attachments": [{
+                "title": "${{ job.status == 'success' && '✅ Deployed' || job.status == 'failure' && '❌ Failed' || '⚠️ Cancelled' }} ${{ matrix.network }} web [${{ steps.env.outputs.app_env }}]",
+                "color": "${{ job.status == 'success' && 'good' || job.status == 'failure' && 'danger' || 'warning' }}",
+                "text": "${{ github.event.head_commit.message }}\n<${{ github.event.head_commit.url }}|${{ steps.env.outputs.tag }}> by ${{ github.event.head_commit.author.name }} in ${{ steps.elapsed.outputs.value }}"
+              }]
+            }

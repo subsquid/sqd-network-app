@@ -1,0 +1,16 @@
+{
+  "name": "@subsquid/common",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "biome check src --fix"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

@@ -95,15 +95,7 @@
         "noMisleadingInstantiator": "error",
         "noUnsafeDeclarationMerging": "off"
       }
-    },
-    "includes": [
-      "**",
-      "!**/node_modules",
-      "!**/.yarn",
-      "!**/build",
-      "!**/dist",
-      "!**/*.generated.*"
-    ]
+    }
   },
   "javascript": {
     "formatter": {
