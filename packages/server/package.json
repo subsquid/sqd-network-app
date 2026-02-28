@@ -16,6 +16,7 @@
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.2.0",
     "@sentry/node": "^10.40.0",
+    "@sentry/rollup-plugin": "^5.1.1",
     "@subsquid/common": "workspace:*",
     "@trpc/server": "^11",
     "bignumber.js": "^9.3.1",
@@ -26,7 +27,7 @@
   "devDependencies": {
     "@graphql-codegen/cli": "^6.0.1",
     "@graphql-codegen/client-preset": "^5.2.2",
-    "@types/node": "^22",
+    "@types/node": "^22.19.11",
     "dotenv": "^17.2.3",
     "rolldown": "^1.0.0-rc.4",
     "tsx": "^4",

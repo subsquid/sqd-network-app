@@ -9,7 +9,8 @@
     },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["build/**", "dist/**"]
+      "outputs": ["build/**", "dist/**"],
+      "passThroughEnv": ["SENTRY_AUTH_TOKEN"]
     },
     "tsc": {
       "dependsOn": ["transit"],

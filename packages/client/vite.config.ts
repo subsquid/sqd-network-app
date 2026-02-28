@@ -49,6 +49,7 @@ export default defineConfig({
     react(),
     createHtmlPlugin({}),
     sentryVitePlugin({
+      authToken: process.env.SENTRY_AUTH_TOKEN,
       org: 'subsquid-labs-gmbh',
       project: 'network-app',
     }),
