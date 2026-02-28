@@ -80,9 +80,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       # Check compile errors before build
-      - run: npx turbo tsc --filter=@subsquid/client
+      - run: npx turbo run tsc --filter=@subsquid/client
 
-      - run: npx turbo build --filter=@subsquid/client --no-cache
+      - run: npx turbo run build --filter=@subsquid/client --no-cache
         env:
           APP_ENV: ${{ steps.env.outputs.app_env }}
           APP_VERSION: ${{ steps.env.outputs.tag }}
@@ -95,6 +95,7 @@ jobs:
           MAINNET_POOL_SQUID_API_URL: ${{ steps.env.outputs.mainnet_pool_squid_api_url }}
           NODE_ENV: production
           SENTRY_DSN: ${{ steps.env.outputs.sentry_dsn }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Build web image
         run: docker build --progress=plain --target web -t "gcr.io/${PROJECT_ID}/subsquid-network-app-${NETWORK}-${APP_ENV}-web:${TAG}" -t "gcr.io/${PROJECT_ID}/subsquid-network-app-${NETWORK}-${APP_ENV}-web:latest" .
