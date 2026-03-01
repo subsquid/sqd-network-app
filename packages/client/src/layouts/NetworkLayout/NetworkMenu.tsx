@@ -170,6 +170,7 @@ export const NetworkMenu = ({ onItemClick, collapsed }: NetworkMenuProps) => {
   );
   const isWorkerOperator = workersCount ? workersCount > 0 : false;
   const workersChatUrl = useWorkersChatUrl();
+  const communityChatUrl = process.env.DISCORD_API_URL ?? 'https://discord.gg/subsquid';
   const location = useLocation();
   const previousPathRef = useRef<string>('/dashboard');
 
@@ -273,18 +274,16 @@ export const NetworkMenu = ({ onItemClick, collapsed }: NetworkMenuProps) => {
           collapsed={collapsed}
         />
       )}
-      {process.env.DISCORD_API_URL && (
-        <Item
-          label="Community Chat"
-          path={process.env.DISCORD_API_URL}
-          target="_blank"
-          LeftIcon={<SmsOutlined />}
-          RightIcon={<ArrowOutwardOutlined />}
-          onClick={onItemClick}
-          selected={false}
-          collapsed={collapsed}
-        />
-      )}
+      <Item
+        label="Community Chat"
+        path={communityChatUrl}
+        target="_blank"
+        LeftIcon={<SmsOutlined />}
+        RightIcon={<ArrowOutwardOutlined />}
+        onClick={onItemClick}
+        selected={false}
+        collapsed={collapsed}
+      />
       <Item
         label="Purchase SQD Token"
         path="https://1inch.com/swap?src=42161:USDC&dst=42161:0x1337420ded5adb9980cfc35f8f2b054ea86f8ab1"
