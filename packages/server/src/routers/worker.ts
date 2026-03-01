@@ -20,7 +20,7 @@ import { publicProcedure, router } from '../trpc.js';
 import { bigintStringSchema, evmAddressSchema } from '../validation.js';
 
 function calculateDelegationCapacity(totalDelegation: string): number {
-  return BigNumber(totalDelegation).div(200_000_000_000_000_000_000_000n).times(100).toNumber();
+  return BigNumber(totalDelegation).div(20_000).shiftedBy(-18).times(100).toNumber();
 }
 
 export const workerRouter = router({
