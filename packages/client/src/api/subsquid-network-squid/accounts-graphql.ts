@@ -23,22 +23,28 @@ export function useMySources<TData = SourceWalletWithBalance[]>({
   select?: (data: SourceWalletWithBalance[]) => TData;
 } = {}) {
   const { address } = useAccount();
+  const isSourcesQueryEnabled = Boolean(address) && (enabled ?? true);
 
   const { data: accountsRaw, isLoading } = useQuery(
-    trpc.account.sources.queryOptions({ address: address || '0x' }, { enabled }),
+    trpc.account.sources.queryOptions(
+      { address: (address || '0x') as `0x${string}` },
+      { enabled: isSourcesQueryEnabled },
+    ),
   );
 
   const data: SourceWalletWithBalance[] = useMemo(
     () =>
-      !accountsRaw?.length
-        ? [
-            {
-              id: address || '0x',
-              type: AccountType.User,
-              balance: '0',
-            },
-          ]
-        : (accountsRaw as SourceWalletWithBalance[]),
+      !address
+        ? []
+        : !accountsRaw?.length
+          ? [
+              {
+                id: address,
+                type: AccountType.User,
+                balance: '0',
+              },
+            ]
+          : (accountsRaw as SourceWalletWithBalance[]),
     [address, accountsRaw],
   );
 

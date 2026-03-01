@@ -69,7 +69,7 @@ export function MyStakes() {
   const narrowXs = useMediaQuery(theme.breakpoints.down('xs'));
 
   const { selectedSource } = useSourceContext();
-  const selectedSourceAddress = (selectedSource?.id || '0x') as `0x${string}`;
+  const selectedSourceAddress = selectedSource?.id as `0x${string}` | undefined;
 
   const { SQD_TOKEN } = useContracts();
 
@@ -148,12 +148,15 @@ export function MyStakes() {
 
 export function MyGateways() {
   const { selectedSource } = useSourceContext();
-  const selectedSourceAddress = (selectedSource?.id || '0x') as `0x${string}`;
+  const selectedSourceAddress = selectedSource?.id as `0x${string}` | undefined;
 
   const { data: gatewaysQuery, isLoading: isGatewaysQueryLoading } = useQuery(
-    trpc.gateway.listMine.queryOptions({
-      address: selectedSourceAddress,
-    }),
+    trpc.gateway.listMine.queryOptions(
+      {
+        address: selectedSourceAddress || '0x0000000000000000000000000000000000000000',
+      },
+      { enabled: !!selectedSourceAddress },
+    ),
   );
 
   const isLoading = isGatewaysQueryLoading;

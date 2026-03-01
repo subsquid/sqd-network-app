@@ -4,11 +4,12 @@ import { useQuery } from '@tanstack/react-query';
 
 import { trpc } from '@api/trpc';
 
-export function useStakeInfo(selectedSourceAddress: `0x${string}`) {
+export function useStakeInfo(selectedSourceAddress?: `0x${string}`) {
+  const isStakeInfoEnabled = Boolean(selectedSourceAddress);
   const { data, isLoading } = useQuery(
     trpc.contract.stakeInfo.queryOptions(
-      { sourceAddress: selectedSourceAddress },
-      { enabled: !!selectedSourceAddress },
+      { sourceAddress: selectedSourceAddress || '0x0000000000000000000000000000000000000000' },
+      { enabled: isStakeInfoEnabled },
     ),
   );
 
