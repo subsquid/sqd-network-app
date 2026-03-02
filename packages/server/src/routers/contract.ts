@@ -19,6 +19,10 @@ import { publicProcedure, router } from '../trpc.js';
 import { bigintStringSchema, evmAddressSchema } from '../validation.js';
 
 const BLOCK_TIME_MS = 12000;
+const signedBigintStringSchema = z
+  .string()
+  .trim()
+  .regex(/^-?\d+$/, 'Expected integer string');
 
 function getBlockTime(blocks: number): number {
   return blocks * BLOCK_TIME_MS;
@@ -145,7 +149,7 @@ export const contractRouter = router({
     .input(
       z.object({
         workerId: bigintStringSchema,
-        amount: bigintStringSchema,
+        amount: signedBigintStringSchema,
         undelegate: z.boolean().optional(),
       }),
     )
@@ -154,7 +158,11 @@ export const contractRouter = router({
       const contracts = getContractAddresses();
       const publicClient = getPublicClient();
 
-      const delegationAmount = BigInt(amount || '0') * (undelegate ? -1n : 1n);
+      const parsedAmount = BigInt(amount || '0');
+      const delegationAmount =
+        undelegate === undefined
+          ? parsedAmount
+          : BigInt(parsedAmount < 0n ? -parsedAmount : parsedAmount) * (undelegate ? -1n : 1n);
 
       const [capedDelegationRaw, totalDelegationRaw] = await Promise.all([
         publicClient.readContract({
@@ -173,12 +181,7 @@ export const contractRouter = router({
 
       const capedDelegation = capedDelegationRaw.toString();
 
-      let totalDelegation = BigNumber(totalDelegationRaw);
-      if (undelegate) {
-        totalDelegation = totalDelegation.minus(amount);
-      } else {
-        totalDelegation = totalDelegation.plus(amount);
-      }
+      const totalDelegation = BigNumber(totalDelegationRaw).plus(delegationAmount.toString());
 
       const delegationCapacity = (totalDelegation.lt(0) ? BigNumber(0) : totalDelegation)
         .div(20_000_000_000_000_000_000n)
