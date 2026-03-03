@@ -10,7 +10,12 @@ import { useDebounce } from 'use-debounce';
 
 import { stakingAbi, useReadRouterStaking } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { AccountType, SourceWalletWithBalance, Worker } from '@api/subsquid-network-squid';
+import {
+  AccountType,
+  SourceWalletWithBalance,
+  Worker,
+  WorkerStatus,
+} from '@api/subsquid-network-squid';
 import { trpc } from '@api/trpc';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { Form, FormDivider, FormRow, FormikSelect, FormikTextInput } from '@components/Form';
@@ -53,7 +58,7 @@ export function WorkerUndelegate({
   sources,
 }: {
   sources?: SourceWalletWithDelegation[];
-  worker?: Pick<Worker, 'id'>;
+  worker?: Pick<Worker, 'id'> & { status?: WorkerStatus };
   disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -138,7 +143,7 @@ function WorkerUndelegateDialog({
 }: {
   open: boolean;
   onClose: () => void;
-  worker?: Pick<Worker, 'id'>;
+  worker?: Pick<Worker, 'id'> & { status?: WorkerStatus };
   sources?: SourceWalletWithDelegation[];
   isSourceDisabled: (source: SourceWalletWithDelegation) => boolean;
 }) {
@@ -196,6 +201,7 @@ function WorkerUndelegateDialog({
   const [delegation] = useDebounce(formik.values.amount, 500);
   const { isPending: isExpectedAprPending, stakerApr } = useExpectedAprAfterDelegation({
     workerId: worker?.id,
+    workerStatus: worker?.status,
     amount: '-' + toSqd(delegation),
     enabled: open && !!worker,
   });

@@ -149,6 +149,7 @@ export function WorkerDelegateDialog({
   const [delegation] = useDebounce(formik.values.amount, 500);
   const { isPending: isExpectedAprPending, stakerApr } = useExpectedAprAfterDelegation({
     workerId: worker?.id,
+    workerStatus: worker?.status,
     amount: toSqd(delegation),
     enabled: open && !!worker,
   });
@@ -232,10 +233,12 @@ export function WorkerDelegateDialog({
 
 export function useExpectedAprAfterDelegation({
   workerId,
+  workerStatus,
   amount,
   enabled,
 }: {
   workerId?: string;
+  workerStatus?: WorkerStatus;
   amount: string;
   enabled?: boolean;
 }) {
@@ -257,6 +260,12 @@ export function useExpectedAprAfterDelegation({
 
   const expectedApr = useMemo(() => {
     if (!rewardStats) return;
+    if (workerStatus != null && workerStatus !== WorkerStatus.Active) {
+      return {
+        workerApr: 0,
+        stakerApr: 0,
+      };
+    }
 
     const { worker, info } = rewardStats;
     if (!worker) return;
@@ -302,7 +311,7 @@ export function useExpectedAprAfterDelegation({
       workerApr,
       stakerApr,
     };
-  }, [amount, data.capedDelegation, rewardStats]);
+  }, [amount, data.capedDelegation, rewardStats, workerStatus]);
 
   return {
     ...expectedApr,
