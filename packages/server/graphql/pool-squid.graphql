@@ -32,6 +32,21 @@ query poolById($id: String!) {
   }
 }
 
+query poolsList($limit: Int!, $offset: Int!) {
+  pools(limit: $limit, offset: $offset, orderBy: createdAt_DESC) {
+    id
+    rewardRate
+    totalRewardsToppedUp
+    tvlStable
+    tvlTotal
+    closedAt
+    closedAtBlock
+    createdAt
+    createdAtBlock
+    capacity
+  }
+}
+
 query liquidityEvents($limit: Int!, $offset: Int!, $poolId: String!) {
   liquidityEvents(
     limit: $limit

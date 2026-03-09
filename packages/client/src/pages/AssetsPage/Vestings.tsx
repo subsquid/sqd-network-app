@@ -4,7 +4,6 @@ import { Box, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import BigNumber from 'bignumber.js';
 import chunk from 'lodash-es/chunk';
-import { Link } from 'react-router-dom';
 import { erc20Abi } from 'viem';
 import { useAccount, useReadContracts } from 'wagmi';
 
@@ -12,7 +11,7 @@ import { vestingAbi } from '@api/contracts';
 import { trpc } from '@api/trpc';
 import { Card } from '@components/Card';
 import { NameWithAvatar } from '@components/SourceWalletName';
-import { DashboardTable, NoItems } from '@components/Table';
+import { ClickableTableRow, DashboardTable, InteractiveCell, NoItems } from '@components/Table';
 import { useContracts } from '@hooks/network/useContracts';
 import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, unwrapMulticallResult } from '@lib/network/utils';
@@ -110,20 +109,14 @@ export function MyVestings() {
               const releasableAmount = BigNumber.min(totalVestedMinusReleased, balance);
 
               return (
-                <TableRow key={vesting.id}>
+                <ClickableTableRow key={vesting.id} to={`/vesting/${vesting.id}`}>
                   <TableCell>
                     <NameWithAvatar
                       title={`${vesting.type
                         .split('_')
                         .map((word: string) => word[0]?.toUpperCase() + word.slice(1).toLowerCase())
                         .join(' ')} contract`}
-                      subtitle={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Link to={`/vesting/${vesting.id}`}>
-                            {addressFormatter(vesting.id, true)}
-                          </Link>
-                        </Box>
-                      }
+                      subtitle={addressFormatter(vesting.id, true)}
                       avatarValue={vesting.id}
                       sx={{ width: { xs: 200, sm: 240 } }}
                     />
@@ -136,12 +129,12 @@ export function MyVestings() {
                       ({tokenFormatter(totalVestedMinusReleased, SQD_TOKEN, 3)})
                     </Box>
                   </TableCell>
-                  <TableCell>
+                  <InteractiveCell>
                     <Box display="flex" justifyContent="flex-end">
                       <ReleaseButton vesting={vesting} disabled={releasableAmount.isZero()} />
                     </Box>
-                  </TableCell>
-                </TableRow>
+                  </InteractiveCell>
+                </ClickableTableRow>
               );
             })
           ) : (

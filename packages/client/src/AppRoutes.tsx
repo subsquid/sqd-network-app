@@ -6,6 +6,7 @@ import { MyVestings } from '@pages/AssetsPage/Vestings.tsx';
 import { BuyBacksPage } from '@pages/BuyBackPage/BuyBackPage.tsx';
 import { Analytics } from '@pages/DashboardPage/Analytics.tsx';
 import { DashboardPage } from '@pages/DashboardPage/DashboardPage.tsx';
+import { PortalPools } from '@pages/DashboardPage/PortalPools.tsx';
 import { Workers } from '@pages/DashboardPage/Workers.tsx';
 import { DelegationsPage } from '@pages/DelegationsPage/DelegationsPage.tsx';
 import { Gateway } from '@pages/GatewaysPage/Gateway.tsx';
@@ -30,6 +31,7 @@ export const AppRoutes = () => {
         <Route path="/dashboard" element={<DashboardPage />}>
           <Route index element={<Navigate to="workers" replace={true} />} />
           <Route path="workers" element={<Workers />} />
+          <Route path="portal-pools" element={<PortalPools />} />
           <Route path="analytics" element={<Analytics />} />
         </Route>
 

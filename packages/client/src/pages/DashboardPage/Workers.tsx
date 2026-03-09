@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+
 import { dateFormat } from '@i18n';
 import { ArrowBackIosNew, ArrowForwardIos, FilterList } from '@mui/icons-material';
 import {
@@ -20,7 +21,7 @@ import { SortDir, WorkerSortBy, useMySources, useWorkers } from '@api/subsquid-n
 import { Card } from '@components/Card';
 import { Search } from '@components/Search/Search';
 import { SectionHeader } from '@components/SectionHeader';
-import { DashboardTable, NoItems, SortableHeaderCell } from '@components/Table';
+import { ClickableTableRow, DashboardTable, InteractiveCell, NoItems, SortableHeaderCell } from '@components/Table';
 import {
   DelegationCapacity,
   WorkerDelegate,
@@ -214,7 +215,7 @@ export function Workers() {
           <TableBody>
             {workers.length ? (
               workers.map(worker => (
-                <TableRow key={worker.peerId}>
+                <ClickableTableRow key={worker.peerId} to={`/worker/${worker.peerId}`}>
                   <TableCell className="pinned">
                     <WorkerName worker={worker} />
                   </TableCell>
@@ -233,12 +234,12 @@ export function Workers() {
                     <DelegationCapacity worker={worker} />
                   </TableCell>
                   <TableCell>{dateFormat(worker.createdAt)}</TableCell>
-                  <TableCell className="pinned">
+                  <InteractiveCell className="pinned">
                     <Box display="flex" justifyContent="flex-end">
                       <WorkerDelegate worker={worker} sources={sources} />
                     </Box>
-                  </TableCell>
-                </TableRow>
+                  </InteractiveCell>
+                </ClickableTableRow>
               ))
             ) : (
               <NoItems />

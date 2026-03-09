@@ -3,7 +3,6 @@
   "globalEnv": ["NODE_ENV"],
   "tasks": {
     "dev": {
-      "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
     },

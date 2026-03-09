@@ -20,6 +20,10 @@ export const StyledBar = styled(Box)(({ theme }) => ({
   '&.success': {
     background: theme.palette.success.main,
   },
+
+  '&.info': {
+    background: theme.palette.info.main,
+  },
 }));
 
 export const BarWrapper = styled(Box)(({ theme }) => ({
