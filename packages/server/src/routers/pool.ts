@@ -11,6 +11,8 @@ import {
   type LiquidityEventsQuery,
   PoolByIdDocument,
   type PoolByIdQuery,
+  PoolsListDocument,
+  type PoolsListQuery,
   TopUpsDocument,
   type TopUpsQuery,
   TvlTimeseriesDocument,
@@ -24,6 +26,7 @@ import { fetchHistoricalPrices } from './price.js';
 
 const SQD_DECIMALS = 18;
 const DISTRIBUTION_RATE_BPS = 1000;
+const POOLS_LIST_LIMIT = 500;
 
 function fromSqd(value: bigint | string | number): string {
   return BigNumber(value.toString()).shiftedBy(-SQD_DECIMALS).toFixed();
@@ -75,6 +78,157 @@ async function isPortalPool(
 }
 
 export const poolRouter = router({
+  list: publicProcedure.query(async () => {
+    const publicClient = getPublicClient();
+    const contracts = getContractAddresses();
+
+    const data = await queryPoolSquid<PoolsListQuery>(PoolsListDocument, {
+      limit: POOLS_LIST_LIMIT,
+      offset: 0,
+    });
+
+    if (!data.pools.length) return [];
+
+    const poolContracts = data.pools.map(pool => ({
+      abi: portalPoolAbi,
+      address: pool.id as Address,
+    }));
+
+    const [
+      clusterResults,
+      poolInfoResults,
+      activeStakeResults,
+      creditResults,
+      minCapacityResults,
+      distRateResults,
+      rewardTokenResults,
+      whitelistResults,
+    ] = await Promise.all([
+      publicClient.multicall({
+        allowFailure: true,
+        contracts: poolContracts.map(
+          c =>
+            ({
+              address: contracts.PORTAL_REGISTRY,
+              abi: portalRegistryAbi,
+              functionName: 'getClusterByAddress',
+              args: [c.address],
+            }) as const,
+        ),
+      }),
+      publicClient.multicall({
+        allowFailure: true,
+        contracts: poolContracts.map(c => ({ ...c, functionName: 'getPoolInfo' }) as const),
+      }),
+      publicClient.multicall({
+        allowFailure: true,
+        contracts: poolContracts.map(c => ({ ...c, functionName: 'getActiveStake' }) as const),
+      }),
+      publicClient.multicall({
+        allowFailure: true,
+        contracts: poolContracts.map(c => ({ ...c, functionName: 'getCredit' }) as const),
+      }),
+      publicClient.multicall({
+        allowFailure: true,
+        contracts: poolContracts.map(c => ({ ...c, functionName: 'getMinCapacity' }) as const),
+      }),
+      publicClient.multicall({
+        allowFailure: true,
+        contracts: poolContracts.map(c => ({ ...c, functionName: 'providerRatePerSec' }) as const),
+      }),
+      publicClient.multicall({
+        allowFailure: true,
+        contracts: poolContracts.map(c => ({ ...c, functionName: 'getRewardToken' }) as const),
+      }),
+      publicClient.multicall({
+        allowFailure: true,
+        contracts: poolContracts.map(c => ({ ...c, functionName: 'whitelistEnabled' }) as const),
+      }),
+    ]);
+
+    const rewardTokenAddresses = new Set<string>();
+    for (const r of rewardTokenResults) {
+      if (r.status === 'success' && r.result) {
+        rewardTokenAddresses.add((r.result as string).toLowerCase());
+      }
+    }
+    const rewardTokens = rewardTokenAddresses.size
+      ? await readERC20Tokens([...rewardTokenAddresses] as Address[])
+      : [];
+    const rewardTokenMap = new Map(rewardTokens.map(t => [t.address.toLowerCase(), t]));
+
+    return data.pools.map((pool, i) => {
+      const cluster = clusterResults[i];
+      const metadata =
+        cluster.status === 'success'
+          ? parseMetadata((cluster.result as { metadata: string }).metadata)
+          : {};
+
+      const poolInfoRes = poolInfoResults[i];
+      const poolInfo =
+        poolInfoRes.status === 'success'
+          ? (poolInfoRes.result as {
+              operator: Address;
+              state: number;
+              capacity: bigint;
+              depositDeadline: bigint;
+              totalStaked: bigint;
+            })
+          : undefined;
+
+      const activeStake =
+        activeStakeResults[i].status === 'success' ? (activeStakeResults[i].result as bigint) : 0n;
+      const credit =
+        creditResults[i].status === 'success' ? (creditResults[i].result as bigint) : 0n;
+      const minCapacity =
+        minCapacityResults[i].status === 'success' ? (minCapacityResults[i].result as bigint) : 0n;
+      const distRate =
+        distRateResults[i].status === 'success' ? (distRateResults[i].result as bigint) : 0n;
+
+      const rewardTokenAddr =
+        rewardTokenResults[i].status === 'success'
+          ? (rewardTokenResults[i].result as string).toLowerCase()
+          : undefined;
+      const rewardToken = rewardTokenAddr ? rewardTokenMap.get(rewardTokenAddr) : undefined;
+
+      const phase = poolInfo ? getPhase(poolInfo.state, !credit) : ('unknown' as PoolPhase);
+      const capacity = poolInfo ? poolInfo.capacity : 0n;
+      const totalStaked = poolInfo ? poolInfo.totalStaked : 0n;
+
+      const distributionRatePerSecond = rewardToken
+        ? BigNumber(distRate.toString())
+            .div(DISTRIBUTION_RATE_BPS)
+            .shiftedBy(-rewardToken.decimals)
+            .toFixed()
+        : '0';
+
+      const totalRewardsToppedUp = rewardToken
+        ? BigNumber(pool.totalRewardsToppedUp).shiftedBy(-rewardToken.decimals).toFixed()
+        : '0';
+
+      const whitelistEnabled =
+        whitelistResults[i].status === 'success' ? (whitelistResults[i].result as boolean) : false;
+
+      return {
+        id: pool.id,
+        name: metadata.name || undefined,
+        phase,
+        whitelistEnabled,
+        tvl: {
+          current: fromSqd(activeStake),
+          total: fromSqd(totalStaked),
+          max: fromSqd(capacity),
+          min: fromSqd(minCapacity),
+        },
+        distributionRatePerSecond,
+        totalRewardsToppedUp,
+        rewardTokenSymbol: rewardToken?.symbol ?? 'USDC',
+        createdAt: pool.createdAt,
+        closedAt: pool.closedAt,
+      };
+    });
+  }),
+
   get: publicProcedure.input(z.object({ poolId: evmAddressSchema })).query(async ({ input }) => {
     const { poolId } = input;
     const address = poolId as Address;
@@ -101,6 +255,7 @@ export const poolRouter = router({
       credit,
       minCapacity,
       rewardTokenAddress,
+      whitelistEnabled,
       cluster,
       poolIndexedData,
     ] = await Promise.all([
@@ -136,6 +291,12 @@ export const poolRouter = router({
         ...portalPoolContract,
         functionName: 'getRewardToken',
       }),
+      publicClient
+        .readContract({
+          ...portalPoolContract,
+          functionName: 'whitelistEnabled',
+        })
+        .catch(() => false),
       publicClient.readContract({
         address: contracts.PORTAL_REGISTRY,
         abi: portalRegistryAbi,
@@ -199,6 +360,7 @@ export const poolRouter = router({
         address: operator,
       },
       phase: getPhase(state, isOutOfMoney),
+      whitelistEnabled: whitelistEnabled as boolean,
       distributionRatePerSecond: distRate,
       tvl: {
         current: fromSqd(activeStake as bigint),

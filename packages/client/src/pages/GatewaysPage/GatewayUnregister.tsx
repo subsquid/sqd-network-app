@@ -63,7 +63,9 @@ export function GatewayUnregisterDialog({
       functionName: 'unregister',
       args: [peerIdToHex(gateway.id)],
       vesting:
-        selectedSource?.type === AccountType.Vesting ? (selectedSource.id as `0x${string}`) : undefined,
+        selectedSource?.type === AccountType.Vesting
+          ? (selectedSource.id as `0x${string}`)
+          : undefined,
     });
     setWaitHeight(receipt.blockNumber, []);
 

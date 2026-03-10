@@ -6,7 +6,13 @@ import { SortDir, WorkerSortBy, useMyDelegations, useMySources } from '@api/subs
 import { Card } from '@components/Card';
 import { ConnectedWalletRequired } from '@components/ConnectedWalletRequired';
 import { SectionHeader } from '@components/SectionHeader';
-import { DashboardTable, NoItems, SortableHeaderCell } from '@components/Table';
+import {
+  ClickableTableRow,
+  DashboardTable,
+  InteractiveCell,
+  NoItems,
+  SortableHeaderCell,
+} from '@components/Table';
 import {
   DelegationCapacity,
   WorkerDelegate,
@@ -81,7 +87,7 @@ export function MyDelegations() {
           <TableBody>
             {delegations.length ? (
               delegations.map(worker => (
-                <TableRow key={worker.peerId}>
+                <ClickableTableRow key={worker.peerId} to={`/worker/${worker.peerId}`}>
                   <TableCell className="pinned">
                     <WorkerName worker={worker} />
                   </TableCell>
@@ -98,7 +104,7 @@ export function MyDelegations() {
                   <TableCell>
                     {tokenFormatter(fromSqd(worker.myTotalDelegationReward), SQD_TOKEN)}
                   </TableCell>
-                  <TableCell className="pinned">
+                  <InteractiveCell className="pinned">
                     <Stack direction="row" spacing={1} justifyContent="flex-end">
                       <WorkerDelegate worker={worker} sources={sources} />
                       <WorkerUndelegate
@@ -113,8 +119,8 @@ export function MyDelegations() {
                         disabled={isLoading}
                       />
                     </Stack>
-                  </TableCell>
-                </TableRow>
+                  </InteractiveCell>
+                </ClickableTableRow>
               ))
             ) : isLoading ? null : (
               <NoItems />

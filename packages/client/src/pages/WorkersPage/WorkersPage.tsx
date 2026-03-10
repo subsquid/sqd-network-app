@@ -14,7 +14,13 @@ import { Card } from '@components/Card';
 import { SquaredChip } from '@components/Chip';
 import { ConnectedWalletRequired } from '@components/ConnectedWalletRequired';
 import { SectionHeader } from '@components/SectionHeader';
-import { DashboardTable, NoItems, SortableHeaderCell } from '@components/Table';
+import {
+  ClickableTableRow,
+  DashboardTable,
+  InteractiveCell,
+  NoItems,
+  SortableHeaderCell,
+} from '@components/Table';
 import {
   WorkerName,
   WorkerStatusChip,
@@ -101,7 +107,7 @@ export function MyWorkers() {
               {workers?.length ? (
                 workers.map(worker => {
                   return (
-                    <TableRow key={worker.peerId}>
+                    <ClickableTableRow key={worker.peerId} to={`/worker/${worker.peerId}`}>
                       <TableCell>
                         <WorkerName worker={worker} />
                       </TableCell>
@@ -119,7 +125,7 @@ export function MyWorkers() {
                       <TableCell>
                         {tokenFormatter(fromSqd(worker.totalReward), SQD_TOKEN)}
                       </TableCell>
-                      <TableCell>
+                      <InteractiveCell>
                         <Box display="flex" justifyContent="flex-end">
                           {worker.status === WorkerStatus.Deregistered ||
                           worker.status === WorkerStatus.Deregistering ? (
@@ -142,8 +148,8 @@ export function MyWorkers() {
                             />
                           )}
                         </Box>
-                      </TableCell>
-                    </TableRow>
+                      </InteractiveCell>
+                    </ClickableTableRow>
                   );
                 })
               ) : isLoading ? null : (

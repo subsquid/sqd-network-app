@@ -91,6 +91,8 @@ export function getPhaseColor(
     case 'idle':
     case 'debt':
       return 'warning';
+    case 'failed':
+      return 'error';
     default:
       return 'default';
   }
@@ -106,6 +108,8 @@ export function getPhaseLabel(phase: PoolPhase): string {
       return 'In Debt';
     case 'idle':
       return 'Paused';
+    case 'failed':
+      return 'Failed';
     default:
       return phase;
   }
@@ -121,6 +125,8 @@ export function getPhaseTooltip(phase: PoolPhase): string {
       return 'Pool is paused due to insufficient liquidity. Rewards are not being distributed. Pool reactivates when liquidity increases above minimum threshold.';
     case 'debt':
       return 'Pool has run out of USDC rewards. No rewards are being distributed. Contact the pool operator to add more USDC to resume rewards.';
+    case 'failed':
+      return 'Pool has failed. No rewards are being distributed. You can withdraw your tokens.';
     default:
       return phase;
   }

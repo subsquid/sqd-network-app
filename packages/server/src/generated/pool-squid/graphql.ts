@@ -1502,6 +1502,26 @@ export type PoolByIdQuery = {
   poolById?: { totalRewardsToppedUp: string; createdAt: string } | null;
 };
 
+export type PoolsListQueryVariables = Exact<{
+  limit: Scalars['Int']['input'];
+  offset: Scalars['Int']['input'];
+}>;
+
+export type PoolsListQuery = {
+  pools: Array<{
+    id: string;
+    rewardRate: string;
+    totalRewardsToppedUp: string;
+    tvlStable: string;
+    tvlTotal: string;
+    closedAt?: string | null;
+    closedAtBlock?: number | null;
+    createdAt: string;
+    createdAtBlock: number;
+    capacity: string;
+  }>;
+};
+
 export type LiquidityEventsQueryVariables = Exact<{
   limit: Scalars['Int']['input'];
   offset: Scalars['Int']['input'];
@@ -1605,6 +1625,22 @@ export const PoolByIdDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<PoolByIdQuery, PoolByIdQueryVariables>;
+export const PoolsListDocument = new TypedDocumentString(`
+    query poolsList($limit: Int!, $offset: Int!) {
+  pools(limit: $limit, offset: $offset, orderBy: createdAt_DESC) {
+    id
+    rewardRate
+    totalRewardsToppedUp
+    tvlStable
+    tvlTotal
+    closedAt
+    closedAtBlock
+    createdAt
+    createdAtBlock
+    capacity
+  }
+}
+    `) as unknown as TypedDocumentString<PoolsListQuery, PoolsListQueryVariables>;
 export const LiquidityEventsDocument = new TypedDocumentString(`
     query liquidityEvents($limit: Int!, $offset: Int!, $poolId: String!) {
   liquidityEvents(
