@@ -207,9 +207,7 @@ export const poolRouter = router({
         : '0';
 
       const whitelistEnabled =
-        whitelistResults[i].status === 'success'
-          ? (whitelistResults[i].result as boolean)
-          : false;
+        whitelistResults[i].status === 'success' ? (whitelistResults[i].result as boolean) : false;
 
       return {
         id: pool.id,

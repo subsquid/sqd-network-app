@@ -1,6 +1,7 @@
 import * as Sentry from '@sentry/react';
 import { useMutation } from '@tanstack/react-query';
 import { readContract, waitForTransactionReceipt, writeContract } from '@wagmi/core';
+import toast from 'react-hot-toast';
 import {
   Abi,
   Address,
@@ -15,7 +16,6 @@ import {
 } from 'viem';
 import { useAccount, useConfig, useWriteContract } from 'wagmi';
 import { arbitrum } from 'wagmi/chains';
-import toast from 'react-hot-toast';
 
 import { useContracts } from '@hooks/network/useContracts';
 import { NetworkName, getSubsquidNetwork } from '@hooks/network/useSubsquidNetwork';

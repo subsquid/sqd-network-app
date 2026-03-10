@@ -1,7 +1,16 @@
 import { useMemo } from 'react';
 
 import { dateFormat } from '@i18n';
-import { Chip, Skeleton, Stack, TableBody, TableCell, TableHead, TableRow, Tooltip } from '@mui/material';
+import {
+  Chip,
+  Skeleton,
+  Stack,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Tooltip,
+} from '@mui/material';
 import {
   getPhaseColor,
   getPhaseLabel,

@@ -14,7 +14,13 @@ import { Card } from '@components/Card';
 import { SquaredChip } from '@components/Chip';
 import { ConnectedWalletRequired } from '@components/ConnectedWalletRequired';
 import { SectionHeader } from '@components/SectionHeader';
-import { ClickableTableRow, DashboardTable, InteractiveCell, NoItems, SortableHeaderCell } from '@components/Table';
+import {
+  ClickableTableRow,
+  DashboardTable,
+  InteractiveCell,
+  NoItems,
+  SortableHeaderCell,
+} from '@components/Table';
 import {
   WorkerName,
   WorkerStatusChip,

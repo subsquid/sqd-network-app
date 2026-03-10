@@ -1,6 +1,5 @@
 import { useState } from 'react';
 
-
 import { dateFormat } from '@i18n';
 import { ArrowBackIosNew, ArrowForwardIos, FilterList } from '@mui/icons-material';
 import {
@@ -21,7 +20,13 @@ import { SortDir, WorkerSortBy, useMySources, useWorkers } from '@api/subsquid-n
 import { Card } from '@components/Card';
 import { Search } from '@components/Search/Search';
 import { SectionHeader } from '@components/SectionHeader';
-import { ClickableTableRow, DashboardTable, InteractiveCell, NoItems, SortableHeaderCell } from '@components/Table';
+import {
+  ClickableTableRow,
+  DashboardTable,
+  InteractiveCell,
+  NoItems,
+  SortableHeaderCell,
+} from '@components/Table';
 import {
   DelegationCapacity,
   WorkerDelegate,

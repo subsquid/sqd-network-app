@@ -6,7 +6,13 @@ import { SortDir, WorkerSortBy, useMyDelegations, useMySources } from '@api/subs
 import { Card } from '@components/Card';
 import { ConnectedWalletRequired } from '@components/ConnectedWalletRequired';
 import { SectionHeader } from '@components/SectionHeader';
-import { ClickableTableRow, DashboardTable, InteractiveCell, NoItems, SortableHeaderCell } from '@components/Table';
+import {
+  ClickableTableRow,
+  DashboardTable,
+  InteractiveCell,
+  NoItems,
+  SortableHeaderCell,
+} from '@components/Table';
 import {
   DelegationCapacity,
   WorkerDelegate,
