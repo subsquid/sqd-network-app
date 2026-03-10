@@ -26,7 +26,7 @@ export function DashboardPage() {
           label={
             <Stack direction="row" alignItems="center" spacing={0.75}>
               <span>Portal Pools</span>
-              <Chip label="Beta" size="small" color="info" variant="outlined" />
+              <Chip label="New" size="small" color="info" variant="outlined" />
             </Stack>
           }
         />

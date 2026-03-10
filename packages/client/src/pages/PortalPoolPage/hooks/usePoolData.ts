@@ -36,6 +36,7 @@ export function usePoolData(poolId?: string) {
       website: raw.website ?? undefined,
       operator: raw.operator,
       phase: raw.phase as PoolData['phase'],
+      whitelistEnabled: raw.whitelistEnabled,
       distributionRatePerSecond: BigNumber(raw.distributionRatePerSecond),
       tvl: {
         current: BigNumber(raw.tvl.current),

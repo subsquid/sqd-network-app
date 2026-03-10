@@ -102,6 +102,7 @@ export const poolRouter = router({
       minCapacityResults,
       distRateResults,
       rewardTokenResults,
+      whitelistResults,
     ] = await Promise.all([
       publicClient.multicall({
         allowFailure: true,
@@ -138,6 +139,10 @@ export const poolRouter = router({
       publicClient.multicall({
         allowFailure: true,
         contracts: poolContracts.map(c => ({ ...c, functionName: 'getRewardToken' }) as const),
+      }),
+      publicClient.multicall({
+        allowFailure: true,
+        contracts: poolContracts.map(c => ({ ...c, functionName: 'whitelistEnabled' }) as const),
       }),
     ]);
 
@@ -201,10 +206,16 @@ export const poolRouter = router({
         ? BigNumber(pool.totalRewardsToppedUp).shiftedBy(-rewardToken.decimals).toFixed()
         : '0';
 
+      const whitelistEnabled =
+        whitelistResults[i].status === 'success'
+          ? (whitelistResults[i].result as boolean)
+          : false;
+
       return {
         id: pool.id,
         name: metadata.name || undefined,
         phase,
+        whitelistEnabled,
         tvl: {
           current: fromSqd(activeStake),
           total: fromSqd(totalStaked),
@@ -246,6 +257,7 @@ export const poolRouter = router({
       credit,
       minCapacity,
       rewardTokenAddress,
+      whitelistEnabled,
       cluster,
       poolIndexedData,
     ] = await Promise.all([
@@ -281,6 +293,12 @@ export const poolRouter = router({
         ...portalPoolContract,
         functionName: 'getRewardToken',
       }),
+      publicClient
+        .readContract({
+          ...portalPoolContract,
+          functionName: 'whitelistEnabled',
+        })
+        .catch(() => false),
       publicClient.readContract({
         address: contracts.PORTAL_REGISTRY,
         abi: portalRegistryAbi,
@@ -344,6 +362,7 @@ export const poolRouter = router({
         address: operator,
       },
       phase: getPhase(state, isOutOfMoney),
+      whitelistEnabled: whitelistEnabled as boolean,
       distributionRatePerSecond: distRate,
       tvl: {
         current: fromSqd(activeStake as bigint),

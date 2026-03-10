@@ -42,10 +42,13 @@ export function PoolHeader({ poolId }: PoolHeaderProps) {
                 <Avatar name={pool?.name ?? ''} colorDiscriminator={pool?.id ?? ''} size={64} />
               )}
               <Stack direction="column" alignItems="start" spacing={1}>
-                <Stack direction="row" alignItems="center" spacing={0.5}>
+                <Stack direction="row" alignItems="center" spacing={0.75}>
                   <Typography variant="h5">
                     {isLoading ? <Skeleton width="50%" /> : pool?.name}
                   </Typography>
+                  {!isLoading && pool?.whitelistEnabled && (
+                    <Chip label="Whitelist" size="small" variant="outlined" color="secondary" />
+                  )}
                   {!isLoading && pool && isOperator && <EditMetadataButton poolId={poolId} />}
                 </Stack>
                 {isLoading ? (

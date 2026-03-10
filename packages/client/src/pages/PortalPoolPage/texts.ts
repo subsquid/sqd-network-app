@@ -1,7 +1,7 @@
 // Page
 export const PAGE_TEXTS = {
   title: 'Portal Pool',
-  betaLabel: 'Beta',
+  betaLabel: 'New',
   notFoundItem: 'portal pool',
   tabs: {
     general: 'General',

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import { dateFormat } from '@i18n';
-import { Chip, Skeleton, TableBody, TableCell, TableHead, TableRow, Tooltip } from '@mui/material';
+import { Chip, Skeleton, Stack, TableBody, TableCell, TableHead, TableRow, Tooltip } from '@mui/material';
 import {
   getPhaseColor,
   getPhaseLabel,
@@ -54,16 +54,24 @@ function PoolRow({ pool, sqdPrice }: { pool: PortalPool; sqdPrice?: number }) {
   const fillPct = useMemo(() => {
     const max = BigNumber(pool.tvl.max);
     if (max.isZero()) return 0;
-    return Math.min(BigNumber(pool.tvl.total).div(max).times(100).toNumber(), 100);
-  }, [pool.tvl.total, pool.tvl.max]);
+    return Math.min(BigNumber(pool.tvl.current).div(max).times(100).toNumber(), 100);
+  }, [pool.tvl.current, pool.tvl.max]);
 
   return (
     <ClickableTableRow to={`/portal-pool/${pool.id}`}>
       <TableCell>
         <NameWithAvatar
-          title={pool.name ?? addressFormatter(pool.id, true)}
+          title={
+            <Stack direction="row" alignItems="center" spacing={0.75}>
+              <span>{pool.name ?? addressFormatter(pool.id, true)}</span>
+              {pool.whitelistEnabled && (
+                <Chip label="Whitelist" size="small" variant="outlined" color="secondary" />
+              )}
+            </Stack>
+          }
           subtitle={addressFormatter(pool.id, true)}
           avatarValue={pool.id}
+          sx={{ width: 'auto' }}
         />
       </TableCell>
       <InteractiveCell>
@@ -75,19 +83,7 @@ function PoolRow({ pool, sqdPrice }: { pool: PortalPool; sqdPrice?: number }) {
       <TableCell>
         {numberCompactFormatter(pool.tvl.current)} {SQD_TOKEN}
       </TableCell>
-      <TableCell>
-        <BarWrapper>
-          {FILL_RANGES.map((threshold, i) => (
-            <StyledBar
-              key={i}
-              className={classNames(
-                fillPct > threshold || i === 0 ? getHealthColor(pool) : undefined,
-              )}
-            />
-          ))}
-        </BarWrapper>
-        {percentFormatter(fillPct)}
-      </TableCell>
+      <TableCell>{percentFormatter(fillPct)}</TableCell>
       <TableCell>
         {tokenFormatter(Number(pool.totalRewardsToppedUp), pool.rewardTokenSymbol, 0)}
       </TableCell>

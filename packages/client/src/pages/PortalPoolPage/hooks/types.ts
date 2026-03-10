@@ -42,6 +42,7 @@ export interface PoolData {
   website?: string;
   operator: PoolOperator;
   phase: PoolPhase;
+  whitelistEnabled: boolean;
   distributionRatePerSecond: BigNumber;
   tvl: PoolTvl;
   depositWindowEndsAt?: Date;
