@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { SearchIcon } from '@icons/SearchIcon';
+import SearchIcon from '@mui/icons-material/Search';
 import { Box } from '@mui/material';
 import { useDebouncedCallback } from 'use-debounce';
 
@@ -35,7 +35,7 @@ export const Search = ({ value, onChange, fullWidth, placeholder }: SearchProps)
         fullWidth
         onChange={handleInputChange}
         InputProps={{
-          startAdornment: <SearchIcon />,
+          startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
         }}
         size="small"
       />
