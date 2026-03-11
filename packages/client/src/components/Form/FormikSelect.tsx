@@ -20,11 +20,7 @@ interface SelectOption {
 
 export const FormSelect = styled(Select, {
   name: 'FormSelect',
-})<SelectProps>(({ theme }) => ({
-  'label + &': {
-    marginTop: theme.spacing(3),
-  },
-}));
+})<SelectProps>({});
 
 interface FormikSelectProps<T extends Record<string, any>> {
   id: keyof T;
