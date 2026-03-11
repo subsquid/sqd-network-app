@@ -16,9 +16,6 @@ import {
 import { FormikProps } from 'formik';
 
 export const StyledFormikTextField = styled(MaterialTextField)(({ theme }) => ({
-  'label + &': {
-    marginTop: theme.spacing(3),
-  },
   [theme.breakpoints.down('xs')]: {
     '& .MuiInputLabel-root': {
       left: '4px',
