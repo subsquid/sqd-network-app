@@ -456,7 +456,7 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
     >
       {pendingWithdrawals.length === 0 ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <Typography variant="body2" color="text.disabled">
+          <Typography variant="body2" color="text.secondary">
             {WITHDRAWALS_TEXTS.noRequests}
           </Typography>
         </Box>
