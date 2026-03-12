@@ -81,7 +81,9 @@ export const CHART_TEXTS = {
 
 // Pending Withdrawals
 export const WITHDRAWALS_TEXTS = {
-  tabTitle: 'Withdrawals',
+  tabTitle: 'Pending Withdrawals',
+  tooltip:
+    'Withdrawals that are waiting for the unlock period to complete before they can be claimed.',
   table: {
     withdrawalId: 'Withdrawal ID',
     amount: 'Amount',
@@ -237,6 +239,7 @@ export const EDIT_METADATA_DIALOG_TEXTS = {
 // Activity Tab
 export const ACTIVITY_TEXTS = {
   title: 'Activity',
+  myActivityToggle: 'My Activity',
   table: {
     account: 'Account',
     type: 'Type',
@@ -246,31 +249,10 @@ export const ACTIVITY_TEXTS = {
   },
   eventTypes: {
     provide: 'Provide',
-    withdrawal: 'Withdrawal',
+    withdrawal: 'Withdraw',
     exit: 'Exit',
+    topup: 'Top Up',
+    claim: 'Claim',
   },
   noActivity: 'No activity yet',
-} as const;
-
-// Top Ups Tab
-export const TOP_UPS_TEXTS = {
-  title: 'Top Ups',
-  table: {
-    amount: 'Amount',
-    time: 'Time',
-    txn: 'Txn',
-  },
-  noTopUps: 'No top-ups yet',
-} as const;
-
-// Claims Tab
-export const CLAIMS_TEXTS = {
-  title: 'Claims',
-  table: {
-    account: 'Account',
-    amount: 'Amount',
-    time: 'Time',
-    txn: 'Txn',
-  },
-  noClaims: 'No claims yet',
 } as const;

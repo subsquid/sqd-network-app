@@ -56,15 +56,15 @@ jobs:
               echo "app_env=prod" >> $GITHUB_OUTPUT
               echo "testnet_squid_api_url=https://subsquid.squids.live/subsquid-network-testnet:prod/api/graphql" >> $GITHUB_OUTPUT
               echo "mainnet_squid_api_url=https://subsquid.squids.live/subsquid-network-mainnet:prod/api/graphql" >> $GITHUB_OUTPUT
-              echo "testnet_pool_squid_api_url=https://subsquid.squids.live/portal-pools-testnet@v1/api/graphql" >> $GITHUB_OUTPUT
-              echo "mainnet_pool_squid_api_url=https://subsquid.squids.live/portal-pools-mainnet@v1/api/graphql" >> $GITHUB_OUTPUT
+              echo "testnet_pool_squid_api_url=https://subsquid.squids.live/portal-pools-testnet@v3/api/graphql" >> $GITHUB_OUTPUT
+              echo "mainnet_pool_squid_api_url=https://subsquid.squids.live/portal-pools-mainnet@v3/api/graphql" >> $GITHUB_OUTPUT
               echo "enable_demo_features=false" >> $GITHUB_OUTPUT
           else
               echo "app_env=dev" >> $GITHUB_OUTPUT
               echo "testnet_squid_api_url=https://subsquid.squids.live/subsquid-network-testnet:dev/api/graphql" >> $GITHUB_OUTPUT
               echo "mainnet_squid_api_url=https://subsquid.squids.live/subsquid-network-mainnet:dev/api/graphql" >> $GITHUB_OUTPUT
-              echo "testnet_pool_squid_api_url=https://subsquid.squids.live/portal-pools-testnet@v1/api/graphql" >> $GITHUB_OUTPUT
-              echo "mainnet_pool_squid_api_url=https://subsquid.squids.live/portal-pools-mainnet@v1/api/graphql" >> $GITHUB_OUTPUT
+              echo "testnet_pool_squid_api_url=https://subsquid.squids.live/portal-pools-testnet@v3/api/graphql" >> $GITHUB_OUTPUT
+              echo "mainnet_pool_squid_api_url=https://subsquid.squids.live/portal-pools-mainnet@v3/api/graphql" >> $GITHUB_OUTPUT
               echo "enable_demo_features=true" >> $GITHUB_OUTPUT
               echo "sentry_dsn=https://3a283cbad35b86e2afa2acd0e6b66794@o1149243.ingest.us.sentry.io/4509162478960640" >> $GITHUB_OUTPUT
           fi

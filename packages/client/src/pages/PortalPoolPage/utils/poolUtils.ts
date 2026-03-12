@@ -144,8 +144,7 @@ export async function invalidatePoolQueries(
     queryClient.invalidateQueries(trpc.pool.get.queryFilter({ poolId })),
     queryClient.invalidateQueries(trpc.pool.userData.queryFilter({ poolId })),
     queryClient.invalidateQueries(trpc.pool.pendingWithdrawals.queryFilter({ poolId })),
-    queryClient.invalidateQueries(trpc.pool.liquidityEvents.queryFilter({ poolId })),
-    queryClient.invalidateQueries(trpc.pool.topUps.queryFilter({ poolId })),
+    queryClient.invalidateQueries(trpc.pool.events.queryFilter({ poolId })),
     queryClient.invalidateQueries(trpc.pool.apyTimeseries.queryFilter({ poolId })),
     queryClient.invalidateQueries(trpc.pool.tvlTimeseries.queryFilter({ poolId })),
   ]);

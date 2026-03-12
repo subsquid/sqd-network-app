@@ -9,7 +9,7 @@ import { Loader } from '@components/Loader';
 import { NotFound } from '@components/NotFound';
 
 import { usePoolData } from './hooks';
-import { PendingWithdrawals } from './PendingWithdrawals';
+import { PoolActivity } from './PendingWithdrawals';
 import { PoolHeader } from './PoolHeader';
 import { PoolYieldChart } from './PoolYieldChart';
 import { DelegateTab } from './tabs/DelegateTab';
@@ -72,7 +72,7 @@ function PoolPageContent({ poolId }: { poolId?: string }) {
             <PoolYieldChart poolId={poolId} />
           </Grid>
           <Grid size={12}>
-            <PendingWithdrawals poolId={poolId} />
+            <PoolActivity poolId={poolId} />
           </Grid>
         </Grid>
       </Grid>

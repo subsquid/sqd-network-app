@@ -250,7 +250,7 @@ export function WithdrawButton({ poolId }: WithdrawButtonProps) {
             disabled={!hasBalance || pool?.phase === 'collecting'}
             loading={dialogOpen}
           >
-            WITHDRAW
+            EXIT
           </Button>
         </span>
       </Tooltip>

@@ -7,14 +7,12 @@ import { getContractAddresses } from '../env.js';
 import {
   ApyTimeseriesDocument,
   type ApyTimeseriesQuery,
-  LiquidityEventsDocument,
-  type LiquidityEventsQuery,
   PoolByIdDocument,
   type PoolByIdQuery,
+  PoolEventsDocument,
+  type PoolEventsQuery,
   PoolsListDocument,
   type PoolsListQuery,
-  TopUpsDocument,
-  type TopUpsQuery,
   TvlTimeseriesDocument,
   type TvlTimeseriesQuery,
 } from '../generated/pool-squid/graphql.js';
@@ -501,55 +499,20 @@ export const poolRouter = router({
       };
     }),
 
-  liquidityEvents: publicProcedure
-    .input(paginationSchema.extend({ poolId: evmAddressSchema }))
+  events: publicProcedure
+    .input(
+      paginationSchema.extend({
+        poolId: evmAddressSchema,
+        providerId: z.string().optional(),
+        eventTypes: z.array(z.enum(['DEPOSIT', 'WITHDRAWAL', 'EXIT', 'TOPUP', 'CLAIM'])).optional(),
+      }),
+    )
     .query(async ({ input }) => {
-      const publicClient = getPublicClient();
-      const [data, lptTokenAddress] = await Promise.all([
-        queryPoolSquid<LiquidityEventsQuery>(LiquidityEventsDocument, input),
-        publicClient.readContract({
-          abi: portalPoolAbi,
-          address: input.poolId as Address,
-          functionName: 'lptToken',
-        }),
-      ]);
-      const tokens = await readERC20Tokens([lptTokenAddress as Address]);
-      const lptToken = tokens[0];
+      const data = await queryPoolSquid<PoolEventsQuery>(PoolEventsDocument, input);
 
       return {
-        liquidityEvents: data.liquidityEvents.map(e => ({
-          ...e,
-          amount: BigNumber(e.amount)
-            .shiftedBy(-(lptToken?.decimals ?? SQD_DECIMALS))
-            .toFixed(),
-        })),
-        totalCount: data.liquidityEventsConnection.totalCount,
-      };
-    }),
-
-  topUps: publicProcedure
-    .input(paginationSchema.extend({ poolId: evmAddressSchema }))
-    .query(async ({ input }) => {
-      const publicClient = getPublicClient();
-      const [data, rewardTokenAddress] = await Promise.all([
-        queryPoolSquid<TopUpsQuery>(TopUpsDocument, input),
-        publicClient.readContract({
-          abi: portalPoolAbi,
-          address: input.poolId as Address,
-          functionName: 'getRewardToken',
-        }),
-      ]);
-      const tokens = await readERC20Tokens([rewardTokenAddress as Address]);
-      const rewardToken = tokens[0];
-
-      return {
-        topUps: data.topUps.map(t => ({
-          ...t,
-          amount: BigNumber(t.amount)
-            .shiftedBy(-(rewardToken?.decimals ?? 6))
-            .toFixed(),
-        })),
-        totalCount: data.topUpsConnection.totalCount,
+        events: data.events,
+        totalCount: data.eventsConnection.totalCount,
       };
     }),
 

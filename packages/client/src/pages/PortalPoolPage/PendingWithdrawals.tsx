@@ -1,18 +1,24 @@
 import { useCallback, useMemo, useState } from 'react';
 
 import { dateFormat } from '@i18n';
-import { OpenInNewOutlined as ExplorerIcon } from '@mui/icons-material';
+import {
+  InfoOutlined,
+  LockOpenOutlined,
+  LockOutlined,
+  OpenInNewOutlined as ExplorerIcon,
+} from '@mui/icons-material';
 import {
   Box,
   Button,
   Chip,
+  FormControlLabel,
   IconButton,
   Stack,
-  Tab,
-  Tabs,
+  Switch,
   Tooltip,
   Typography,
 } from '@mui/material';
+import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import BigNumber from 'bignumber.js';
 import { Link } from 'react-router-dom';
@@ -20,10 +26,11 @@ import { useAccount } from 'wagmi';
 
 import { portalPoolAbi } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { LiquidityEventType } from '@api/types';
+import { EventType } from '@api/types';
+import { Card } from '@components/Card';
 import { HelpTooltip } from '@components/HelpTooltip';
+import { StateSelect } from '@components/StateSelect';
 import { PaginatedTable } from '@components/Table';
-import { demoFeaturesEnabled } from '@hooks/demoFeaturesEnabled';
 import { useContracts } from '@hooks/network/useContracts';
 import { useCountdown } from '@hooks/useCountdown';
 import { useExplorer } from '@hooks/useExplorer';
@@ -31,11 +38,10 @@ import { useTicker } from '@hooks/useTicker';
 import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
 
 import type { PendingWithdrawal } from './hooks';
-import { usePoolData, usePoolPendingWithdrawals } from './hooks';
-import { type ClaimRecord, useClaims } from './hooks/useClaims';
-import { useLiquidityEvents } from './hooks/useLiquidityEvents';
-import { useTopUps } from './hooks/useTopUps';
-import { ACTIVITY_TEXTS, CLAIMS_TEXTS, TOP_UPS_TEXTS, WITHDRAWALS_TEXTS } from './texts';
+import { usePoolData, usePoolEvents, usePoolPendingWithdrawals } from './hooks';
+import type { PoolEvent } from './hooks/usePoolEvents';
+import { ACTIVITY_TEXTS, WITHDRAWALS_TEXTS } from './texts';
+import { invalidatePoolQueries } from './utils/poolUtils';
 
 const PAGE_SIZE = 10;
 
@@ -44,10 +50,17 @@ interface PendingWithdrawalsProps {
 }
 
 function WithdrawalTimeLeftCell({ withdrawal }: { withdrawal: PendingWithdrawal }) {
+  const isReady = withdrawal.estimatedCompletionAt.getTime() < Date.now();
   const timeLeft = useCountdown({
     timestamp: withdrawal.estimatedCompletionAt,
   });
-  return <>{timeLeft}</>;
+  const formattedDate = dateFormat(withdrawal.estimatedCompletionAt, 'dateTime');
+
+  return (
+    <Tooltip title={formattedDate ?? ''}>
+      <span>{isReady ? '—' : timeLeft}</span>
+    </Tooltip>
+  );
 }
 
 function WithdrawalActionCell({
@@ -72,13 +85,14 @@ function WithdrawalActionCell({
   return (
     <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
       <Button
-        variant="contained"
+        variant="outlined"
+        size="small"
         onClick={() => onClaim(withdrawal.id)}
         loading={isClaiming}
         disabled={!isReady}
-        color="success"
+        color="error"
       >
-        CLAIM
+        WITHDRAW
       </Button>
     </Box>
   );
@@ -185,54 +199,92 @@ function formatTimeAgo(timestamp: string): string {
   return rtf.format(-diffDays, 'day');
 }
 
-function getEventTypeLabel(eventType: LiquidityEventType): string {
+function getEventTypeLabel(eventType: EventType): string {
   switch (eventType) {
-    case LiquidityEventType.Deposit:
+    case EventType.Deposit:
       return ACTIVITY_TEXTS.eventTypes.provide;
-    case LiquidityEventType.Withdrawal:
+    case EventType.Withdrawal:
       return ACTIVITY_TEXTS.eventTypes.withdrawal;
-    case LiquidityEventType.Exit:
+    case EventType.Exit:
       return ACTIVITY_TEXTS.eventTypes.exit;
+    case EventType.Topup:
+      return ACTIVITY_TEXTS.eventTypes.topup;
+    case EventType.Claim:
+      return ACTIVITY_TEXTS.eventTypes.claim;
     default:
       return eventType;
   }
 }
 
 function getEventTypeColor(
-  eventType: LiquidityEventType,
+  eventType: EventType,
 ): 'success' | 'error' | 'default' | 'primary' | 'secondary' | 'info' | 'warning' {
   switch (eventType) {
-    case LiquidityEventType.Deposit:
+    case EventType.Deposit:
       return 'info';
-    case LiquidityEventType.Withdrawal:
+    case EventType.Withdrawal:
       return 'error';
-    case LiquidityEventType.Exit:
+    case EventType.Exit:
       return 'warning';
+    case EventType.Topup:
+      return 'success';
+    case EventType.Claim:
+      return 'secondary';
     default:
       return 'default';
   }
 }
 
-function ActivityTable({
-  poolId,
-  pageIndex,
-  onPageChange,
-}: {
-  poolId: string;
-  pageIndex: number;
-  onPageChange: (page: number) => void;
-}) {
-  const { events, totalCount, isLoading } = useLiquidityEvents({
+function isRewardEvent(eventType: EventType): boolean {
+  return eventType === EventType.Topup || eventType === EventType.Claim;
+}
+
+const EVENT_TYPE_OPTIONS = [
+  { name: getEventTypeLabel(EventType.Deposit), value: EventType.Deposit },
+  { name: getEventTypeLabel(EventType.Withdrawal), value: EventType.Withdrawal },
+  { name: getEventTypeLabel(EventType.Exit), value: EventType.Exit },
+  { name: getEventTypeLabel(EventType.Topup), value: EventType.Topup },
+  { name: getEventTypeLabel(EventType.Claim), value: EventType.Claim },
+];
+
+const SQD_DECIMALS = 18;
+
+function formatEventAmount(
+  event: PoolEvent,
+  sqdSymbol: string,
+  rewardToken: { decimals: number; symbol: string } | undefined,
+): string {
+  if (isRewardEvent(event.eventType)) {
+    if (!rewardToken) return '';
+    return tokenFormatter(
+      BigNumber(event.amount).shiftedBy(-rewardToken.decimals),
+      rewardToken.symbol,
+      2,
+    );
+  }
+  return tokenFormatter(BigNumber(event.amount).shiftedBy(-SQD_DECIMALS), sqdSymbol, 2);
+}
+
+export function PoolActivity({ poolId }: PendingWithdrawalsProps) {
+  const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
+  const [myActivityOnly, setMyActivityOnly] = useState(false);
+  const [eventTypeFilter, setEventTypeFilter] = useState<EventType[]>([]);
+  const [pageIndex, setPageIndex] = useState(0);
+  const { address } = useAccount();
+  const { SQD_TOKEN } = useContracts();
+
+  const { events, totalCount, isLoading } = usePoolEvents({
     poolId,
+    providerId: myActivityOnly ? address : undefined,
+    eventTypes: eventTypeFilter.length ? eventTypeFilter : undefined,
     limit: PAGE_SIZE,
     offset: pageIndex * PAGE_SIZE,
   });
   const explorer = useExplorer();
-  const { SQD_TOKEN } = useContracts();
 
   const pageCount = Math.ceil(totalCount / PAGE_SIZE) || 1;
 
-  const columns = useMemo<ColumnDef<(typeof events)[number]>[]>(
+  const columns = useMemo<ColumnDef<PoolEvent>[]>(
     () => [
       {
         id: 'account',
@@ -240,9 +292,7 @@ function ActivityTable({
         header: () => ACTIVITY_TEXTS.table.account,
         cell: info => (
           <Typography variant="body1" fontWeight={500}>
-            {info.getValue()
-              ? addressFormatter(info.getValue() as string, true)
-              : addressFormatter(undefined, true)}
+            {info.getValue() ? addressFormatter(info.getValue() as string, true) : '—'}
           </Typography>
         ),
       },
@@ -252,21 +302,21 @@ function ActivityTable({
         header: () => ACTIVITY_TEXTS.table.type,
         cell: info => (
           <Chip
-            label={getEventTypeLabel(info.getValue() as LiquidityEventType)}
+            label={getEventTypeLabel(info.getValue() as EventType)}
             size="small"
             variant="outlined"
-            color={getEventTypeColor(info.getValue() as LiquidityEventType)}
+            color={getEventTypeColor(info.getValue() as EventType)}
             sx={{ minWidth: 60 }}
           />
         ),
       },
       {
         id: 'amount',
-        accessorFn: row => row.amount,
+        accessorFn: row => row,
         header: () => ACTIVITY_TEXTS.table.amount,
         cell: ({ getValue }) => (
           <Typography variant="body1" fontWeight={500}>
-            {tokenFormatter(Number((getValue() as string) || 0), SQD_TOKEN, 2)}
+            {formatEventAmount(getValue() as PoolEvent, SQD_TOKEN, pool?.rewardToken)}
           </Typography>
         ),
       },
@@ -307,233 +357,73 @@ function ActivityTable({
         ),
       },
     ],
-    [SQD_TOKEN, explorer],
+    [pool, explorer, SQD_TOKEN],
   );
+
+  if (!pool && !poolLoading) return null;
 
   return (
-    <PaginatedTable
-      data={events}
-      columns={columns}
-      pageIndex={pageIndex}
-      pageCount={pageCount}
-      onPageChange={onPageChange}
-      isLoading={isLoading}
-      emptyMessage={ACTIVITY_TEXTS.noActivity}
-    />
-  );
-}
-
-function TopUpsTable({
-  poolId,
-  pageIndex,
-  onPageChange,
-}: {
-  poolId: string;
-  pageIndex: number;
-  onPageChange: (page: number) => void;
-}) {
-  const {
-    topUps,
-    totalCount,
-    isLoading: isLoadingTopUps,
-  } = useTopUps({
-    poolId,
-    limit: PAGE_SIZE,
-    offset: pageIndex * PAGE_SIZE,
-  });
-  const { data: pool } = usePoolData(poolId);
-  const explorer = useExplorer();
-
-  const pageCount = Math.ceil(totalCount / PAGE_SIZE) || 1;
-
-  const columns = useMemo<ColumnDef<(typeof topUps)[number]>[]>(
-    () => [
-      {
-        id: 'amount',
-        accessorFn: row => row.amount,
-        header: () => TOP_UPS_TEXTS.table.amount,
-        cell: ({ getValue }) => (
-          <Typography variant="body1" fontWeight={500}>
-            {pool &&
-              tokenFormatter(Number((getValue() as string) || 0), pool.rewardToken.symbol, 2)}
-          </Typography>
-        ),
-      },
-      {
-        id: 'time',
-        accessorFn: row => row.timestamp,
-        header: () => TOP_UPS_TEXTS.table.time,
-        cell: info => (
-          <Tooltip title={dateFormat(info.getValue() as string, 'dateTime')}>
-            <Typography
-              variant="body1"
-              component="span"
-              sx={{ cursor: 'default', display: 'inline-block' }}
-            >
-              {formatTimeAgo(info.getValue() as string)}
-            </Typography>
-          </Tooltip>
-        ),
-      },
-      {
-        id: 'actions',
-        accessorFn: row => row.txHash,
-        header: () => '',
-        cell: info => (
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Tooltip title="Open in Explorer">
-              <IconButton
-                size="small"
-                aria-label="Open in Explorer"
-                component={Link}
-                to={explorer.getTxUrl(info.getValue() as string)}
-                target="_blank"
-              >
-                <ExplorerIcon fontSize="small" aria-hidden="true" />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        ),
-      },
-    ],
-    [pool, explorer],
-  );
-
-  return (
-    <PaginatedTable
-      data={topUps}
-      columns={columns}
-      pageIndex={pageIndex}
-      pageCount={pageCount}
-      onPageChange={onPageChange}
-      isLoading={isLoadingTopUps}
-      emptyMessage={TOP_UPS_TEXTS.noTopUps}
-    />
-  );
-}
-
-function ClaimsTable({
-  poolId,
-  providerId,
-  pageIndex,
-  onPageChange,
-}: {
-  poolId: string;
-  providerId?: string;
-  pageIndex: number;
-  onPageChange: (page: number) => void;
-}) {
-  const {
-    claims,
-    totalCount,
-    isLoading: isLoadingClaims,
-  } = useClaims({
-    poolId,
-    providerId,
-    limit: PAGE_SIZE,
-    offset: pageIndex * PAGE_SIZE,
-  });
-  const { data: pool } = usePoolData(poolId);
-  const explorer = useExplorer();
-
-  const pageCount = Math.ceil(totalCount / PAGE_SIZE) || 1;
-
-  const columns = useMemo<ColumnDef<ClaimRecord>[]>(
-    () => [
-      {
-        id: 'account',
-        accessorFn: row => row.providerId,
-        header: () => CLAIMS_TEXTS.table.account,
-        cell: info => (
-          <Typography variant="body1" fontWeight={500}>
-            {info.getValue()
-              ? addressFormatter(info.getValue() as string, true)
-              : addressFormatter(undefined, true)}
-          </Typography>
-        ),
-      },
-      {
-        id: 'amount',
-        accessorFn: row => row.amount,
-        header: () => CLAIMS_TEXTS.table.amount,
-        cell: ({ getValue }) => (
-          <Typography variant="body1" fontWeight={500}>
-            {pool &&
-              tokenFormatter(
-                BigNumber((getValue() as string) || 0).shiftedBy(-pool.rewardToken.decimals),
-                pool.rewardToken.symbol,
-                2,
-              )}
-          </Typography>
-        ),
-      },
-      {
-        id: 'time',
-        accessorFn: row => row.timestamp,
-        header: () => CLAIMS_TEXTS.table.time,
-        cell: info => (
-          <Tooltip title={dateFormat(info.getValue() as string, 'dateTime')}>
-            <Typography
-              variant="body1"
-              component="span"
-              sx={{ cursor: 'default', display: 'inline-block' }}
-            >
-              {formatTimeAgo(info.getValue() as string)}
-            </Typography>
-          </Tooltip>
-        ),
-      },
-      {
-        id: 'actions',
-        accessorFn: row => row.txHash,
-        header: () => '',
-        cell: info => (
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Tooltip title="Open in Explorer">
-              <IconButton
-                size="small"
-                aria-label="Open in Explorer"
-                component={Link}
-                to={explorer.getTxUrl(info.getValue() as string)}
-                target="_blank"
-              >
-                <ExplorerIcon fontSize="small" aria-hidden="true" />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        ),
-      },
-    ],
-    [pool, explorer],
-  );
-
-  return (
-    <PaginatedTable
-      data={claims}
-      columns={columns}
-      pageIndex={pageIndex}
-      pageCount={pageCount}
-      onPageChange={onPageChange}
-      isLoading={isLoadingClaims}
-      emptyMessage={CLAIMS_TEXTS.noClaims}
-    />
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <StateSelect
+          variant="filled"
+          options={EVENT_TYPE_OPTIONS}
+          selected={eventTypeFilter}
+          onChange={items => {
+            setEventTypeFilter(items.map(i => i.value as EventType));
+            setPageIndex(0);
+          }}
+          renderValue={items =>
+            items.length === EVENT_TYPE_OPTIONS.length || items.length === 0
+              ? 'All'
+              : `${items.length > 1 ? items.length + ' selected' : items[0].name}`
+          }
+          renderMenuItem={item => (
+            <Chip
+              label={item.name}
+              size="small"
+              variant="outlined"
+              color={getEventTypeColor(item.value as EventType)}
+              sx={{ minWidth: 60, pointerEvents: 'none' }}
+            />
+          )}
+        />
+        <FormControlLabel
+          control={
+            <Switch
+              color="info"
+              checked={myActivityOnly}
+              onChange={(_, checked) => {
+                setMyActivityOnly(checked);
+                setPageIndex(0);
+              }}
+              disabled={!address}
+            />
+          }
+          label={ACTIVITY_TEXTS.myActivityToggle}
+        />
+      </Box>
+      <PaginatedTable
+        data={events}
+        columns={columns}
+        pageIndex={pageIndex}
+        pageCount={pageCount}
+        onPageChange={setPageIndex}
+        isLoading={isLoading}
+        emptyMessage={ACTIVITY_TEXTS.noActivity}
+      />
+    </Box>
   );
 }
 
 export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
   const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
-  const isDemoFeaturesEnabled = demoFeaturesEnabled();
   const [claimingId, setClaimingId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState(0);
-  const [activityPage, setActivityPage] = useState(0);
-  const [topUpsPage, setTopUpsPage] = useState(0);
-  const [claimsPage, setClaimsPage] = useState(0);
-  const [withdrawalsPage, setWithdrawalsPage] = useState(0);
   const { writeTransactionAsync } = useWriteSQDTransaction();
+  const queryClient = useQueryClient();
   const { data: pendingWithdrawals = [], isLoading: withdrawalsLoading } =
     usePoolPendingWithdrawals(poolId);
-  const { address } = useAccount();
-  const withdrawalsTabIndex = isDemoFeaturesEnabled ? 3 : 2;
+  const { SQD_TOKEN } = useContracts();
 
   const handleClaim = useCallback(
     async (withdrawalId: string) => {
@@ -545,51 +435,71 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
           functionName: 'withdrawExit',
           args: [BigInt(withdrawalId)],
         });
+        await invalidatePoolQueries(queryClient, poolId);
       } finally {
         setClaimingId(null);
       }
     },
-    [poolId, writeTransactionAsync],
+    [poolId, writeTransactionAsync, queryClient],
   );
-
-  const handleTabChange = useCallback((_: React.SyntheticEvent, value: number) => {
-    setActiveTab(value);
-  }, []);
 
   if (!pool && !poolLoading) return null;
 
   return (
-    <Box>
-      <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 2 }}>
-        <Tab label={ACTIVITY_TEXTS.title} />
-        <Tab label={TOP_UPS_TEXTS.title} />
-        {isDemoFeaturesEnabled && <Tab label={CLAIMS_TEXTS.title} />}
-        <Tab label={WITHDRAWALS_TEXTS.tabTitle} />
-      </Tabs>
-      {activeTab === 0 && (
-        <ActivityTable poolId={poolId} pageIndex={activityPage} onPageChange={setActivityPage} />
+    <Card
+      title={
+        <Stack direction="row" alignItems="center" spacing={0.5}>
+          <span>{WITHDRAWALS_TEXTS.tabTitle}</span>
+          <HelpTooltip title={WITHDRAWALS_TEXTS.tooltip} />
+        </Stack>
+      }
+    >
+      {pendingWithdrawals.length === 0 ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <Typography variant="body2" color="text.disabled">
+            {WITHDRAWALS_TEXTS.noRequests}
+          </Typography>
+        </Box>
+      ) : (
+        <Stack spacing={1.5}>
+          {pendingWithdrawals.map(withdrawal => (
+            <Stack
+              key={withdrawal.id}
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+              spacing={1}
+              sx={{
+                py: 1.5,
+                borderTop: 1,
+                borderBottom: 1,
+                borderColor: 'divider',
+              }}
+            >
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
+                {withdrawal.estimatedCompletionAt.getTime() < Date.now() ? (
+                  <LockOpenOutlined sx={{ fontSize: 20 }} />
+                ) : (
+                  <LockOutlined sx={{ fontSize: 20 }} />
+                )}
+                <Stack spacing={0.25} sx={{ minWidth: 0 }}>
+                  <Typography variant="body1" fontWeight={500}>
+                    {tokenFormatter(Number(withdrawal.amount), SQD_TOKEN, 2)}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    <WithdrawalTimeLeftCell withdrawal={withdrawal} />
+                  </Typography>
+                </Stack>
+              </Stack>
+              <WithdrawalActionCell
+                withdrawal={withdrawal}
+                onClaim={handleClaim}
+                isClaiming={claimingId === withdrawal.id}
+              />
+            </Stack>
+          ))}
+        </Stack>
       )}
-      {activeTab === 1 && (
-        <TopUpsTable poolId={poolId} pageIndex={topUpsPage} onPageChange={setTopUpsPage} />
-      )}
-      {isDemoFeaturesEnabled && activeTab === 2 && (
-        <ClaimsTable
-          poolId={poolId}
-          providerId={address}
-          pageIndex={claimsPage}
-          onPageChange={setClaimsPage}
-        />
-      )}
-      {activeTab === withdrawalsTabIndex && (
-        <PendingWithdrawalsTable
-          pendingWithdrawals={pendingWithdrawals}
-          claimingId={claimingId}
-          onClaim={handleClaim}
-          isLoading={poolLoading || withdrawalsLoading}
-          pageIndex={withdrawalsPage}
-          onPageChange={setWithdrawalsPage}
-        />
-      )}
-    </Box>
+    </Card>
   );
 }

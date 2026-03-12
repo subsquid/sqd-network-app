@@ -31,9 +31,11 @@ export const WorkerStatus = {
 } as const;
 export type WorkerStatus = (typeof WorkerStatus)[keyof typeof WorkerStatus];
 
-export const LiquidityEventType = {
+export const EventType = {
   Deposit: 'DEPOSIT',
   Withdrawal: 'WITHDRAWAL',
   Exit: 'EXIT',
+  Topup: 'TOPUP',
+  Claim: 'CLAIM',
 } as const;
-export type LiquidityEventType = (typeof LiquidityEventType)[keyof typeof LiquidityEventType];
+export type EventType = (typeof EventType)[keyof typeof EventType];

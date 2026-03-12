@@ -1,50 +1,15 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 
-import {
-  Checkbox,
-  ListItemText,
-  MenuItem,
-  Select,
-  Stack,
-  selectClasses,
-  styled,
-} from '@mui/material';
+import { Button, Checkbox, ListItemText, MenuItem, Select, Stack, styled } from '@mui/material';
 
 import { nonNullable } from '@lib/array';
 
-export const PaperSelect = styled(Select, {
-  name: 'PaperSelect',
-})(({ theme }) => ({
-  borderRadius: theme.shape.borderRadius,
-  fontSize: '0.875rem',
-  backgroundColor: theme.palette.background.paper,
-
-  [`& .${selectClasses.icon}`]: {
-    width: 20,
-    height: 20,
-    marginTop: 3,
-  },
-}));
-
-export const PaperSelectControls = styled(Stack, {
-  name: 'PaperSelectControls',
-})(({ theme }) => ({
-  marginTop: theme.spacing(0.5),
-  marginBottom: theme.spacing(1),
-  [`& a`]: {
-    fontWeight: 500,
-    fontSize: '0.875rem',
-  },
-  [`& a.disabled`]: {
-    cursor: 'default',
-    opacity: 0.5,
-  },
-}));
+export const PaperSelect = Select;
 
 export const PaperSelectMenuItem = styled(MenuItem, {
   name: 'PaperSelectMenuItem',
-})(({ theme }) => ({
-  backgroundColor: `${theme.palette.background.paper} !important`,
+})(() => ({
+  minWidth: 180,
 }));
 
 export function StateSelect({
@@ -53,75 +18,114 @@ export function StateSelect({
   onChange,
   renderValue,
   renderMenuItem = item => item.name,
+  container,
+  size = 'small',
+  variant = 'outlined',
 }: {
   options: { name: string; value: string }[];
   selected: string[];
   onChange: (value: { name: string; value: string }[]) => unknown;
   renderValue?: (value: { name: string; value: string }[]) => React.ReactNode;
   renderMenuItem?: (value: { name: string; value: string }) => React.ReactNode;
+  container?: HTMLElement | null;
+  size?: 'small' | 'medium';
+  variant?: 'outlined' | 'filled' | 'standard';
 }) {
-  const getAll = () => options.map(o => o.value);
-  const [state, setState] = useState(selected.length ? selected : getAll());
+  const allValues = useMemo(() => options.map(o => o.value), [options]);
+
+  const allSelected = selected.length === 0;
+  const noneSelected = selected.length === options.length;
+
+  const commit = (nextValues: string[]) => {
+    const items = nextValues.map(v => options.find(o => o.value === v)).filter(nonNullable);
+    onChange(items);
+  };
+
+  const handleToggle = (value: string) => {
+    if (selected.includes(value)) {
+      commit(selected.filter(v => v !== value));
+    } else {
+      commit([...selected, value]);
+    }
+  };
 
   return (
     <PaperSelect
       multiple
-      value={state}
+      size={size}
+      variant={variant}
+      value={selected}
       displayEmpty
-      onChange={e => {
-        if (!e.target.value) return;
-
-        setState(e.target.value as string[]);
-      }}
-      onClose={() => {
-        if (!state.length) {
-          setState(selected.length ? selected : getAll());
-          return;
-        }
-
-        onChange(state.map(v => options.find(o => o.value === v)).filter(nonNullable));
-      }}
+      onChange={() => {}}
       MenuProps={{
-        sx: {
-          mt: 1,
+        container,
+        anchorOrigin: {
+          vertical: 'bottom',
+          horizontal: 'left',
         },
+        transformOrigin: {
+          vertical: 'top',
+          horizontal: 'left',
+        },
+        sx: { mt: 1 },
+        PaperProps: { style: { width: 'auto' } },
       }}
       renderValue={
         renderValue
-          ? value =>
-              renderValue(
-                (value as string[]).map(v => options.find(o => o.value === v)).filter(nonNullable),
-              )
+          ? () =>
+              renderValue(selected.map(v => options.find(o => o.value === v)).filter(nonNullable))
           : undefined
       }
     >
-      <PaperSelectControls justifyContent="space-around" direction="row">
-        <a
-          href="#"
-          className={state.length == options.length ? 'disabled' : undefined}
-          onClick={e => {
+      <Stack direction="row" justifyContent="space-around" sx={{ my: 0.5 }}>
+        <Button
+          variant="text"
+          size="small"
+          color="info"
+          disabled={noneSelected}
+          onMouseDown={e => {
             e.preventDefault();
             e.stopPropagation();
-            setState(getAll());
+            commit(allValues);
           }}
         >
           Select all
-        </a>
-        <a
-          href="#"
-          className={state.length == 0 ? 'disabled' : undefined}
-          onClick={e => {
+        </Button>
+        <Button
+          variant="text"
+          size="small"
+          color="info"
+          disabled={allSelected}
+          onMouseDown={e => {
             e.preventDefault();
             e.stopPropagation();
-            setState([]);
+            commit([]);
           }}
         >
           Clear all
-        </a>
-      </PaperSelectControls>
+        </Button>
+      </Stack>
       {options.map(item => (
-        <PaperSelectMenuItem key={item.value} value={item.value}>
-          <Checkbox checked={state.includes(item.value)} />
+        <PaperSelectMenuItem
+          key={item.value}
+          value={item.value}
+          disableRipple={false}
+          sx={{
+            '&.Mui-selected': { backgroundColor: 'transparent' },
+            '&.Mui-selected:hover': { backgroundColor: 'action.hover' },
+          }}
+          onClick={e => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleToggle(item.value);
+          }}
+        >
+          <Checkbox
+            checked={selected.includes(item.value)}
+            color="info"
+            size="small"
+            sx={{ p: 0, mr: 1 }}
+          />
           <ListItemText primary={renderMenuItem(item)} />
         </PaperSelectMenuItem>
       ))}
