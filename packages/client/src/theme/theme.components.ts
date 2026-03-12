@@ -605,35 +605,7 @@ export const themeComponents: Components<Theme> = {
       },
     },
   },
-  MuiSwitch: {
-    styleOverrides: {
-      root: {
-        padding: spacing,
-        width: spacing * 6.5,
-        height: spacing * 4,
-      },
-      switchBase: {
-        padding: spacing * 0.75,
-        transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-        '&.Mui-checked': {
-          transform: 'translateX(20px)',
-          '& + .MuiSwitch-track': {
-            opacity: 0.15,
-          },
-        },
-      },
-      track: {
-        borderRadius: radius.full,
-        opacity: 0.15,
-        backgroundColor: colors.text.primary,
-      },
-      thumb: {
-        width: spacing * 2.25,
-        height: spacing * 2.25,
-        boxShadow: `0px 1px 2px ${alpha(colors.common.black, 0.1)}`,
-      },
-    },
-  },
+  MuiSwitch: {},
   MuiSkeleton: {
     styleOverrides: {
       root: {

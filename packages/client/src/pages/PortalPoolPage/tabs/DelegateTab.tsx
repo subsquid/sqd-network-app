@@ -15,6 +15,7 @@ import { dollarFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { ProvideButton } from '../dialogs/ProvideDialog';
 import { WithdrawButton } from '../dialogs/WithdrawDialog';
 import { type PoolPhase, usePoolData, usePoolUserData } from '../hooks';
+import { PendingWithdrawals } from '../PendingWithdrawals';
 import { DELEGATE_TEXTS } from '../texts';
 import { invalidatePoolQueries } from '../utils/poolUtils';
 
@@ -134,6 +135,7 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
           </Tooltip>
         </Stack>
       </Card>
+      <PendingWithdrawals poolId={poolId} />
     </Stack>
   );
 }

@@ -6,9 +6,7 @@ export * from './helpers';
 export * from './queryKeys';
 // Re-export types
 export * from './types';
-export * from './useClaims';
-export * from './useLiquidityEvents';
 export * from './usePoolData';
+export * from './usePoolEvents';
 export * from './usePoolPendingWithdrawals';
 export * from './usePoolUserData';
-export * from './useTopUps';
