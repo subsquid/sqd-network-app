@@ -2,9 +2,18 @@
  * Analytics Dashboard with Chart Configurations
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
-import { Box, Grid, MenuItem, Select, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import {
+  Box,
+  FormControlLabel,
+  Grid,
+  MenuItem,
+  Select,
+  Switch,
+  ToggleButton,
+  ToggleButtonGroup,
+} from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 
 import { trpc } from '@api/trpc';
@@ -27,35 +36,114 @@ import { fromSqd } from '@lib/network';
 
 type ChartCategory = 'network' | 'economics' | 'usage';
 
+interface ChartEntry {
+  key: string;
+  category: ChartCategory;
+  render: (props: { range?: { from: Date; to: Date }; step?: string }) => React.ReactNode;
+}
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
+function sqd(v: unknown): number | null {
+  return v != null ? fromSqd(v as string).toNumber() : null;
+}
+
+function sqdOrZero(v: unknown): number {
+  return v != null ? fromSqd(v as string).toNumber() : 0;
+}
+
+function configChart(
+  key: string,
+  category: ChartCategory,
+  config: AnalyticsChartProps<any, any>,
+): ChartEntry {
+  return {
+    key,
+    category,
+    render: ({ range, step }) => <AnalyticsChart {...config} range={range} step={step} />,
+  };
+}
+
+// ============================================================================
+// Locked Value Chart
+// ============================================================================
+
+const LOCKED_VALUE_SERIES = [
+  { name: 'Worker', valuePath: (v: any) => sqd(v?.worker), color: '#5B8FF9' },
+  { name: 'Delegation', valuePath: (v: any) => sqd(v?.delegation), color: '#61CDBB' },
+  { name: 'Portal', valuePath: (v: any) => sqd(v?.portal), color: '#F59E0B' },
+  { name: 'Portal Pool', valuePath: (v: any) => sqd(v?.portalPool), color: '#8B5CF6' },
+];
+
+function lockedValueTotal(v: any): number {
+  return (
+    sqdOrZero(v?.worker) +
+    sqdOrZero(v?.delegation) +
+    sqdOrZero(v?.portal) +
+    sqdOrZero(v?.portalPool)
+  );
+}
+
+const lockedValueQueryHook = (vars: { from: string; to: string; step?: string }) =>
+  useQuery(
+    trpc.timeseries.lockedValue.queryOptions(vars, {
+      trpc: { context: { skipBatch: true } },
+    }),
+  );
+
+function LockedValueChart({ range, step }: { range?: { from: Date; to: Date }; step?: string }) {
+  const [split, setSplit] = useState(true);
+
+  return (
+    <AnalyticsChart
+      title="Locked Value"
+      subtitle="Total value locked in the network"
+      primaryColor="#4A90E2"
+      queryHook={lockedValueQueryHook}
+      dataPath={(data: any) => data}
+      tooltipFormat={{ y: CHART_FORMATTERS.token.tooltip }}
+      axisFormat={{ y: CHART_FORMATTERS.token.axis }}
+      strokeWidth={2}
+      fillOpacity={0.25}
+      yAxis={{ min: 0 }}
+      range={range}
+      step={step}
+      series={split ? LOCKED_VALUE_SERIES : undefined}
+      seriesName={split ? undefined : 'TVL'}
+      valueTransform={split ? undefined : lockedValueTotal}
+      action={
+        <FormControlLabel
+          control={
+            <Switch
+              color="info"
+              checked={split}
+              onChange={(_, checked) => setSplit(checked)}
+              size="small"
+            />
+          }
+          label="Split"
+          labelPlacement="start"
+          sx={{ mr: 0, gap: 0.5 }}
+        />
+      }
+    />
+  );
+}
+
 // ============================================================================
 // Chart Configurations
 // ============================================================================
 
-const CHART_CONFIGS: Record<string, AnalyticsChartProps<any, any>> = {
-  lockedValue: {
-    ...createSimpleChart({
-      title: 'Locked Value',
-      subtitle: 'Total value locked in the network',
-      primaryColor: '#4A90E2',
-      queryHook: vars =>
-        useQuery(
-          trpc.timeseries.lockedValue.queryOptions(vars, {
-            trpc: { context: { skipBatch: true } },
-          }),
-        ),
-      dataPath: (data: any) => data,
-      seriesName: 'TVL',
-      tooltipFormat: { y: CHART_FORMATTERS.token.tooltip },
-      axisFormat: { y: CHART_FORMATTERS.token.axis },
-      valueTransform: (v: any) => fromSqd(v).toNumber(),
-      strokeWidth: 2,
-      fillOpacity: 0.25,
-      yAxis: { min: 0 },
-    }),
-    category: 'economics' as ChartCategory,
+const CHARTS: ChartEntry[] = [
+  {
+    key: 'lockedValue',
+    category: 'economics',
+    render: props => <LockedValueChart {...props} />,
   },
 
-  activeWorkers: {
+  configChart('activeWorkers', 'network', {
     ...createSimpleChart({
       title: 'Active Workers',
       subtitle: 'Number of workers actively processing queries',
@@ -73,10 +161,9 @@ const CHART_CONFIGS: Record<string, AnalyticsChartProps<any, any>> = {
       fillOpacity: 0.25,
       yAxis: { min: 0 },
     }),
-    category: 'network' as ChartCategory,
-  },
+  }),
 
-  reward: {
+  configChart('reward', 'economics', {
     ...createStackedChart({
       title: 'Rewards',
       subtitle: 'Rewards distributed to workers and delegators',
@@ -105,10 +192,9 @@ const CHART_CONFIGS: Record<string, AnalyticsChartProps<any, any>> = {
       yAxis: { min: 0 },
       barBorderRadius: 2,
     }),
-    category: 'economics' as ChartCategory,
-  },
+  }),
 
-  apr: {
+  configChart('apr', 'economics', {
     ...createMultiSeriesChart({
       title: 'APR',
       subtitle: 'Annual percentage rate for workers and delegators',
@@ -130,10 +216,9 @@ const CHART_CONFIGS: Record<string, AnalyticsChartProps<any, any>> = {
       fillOpacity: 0.25,
       yAxis: { min: 0 },
     }),
-    category: 'economics' as ChartCategory,
-  },
+  }),
 
-  uniqueOperators: {
+  configChart('uniqueOperators', 'network', {
     ...createSimpleChart({
       title: 'Unique Operators',
       subtitle: 'Distinct operators running workers',
@@ -151,10 +236,9 @@ const CHART_CONFIGS: Record<string, AnalyticsChartProps<any, any>> = {
       fillOpacity: 0.25,
       yAxis: { min: 0 },
     }),
-    category: 'network' as ChartCategory,
-  },
+  }),
 
-  delegations: {
+  configChart('delegations', 'network', {
     ...createSimpleChart({
       title: 'Delegations',
       subtitle: 'Total active delegation contracts',
@@ -172,10 +256,9 @@ const CHART_CONFIGS: Record<string, AnalyticsChartProps<any, any>> = {
       fillOpacity: 0.25,
       yAxis: { min: 0 },
     }),
-    category: 'network' as ChartCategory,
-  },
+  }),
 
-  uniqueDelegators: {
+  configChart('uniqueDelegators', 'network', {
     ...createSimpleChart({
       title: 'Unique Delegators',
       subtitle: 'Number of unique delegating accounts',
@@ -193,10 +276,9 @@ const CHART_CONFIGS: Record<string, AnalyticsChartProps<any, any>> = {
       fillOpacity: 0.25,
       yAxis: { min: 0 },
     }),
-    category: 'network' as ChartCategory,
-  },
+  }),
 
-  transfers: {
+  configChart('transfers', 'economics', {
     ...createStackedChart({
       title: 'Transfers',
       subtitle: 'Token transfer activity by type',
@@ -220,10 +302,9 @@ const CHART_CONFIGS: Record<string, AnalyticsChartProps<any, any>> = {
       yAxis: { min: 0 },
       barBorderRadius: 2,
     }),
-    category: 'economics' as ChartCategory,
-  },
+  }),
 
-  uniqueAccounts: {
+  configChart('uniqueAccounts', 'usage', {
     ...createSimpleChart({
       title: 'Active Accounts',
       subtitle: 'Accounts with recent activity',
@@ -242,10 +323,9 @@ const CHART_CONFIGS: Record<string, AnalyticsChartProps<any, any>> = {
       fillOpacity: 0.25,
       yAxis: { min: 0 },
     }),
-    category: 'usage' as ChartCategory,
-  },
+  }),
 
-  queries: {
+  configChart('queries', 'usage', {
     ...createSimpleChart({
       title: 'Queries Count',
       subtitle: 'Total queries processed',
@@ -265,10 +345,9 @@ const CHART_CONFIGS: Record<string, AnalyticsChartProps<any, any>> = {
       fillOpacity: 0.3,
       yAxis: { min: 0 },
     }),
-    category: 'usage' as ChartCategory,
-  },
+  }),
 
-  servedData: {
+  configChart('servedData', 'usage', {
     ...createSimpleChart({
       title: 'Served Data',
       subtitle: 'Total data served to clients',
@@ -287,10 +366,9 @@ const CHART_CONFIGS: Record<string, AnalyticsChartProps<any, any>> = {
       fillOpacity: 0.3,
       yAxis: { min: 0 },
     }),
-    category: 'usage' as ChartCategory,
-  },
+  }),
 
-  storedData: {
+  configChart('storedData', 'usage', {
     ...createSimpleChart({
       title: 'Stored Data',
       subtitle: 'Total data stored in the network',
@@ -308,14 +386,8 @@ const CHART_CONFIGS: Record<string, AnalyticsChartProps<any, any>> = {
       fillOpacity: 0.25,
       yAxis: { min: 0 },
     }),
-    category: 'usage' as ChartCategory,
-  },
-};
-
-const CHARTS = Object.entries(CHART_CONFIGS).map(([key, config]) => ({
-  key,
-  ...config,
-}));
+  }),
+];
 
 // ============================================================================
 // Analytics Component
@@ -401,14 +473,11 @@ export function Analytics() {
 
       <SharedCursorProvider>
         <Grid container spacing={2}>
-          {filteredCharts.map(chart => {
-            const { key, category, ...chartProps } = chart;
-            return (
-              <Grid key={key} size={{ xs: 12, md: 6 }}>
-                <AnalyticsChart {...chartProps} range={range} step={state.step} />
-              </Grid>
-            );
-          })}
+          {filteredCharts.map(chart => (
+            <Grid key={chart.key} size={{ xs: 12, md: 6 }}>
+              {chart.render({ range, step: state.step })}
+            </Grid>
+          ))}
         </Grid>
       </SharedCursorProvider>
     </>

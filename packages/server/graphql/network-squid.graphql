@@ -508,7 +508,35 @@ query HoldersCountTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
 }
 
 query LockedValueTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
-  lockedValueTimeseries(from: $from, to: $to, step: $step) {
+  worker: lockedValueTimeseries(from: $from, to: $to, step: $step, type: WORKER) {
+    data {
+      timestamp
+      value
+    }
+    step
+    from
+    to
+  }
+  delegation: lockedValueTimeseries(from: $from, to: $to, step: $step, type: DELEGATION) {
+    data {
+      timestamp
+      value
+    }
+    step
+    from
+    to
+  }
+  portal: lockedValueTimeseries(from: $from, to: $to, step: $step, type: PORTAL) {
+    data {
+      timestamp
+      value
+    }
+    step
+    from
+    to
+  }
+
+  portalPool: lockedValueTimeseries(from: $from, to: $to, step: $step, type: PORTAL_POOL) {
     data {
       timestamp
       value

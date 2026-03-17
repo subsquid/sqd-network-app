@@ -726,6 +726,7 @@ export type Contracts = {
   distributedRewardsDistribution?: Maybe<Scalars['String']['output']>;
   gatewayRegistry?: Maybe<Scalars['String']['output']>;
   networkController?: Maybe<Scalars['String']['output']>;
+  portalPoolFactory?: Maybe<Scalars['String']['output']>;
   rewardCalculation?: Maybe<Scalars['String']['output']>;
   rewardTreasury?: Maybe<Scalars['String']['output']>;
   router?: Maybe<Scalars['String']['output']>;
@@ -788,6 +789,23 @@ export type ContractsWhereInput = {
   networkController_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
   networkController_not_startsWith?: InputMaybe<Scalars['String']['input']>;
   networkController_startsWith?: InputMaybe<Scalars['String']['input']>;
+  portalPoolFactory_contains?: InputMaybe<Scalars['String']['input']>;
+  portalPoolFactory_containsInsensitive?: InputMaybe<Scalars['String']['input']>;
+  portalPoolFactory_endsWith?: InputMaybe<Scalars['String']['input']>;
+  portalPoolFactory_eq?: InputMaybe<Scalars['String']['input']>;
+  portalPoolFactory_gt?: InputMaybe<Scalars['String']['input']>;
+  portalPoolFactory_gte?: InputMaybe<Scalars['String']['input']>;
+  portalPoolFactory_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  portalPoolFactory_isNull?: InputMaybe<Scalars['Boolean']['input']>;
+  portalPoolFactory_lt?: InputMaybe<Scalars['String']['input']>;
+  portalPoolFactory_lte?: InputMaybe<Scalars['String']['input']>;
+  portalPoolFactory_not_contains?: InputMaybe<Scalars['String']['input']>;
+  portalPoolFactory_not_containsInsensitive?: InputMaybe<Scalars['String']['input']>;
+  portalPoolFactory_not_endsWith?: InputMaybe<Scalars['String']['input']>;
+  portalPoolFactory_not_eq?: InputMaybe<Scalars['String']['input']>;
+  portalPoolFactory_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  portalPoolFactory_not_startsWith?: InputMaybe<Scalars['String']['input']>;
+  portalPoolFactory_startsWith?: InputMaybe<Scalars['String']['input']>;
   rewardCalculation_contains?: InputMaybe<Scalars['String']['input']>;
   rewardCalculation_containsInsensitive?: InputMaybe<Scalars['String']['input']>;
   rewardCalculation_endsWith?: InputMaybe<Scalars['String']['input']>;
@@ -2603,6 +2621,231 @@ export type PageInfo = {
   startCursor: Scalars['String']['output'];
 };
 
+export type PortalPool = {
+  capacity: Scalars['BigInt']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  createdAtBlock: Scalars['Int']['output'];
+  distributionRatePerSecond: Scalars['BigInt']['output'];
+  id: Scalars['String']['output'];
+  initialDeposit: Scalars['BigInt']['output'];
+  metadata?: Maybe<Scalars['String']['output']>;
+  operator: Account;
+  rewardToken: Scalars['String']['output'];
+  tokenSuffix: Scalars['String']['output'];
+};
+
+export type PortalPoolEdge = {
+  cursor: Scalars['String']['output'];
+  node: PortalPool;
+};
+
+export enum PortalPoolOrderByInput {
+  CapacityAsc = 'capacity_ASC',
+  CapacityAscNullsFirst = 'capacity_ASC_NULLS_FIRST',
+  CapacityAscNullsLast = 'capacity_ASC_NULLS_LAST',
+  CapacityDesc = 'capacity_DESC',
+  CapacityDescNullsFirst = 'capacity_DESC_NULLS_FIRST',
+  CapacityDescNullsLast = 'capacity_DESC_NULLS_LAST',
+  CreatedAtBlockAsc = 'createdAtBlock_ASC',
+  CreatedAtBlockAscNullsFirst = 'createdAtBlock_ASC_NULLS_FIRST',
+  CreatedAtBlockAscNullsLast = 'createdAtBlock_ASC_NULLS_LAST',
+  CreatedAtBlockDesc = 'createdAtBlock_DESC',
+  CreatedAtBlockDescNullsFirst = 'createdAtBlock_DESC_NULLS_FIRST',
+  CreatedAtBlockDescNullsLast = 'createdAtBlock_DESC_NULLS_LAST',
+  CreatedAtAsc = 'createdAt_ASC',
+  CreatedAtAscNullsFirst = 'createdAt_ASC_NULLS_FIRST',
+  CreatedAtAscNullsLast = 'createdAt_ASC_NULLS_LAST',
+  CreatedAtDesc = 'createdAt_DESC',
+  CreatedAtDescNullsFirst = 'createdAt_DESC_NULLS_FIRST',
+  CreatedAtDescNullsLast = 'createdAt_DESC_NULLS_LAST',
+  DistributionRatePerSecondAsc = 'distributionRatePerSecond_ASC',
+  DistributionRatePerSecondAscNullsFirst = 'distributionRatePerSecond_ASC_NULLS_FIRST',
+  DistributionRatePerSecondAscNullsLast = 'distributionRatePerSecond_ASC_NULLS_LAST',
+  DistributionRatePerSecondDesc = 'distributionRatePerSecond_DESC',
+  DistributionRatePerSecondDescNullsFirst = 'distributionRatePerSecond_DESC_NULLS_FIRST',
+  DistributionRatePerSecondDescNullsLast = 'distributionRatePerSecond_DESC_NULLS_LAST',
+  IdAsc = 'id_ASC',
+  IdAscNullsFirst = 'id_ASC_NULLS_FIRST',
+  IdAscNullsLast = 'id_ASC_NULLS_LAST',
+  IdDesc = 'id_DESC',
+  IdDescNullsFirst = 'id_DESC_NULLS_FIRST',
+  IdDescNullsLast = 'id_DESC_NULLS_LAST',
+  InitialDepositAsc = 'initialDeposit_ASC',
+  InitialDepositAscNullsFirst = 'initialDeposit_ASC_NULLS_FIRST',
+  InitialDepositAscNullsLast = 'initialDeposit_ASC_NULLS_LAST',
+  InitialDepositDesc = 'initialDeposit_DESC',
+  InitialDepositDescNullsFirst = 'initialDeposit_DESC_NULLS_FIRST',
+  InitialDepositDescNullsLast = 'initialDeposit_DESC_NULLS_LAST',
+  MetadataAsc = 'metadata_ASC',
+  MetadataAscNullsFirst = 'metadata_ASC_NULLS_FIRST',
+  MetadataAscNullsLast = 'metadata_ASC_NULLS_LAST',
+  MetadataDesc = 'metadata_DESC',
+  MetadataDescNullsFirst = 'metadata_DESC_NULLS_FIRST',
+  MetadataDescNullsLast = 'metadata_DESC_NULLS_LAST',
+  OperatorBalanceAsc = 'operator_balance_ASC',
+  OperatorBalanceAscNullsFirst = 'operator_balance_ASC_NULLS_FIRST',
+  OperatorBalanceAscNullsLast = 'operator_balance_ASC_NULLS_LAST',
+  OperatorBalanceDesc = 'operator_balance_DESC',
+  OperatorBalanceDescNullsFirst = 'operator_balance_DESC_NULLS_FIRST',
+  OperatorBalanceDescNullsLast = 'operator_balance_DESC_NULLS_LAST',
+  OperatorClaimableDelegationCountAsc = 'operator_claimableDelegationCount_ASC',
+  OperatorClaimableDelegationCountAscNullsFirst = 'operator_claimableDelegationCount_ASC_NULLS_FIRST',
+  OperatorClaimableDelegationCountAscNullsLast = 'operator_claimableDelegationCount_ASC_NULLS_LAST',
+  OperatorClaimableDelegationCountDesc = 'operator_claimableDelegationCount_DESC',
+  OperatorClaimableDelegationCountDescNullsFirst = 'operator_claimableDelegationCount_DESC_NULLS_FIRST',
+  OperatorClaimableDelegationCountDescNullsLast = 'operator_claimableDelegationCount_DESC_NULLS_LAST',
+  OperatorIdAsc = 'operator_id_ASC',
+  OperatorIdAscNullsFirst = 'operator_id_ASC_NULLS_FIRST',
+  OperatorIdAscNullsLast = 'operator_id_ASC_NULLS_LAST',
+  OperatorIdDesc = 'operator_id_DESC',
+  OperatorIdDescNullsFirst = 'operator_id_DESC_NULLS_FIRST',
+  OperatorIdDescNullsLast = 'operator_id_DESC_NULLS_LAST',
+  OperatorTypeAsc = 'operator_type_ASC',
+  OperatorTypeAscNullsFirst = 'operator_type_ASC_NULLS_FIRST',
+  OperatorTypeAscNullsLast = 'operator_type_ASC_NULLS_LAST',
+  OperatorTypeDesc = 'operator_type_DESC',
+  OperatorTypeDescNullsFirst = 'operator_type_DESC_NULLS_FIRST',
+  OperatorTypeDescNullsLast = 'operator_type_DESC_NULLS_LAST',
+  RewardTokenAsc = 'rewardToken_ASC',
+  RewardTokenAscNullsFirst = 'rewardToken_ASC_NULLS_FIRST',
+  RewardTokenAscNullsLast = 'rewardToken_ASC_NULLS_LAST',
+  RewardTokenDesc = 'rewardToken_DESC',
+  RewardTokenDescNullsFirst = 'rewardToken_DESC_NULLS_FIRST',
+  RewardTokenDescNullsLast = 'rewardToken_DESC_NULLS_LAST',
+  TokenSuffixAsc = 'tokenSuffix_ASC',
+  TokenSuffixAscNullsFirst = 'tokenSuffix_ASC_NULLS_FIRST',
+  TokenSuffixAscNullsLast = 'tokenSuffix_ASC_NULLS_LAST',
+  TokenSuffixDesc = 'tokenSuffix_DESC',
+  TokenSuffixDescNullsFirst = 'tokenSuffix_DESC_NULLS_FIRST',
+  TokenSuffixDescNullsLast = 'tokenSuffix_DESC_NULLS_LAST',
+}
+
+export type PortalPoolWhereInput = {
+  AND?: InputMaybe<Array<PortalPoolWhereInput>>;
+  OR?: InputMaybe<Array<PortalPoolWhereInput>>;
+  capacity_eq?: InputMaybe<Scalars['BigInt']['input']>;
+  capacity_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  capacity_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  capacity_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  capacity_isNull?: InputMaybe<Scalars['Boolean']['input']>;
+  capacity_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  capacity_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  capacity_not_eq?: InputMaybe<Scalars['BigInt']['input']>;
+  capacity_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  createdAtBlock_eq?: InputMaybe<Scalars['Int']['input']>;
+  createdAtBlock_gt?: InputMaybe<Scalars['Int']['input']>;
+  createdAtBlock_gte?: InputMaybe<Scalars['Int']['input']>;
+  createdAtBlock_in?: InputMaybe<Array<Scalars['Int']['input']>>;
+  createdAtBlock_isNull?: InputMaybe<Scalars['Boolean']['input']>;
+  createdAtBlock_lt?: InputMaybe<Scalars['Int']['input']>;
+  createdAtBlock_lte?: InputMaybe<Scalars['Int']['input']>;
+  createdAtBlock_not_eq?: InputMaybe<Scalars['Int']['input']>;
+  createdAtBlock_not_in?: InputMaybe<Array<Scalars['Int']['input']>>;
+  createdAt_eq?: InputMaybe<Scalars['DateTime']['input']>;
+  createdAt_gt?: InputMaybe<Scalars['DateTime']['input']>;
+  createdAt_gte?: InputMaybe<Scalars['DateTime']['input']>;
+  createdAt_in?: InputMaybe<Array<Scalars['DateTime']['input']>>;
+  createdAt_isNull?: InputMaybe<Scalars['Boolean']['input']>;
+  createdAt_lt?: InputMaybe<Scalars['DateTime']['input']>;
+  createdAt_lte?: InputMaybe<Scalars['DateTime']['input']>;
+  createdAt_not_eq?: InputMaybe<Scalars['DateTime']['input']>;
+  createdAt_not_in?: InputMaybe<Array<Scalars['DateTime']['input']>>;
+  distributionRatePerSecond_eq?: InputMaybe<Scalars['BigInt']['input']>;
+  distributionRatePerSecond_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  distributionRatePerSecond_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  distributionRatePerSecond_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  distributionRatePerSecond_isNull?: InputMaybe<Scalars['Boolean']['input']>;
+  distributionRatePerSecond_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  distributionRatePerSecond_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  distributionRatePerSecond_not_eq?: InputMaybe<Scalars['BigInt']['input']>;
+  distributionRatePerSecond_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  id_contains?: InputMaybe<Scalars['String']['input']>;
+  id_containsInsensitive?: InputMaybe<Scalars['String']['input']>;
+  id_endsWith?: InputMaybe<Scalars['String']['input']>;
+  id_eq?: InputMaybe<Scalars['String']['input']>;
+  id_gt?: InputMaybe<Scalars['String']['input']>;
+  id_gte?: InputMaybe<Scalars['String']['input']>;
+  id_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  id_isNull?: InputMaybe<Scalars['Boolean']['input']>;
+  id_lt?: InputMaybe<Scalars['String']['input']>;
+  id_lte?: InputMaybe<Scalars['String']['input']>;
+  id_not_contains?: InputMaybe<Scalars['String']['input']>;
+  id_not_containsInsensitive?: InputMaybe<Scalars['String']['input']>;
+  id_not_endsWith?: InputMaybe<Scalars['String']['input']>;
+  id_not_eq?: InputMaybe<Scalars['String']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  id_not_startsWith?: InputMaybe<Scalars['String']['input']>;
+  id_startsWith?: InputMaybe<Scalars['String']['input']>;
+  initialDeposit_eq?: InputMaybe<Scalars['BigInt']['input']>;
+  initialDeposit_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  initialDeposit_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  initialDeposit_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  initialDeposit_isNull?: InputMaybe<Scalars['Boolean']['input']>;
+  initialDeposit_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  initialDeposit_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  initialDeposit_not_eq?: InputMaybe<Scalars['BigInt']['input']>;
+  initialDeposit_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  metadata_contains?: InputMaybe<Scalars['String']['input']>;
+  metadata_containsInsensitive?: InputMaybe<Scalars['String']['input']>;
+  metadata_endsWith?: InputMaybe<Scalars['String']['input']>;
+  metadata_eq?: InputMaybe<Scalars['String']['input']>;
+  metadata_gt?: InputMaybe<Scalars['String']['input']>;
+  metadata_gte?: InputMaybe<Scalars['String']['input']>;
+  metadata_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  metadata_isNull?: InputMaybe<Scalars['Boolean']['input']>;
+  metadata_lt?: InputMaybe<Scalars['String']['input']>;
+  metadata_lte?: InputMaybe<Scalars['String']['input']>;
+  metadata_not_contains?: InputMaybe<Scalars['String']['input']>;
+  metadata_not_containsInsensitive?: InputMaybe<Scalars['String']['input']>;
+  metadata_not_endsWith?: InputMaybe<Scalars['String']['input']>;
+  metadata_not_eq?: InputMaybe<Scalars['String']['input']>;
+  metadata_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  metadata_not_startsWith?: InputMaybe<Scalars['String']['input']>;
+  metadata_startsWith?: InputMaybe<Scalars['String']['input']>;
+  operator?: InputMaybe<AccountWhereInput>;
+  operator_isNull?: InputMaybe<Scalars['Boolean']['input']>;
+  rewardToken_contains?: InputMaybe<Scalars['String']['input']>;
+  rewardToken_containsInsensitive?: InputMaybe<Scalars['String']['input']>;
+  rewardToken_endsWith?: InputMaybe<Scalars['String']['input']>;
+  rewardToken_eq?: InputMaybe<Scalars['String']['input']>;
+  rewardToken_gt?: InputMaybe<Scalars['String']['input']>;
+  rewardToken_gte?: InputMaybe<Scalars['String']['input']>;
+  rewardToken_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  rewardToken_isNull?: InputMaybe<Scalars['Boolean']['input']>;
+  rewardToken_lt?: InputMaybe<Scalars['String']['input']>;
+  rewardToken_lte?: InputMaybe<Scalars['String']['input']>;
+  rewardToken_not_contains?: InputMaybe<Scalars['String']['input']>;
+  rewardToken_not_containsInsensitive?: InputMaybe<Scalars['String']['input']>;
+  rewardToken_not_endsWith?: InputMaybe<Scalars['String']['input']>;
+  rewardToken_not_eq?: InputMaybe<Scalars['String']['input']>;
+  rewardToken_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  rewardToken_not_startsWith?: InputMaybe<Scalars['String']['input']>;
+  rewardToken_startsWith?: InputMaybe<Scalars['String']['input']>;
+  tokenSuffix_contains?: InputMaybe<Scalars['String']['input']>;
+  tokenSuffix_containsInsensitive?: InputMaybe<Scalars['String']['input']>;
+  tokenSuffix_endsWith?: InputMaybe<Scalars['String']['input']>;
+  tokenSuffix_eq?: InputMaybe<Scalars['String']['input']>;
+  tokenSuffix_gt?: InputMaybe<Scalars['String']['input']>;
+  tokenSuffix_gte?: InputMaybe<Scalars['String']['input']>;
+  tokenSuffix_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  tokenSuffix_isNull?: InputMaybe<Scalars['Boolean']['input']>;
+  tokenSuffix_lt?: InputMaybe<Scalars['String']['input']>;
+  tokenSuffix_lte?: InputMaybe<Scalars['String']['input']>;
+  tokenSuffix_not_contains?: InputMaybe<Scalars['String']['input']>;
+  tokenSuffix_not_containsInsensitive?: InputMaybe<Scalars['String']['input']>;
+  tokenSuffix_not_endsWith?: InputMaybe<Scalars['String']['input']>;
+  tokenSuffix_not_eq?: InputMaybe<Scalars['String']['input']>;
+  tokenSuffix_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  tokenSuffix_not_startsWith?: InputMaybe<Scalars['String']['input']>;
+  tokenSuffix_startsWith?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type PortalPoolsConnection = {
+  edges: Array<PortalPoolEdge>;
+  pageInfo: PageInfo;
+  totalCount: Scalars['Int']['output'];
+};
+
 export type QueriesCountEntry = {
   timestamp: Scalars['DateTime']['output'];
   value?: Maybe<Scalars['Float']['output']>;
@@ -2657,6 +2900,9 @@ export type Query = {
   holdersCountTimeseries: HoldersCountTimeseries;
   lockedValueTimeseries: LockedValueTimeseries;
   networkStats: NetworkStats;
+  portalPoolById?: Maybe<PortalPool>;
+  portalPools: Array<PortalPool>;
+  portalPoolsConnection: PortalPoolsConnection;
   queriesCountTimeseries: QueriesCountTimeseries;
   rewardTimeseries: RewardTimeseries;
   servedDataTimeseries: ServedDataTimeseries;
@@ -2933,6 +3179,25 @@ export type QueryLockedValueTimeseriesArgs = {
   from?: InputMaybe<Scalars['DateTime']['input']>;
   step?: InputMaybe<Scalars['String']['input']>;
   to?: InputMaybe<Scalars['DateTime']['input']>;
+  type?: InputMaybe<TvlType>;
+};
+
+export type QueryPortalPoolByIdArgs = {
+  id: Scalars['String']['input'];
+};
+
+export type QueryPortalPoolsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Array<PortalPoolOrderByInput>>;
+  where?: InputMaybe<PortalPoolWhereInput>;
+};
+
+export type QueryPortalPoolsConnectionArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy: Array<PortalPoolOrderByInput>;
+  where?: InputMaybe<PortalPoolWhereInput>;
 };
 
 export type QueryQueriesCountTimeseriesArgs = {
@@ -3223,6 +3488,12 @@ export enum SettingsOrderByInput {
   ContractsNetworkControllerDesc = 'contracts_networkController_DESC',
   ContractsNetworkControllerDescNullsFirst = 'contracts_networkController_DESC_NULLS_FIRST',
   ContractsNetworkControllerDescNullsLast = 'contracts_networkController_DESC_NULLS_LAST',
+  ContractsPortalPoolFactoryAsc = 'contracts_portalPoolFactory_ASC',
+  ContractsPortalPoolFactoryAscNullsFirst = 'contracts_portalPoolFactory_ASC_NULLS_FIRST',
+  ContractsPortalPoolFactoryAscNullsLast = 'contracts_portalPoolFactory_ASC_NULLS_LAST',
+  ContractsPortalPoolFactoryDesc = 'contracts_portalPoolFactory_DESC',
+  ContractsPortalPoolFactoryDescNullsFirst = 'contracts_portalPoolFactory_DESC_NULLS_FIRST',
+  ContractsPortalPoolFactoryDescNullsLast = 'contracts_portalPoolFactory_DESC_NULLS_LAST',
   ContractsRewardCalculationAsc = 'contracts_rewardCalculation_ASC',
   ContractsRewardCalculationAscNullsFirst = 'contracts_rewardCalculation_ASC_NULLS_FIRST',
   ContractsRewardCalculationAscNullsLast = 'contracts_rewardCalculation_ASC_NULLS_LAST',
@@ -3619,6 +3890,7 @@ export type Transfer = {
   from: Account;
   gatewayStake?: Maybe<GatewayStake>;
   id: Scalars['String']['output'];
+  portalPool?: Maybe<PortalPool>;
   timestamp: Scalars['DateTime']['output'];
   to: Account;
   txHash: Scalars['String']['output'];
@@ -3789,6 +4061,60 @@ export enum TransferOrderByInput {
   IdDesc = 'id_DESC',
   IdDescNullsFirst = 'id_DESC_NULLS_FIRST',
   IdDescNullsLast = 'id_DESC_NULLS_LAST',
+  PortalPoolCapacityAsc = 'portalPool_capacity_ASC',
+  PortalPoolCapacityAscNullsFirst = 'portalPool_capacity_ASC_NULLS_FIRST',
+  PortalPoolCapacityAscNullsLast = 'portalPool_capacity_ASC_NULLS_LAST',
+  PortalPoolCapacityDesc = 'portalPool_capacity_DESC',
+  PortalPoolCapacityDescNullsFirst = 'portalPool_capacity_DESC_NULLS_FIRST',
+  PortalPoolCapacityDescNullsLast = 'portalPool_capacity_DESC_NULLS_LAST',
+  PortalPoolCreatedAtBlockAsc = 'portalPool_createdAtBlock_ASC',
+  PortalPoolCreatedAtBlockAscNullsFirst = 'portalPool_createdAtBlock_ASC_NULLS_FIRST',
+  PortalPoolCreatedAtBlockAscNullsLast = 'portalPool_createdAtBlock_ASC_NULLS_LAST',
+  PortalPoolCreatedAtBlockDesc = 'portalPool_createdAtBlock_DESC',
+  PortalPoolCreatedAtBlockDescNullsFirst = 'portalPool_createdAtBlock_DESC_NULLS_FIRST',
+  PortalPoolCreatedAtBlockDescNullsLast = 'portalPool_createdAtBlock_DESC_NULLS_LAST',
+  PortalPoolCreatedAtAsc = 'portalPool_createdAt_ASC',
+  PortalPoolCreatedAtAscNullsFirst = 'portalPool_createdAt_ASC_NULLS_FIRST',
+  PortalPoolCreatedAtAscNullsLast = 'portalPool_createdAt_ASC_NULLS_LAST',
+  PortalPoolCreatedAtDesc = 'portalPool_createdAt_DESC',
+  PortalPoolCreatedAtDescNullsFirst = 'portalPool_createdAt_DESC_NULLS_FIRST',
+  PortalPoolCreatedAtDescNullsLast = 'portalPool_createdAt_DESC_NULLS_LAST',
+  PortalPoolDistributionRatePerSecondAsc = 'portalPool_distributionRatePerSecond_ASC',
+  PortalPoolDistributionRatePerSecondAscNullsFirst = 'portalPool_distributionRatePerSecond_ASC_NULLS_FIRST',
+  PortalPoolDistributionRatePerSecondAscNullsLast = 'portalPool_distributionRatePerSecond_ASC_NULLS_LAST',
+  PortalPoolDistributionRatePerSecondDesc = 'portalPool_distributionRatePerSecond_DESC',
+  PortalPoolDistributionRatePerSecondDescNullsFirst = 'portalPool_distributionRatePerSecond_DESC_NULLS_FIRST',
+  PortalPoolDistributionRatePerSecondDescNullsLast = 'portalPool_distributionRatePerSecond_DESC_NULLS_LAST',
+  PortalPoolIdAsc = 'portalPool_id_ASC',
+  PortalPoolIdAscNullsFirst = 'portalPool_id_ASC_NULLS_FIRST',
+  PortalPoolIdAscNullsLast = 'portalPool_id_ASC_NULLS_LAST',
+  PortalPoolIdDesc = 'portalPool_id_DESC',
+  PortalPoolIdDescNullsFirst = 'portalPool_id_DESC_NULLS_FIRST',
+  PortalPoolIdDescNullsLast = 'portalPool_id_DESC_NULLS_LAST',
+  PortalPoolInitialDepositAsc = 'portalPool_initialDeposit_ASC',
+  PortalPoolInitialDepositAscNullsFirst = 'portalPool_initialDeposit_ASC_NULLS_FIRST',
+  PortalPoolInitialDepositAscNullsLast = 'portalPool_initialDeposit_ASC_NULLS_LAST',
+  PortalPoolInitialDepositDesc = 'portalPool_initialDeposit_DESC',
+  PortalPoolInitialDepositDescNullsFirst = 'portalPool_initialDeposit_DESC_NULLS_FIRST',
+  PortalPoolInitialDepositDescNullsLast = 'portalPool_initialDeposit_DESC_NULLS_LAST',
+  PortalPoolMetadataAsc = 'portalPool_metadata_ASC',
+  PortalPoolMetadataAscNullsFirst = 'portalPool_metadata_ASC_NULLS_FIRST',
+  PortalPoolMetadataAscNullsLast = 'portalPool_metadata_ASC_NULLS_LAST',
+  PortalPoolMetadataDesc = 'portalPool_metadata_DESC',
+  PortalPoolMetadataDescNullsFirst = 'portalPool_metadata_DESC_NULLS_FIRST',
+  PortalPoolMetadataDescNullsLast = 'portalPool_metadata_DESC_NULLS_LAST',
+  PortalPoolRewardTokenAsc = 'portalPool_rewardToken_ASC',
+  PortalPoolRewardTokenAscNullsFirst = 'portalPool_rewardToken_ASC_NULLS_FIRST',
+  PortalPoolRewardTokenAscNullsLast = 'portalPool_rewardToken_ASC_NULLS_LAST',
+  PortalPoolRewardTokenDesc = 'portalPool_rewardToken_DESC',
+  PortalPoolRewardTokenDescNullsFirst = 'portalPool_rewardToken_DESC_NULLS_FIRST',
+  PortalPoolRewardTokenDescNullsLast = 'portalPool_rewardToken_DESC_NULLS_LAST',
+  PortalPoolTokenSuffixAsc = 'portalPool_tokenSuffix_ASC',
+  PortalPoolTokenSuffixAscNullsFirst = 'portalPool_tokenSuffix_ASC_NULLS_FIRST',
+  PortalPoolTokenSuffixAscNullsLast = 'portalPool_tokenSuffix_ASC_NULLS_LAST',
+  PortalPoolTokenSuffixDesc = 'portalPool_tokenSuffix_DESC',
+  PortalPoolTokenSuffixDescNullsFirst = 'portalPool_tokenSuffix_DESC_NULLS_FIRST',
+  PortalPoolTokenSuffixDescNullsLast = 'portalPool_tokenSuffix_DESC_NULLS_LAST',
   TimestampAsc = 'timestamp_ASC',
   TimestampAscNullsFirst = 'timestamp_ASC_NULLS_FIRST',
   TimestampAscNullsLast = 'timestamp_ASC_NULLS_LAST',
@@ -4131,6 +4457,8 @@ export type TransferWhereInput = {
   id_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
   id_not_startsWith?: InputMaybe<Scalars['String']['input']>;
   id_startsWith?: InputMaybe<Scalars['String']['input']>;
+  portalPool?: InputMaybe<PortalPoolWhereInput>;
+  portalPool_isNull?: InputMaybe<Scalars['Boolean']['input']>;
   timestamp_eq?: InputMaybe<Scalars['DateTime']['input']>;
   timestamp_gt?: InputMaybe<Scalars['DateTime']['input']>;
   timestamp_gte?: InputMaybe<Scalars['DateTime']['input']>;
@@ -4187,6 +4515,13 @@ export type TvlEntry = {
   timestamp: Scalars['DateTime']['output'];
   value?: Maybe<Scalars['BigInt']['output']>;
 };
+
+export enum TvlType {
+  Delegation = 'DELEGATION',
+  Portal = 'PORTAL',
+  PortalPool = 'PORTAL_POOL',
+  Worker = 'WORKER',
+}
 
 export type UniqueAccountsEntry = {
   timestamp: Scalars['DateTime']['output'];
@@ -7050,7 +7385,25 @@ export type LockedValueTimeseriesQueryVariables = Exact<{
 }>;
 
 export type LockedValueTimeseriesQuery = {
-  lockedValueTimeseries: {
+  worker: {
+    step: number;
+    from: string;
+    to: string;
+    data: Array<{ timestamp: string; value?: string | null }>;
+  };
+  delegation: {
+    step: number;
+    from: string;
+    to: string;
+    data: Array<{ timestamp: string; value?: string | null }>;
+  };
+  portal: {
+    step: number;
+    from: string;
+    to: string;
+    data: Array<{ timestamp: string; value?: string | null }>;
+  };
+  portalPool: {
     step: number;
     from: string;
     to: string;
@@ -8309,7 +8662,44 @@ export const HoldersCountTimeseriesDocument = new TypedDocumentString(`
 >;
 export const LockedValueTimeseriesDocument = new TypedDocumentString(`
     query LockedValueTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
-  lockedValueTimeseries(from: $from, to: $to, step: $step) {
+  worker: lockedValueTimeseries(from: $from, to: $to, step: $step, type: WORKER) {
+    data {
+      timestamp
+      value
+    }
+    step
+    from
+    to
+  }
+  delegation: lockedValueTimeseries(
+    from: $from
+    to: $to
+    step: $step
+    type: DELEGATION
+  ) {
+    data {
+      timestamp
+      value
+    }
+    step
+    from
+    to
+  }
+  portal: lockedValueTimeseries(from: $from, to: $to, step: $step, type: PORTAL) {
+    data {
+      timestamp
+      value
+    }
+    step
+    from
+    to
+  }
+  portalPool: lockedValueTimeseries(
+    from: $from
+    to: $to
+    step: $step
+    type: PORTAL_POOL
+  ) {
     data {
       timestamp
       value
