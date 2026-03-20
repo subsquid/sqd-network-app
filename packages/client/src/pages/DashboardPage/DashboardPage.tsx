@@ -10,7 +10,7 @@ export function DashboardPage() {
 
   // Determine active tab from path
   const path = location.pathname.split('/').pop() || '';
-  const activeTab = path === 'analytics' || path === 'portal-pools' ? path : 'workers';
+  const activeTab = path === 'workers' || path === 'portal-pools' ? path : 'analytics';
 
   const handleTabChange = (_: React.SyntheticEvent, value: string) => {
     navigate(`/dashboard/${value}`, { replace: true });
@@ -20,6 +20,7 @@ export function DashboardPage() {
     <CenteredPageWrapper>
       <NetworkSummary />
       <Tabs value={activeTab} onChange={handleTabChange}>
+      <Tab label="Analytics" value="analytics" />
         <Tab label="Workers" value="workers" />
         <Tab
           value="portal-pools"
@@ -30,7 +31,6 @@ export function DashboardPage() {
             </Stack>
           }
         />
-        <Tab label="Analytics" value="analytics" />
       </Tabs>
       <Outlet />
     </CenteredPageWrapper>
