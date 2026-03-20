@@ -4,16 +4,7 @@
 
 import { useMemo, useState } from 'react';
 
-import {
-  Box,
-  FormControlLabel,
-  Grid,
-  MenuItem,
-  Select,
-  Switch,
-  ToggleButton,
-  ToggleButtonGroup,
-} from '@mui/material';
+import { Box, Grid, MenuItem, Select, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 
 import { trpc } from '@api/trpc';
@@ -28,6 +19,7 @@ import {
 } from '@components/Chart';
 import { Location, useLocationState } from '@hooks/useLocationState';
 import { parseTimeRange } from '@lib/datemath';
+import { tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
 
 // ============================================================================
@@ -53,6 +45,15 @@ function sqd(v: unknown): number | null {
 function sqdOrZero(v: unknown): number {
   return v != null ? fromSqd(v as string).toNumber() : 0;
 }
+
+const tokenFormatWhole = {
+  tooltip: (d: number) => tokenFormatter(d, 'SQD', 0),
+  axis: (d: number) =>
+    new Intl.NumberFormat('en-US', {
+      notation: 'compact',
+      maximumFractionDigits: 0,
+    }).format(d),
+};
 
 function configChart(
   key: string,
@@ -103,8 +104,8 @@ function LockedValueChart({ range, step }: { range?: { from: Date; to: Date }; s
       primaryColor="#4A90E2"
       queryHook={lockedValueQueryHook}
       dataPath={(data: any) => data}
-      tooltipFormat={{ y: CHART_FORMATTERS.token.tooltip }}
-      axisFormat={{ y: CHART_FORMATTERS.token.axis }}
+      tooltipFormat={{ y: tokenFormatWhole.tooltip }}
+      axisFormat={{ y: tokenFormatWhole.axis }}
       strokeWidth={2}
       fillOpacity={0.25}
       yAxis={{ min: 0 }}
@@ -187,8 +188,8 @@ const CHARTS: ChartEntry[] = [
           color: '#61CDBB',
         },
       ],
-      tooltipFormat: { y: CHART_FORMATTERS.token.tooltip },
-      axisFormat: { y: CHART_FORMATTERS.token.axis },
+      tooltipFormat: { y: tokenFormatWhole.tooltip },
+      axisFormat: { y: tokenFormatWhole.axis },
       yAxis: { min: 0 },
       barBorderRadius: 2,
     }),
