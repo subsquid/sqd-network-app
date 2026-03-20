@@ -113,21 +113,21 @@ function LockedValueChart({ range, step }: { range?: { from: Date; to: Date }; s
       series={split ? LOCKED_VALUE_SERIES : undefined}
       seriesName={split ? undefined : 'TVL'}
       valueTransform={split ? undefined : lockedValueTotal}
-      action={
-        <FormControlLabel
-          control={
-            <Switch
-              color="info"
-              checked={split}
-              onChange={(_, checked) => setSplit(checked)}
-              size="small"
-            />
-          }
-          label="Split"
-          labelPlacement="start"
-          sx={{ mr: 0, gap: 0.5 }}
-        />
-      }
+      // action={
+      //   <FormControlLabel
+      //     control={
+      //       <Switch
+      //         color="info"
+      //         checked={split}
+      //         onChange={(_, checked) => setSplit(checked)}
+      //         size="small"
+      //       />
+      //     }
+      //     label="Split"
+      //     labelPlacement="start"
+      //     sx={{ mr: 0, gap: 0.5 }}
+      //   />
+      // }
     />
   );
 }
@@ -212,6 +212,7 @@ const CHARTS: ChartEntry[] = [
       ],
       tooltipFormat: { y: CHART_FORMATTERS.percent.tooltip },
       axisFormat: { y: CHART_FORMATTERS.percent.axis },
+      tooltipShowTotal: false,
       strokeWidth: 2,
       fillOpacity: 0.25,
       yAxis: { min: 0 },

@@ -11,13 +11,17 @@ import {
   bytesFormatter,
   percentFormatter,
   toCompact,
+  toDateDay,
+  toDateSeconds,
   toNumber,
   tokenFormatter,
 } from '@lib/formatters/formatters';
 
-import { CHART_CONFIG, type ChartProps, type ChartSeries, toTimeRange } from './';
+import { CHART_CONFIG, type ChartProps, type ChartSeries } from './';
 import { ChartLegend } from './ChartLegend';
 import { LineChart, useChartPalette } from './LineChart';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 export const CHART_FORMATTERS = {
   number: {
@@ -72,6 +76,7 @@ export interface AnalyticsChartProps<T = TimeSeriesData, V = unknown> {
   dataPath: (data: T) => TimeSeriesData<V>;
   tooltipFormat?: ChartProps['tooltipFormat'];
   axisFormat?: ChartProps['axisFormat'];
+  tooltipShowTotal?: ChartProps['tooltipShowTotal'];
   yAxis?: { min?: number; max?: number };
   yAxisScale?: 'linear' | 'log';
   height?: number;
@@ -247,6 +252,7 @@ export function AnalyticsChart<T = TimeSeriesData, V = unknown>(props: Analytics
     queryHook,
     tooltipFormat,
     axisFormat,
+    tooltipShowTotal,
     yAxis,
     step,
     height = CHART_CONFIG.height,
@@ -300,7 +306,7 @@ export function AnalyticsChart<T = TimeSeriesData, V = unknown>(props: Analytics
 
   const tooltipFormatWithRange = useMemo(
     () => ({
-      x: (d: Date) => toTimeRange(d, stepMs),
+      x: (d: Date) => (stepMs && stepMs >= DAY_MS ? toDateDay.format(d) : toDateSeconds.format(d)),
       ...tooltipFormat,
     }),
     [stepMs, tooltipFormat],
@@ -317,6 +323,7 @@ export function AnalyticsChart<T = TimeSeriesData, V = unknown>(props: Analytics
               series={series}
               tooltipFormat={tooltipFormatWithRange}
               axisFormat={axisFormat}
+              tooltipShowTotal={tooltipShowTotal}
               xAxis={{ min: from, max: to }}
               yAxis={yAxis}
               strokeWidth={strokeWidth}
