@@ -71,10 +71,10 @@ function configChart(
 // ============================================================================
 
 const LOCKED_VALUE_SERIES = [
-  { name: 'Worker', valuePath: (v: any) => sqd(v?.worker), color: '#5B8FF9' },
-  { name: 'Delegation', valuePath: (v: any) => sqd(v?.delegation), color: '#61CDBB' },
-  { name: 'Portal', valuePath: (v: any) => sqd(v?.portal), color: '#F59E0B' },
-  { name: 'Portal Pool', valuePath: (v: any) => sqd(v?.portalPool), color: '#8B5CF6' },
+  { name: 'Workers', valuePath: (v: any) => sqd(v?.worker), color: '#5B8FF9' },
+  { name: 'Delegations', valuePath: (v: any) => sqd(v?.delegation), color: '#61CDBB' },
+  { name: 'Portals', valuePath: (v: any) => sqd(v?.portal), color: '#F59E0B' },
+  { name: 'Portal Pools', valuePath: (v: any) => sqd(v?.portalPool), color: '#8B5CF6' },
 ];
 
 function lockedValueTotal(v: any): number {
