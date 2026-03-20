@@ -11,6 +11,8 @@ interface ChartTooltipProps {
   series: ChartSeries[];
   palette: string[];
   tooltipFormat?: ChartFormatters;
+  /** When true, show sum row when the tooltip has 2+ series. Default true. */
+  tooltipShowTotal?: boolean;
 }
 
 function buildColorMap(series: ChartSeries[], palette: string[]): Map<string, string> {
@@ -30,8 +32,19 @@ function buildColorMap(series: ChartSeries[], palette: string[]): Map<string, st
   return colorMap;
 }
 
-export function ChartTooltip({ tooltipData, series, palette, tooltipFormat }: ChartTooltipProps) {
+export function ChartTooltip({
+  tooltipData,
+  series,
+  palette,
+  tooltipFormat,
+  tooltipShowTotal = true,
+}: ChartTooltipProps) {
   const firstDatum = Object.values(tooltipData)[0];
+  const entries = Object.entries(tooltipData);
+  const showTotal = tooltipShowTotal && entries.length >= 2;
+  const totalY = showTotal
+    ? entries.reduce((sum, [, d]) => sum + (typeof d.y === 'number' ? d.y : 0), 0)
+    : 0;
 
   const colorMap = useMemo(() => buildColorMap(series, palette), [series, palette]);
 
@@ -46,7 +59,7 @@ export function ChartTooltip({ tooltipData, series, palette, tooltipFormat }: Ch
           <Divider sx={{ my: 0.5 }} />
         </>
       )}
-      {Object.entries(tooltipData).map(([key, datum]) => (
+      {entries.map(([key, datum]) => (
         <Box
           key={key}
           sx={{
@@ -73,6 +86,26 @@ export function ChartTooltip({ tooltipData, series, palette, tooltipFormat }: Ch
           </Typography>
         </Box>
       ))}
+      {showTotal && (
+        <>
+          <Divider sx={{ my: 0.5 }} />
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              minWidth: 160,
+              gap: 1,
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+              <Box sx={{ width: 8, height: 8, flexShrink: 0 }} />
+              <Typography variant="body2">Total</Typography>
+            </Box>
+            <Typography variant="body2">{formatY ? formatY(totalY) : String(totalY)}</Typography>
+          </Box>
+        </>
+      )}
     </Paper>
   );
 }

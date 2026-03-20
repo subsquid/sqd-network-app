@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useId, useMemo } from 'react';
 
 import { curveMonotoneX } from '@visx/curve';
 import { AreaClosed, LinePath } from '@visx/shape';
@@ -31,6 +31,8 @@ export function LineRenderer({
   strokeWidth,
   fillOpacity,
 }: LineRendererProps) {
+  const instanceId = useId().replace(/:/g, '');
+
   const data = useMemo((): DataPoint[] => {
     const result: DataPoint[] = [];
     for (const d of series.data) {
@@ -41,9 +43,10 @@ export function LineRenderer({
     return result;
   }, [series.data]);
 
+  // IDs must be unique in the document; series names repeat across charts (e.g. "Delegations").
   const gradientId = useMemo(
-    () => `gradient-${series.name?.replace(/\s+/g, '-') ?? ''}`,
-    [series.name],
+    () => `gradient-${series.name?.replace(/\s+/g, '-') || 'series'}-${instanceId}`,
+    [series.name, instanceId],
   );
 
   if (data.length === 0) return null;

@@ -176,6 +176,7 @@ interface ChartSeriesRendererProps {
   height: number;
   margin: { top: number; right: number; bottom: number; left: number };
   tooltipFormat?: ChartFormatters;
+  tooltipShowTotal?: boolean;
   strokeWidth: number;
   fillOpacity: number;
   barBorderRadius: number;
@@ -191,6 +192,7 @@ function ChartSeriesRenderer({
   height,
   margin,
   tooltipFormat,
+  tooltipShowTotal,
   strokeWidth,
   fillOpacity,
   barBorderRadius,
@@ -345,6 +347,7 @@ function ChartSeriesRenderer({
             series={series}
             palette={palette}
             tooltipFormat={tooltipFormat}
+            tooltipShowTotal={tooltipShowTotal}
           />
         </TooltipInPortal>
       )}
@@ -356,6 +359,7 @@ export function LineChart({
   series,
   axisFormat,
   tooltipFormat,
+  tooltipShowTotal = true,
   xAxis,
   yAxis,
   strokeWidth = 2,
@@ -426,6 +430,7 @@ export function LineChart({
                   height={yMax}
                   margin={margin}
                   tooltipFormat={tooltipFormat}
+                  tooltipShowTotal={tooltipShowTotal}
                   strokeWidth={strokeWidth}
                   fillOpacity={fillOpacity}
                   barBorderRadius={barBorderRadius}

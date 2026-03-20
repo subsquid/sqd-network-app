@@ -77,6 +77,8 @@ export interface ChartProps {
   yAxis?: AxisRange<number>;
   tooltipFormat?: ChartFormatters;
   axisFormat?: ChartFormatters;
+  /** When true (default), tooltip shows a Total row for multi-row tooltips. */
+  tooltipShowTotal?: boolean;
   // Visual styling
   strokeWidth?: number;
   fillOpacity?: number;
