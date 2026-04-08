@@ -488,7 +488,7 @@ export type Block = {
   hash: Scalars['String']['output'];
   height: Scalars['Int']['output'];
   id: Scalars['String']['output'];
-  l1BlockNumber: Scalars['Int']['output'];
+  l1BlockNumber?: Maybe<Scalars['Int']['output']>;
   timestamp: Scalars['DateTime']['output'];
 };
 
