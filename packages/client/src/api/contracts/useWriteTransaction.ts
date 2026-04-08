@@ -1,14 +1,19 @@
 import * as Sentry from '@sentry/react';
 import { useMutation } from '@tanstack/react-query';
-import { readContract, waitForTransactionReceipt, writeContract } from '@wagmi/core';
+import {
+  getPublicClient,
+  readContract,
+  waitForTransactionReceipt,
+  writeContract,
+} from '@wagmi/core';
 import toast from 'react-hot-toast';
 import {
-  Abi,
-  Address,
-  ContractFunctionArgs,
+  type Abi,
+  type Address,
+  type ContractFunctionArgs,
   ContractFunctionExecutionError,
-  ContractFunctionName,
-  TransactionReceipt,
+  type ContractFunctionName,
+  type TransactionReceipt,
   createPublicClient,
   encodeFunctionData,
   erc20Abi,
@@ -21,7 +26,7 @@ import { useContracts } from '@hooks/network/useContracts';
 import { NetworkName, getSubsquidNetwork } from '@hooks/network/useSubsquidNetwork';
 
 import { vestingAbi } from './subsquid.generated';
-import { errorMessage } from './utils';
+import { errorMessage, isUserRejection } from './utils';
 
 type WriteTransactionParams<TAbi extends Abi, TFunctionName extends ContractFunctionName<TAbi>> = {
   abi: TAbi;
@@ -124,22 +129,27 @@ export function useWriteSQDTransaction({}: object = {}): WriteTransactionResult 
         const receipt = await waitForTransactionReceipt(config, { hash });
 
         if (receipt.status === 'reverted') {
+          await replayRevertedCall(config, params, account.address!, receipt);
           throw new Error('Transaction reverted');
         }
 
         return receipt;
       } catch (e) {
-        if (e instanceof Error && !/rejected/i.test(e.message)) {
-          let params: any;
+        if (isUserRejection(e)) {
+          throw e;
+        }
+
+        if (e instanceof Error) {
+          let extra: Record<string, unknown> | undefined;
 
           if (e instanceof ContractFunctionExecutionError) {
             const { abi, functionName, args } = e;
-            params = { abi, functionName, args };
+            extra = { abi, functionName, args };
           }
 
           Sentry.captureException(e, {
             extra: {
-              args: params,
+              args: extra,
               connections: JSON.stringify(
                 Array.from(config.state.connections.values()).map(c => ({
                   accounts: c.accounts,
@@ -156,7 +166,7 @@ export function useWriteSQDTransaction({}: object = {}): WriteTransactionResult 
           });
         }
 
-        const message = errorMessage(e);
+        const message = errorMessage(e, [params.abi]);
 
         toast.error(message);
 
@@ -202,6 +212,38 @@ function simulateTenderly(opts: any) {
         ],
       } as any)
       .catch(() => {});
+  }
+}
+
+/**
+ * Re-simulate a reverted transaction at the block it failed to extract
+ * the actual revert reason. The simulation error (if any) is thrown so it
+ * can be decoded by `errorMessage`.
+ */
+async function replayRevertedCall(
+  config: ReturnType<typeof useConfig>,
+  params: WriteTransactionParams<Abi, ContractFunctionName<Abi>>,
+  sender: Address,
+  receipt: TransactionReceipt,
+) {
+  try {
+    const client = getPublicClient(config);
+    if (!client) return;
+
+    const data = encodeFunctionData({
+      abi: params.abi,
+      functionName: params.functionName,
+      args: params.args,
+    } as Parameters<typeof encodeFunctionData>[0]);
+
+    await client.call({
+      account: sender,
+      to: params.address,
+      data,
+      blockNumber: receipt.blockNumber,
+    });
+  } catch (revertError) {
+    throw revertError;
   }
 }
 
