@@ -733,6 +733,10 @@ export function ProvideButton({ poolId }: ProvideButtonProps) {
   const { isDisabled, disabledReason } = useMemo(() => {
     if (!pool || !userData) return { isDisabled: true, disabledReason: '' };
 
+    if (pool.phase === 'failed' || pool.phase === 'closed') {
+      return { isDisabled: true, disabledReason: PROVIDE_DIALOG_TEXTS.tooltips.poolNotAccepting };
+    }
+
     const isNotWhitelisted = userData?.whitelistEnabled && !userData?.isWhitelisted;
     if (isNotWhitelisted) {
       return { isDisabled: true, disabledReason: PROVIDE_DIALOG_TEXTS.tooltips.notWhitelisted };

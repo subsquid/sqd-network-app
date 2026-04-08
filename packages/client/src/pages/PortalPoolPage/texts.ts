@@ -17,6 +17,9 @@ export const HEALTH_TEXTS = {
       'Accepting tokens to activate the pool. Pool activates once minimum threshold is met. If not met by deadline, you can withdraw all your tokens.',
     idle: 'Pool is paused due to insufficient liquidity. Rewards are not being distributed. Pool reactivates when liquidity increases above minimum threshold.',
     debt: 'Pool has run out of USDC rewards. No rewards are being distributed. Contact the pool operator to add more USDC to resume rewards.',
+    failed: 'Pool has failed. No rewards are being distributed. You can withdraw your tokens.',
+    closed:
+      'Pool has been closed by admin. You can withdraw your tokens immediately and claim any pending rewards.',
   },
   bar: {
     provisionWindowLabel: 'Provision window closes in',
@@ -166,8 +169,39 @@ export const DELEGATE_TEXTS = {
 export const TOP_UP_DIALOG_TEXTS = {
   title: 'Top Up Pool Rewards',
   description: (symbol: string) =>
-    `Add ${symbol} rewards to the pool. These funds will be distributed to providers based on their pool share.`,
-  amountLabel: 'Amount',
+    `Enter the total ${symbol} to add. The pool contract splits provider credit, worker pool, and burn per the fee router; worker and burn portions are swapped toward SQD when enabled.`,
+  amountLabel: 'Total',
+  feeRouterConnecting: 'Connecting to fee router…',
+  feeConfigError: 'Failed to load fee configuration. Check your network connection.',
+  splitPreviewTitle: 'Fee split preview',
+  splitPreviewTooltip:
+    'Estimated shares from on-chain fee settings (basis points). Worker and burn rows show approximate SQD from the current SQD/USD price when the reward token is treated as USD-pegged. Actual amounts may differ.',
+  splitRowBuybackSpotTotal: 'Buyback total (spot ~SQD)',
+  rowRewards: 'Rewards',
+  rowWorker: 'Worker pool',
+  rowBurn: 'Burn',
+  slippageTitle: 'Max. slippage',
+  slippageAutoLabel: 'Auto',
+  slippageAutoHint: 'Uses on-chain TWAP price for the SQD buyback. No minimum SQD enforced.',
+  slippageCustomHint:
+    'Maximum price movement you accept. If the buyback returns less SQD than the computed minimum, the transaction reverts.',
+  slippageHighWarning: 'High slippage — your transaction may be frontrun.',
+  slippageLowWarning: 'Very low slippage — your transaction is likely to fail.',
+  slippageNotStableNote:
+    'Percentage-based slippage protection is only available for USD-pegged reward tokens. Using Auto mode.',
+  slippageMinReceived: (sqd: string) => `Min. received: ~${sqd}`,
+  slippageMinReceivedHint:
+    'Minimum SQD the contract will accept from the buyback. Computed from spot price minus your slippage tolerance.',
+  SLIPPAGE_PRESETS: [0.5, 1, 2, 5] as const,
+  DEFAULT_SLIPPAGE_PCT: '1',
+  slippageBlocked: {
+    loadingPrice: 'Loading SQD price…',
+    loadingPreview: 'Loading fee settings…',
+    stableOnly: 'Min. SQD estimate requires a USD-pegged reward token.',
+    noPrice: 'SQD price unavailable.',
+    noSwap: 'No SQD buyback for this amount.',
+    enterAmount: 'Enter an amount first.',
+  },
 } as const;
 
 // Withdraw Dialog
@@ -187,6 +221,18 @@ export const WITHDRAW_DIALOG_TEXTS = {
   tooltips: {
     collecting: 'You cannot withdraw funds while the pool is still collecting',
     nothingToWithdraw: 'Nothing to withdraw',
+  },
+  failedWithdraw: {
+    title: 'Withdraw from Failed Pool',
+    description:
+      'This pool failed to activate before the deadline. Your full balance will be returned immediately.',
+    button: 'WITHDRAW ALL',
+  },
+  closedWithdraw: {
+    title: 'Emergency Withdraw',
+    description:
+      'This pool has been closed. Your full balance will be returned immediately without a waiting period.',
+    button: 'EMERGENCY WITHDRAW',
   },
 } as const;
 
@@ -213,6 +259,7 @@ export const PROVIDE_DIALOG_TEXTS = {
   tooltips: {
     poolAtCapacity: 'Pool is at maximum capacity',
     notWhitelisted: 'You are not whitelisted for this pool',
+    poolNotAccepting: 'Pool is no longer accepting deposits',
   },
 } as const;
 

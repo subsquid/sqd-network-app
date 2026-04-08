@@ -8,7 +8,7 @@ import type { ERC20TokenData } from '@hooks/network/useERC20';
 // - 'idle': Buffer dropped below minimum, yields stopped
 // - 'debt': Pool is in debt, yields stopped
 // - 'failed': Pool has failed, yields stopped
-export type PoolPhase = 'collecting' | 'active' | 'debt' | 'idle' | 'failed' | 'unknown';
+export type PoolPhase = 'collecting' | 'active' | 'debt' | 'idle' | 'failed' | 'closed' | 'unknown';
 
 export interface PoolOperator {
   name: string;

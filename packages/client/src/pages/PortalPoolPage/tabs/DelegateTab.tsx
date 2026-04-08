@@ -148,6 +148,9 @@ function getClaimRewardsTooltip(phase: PoolPhase, tokenSymbol: string): string {
       return DELEGATE_TEXTS.alerts.idle(tokenSymbol);
     case 'debt':
       return DELEGATE_TEXTS.alerts.debt;
+    case 'failed':
+    case 'closed':
+      return '';
     default:
       return '';
   }

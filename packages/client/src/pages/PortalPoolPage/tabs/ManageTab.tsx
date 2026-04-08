@@ -34,7 +34,12 @@ export function ManageTab({ poolId }: ManageTabProps) {
 
   const canEdit = useMemo(() => {
     if (!pool?.phase) return false;
-    return pool.phase !== 'collecting' && pool.phase !== 'debt' && pool.phase !== 'failed';
+    return (
+      pool.phase !== 'collecting' &&
+      pool.phase !== 'debt' &&
+      pool.phase !== 'failed' &&
+      pool.phase !== 'closed'
+    );
   }, [pool?.phase]);
 
   if (!pool && !poolLoading) return null;
