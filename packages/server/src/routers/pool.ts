@@ -369,7 +369,7 @@ export const poolRouter = router({
         total: fromSqd(totalStaked),
       },
       depositWindowEndsAt,
-      maxDepositPerAddress: fromSqd(BigInt(toSqd(100_000))),
+      maxDepositPerAddress: fromSqd(BigInt(toSqd(250_000))),
       lptToken,
       rewardToken,
       createdAt,
