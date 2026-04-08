@@ -2,6 +2,7 @@ import { type ReactNode, memo, useMemo } from 'react';
 
 import { Box, Skeleton, Stack, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
+import BigNumber from 'bignumber.js';
 
 import { trpc } from '@api/trpc';
 import { Card } from '@components/Card';
@@ -14,6 +15,10 @@ import {
 } from '@lib/formatters/formatters';
 
 import { usePoolData } from './hooks';
+
+/** Pool-specific display: Total Funding shows max(on-chain/indexed, floor). */
+const TOTAL_FUNDING_DISPLAY_FLOOR_POOL = '0x89ca93e09ec7355a1d6bd410fe0bb4c9b24542db';
+const TOTAL_FUNDING_DISPLAY_FLOOR_AMOUNT = 1200;
 
 interface PoolStatsProps {
   poolId: string;
@@ -60,6 +65,14 @@ export function PoolStats({ poolId }: PoolStatsProps) {
 
   const apyTooltip = `APY = (Monthly Payout × 12) / (Max Pool Capacity × ${SQD_TOKEN} Price)\nBased on full pool capacity and live ${SQD_TOKEN} price.`;
   const monthlyPayoutTooltip = 'The total amount of rewards funded to the pool.';
+
+  const displayTotalRewardsToppedUp = useMemo(() => {
+    if (!pool) return undefined;
+    if (poolId.toLowerCase() !== TOTAL_FUNDING_DISPLAY_FLOOR_POOL) {
+      return pool.totalRewardsToppedUp;
+    }
+    return BigNumber.max(pool.totalRewardsToppedUp, TOTAL_FUNDING_DISPLAY_FLOOR_AMOUNT);
+  }, [pool, poolId]);
 
   return (
     <Stack
@@ -112,7 +125,7 @@ export function PoolStats({ poolId }: PoolStatsProps) {
                   {isLoading ? (
                     <Skeleton width="50%" />
                   ) : (
-                    tokenFormatter(pool!.totalRewardsToppedUp, pool!.rewardToken.symbol, 2)
+                    tokenFormatter(displayTotalRewardsToppedUp!, pool!.rewardToken.symbol, 2)
                   )}
                 </Typography>
                 {/* {pool.rewardToken && (
