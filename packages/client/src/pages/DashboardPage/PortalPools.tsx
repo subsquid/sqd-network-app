@@ -1,16 +1,7 @@
 import { useMemo } from 'react';
 
 import { dateFormat } from '@i18n';
-import {
-  Chip,
-  Skeleton,
-  Stack,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Tooltip,
-} from '@mui/material';
+import { Chip, Stack, TableBody, TableCell, TableHead, TableRow, Tooltip } from '@mui/material';
 import {
   getPhaseColor,
   getPhaseLabel,
@@ -18,14 +9,12 @@ import {
 } from '@pages/PortalPoolPage/utils/poolUtils';
 import { useQuery } from '@tanstack/react-query';
 import { BigNumber } from 'bignumber.js';
-import classNames from 'classnames';
 
 import { trpc } from '@api/trpc';
 import type { RouterOutput } from '@api/types';
 import { Card } from '@components/Card';
 import { NameWithAvatar } from '@components/SourceWalletName';
 import { ClickableTableRow, DashboardTable, InteractiveCell, NoItems } from '@components/Table';
-import { BarWrapper, StyledBar } from '@components/Worker/DelegationCapacity';
 import { useContracts } from '@hooks/network/useContracts';
 import {
   addressFormatter,
@@ -80,6 +69,7 @@ function PoolRow({ pool, sqdPrice }: { pool: PortalPool; sqdPrice?: number }) {
           }
           subtitle={addressFormatter(pool.id, true)}
           avatarValue={pool.id}
+          avatarName={pool.name ?? ''}
           sx={{ width: 'auto' }}
         />
       </TableCell>

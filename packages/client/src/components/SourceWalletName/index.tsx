@@ -14,6 +14,8 @@ export interface NameWithAvatarProps {
   title: React.ReactNode;
   subtitle: React.ReactNode;
   avatarValue?: string;
+  /** Use for avatar initials when `title` is not a plain string (e.g. includes chips). */
+  avatarName?: string;
   sx?: SxProps;
 }
 
@@ -22,7 +24,11 @@ function avatarNameFromProps(
   title: React.ReactNode,
   avatarValue: string | undefined,
   subtitle: React.ReactNode,
+  avatarName: string | undefined,
 ): string {
+  if (avatarName !== undefined) {
+    return avatarName;
+  }
   if (typeof title === 'string' || typeof title === 'number') {
     return String(title);
   }
@@ -35,8 +41,14 @@ function avatarNameFromProps(
   return '';
 }
 
-export function NameWithAvatar({ title, subtitle, avatarValue, sx }: NameWithAvatarProps) {
-  const nameForAvatar = avatarNameFromProps(title, avatarValue, subtitle);
+export function NameWithAvatar({
+  title,
+  subtitle,
+  avatarValue,
+  avatarName,
+  sx,
+}: NameWithAvatarProps) {
+  const nameForAvatar = avatarNameFromProps(title, avatarValue, subtitle, avatarName);
   const colorDiscriminator = avatarValue || nameForAvatar;
 
   return (
