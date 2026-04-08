@@ -79,6 +79,33 @@ export const portalPoolFactoryAbi = [
   },
   {
     type: 'function',
+    name: 'createPortalPool',
+    inputs: [
+      {
+        name: 'params',
+        type: 'tuple',
+        internalType: 'struct IPortalFactory.CreatePortalPoolParams',
+        components: [
+          { name: 'operator', type: 'address', internalType: 'address' },
+          { name: 'capacity', type: 'uint256', internalType: 'uint256' },
+          { name: 'tokenSuffix', type: 'string', internalType: 'string' },
+          { name: 'distributionRatePerSecond', type: 'uint256', internalType: 'uint256' },
+          { name: 'initialDeposit', type: 'uint256', internalType: 'uint256' },
+          { name: 'metadata', type: 'string', internalType: 'string' },
+          { name: 'rewardToken', type: 'address', internalType: 'address' },
+        ],
+      },
+      {
+        name: 'initialDepositMinSqdOut',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    outputs: [{ name: 'portal', type: 'address', internalType: 'address' }],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
     name: 'defaultMaxStakePerWallet',
     inputs: [],
     outputs: [{ name: '', type: 'uint256', internalType: 'uint256' }],

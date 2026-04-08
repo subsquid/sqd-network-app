@@ -1,5 +1,6 @@
 export { arbMulticallAbi } from './arbMulticall';
 export { buyBackAbi } from './buyBack';
+export { feeRouterAbi } from './feeRouter';
 export { gatewayRegistryAbi } from './gatewayRegistry';
 export { networkControllerAbi } from './networkController';
 export { portalPoolAbi } from './portalPool';
