@@ -26,17 +26,6 @@ const SQD_DECIMALS = 18;
 const DISTRIBUTION_RATE_BPS = 1000;
 const POOLS_LIST_LIMIT = 500;
 
-/** Indexed total funding under-reports for this pool; API returns max(indexed, floor) in reward token units. */
-const TOTAL_FUNDING_DISPLAY_FLOOR_POOL_ID = '0x89ca93e09ec7355a1d6bd410fe0bb4c9b24542db';
-const TOTAL_FUNDING_DISPLAY_FLOOR_HUMAN = 1200;
-
-function withTotalFundingDisplayFloor(poolId: string, humanAmountDecimal: string): string {
-  if (poolId.toLowerCase() !== TOTAL_FUNDING_DISPLAY_FLOOR_POOL_ID) {
-    return humanAmountDecimal;
-  }
-  return BigNumber.max(humanAmountDecimal, TOTAL_FUNDING_DISPLAY_FLOOR_HUMAN).toFixed();
-}
-
 function fromSqd(value: bigint | string | number): string {
   return BigNumber(value.toString()).shiftedBy(-SQD_DECIMALS).toFixed();
 }
@@ -213,10 +202,9 @@ export const poolRouter = router({
             .toFixed()
         : '0';
 
-      const totalRewardsToppedUpRaw = rewardToken
+      const totalRewardsToppedUp = rewardToken
         ? BigNumber(pool.totalRewardsToppedUp).shiftedBy(-rewardToken.decimals).toFixed()
         : '0';
-      const totalRewardsToppedUp = withTotalFundingDisplayFloor(pool.id, totalRewardsToppedUpRaw);
 
       const whitelistEnabled =
         whitelistResults[i].status === 'success' ? (whitelistResults[i].result as boolean) : false;
@@ -358,10 +346,9 @@ export const poolRouter = router({
       .shiftedBy(-rewardToken.decimals)
       .toFixed();
 
-    const totalRewardsToppedUpRaw = BigNumber(poolIndexedData.poolById?.totalRewardsToppedUp ?? '0')
+    const totalRewardsToppedUp = BigNumber(poolIndexedData.poolById?.totalRewardsToppedUp ?? '0')
       .shiftedBy(-rewardToken.decimals)
       .toFixed();
-    const totalRewardsToppedUp = withTotalFundingDisplayFloor(poolId, totalRewardsToppedUpRaw);
 
     return {
       id: poolId,
@@ -382,7 +369,7 @@ export const poolRouter = router({
         total: fromSqd(totalStaked),
       },
       depositWindowEndsAt,
-      maxDepositPerAddress: fromSqd(BigInt(toSqd(100_000))),
+      maxDepositPerAddress: fromSqd(BigInt(toSqd(250_000))),
       lptToken,
       rewardToken,
       createdAt,
