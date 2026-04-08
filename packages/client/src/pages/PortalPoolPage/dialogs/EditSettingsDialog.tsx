@@ -16,7 +16,6 @@ import { useContracts } from '@hooks/network/useContracts';
 import { toSqd } from '@lib/network';
 
 import { usePoolData } from '../hooks';
-import { EDIT_SETTINGS_DIALOG_TEXTS } from '../texts';
 import { invalidatePoolQueries } from '../utils/poolUtils';
 
 // Edit Capacity Dialog
@@ -84,7 +83,7 @@ export function EditCapacityDialog({ open, onClose, poolId }: EditCapacityDialog
 
   return (
     <ContractCallDialog
-      title={EDIT_SETTINGS_DIALOG_TEXTS.editCapacity.title}
+      title="Edit Max Pool Capacity"
       open={open}
       onResult={handleResult}
       loading={isPending}
@@ -96,7 +95,7 @@ export function EditCapacityDialog({ open, onClose, poolId }: EditCapacityDialog
         <FormRow>
           <FormikTextInput
             id="capacity"
-            label={EDIT_SETTINGS_DIALOG_TEXTS.editCapacity.label(SQD_TOKEN)}
+            label={`Max Pool Capacity (${SQD_TOKEN})`}
             formik={formik}
             showErrorOnlyOfTouched
             autoComplete="off"
@@ -207,7 +206,7 @@ export function EditDistributionRateDialog({
 
   return (
     <ContractCallDialog
-      title={EDIT_SETTINGS_DIALOG_TEXTS.editDistributionRate.title}
+      title="Edit Distribution Rate"
       open={open}
       onResult={handleResult}
       loading={isPending}
@@ -219,9 +218,7 @@ export function EditDistributionRateDialog({
         <FormRow>
           <FormikTextInput
             id="distributionRate"
-            label={EDIT_SETTINGS_DIALOG_TEXTS.editDistributionRate.label(
-              pool?.rewardToken.symbol || '',
-            )}
+            label={`Distribution Rate (${pool?.rewardToken.symbol || ''}/day)`}
             formik={formik}
             showErrorOnlyOfTouched
             autoComplete="off"

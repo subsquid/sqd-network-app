@@ -9,8 +9,6 @@ import { LineChart, SharedCursorProvider } from '@components/Chart';
 import { useContracts } from '@hooks/network/useContracts';
 import { tokenFormatter } from '@lib/formatters/formatters';
 
-import { CHART_TEXTS } from './texts';
-
 type TimePeriod = '1w' | '1m' | '3m';
 type ChartType = 'apy' | 'tvl';
 
@@ -55,7 +53,7 @@ function ApyLineChart({ poolId, range }: ApyLineChartProps) {
 
     return [
       {
-        name: CHART_TEXTS.labels.apy,
+        name: 'APY',
         type: 'line' as const,
         color: '#4A90E2',
         data: chartData.data.map(entry => ({
@@ -195,16 +193,20 @@ export function PoolYieldChart({ poolId }: PoolYieldChartProps) {
     <Card
       title={
         <ToggleButtonGroup value={chartType} exclusive onChange={handleChartTypeChange}>
-          <ToggleButton value="apy">{CHART_TEXTS.labels.apy}</ToggleButton>
-          <ToggleButton value="tvl">{CHART_TEXTS.labels.tvl}</ToggleButton>
+          <ToggleButton value="apy">APY</ToggleButton>
+          <ToggleButton value="tvl">TVL</ToggleButton>
         </ToggleButtonGroup>
       }
-      subtitle={CHART_TEXTS.subtitle[chartType](SQD_TOKEN)}
+      subtitle={
+        chartType === 'apy'
+          ? `Historical APY based on past ${SQD_TOKEN} token prices.`
+          : `Historical TVL showing provided ${SQD_TOKEN} tokens over time.`
+      }
       action={
         <ToggleButtonGroup value={period} exclusive onChange={handlePeriodChange}>
-          <ToggleButton value="1w">{CHART_TEXTS.periods.oneWeek}</ToggleButton>
-          <ToggleButton value="1m">{CHART_TEXTS.periods.oneMonth}</ToggleButton>
-          <ToggleButton value="3m">{CHART_TEXTS.periods.threeMonths}</ToggleButton>
+          <ToggleButton value="1w">1W</ToggleButton>
+          <ToggleButton value="1m">1M</ToggleButton>
+          <ToggleButton value="3m">3M</ToggleButton>
         </ToggleButtonGroup>
       }
     >

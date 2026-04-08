@@ -13,7 +13,6 @@ import { tokenFormatter } from '@lib/formatters/formatters';
 import { EditCapacityButton, EditDistributionRateButton } from '../dialogs/EditSettingsDialog';
 import { TopUpButton } from '../dialogs/TopUpDialog';
 import { usePoolData } from '../hooks';
-import { MANAGE_TEXTS } from '../texts';
 
 interface ManageTabProps {
   poolId: string;
@@ -49,8 +48,8 @@ export function ManageTab({ poolId }: ManageTabProps) {
       <Card
         title={
           <Stack direction="row" alignItems="center" spacing={0.5}>
-            <span>{MANAGE_TEXTS.rewardPoolBalance.label}</span>
-            <HelpTooltip title={MANAGE_TEXTS.rewardPoolBalance.tooltip} />
+            <span>Reward Pool Balance</span>
+            <HelpTooltip title="Total rewards available for distribution to providers." />
           </Stack>
         }
       >
@@ -77,7 +76,7 @@ export function ManageTab({ poolId }: ManageTabProps) {
       <Card
         title={
           <Stack direction="row" alignItems="center" spacing={0.5}>
-            <span>{MANAGE_TEXTS.poolSettings}</span>
+            <span>Pool Settings</span>
           </Stack>
         }
       >
@@ -86,8 +85,8 @@ export function ManageTab({ poolId }: ManageTabProps) {
             <Stack spacing={0.5}>
               <Typography variant="body2" color="text.secondary">
                 <Stack direction="row" alignItems="center" spacing={0.5}>
-                  <span>{MANAGE_TEXTS.distributionRate.label}</span>
-                  <HelpTooltip title={MANAGE_TEXTS.distributionRate.tooltip} />
+                  <span>Distribution Rate</span>
+                  <HelpTooltip title="Daily reward amount distributed to providers. Monthly payout = rate × 30 days." />
                 </Stack>
               </Typography>
               <Typography>
@@ -96,7 +95,7 @@ export function ManageTab({ poolId }: ManageTabProps) {
                     {poolLoading ? (
                       <Skeleton width={100} />
                     ) : (
-                      `${pool!.distributionRatePerSecond.times(86400).toFixed(2)} ${pool!.rewardToken.symbol}${MANAGE_TEXTS.distributionRate.unit}`
+                      `${pool!.distributionRatePerSecond.times(86400).toFixed(2)} ${pool!.rewardToken.symbol}/day`
                     )}
                   </span>
                   {!poolLoading && (
@@ -109,8 +108,10 @@ export function ManageTab({ poolId }: ManageTabProps) {
             <Stack spacing={0.5}>
               <Typography variant="body2" color="text.secondary">
                 <Stack direction="row" alignItems="center" spacing={0.5}>
-                  <span>{MANAGE_TEXTS.maxPoolCapacity.label}</span>
-                  <HelpTooltip title={MANAGE_TEXTS.maxPoolCapacity.tooltip(SQD_TOKEN)} />
+                  <span>Max Pool Capacity</span>
+                  <HelpTooltip
+                    title={`Maximum ${SQD_TOKEN} that can be provided. Higher capacity allows more providers to participate.`}
+                  />
                 </Stack>
               </Typography>
               <Typography>

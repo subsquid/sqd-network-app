@@ -14,7 +14,6 @@ import { FormRow, FormikTextInput } from '@components/Form';
 import { Loader } from '@components/Loader';
 
 import { usePoolData } from '../hooks';
-import { EDIT_METADATA_DIALOG_TEXTS } from '../texts';
 import { invalidatePoolQueries } from '../utils/poolUtils';
 
 interface EditMetadataDialogProps {
@@ -102,7 +101,7 @@ export function EditMetadataDialog({ open, onClose, poolId }: EditMetadataDialog
 
   return (
     <ContractCallDialog
-      title={EDIT_METADATA_DIALOG_TEXTS.title}
+      title="Edit Pool Metadata"
       open={open}
       onResult={handleResult}
       loading={isPending}
@@ -115,7 +114,7 @@ export function EditMetadataDialog({ open, onClose, poolId }: EditMetadataDialog
           <FormRow>
             <FormikTextInput
               id="name"
-              label={EDIT_METADATA_DIALOG_TEXTS.nameLabel}
+              label="Pool Name"
               formik={formik}
               showErrorOnlyOfTouched
               autoComplete="off"
@@ -125,7 +124,7 @@ export function EditMetadataDialog({ open, onClose, poolId }: EditMetadataDialog
           <FormRow>
             <FormikTextInput
               id="description"
-              label={EDIT_METADATA_DIALOG_TEXTS.descriptionLabel}
+              label="Description"
               formik={formik}
               showErrorOnlyOfTouched
               autoComplete="off"
@@ -137,7 +136,7 @@ export function EditMetadataDialog({ open, onClose, poolId }: EditMetadataDialog
           <FormRow>
             <FormikTextInput
               id="website"
-              label={EDIT_METADATA_DIALOG_TEXTS.websiteLabel}
+              label="Website"
               formik={formik}
               showErrorOnlyOfTouched
               autoComplete="off"

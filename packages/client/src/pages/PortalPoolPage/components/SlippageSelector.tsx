@@ -14,10 +14,9 @@ import {
 
 import { HelpTooltip } from '@components/HelpTooltip';
 
-import { TOP_UP_DIALOG_TEXTS } from '../texts';
 import { formatTopUpAmountLine } from '../utils/topUpRewardsFormat';
 
-const T = TOP_UP_DIALOG_TEXTS;
+const SLIPPAGE_PRESETS = [0.5, 1, 2, 5] as const;
 
 const HIGH_SLIPPAGE_THRESHOLD = 5;
 const LOW_SLIPPAGE_THRESHOLD = 0.05;
@@ -41,7 +40,7 @@ export function SlippageSelector({
   sqdSymbol,
   onChange,
 }: SlippageSelectorProps) {
-  const presetStrings = useMemo(() => T.SLIPPAGE_PRESETS.map(String), []);
+  const presetStrings = useMemo(() => SLIPPAGE_PRESETS.map(String), []);
 
   const toggleValue = useMemo(() => {
     if (isAuto) return 'auto';
@@ -74,20 +73,21 @@ export function SlippageSelector({
 
   const minReceivedText = useMemo(() => {
     if (isAuto || minSqdReceived == null) return null;
-    return T.slippageMinReceived(formatTopUpAmountLine(minSqdReceived, 18, sqdSymbol));
+    return `Min. received: ~${formatTopUpAmountLine(minSqdReceived, 18, sqdSymbol)}`;
   }, [isAuto, minSqdReceived, sqdSymbol]);
 
   return (
     <Stack spacing={1}>
-      <HelpTooltip title={T.slippageCustomHint}>
+      <HelpTooltip title="Maximum price movement you accept. If the buyback returns less SQD than the computed minimum, the transaction reverts.">
         <Typography component="span" variant="subtitle2" sx={{ fontWeight: 600 }}>
-          {T.slippageTitle}
+          Max. slippage
         </Typography>
       </HelpTooltip>
 
       {!isStableToken && (
         <Typography variant="caption" color="text.secondary">
-          {T.slippageNotStableNote}
+          Percentage-based slippage protection is only available for USD-pegged reward tokens. Using
+          Auto mode.
         </Typography>
       )}
 
@@ -99,8 +99,8 @@ export function SlippageSelector({
           size="small"
           disabled={!isStableToken}
         >
-          <ToggleButton value="auto">{T.slippageAutoLabel}</ToggleButton>
-          {T.SLIPPAGE_PRESETS.map(p => (
+          <ToggleButton value="auto">Auto</ToggleButton>
+          {SLIPPAGE_PRESETS.map(p => (
             <ToggleButton key={p} value={String(p)}>
               {p}%
             </ToggleButton>
@@ -108,7 +108,7 @@ export function SlippageSelector({
         </ToggleButtonGroup>
 
         {isStableToken && !isAuto && (
-          <Tooltip title={T.slippageCustomHint}>
+          <Tooltip title="Maximum price movement you accept. If the buyback returns less SQD than the computed minimum, the transaction reverts.">
             <OutlinedInput
               value={slippagePct}
               onChange={handleInputChange}
@@ -127,12 +127,12 @@ export function SlippageSelector({
 
       {showHighWarning && (
         <Alert severity="warning" variant="standard" sx={{ py: 0 }}>
-          {T.slippageHighWarning}
+          High slippage — your transaction may be frontrun.
         </Alert>
       )}
       {showLowWarning && (
         <Alert severity="warning" variant="standard" sx={{ py: 0 }}>
-          {T.slippageLowWarning}
+          Very low slippage — your transaction is likely to fail.
         </Alert>
       )}
 
@@ -143,7 +143,7 @@ export function SlippageSelector({
       )}
 
       {minReceivedText && !minSqdBlocked && (
-        <HelpTooltip title={T.slippageMinReceivedHint}>
+        <HelpTooltip title="Minimum SQD the contract will accept from the buyback. Computed from spot price minus your slippage tolerance.">
           <Typography
             component="span"
             variant="caption"

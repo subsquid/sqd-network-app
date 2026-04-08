@@ -19,7 +19,6 @@ import { tokenFormatter } from '@lib/formatters/formatters';
 import { toSqd } from '@lib/network';
 
 import { usePoolData, usePoolUserData } from '../hooks';
-import { WITHDRAW_DIALOG_TEXTS } from '../texts';
 import { calculateExpectedMonthlyPayout, invalidatePoolQueries } from '../utils/poolUtils';
 
 interface WithdrawDialogProps {
@@ -52,8 +51,16 @@ function ImmediateWithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps)
 
   const isFailed = pool?.phase === 'failed';
   const texts = isFailed
-    ? WITHDRAW_DIALOG_TEXTS.failedWithdraw
-    : WITHDRAW_DIALOG_TEXTS.closedWithdraw;
+    ? {
+        title: 'Withdraw from Failed Pool',
+        description:
+          'This pool failed to activate before the deadline. Your full balance will be returned immediately.',
+      }
+    : {
+        title: 'Emergency Withdraw',
+        description:
+          'This pool has been closed. Your full balance will be returned immediately without a waiting period.',
+      };
 
   const handleConfirm = useCallback(
     async (confirmed: boolean) => {
@@ -191,7 +198,7 @@ function ExitQueueWithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps)
 
   return (
     <ContractCallDialog
-      title={WITHDRAW_DIALOG_TEXTS.title}
+      title="Withdraw from Pool"
       open={open}
       onResult={handleResult}
       loading={isPending}
@@ -205,7 +212,7 @@ function ExitQueueWithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps)
           <FormRow>
             <FormikTextInput
               id="amount"
-              label={WITHDRAW_DIALOG_TEXTS.amountLabel}
+              label="Amount"
               formik={formik}
               showErrorOnlyOfTouched
               autoComplete="off"
@@ -227,9 +234,7 @@ function ExitQueueWithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps)
 
           <Stack spacing={1.5}>
             <Stack direction="row" justifyContent="space-between">
-              <Typography variant="body2">
-                {WITHDRAW_DIALOG_TEXTS.fields.totalDelegation}
-              </Typography>
+              <Typography variant="body2">Total Tokens</Typography>
               <Typography variant="body2">
                 {typedAmount.gt(0)
                   ? `${tokenFormatter(currentPoolTvl, '', 0).trim()} → ${tokenFormatter(expectedTotalDelegation, SQD_TOKEN, 0)}`
@@ -237,7 +242,7 @@ function ExitQueueWithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps)
               </Typography>
             </Stack>
             <Stack direction="row" justifyContent="space-between">
-              <Typography variant="body2">{WITHDRAW_DIALOG_TEXTS.fields.yourDelegation}</Typography>
+              <Typography variant="body2">Your Tokens</Typography>
               <Typography variant="body2">
                 {typedAmount.gt(0)
                   ? `${tokenFormatter(currentUserBalance, '', 2).trim()} → ${tokenFormatter(expectedUserDelegation, SQD_TOKEN, 2)}`
@@ -245,19 +250,15 @@ function ExitQueueWithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps)
               </Typography>
             </Stack>
             <Stack direction="row" justifyContent="space-between">
-              <Typography variant="body2">
-                {WITHDRAW_DIALOG_TEXTS.fields.expectedMonthlyPayout}
-              </Typography>
+              <Typography variant="body2">Expected Monthly Payout</Typography>
               <Typography variant="body2">
                 {tokenFormatter(userExpectedMonthlyPayout, pool.rewardToken.symbol, 2)}
               </Typography>
             </Stack>
             <Stack direction="row" justifyContent="space-between">
               <Stack direction="row" alignItems="center" spacing={0.5}>
-                <Typography variant="body2">
-                  {WITHDRAW_DIALOG_TEXTS.fields.expectedUnlockDate.label}
-                </Typography>
-                <HelpTooltip title={WITHDRAW_DIALOG_TEXTS.fields.expectedUnlockDate.tooltip} />
+                <Typography variant="body2">Expected Unlock Date</Typography>
+                <HelpTooltip title="Date when withdrawn funds will be available to claim. Withdrawal requests require a waiting period for pool security." />
               </Stack>
               <Typography variant="body2">
                 {dateFormat(
@@ -293,17 +294,17 @@ export function WithdrawButton({ poolId }: WithdrawButtonProps) {
 
   const tooltipTitle = useMemo(() => {
     if (pool?.phase === 'collecting') {
-      return WITHDRAW_DIALOG_TEXTS.tooltips.collecting;
+      return 'You cannot withdraw funds while the pool is still collecting';
     }
     if (!hasBalance) {
-      return WITHDRAW_DIALOG_TEXTS.tooltips.nothingToWithdraw;
+      return 'Nothing to withdraw';
     }
     return '';
   }, [pool?.phase, hasBalance]);
 
   const buttonLabel = useMemo(() => {
-    if (pool?.phase === 'failed') return WITHDRAW_DIALOG_TEXTS.failedWithdraw.button;
-    if (pool?.phase === 'closed') return WITHDRAW_DIALOG_TEXTS.closedWithdraw.button;
+    if (pool?.phase === 'failed') return 'WITHDRAW ALL';
+    if (pool?.phase === 'closed') return 'EMERGENCY WITHDRAW';
     return 'EXIT';
   }, [pool?.phase]);
 

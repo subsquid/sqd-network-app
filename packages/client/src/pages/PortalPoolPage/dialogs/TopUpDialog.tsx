@@ -18,7 +18,6 @@ import { Loader } from '@components/Loader';
 import { SlippageSelector } from '../components/SlippageSelector';
 import { SplitPreviewRow } from '../components/SplitPreviewRow';
 import { type FeePreviewState, type PoolData, usePoolData, useTopUpFeePreview } from '../hooks';
-import { TOP_UP_DIALOG_TEXTS } from '../texts';
 import { invalidatePoolQueries } from '../utils/poolUtils';
 import {
   formatTopUpAmountLine,
@@ -37,6 +36,8 @@ const styles: Record<string, SxProps<Theme>> = {
     fontWeight: 600,
   },
 };
+
+const DEFAULT_SLIPPAGE_PCT = '1';
 
 const validationSchema = yup.object({
   amount: yup
@@ -89,21 +90,21 @@ function TopUpDialogContent({
   if (isLoading) return <Loader />;
   if (!pool) return null;
 
-  const T = TOP_UP_DIALOG_TEXTS;
-
   const showSplitPreview =
     fee.feeRouterReady && !fee.feeConfigError && !fee.feeConfigLoading && fee.display;
 
   return (
     <Stack spacing={2.5}>
       <Typography variant="body2" color="text.secondary">
-        {T.description(pool.rewardToken.symbol)}
+        Enter the total {pool.rewardToken.symbol} to add. The pool contract splits provider credit,
+        worker pool, and burn per the fee router; worker and burn portions are swapped toward SQD
+        when enabled.
       </Typography>
 
       <FormRow>
         <FormikTextInput
           id="amount"
-          label={T.amountLabel}
+          label="Total"
           formik={formik}
           showErrorOnlyOfTouched
           autoComplete="off"
@@ -115,20 +116,20 @@ function TopUpDialogContent({
 
       {!fee.feeRouterReady && (
         <Typography variant="body2" color="text.secondary">
-          {T.feeRouterConnecting}
+          Connecting to fee router…
         </Typography>
       )}
 
       {fee.feeRouterReady && fee.feeConfigError && (
         <Typography variant="body2" color="error">
-          {T.feeConfigError}
+          Failed to load fee configuration. Check your network connection.
         </Typography>
       )}
 
       <Stack spacing={1}>
-        <HelpTooltip title={T.splitPreviewTooltip}>
+        <HelpTooltip title="Estimated shares from on-chain fee settings (basis points). Worker and burn rows show approximate SQD from the current SQD/USD price when the reward token is treated as USD-pegged. Actual amounts may differ.">
           <Typography component="span" variant="subtitle2" sx={styles.splitPreviewTitle}>
-            {T.splitPreviewTitle}
+            Fee split preview
           </Typography>
         </HelpTooltip>
 
@@ -143,7 +144,7 @@ function TopUpDialogContent({
         {showSplitPreview && fee.display && (
           <Stack spacing={1}>
             <SplitPreviewRow
-              label={T.rowRewards}
+              label="Rewards"
               feeBps={fee.providersFeeBps}
               value={formatTopUpAmountLine(
                 fee.display.providerCredit,
@@ -152,7 +153,7 @@ function TopUpDialogContent({
               )}
             />
             <SplitPreviewRow
-              label={T.rowWorker}
+              label="Worker pool"
               feeBps={fee.workerFeeBps}
               value={formatTopUpFeeApproxLine({
                 stableWei: fee.display.workerStable,
@@ -164,7 +165,7 @@ function TopUpDialogContent({
               })}
             />
             <SplitPreviewRow
-              label={T.rowBurn}
+              label="Burn"
               feeBps={fee.burnFeeBps}
               value={formatTopUpFeeApproxLine({
                 stableWei: fee.display.burnStable,
@@ -178,7 +179,7 @@ function TopUpDialogContent({
 
             {fee.buybackSpotSqdWei != null && (
               <SplitPreviewRow
-                label={T.splitRowBuybackSpotTotal}
+                label="Buyback total (spot ~SQD)"
                 value={`~${formatTopUpAmountLine(fee.buybackSpotSqdWei, 18, fee.sqdSymbol)}`}
                 bold
               />
@@ -211,7 +212,7 @@ export function TopUpDialog({ open, onClose, poolId }: TopUpDialogProps) {
     initialValues: {
       amount: '',
       isAutoSlippage: true,
-      slippagePct: TOP_UP_DIALOG_TEXTS.DEFAULT_SLIPPAGE_PCT,
+      slippagePct: DEFAULT_SLIPPAGE_PCT,
     },
     validationSchema,
     validateOnChange: true,
@@ -287,7 +288,7 @@ export function TopUpDialog({ open, onClose, poolId }: TopUpDialogProps) {
 
   return (
     <ContractCallDialog
-      title={TOP_UP_DIALOG_TEXTS.title}
+      title="Top Up Pool Rewards"
       open={open}
       onResult={handleResult}
       loading={isPending}

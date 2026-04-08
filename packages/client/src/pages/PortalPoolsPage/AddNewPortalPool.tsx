@@ -20,7 +20,6 @@ import {
   type FeePreviewState,
   useTopUpFeePreview,
 } from '@pages/PortalPoolPage/hooks';
-import { TOP_UP_DIALOG_TEXTS } from '@pages/PortalPoolPage/texts';
 import {
   formatTopUpAmountLine,
   formatTopUpFeeApproxLine,
@@ -172,14 +171,14 @@ function DepositStepContent({
 
   if (isLoading) return <Loader />;
 
-  const T = TOP_UP_DIALOG_TEXTS;
   const showSplitPreview =
     fee.feeRouterReady && !fee.feeConfigError && !fee.feeConfigLoading && fee.display;
 
   return (
     <Stack spacing={2.5}>
       <Typography variant="body2" color="text.secondary">
-        {T.description(tokenSymbol)}
+        Enter the total {tokenSymbol} to add. The pool contract splits provider credit, worker pool,
+        and burn per the fee router; worker and burn portions are swapped toward SQD when enabled.
       </Typography>
 
       <FormRow>
@@ -209,20 +208,20 @@ function DepositStepContent({
 
       {!fee.feeRouterReady && (
         <Typography variant="body2" color="text.secondary">
-          {T.feeRouterConnecting}
+          Connecting to fee router…
         </Typography>
       )}
 
       {fee.feeRouterReady && fee.feeConfigError && (
         <Typography variant="body2" color="error">
-          {T.feeConfigError}
+          Failed to load fee configuration. Check your network connection.
         </Typography>
       )}
 
       <Stack spacing={1}>
-        <HelpTooltip title={T.splitPreviewTooltip}>
+        <HelpTooltip title="Estimated shares from on-chain fee settings (basis points). Worker and burn rows show approximate SQD from the current SQD/USD price when the reward token is treated as USD-pegged. Actual amounts may differ.">
           <Typography component="span" variant="subtitle2" sx={depositStyles.splitPreviewTitle}>
-            {T.splitPreviewTitle}
+            Fee split preview
           </Typography>
         </HelpTooltip>
 
@@ -237,16 +236,12 @@ function DepositStepContent({
         {showSplitPreview && fee.display && (
           <Stack spacing={1}>
             <SplitPreviewRow
-              label={T.rowRewards}
+              label="Rewards"
               feeBps={fee.providersFeeBps}
-              value={formatTopUpAmountLine(
-                fee.display.providerCredit,
-                tokenDecimals,
-                tokenSymbol,
-              )}
+              value={formatTopUpAmountLine(fee.display.providerCredit, tokenDecimals, tokenSymbol)}
             />
             <SplitPreviewRow
-              label={T.rowWorker}
+              label="Worker pool"
               feeBps={fee.workerFeeBps}
               value={formatTopUpFeeApproxLine({
                 stableWei: fee.display.workerStable,
@@ -258,7 +253,7 @@ function DepositStepContent({
               })}
             />
             <SplitPreviewRow
-              label={T.rowBurn}
+              label="Burn"
               feeBps={fee.burnFeeBps}
               value={formatTopUpFeeApproxLine({
                 stableWei: fee.display.burnStable,
@@ -272,7 +267,7 @@ function DepositStepContent({
 
             {fee.buybackSpotSqdWei != null && (
               <SplitPreviewRow
-                label={T.splitRowBuybackSpotTotal}
+                label="Buyback total (spot ~SQD)"
                 value={`~${formatTopUpAmountLine(fee.buybackSpotSqdWei, 18, fee.sqdSymbol)}`}
                 bold
               />
@@ -359,7 +354,7 @@ function AddNewPortalDialog({
       earnings: '',
       initialDeposit: undefined,
       isAutoSlippage: true,
-      slippagePct: TOP_UP_DIALOG_TEXTS.DEFAULT_SLIPPAGE_PCT,
+      slippagePct: '',
     },
     validationSchema,
     validateOnChange: true,

@@ -7,7 +7,6 @@ import { useReadFeeRouterGetFeeConfig, useReadPortalPoolFactoryFeeRouter } from 
 import { trpc } from '@api/trpc';
 import { useContracts } from '@hooks/network/useContracts';
 
-import { TOP_UP_DIALOG_TEXTS } from '../texts';
 import {
   type TopUpDisplaySplit,
   approxExpectedSqdWeiFromStable,
@@ -103,15 +102,14 @@ export function useTopUpFeePreview(opts: {
 
   const minSqdBlockedReason = useMemo((): string | null => {
     if (opts.slippageBps === null) return null;
-    const b = TOP_UP_DIALOG_TEXTS.slippageBlocked;
-    if (!opts.rewardSymbol) return b.noPrice;
-    if (!isStableToken) return b.stableOnly;
-    if (sqdPriceLoading) return b.loadingPrice;
-    if (sqdPrice == null || sqdPrice <= 0) return b.noPrice;
-    if (!opts.parsedAmount || opts.parsedAmount === 0n) return b.enterAmount;
-    if (feeConfigError) return TOP_UP_DIALOG_TEXTS.feeConfigError;
-    if (feeConfigLoading || !display) return b.loadingPreview;
-    if (display.swapInputTotal === 0n) return b.noSwap;
+    if (!opts.rewardSymbol) return 'SQD price unavailable.';
+    if (!isStableToken) return 'Min. SQD estimate requires a USD-pegged reward token.';
+    if (sqdPriceLoading) return 'Loading SQD price…';
+    if (sqdPrice == null || sqdPrice <= 0) return 'SQD price unavailable.';
+    if (!opts.parsedAmount || opts.parsedAmount === 0n) return 'Enter an amount first.';
+    if (feeConfigError) return 'Failed to load fee configuration. Check your network connection.';
+    if (feeConfigLoading || !display) return 'Loading fee settings…';
+    if (display.swapInputTotal === 0n) return 'No SQD buyback for this amount.';
     return null;
   }, [
     opts.slippageBps,

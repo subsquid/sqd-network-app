@@ -14,7 +14,6 @@ import {
 } from '@lib/formatters/formatters';
 
 import { usePoolData } from './hooks';
-import { STATS_TEXTS } from './texts';
 
 interface PoolStatsProps {
   poolId: string;
@@ -44,7 +43,7 @@ const StatItem = memo(function StatItem({
 
 export function PoolStats({ poolId }: PoolStatsProps) {
   const { data: pool, isLoading } = usePoolData(poolId);
-  const { SQD_TOKEN, SQD } = useContracts();
+  const { SQD_TOKEN } = useContracts();
   const { data: sqdPrice } = useQuery(trpc.price.current.queryOptions());
 
   // APY = (distributionRatePerSecond / tvl.max) * secondsPerYear / sqdPrice
@@ -59,8 +58,8 @@ export function PoolStats({ poolId }: PoolStatsProps) {
       .toNumber();
   }, [pool, sqdPrice]);
 
-  const apyTooltip = STATS_TEXTS.apy.tooltip(SQD_TOKEN);
-  const monthlyPayoutTooltip = STATS_TEXTS.monthlyPayout.tooltip(SQD_TOKEN);
+  const apyTooltip = `APY = (Monthly Payout × 12) / (Max Pool Capacity × ${SQD_TOKEN} Price)\nBased on full pool capacity and live ${SQD_TOKEN} price.`;
+  const monthlyPayoutTooltip = 'The total amount of rewards funded to the pool.';
 
   return (
     <Stack
@@ -70,8 +69,8 @@ export function PoolStats({ poolId }: PoolStatsProps) {
     >
       <Card sx={{ flex: 1 }}>
         <StatItem
-          label={STATS_TEXTS.tvl.label}
-          tooltip={STATS_TEXTS.tvl.tooltip}
+          label="TVL"
+          tooltip="Total Value Locked: current amount provided to the pool (including pending withdrawals) out of the maximum pool capacity."
           value={
             <Stack direction="row" alignItems="baseline" spacing={0.5} flexWrap="wrap">
               <Typography variant="h6" component="span">
@@ -94,7 +93,7 @@ export function PoolStats({ poolId }: PoolStatsProps) {
       </Card>
       <Card sx={{ flex: 1 }}>
         <StatItem
-          label={STATS_TEXTS.apy.label}
+          label="APY"
           tooltip={apyTooltip}
           value={
             <Typography variant="h6">
@@ -105,7 +104,7 @@ export function PoolStats({ poolId }: PoolStatsProps) {
       </Card>
       <Card sx={{ flex: 1 }}>
         <StatItem
-          label={STATS_TEXTS.monthlyPayout.label}
+          label="Total Funding"
           value={
             <Typography variant="h6">
               <Stack direction="row" alignItems="center" spacing={0.5} flexWrap="wrap">
