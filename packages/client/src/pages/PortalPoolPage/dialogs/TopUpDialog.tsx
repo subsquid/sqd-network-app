@@ -339,8 +339,7 @@ export function TopUpButton({ poolId }: TopUpButtonProps) {
         color="success"
         fullWidth
         onClick={handleOpen}
-        disabled={
-          pool?.phase === 'collecting' || pool?.phase === 'failed' || pool?.phase === 'closed'
+        disabled={pool?.phase === 'failed' || pool?.phase === 'closed'
         }
       >
         TOP UP
