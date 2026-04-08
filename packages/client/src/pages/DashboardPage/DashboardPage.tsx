@@ -20,7 +20,7 @@ export function DashboardPage() {
     <CenteredPageWrapper>
       <NetworkSummary />
       <Tabs value={activeTab} onChange={handleTabChange}>
-      <Tab label="Analytics" value="analytics" />
+        <Tab label="Analytics" value="analytics" />
         <Tab label="Workers" value="workers" />
         <Tab
           value="portal-pools"
