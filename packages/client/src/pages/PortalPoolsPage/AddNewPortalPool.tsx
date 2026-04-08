@@ -42,6 +42,7 @@ import { Form, FormDivider, FormRow, FormikTextInput } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { Loader } from '@components/Loader';
 import { useContracts } from '@hooks/network/useContracts';
+import { supportsPortalPoolMinSqdOut } from '@hooks/network/useSubsquidNetwork';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { fromSqd, toSqd } from '@lib/network/utils';
 
@@ -153,6 +154,7 @@ function DepositStepContent({
   tokenSymbol,
   tokenDecimals,
   suggestedInitialDeposit,
+  showSlippageSelector,
 }: {
   formik: ReturnType<typeof useFormik<FormikValues>>;
   isLoading: boolean;
@@ -160,6 +162,7 @@ function DepositStepContent({
   tokenSymbol: string;
   tokenDecimals: number;
   suggestedInitialDeposit: BigNumber;
+  showSlippageSelector: boolean;
 }) {
   const handleSlippageChange = useCallback(
     (isAuto: boolean, pct: string) => {
@@ -276,17 +279,20 @@ function DepositStepContent({
         )}
       </Stack>
 
-      <Divider />
-
-      <SlippageSelector
-        isAuto={formik.values.isAutoSlippage}
-        slippagePct={formik.values.slippagePct}
-        isStableToken={fee.isStableToken}
-        minSqdReceived={fee.minSqdFromPrice}
-        minSqdBlocked={fee.minSqdBlockedReason}
-        sqdSymbol={fee.sqdSymbol}
-        onChange={handleSlippageChange}
-      />
+      {showSlippageSelector && (
+        <>
+          <Divider />
+          <SlippageSelector
+            isAuto={formik.values.isAutoSlippage}
+            slippagePct={formik.values.slippagePct}
+            isStableToken={fee.isStableToken}
+            minSqdReceived={fee.minSqdFromPrice}
+            minSqdBlocked={fee.minSqdBlockedReason}
+            sqdSymbol={fee.sqdSymbol}
+            onChange={handleSlippageChange}
+          />
+        </>
+      )}
     </Stack>
   );
 }
@@ -332,6 +338,7 @@ function AddNewPortalDialog({
   });
 
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
+  const showSlippageSelector = supportsPortalPoolMinSqdOut();
 
   const isLoading = isTokenRewardLoading;
   const initialSource = sources?.[0];
@@ -382,30 +389,30 @@ function AddNewPortalDialog({
           .toFixed(0),
       );
 
-      const initialDepositMinSqdOut = values.isAutoSlippage ? 0n : (fee.minSqdFromPrice ?? 0n);
+      const params = {
+        operator: initialSource?.id as `0x${string}`,
+        capacity: BigInt(toSqd(values.capacity!)),
+        tokenSuffix: values.tokenSuffix.trim() || collapseTokenName(values.name),
+        distributionRatePerSecond,
+        initialDeposit,
+        metadata: JSON.stringify({
+          name: values.name,
+          description: values.description,
+          website: values.website,
+        }),
+        rewardToken: selectedToken.address,
+      };
 
+      // Mainnet uses the single-arg overload; testnets use the two-arg overload with minSqdOut.
       const receipt = await writeTransactionAsync({
         abi: portalPoolFactoryAbi,
         address: PORTAL_POOL_FACTORY,
         functionName: 'createPortalPool',
         approve: initialDeposit,
         approveToken: selectedToken.address,
-        args: [
-          {
-            operator: initialSource?.id as `0x${string}`,
-            capacity: BigInt(toSqd(values.capacity!)),
-            tokenSuffix: values.tokenSuffix.trim() || collapseTokenName(values.name),
-            distributionRatePerSecond,
-            initialDeposit,
-            metadata: JSON.stringify({
-              name: values.name,
-              description: values.description,
-              website: values.website,
-            }),
-            rewardToken: selectedToken.address,
-          },
-          initialDepositMinSqdOut,
-        ],
+        args: showSlippageSelector
+          ? [params, values.isAutoSlippage ? 0n : (fee.minSqdFromPrice ?? 0n)]
+          : [params],
       });
 
       setWaitHeight(receipt.blockNumber, []);
@@ -441,10 +448,10 @@ function AddNewPortalDialog({
   }, [formik.values.initialDeposit, selectedToken]);
 
   const slippageBps = useMemo(() => {
-    if (formik.values.isAutoSlippage) return null;
+    if (!showSlippageSelector || formik.values.isAutoSlippage) return null;
     const n = parseFloat(formik.values.slippagePct);
     return isNaN(n) ? null : Math.round(n * 100);
-  }, [formik.values.isAutoSlippage, formik.values.slippagePct]);
+  }, [showSlippageSelector, formik.values.isAutoSlippage, formik.values.slippagePct]);
 
   const fee = useTopUpFeePreview({
     rewardSymbol: selectedToken?.symbol,
@@ -461,13 +468,20 @@ function AddNewPortalDialog({
   }, [formik.errors, selectedToken]);
 
   const isStep2ConfirmDisabled = useMemo(() => {
-    const hasStep2Errors = ['initialDeposit', 'isAutoSlippage', 'slippagePct'].some(
-      field => !!formik.errors[field as keyof FormikValues],
-    );
+    const step2Fields: (keyof FormikValues)[] = showSlippageSelector
+      ? ['initialDeposit', 'isAutoSlippage', 'slippagePct']
+      : ['initialDeposit'];
+    const hasStep2Errors = step2Fields.some(field => !!formik.errors[field]);
     return (
       hasStep2Errors || !formik.values.initialDeposit || !fee.feeRouterReady || fee.feeConfigError
     );
-  }, [formik.errors, formik.values.initialDeposit, fee.feeRouterReady, fee.feeConfigError]);
+  }, [
+    formik.errors,
+    formik.values.initialDeposit,
+    fee.feeRouterReady,
+    fee.feeConfigError,
+    showSlippageSelector,
+  ]);
 
   const handleResult = useCallback(
     (confirmed: boolean) => {
@@ -614,6 +628,7 @@ function AddNewPortalDialog({
           tokenSymbol={selectedToken?.symbol ?? 'Token'}
           tokenDecimals={selectedToken?.decimals ?? 18}
           suggestedInitialDeposit={suggestedInitialDeposit}
+          showSlippageSelector={showSlippageSelector}
         />
       )}
     </ContractCallDialog>

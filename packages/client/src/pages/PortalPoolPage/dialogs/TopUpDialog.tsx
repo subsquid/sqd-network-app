@@ -14,6 +14,7 @@ import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { Loader } from '@components/Loader';
+import { supportsPortalPoolMinSqdOut } from '@hooks/network/useSubsquidNetwork';
 
 import { SlippageSelector } from '../components/SlippageSelector';
 import { SplitPreviewRow } from '../components/SplitPreviewRow';
@@ -73,11 +74,13 @@ function TopUpDialogContent({
   pool,
   isLoading,
   fee,
+  showSlippageSelector,
 }: {
   formik: ReturnType<typeof useFormik<FormValues>>;
   pool?: PoolData;
   isLoading: boolean;
   fee: FeePreviewState;
+  showSlippageSelector: boolean;
 }) {
   const handleSlippageChange = useCallback(
     (isAuto: boolean, pct: string) => {
@@ -188,17 +191,20 @@ function TopUpDialogContent({
         )}
       </Stack>
 
-      <Divider />
-
-      <SlippageSelector
-        isAuto={formik.values.isAutoSlippage}
-        slippagePct={formik.values.slippagePct}
-        isStableToken={fee.isStableToken}
-        minSqdReceived={fee.minSqdFromPrice}
-        minSqdBlocked={fee.minSqdBlockedReason}
-        sqdSymbol={fee.sqdSymbol}
-        onChange={handleSlippageChange}
-      />
+      {showSlippageSelector && (
+        <>
+          <Divider />
+          <SlippageSelector
+            isAuto={formik.values.isAutoSlippage}
+            slippagePct={formik.values.slippagePct}
+            isStableToken={fee.isStableToken}
+            minSqdReceived={fee.minSqdFromPrice}
+            minSqdBlocked={fee.minSqdBlockedReason}
+            sqdSymbol={fee.sqdSymbol}
+            onChange={handleSlippageChange}
+          />
+        </>
+      )}
     </Stack>
   );
 }
@@ -207,6 +213,7 @@ export function TopUpDialog({ open, onClose, poolId }: TopUpDialogProps) {
   const queryClient = useQueryClient();
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
   const { data: pool, isLoading } = usePoolData(poolId);
+  const showSlippageSelector = supportsPortalPoolMinSqdOut();
 
   const formik = useFormik<FormValues>({
     initialValues: {
@@ -224,7 +231,8 @@ export function TopUpDialog({ open, onClose, poolId }: TopUpDialogProps) {
       const rewardAmount = tryParseRewardAmount(values.amount, decimals);
       if (rewardAmount === undefined || rewardAmount === 0n) return;
 
-      const minSqdOut = values.isAutoSlippage ? 0n : (fee.minSqdFromPrice ?? 0n);
+      const minSqdOut =
+        showSlippageSelector && !values.isAutoSlippage ? (fee.minSqdFromPrice ?? 0n) : 0n;
 
       const receipt = await writeTransactionAsync({
         address: poolId as `0x${string}`,
@@ -260,10 +268,10 @@ export function TopUpDialog({ open, onClose, poolId }: TopUpDialogProps) {
   );
 
   const slippageBps = useMemo(() => {
-    if (formik.values.isAutoSlippage) return null;
+    if (!showSlippageSelector || formik.values.isAutoSlippage) return null;
     const n = parseFloat(formik.values.slippagePct);
     return isNaN(n) ? null : Math.round(n * 100);
-  }, [formik.values.isAutoSlippage, formik.values.slippagePct]);
+  }, [showSlippageSelector, formik.values.isAutoSlippage, formik.values.slippagePct]);
 
   const fee = useTopUpFeePreview({
     rewardSymbol: pool?.rewardToken.symbol,
@@ -296,7 +304,13 @@ export function TopUpDialog({ open, onClose, poolId }: TopUpDialogProps) {
       disableConfirmButton={confirmDisabled}
       minWidth={640}
     >
-      <TopUpDialogContent formik={formik} pool={pool} isLoading={isLoading} fee={fee} />
+      <TopUpDialogContent
+        formik={formik}
+        pool={pool}
+        isLoading={isLoading}
+        fee={fee}
+        showSlippageSelector={showSlippageSelector}
+      />
     </ContractCallDialog>
   );
 }
