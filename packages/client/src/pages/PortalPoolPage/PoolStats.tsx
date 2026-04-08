@@ -2,6 +2,7 @@ import { type ReactNode, memo, useMemo } from 'react';
 
 import { Box, Skeleton, Stack, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
+import BigNumber from 'bignumber.js';
 
 import { trpc } from '@api/trpc';
 import { Card } from '@components/Card';
@@ -14,7 +15,10 @@ import {
 } from '@lib/formatters/formatters';
 
 import { usePoolData } from './hooks';
-import { STATS_TEXTS } from './texts';
+
+/** Pool-specific display: Total Funding shows max(on-chain/indexed, floor). */
+const TOTAL_FUNDING_DISPLAY_FLOOR_POOL = '0x89ca93e09ec7355a1d6bd410fe0bb4c9b24542db';
+const TOTAL_FUNDING_DISPLAY_FLOOR_AMOUNT = 1200;
 
 interface PoolStatsProps {
   poolId: string;
@@ -44,7 +48,7 @@ const StatItem = memo(function StatItem({
 
 export function PoolStats({ poolId }: PoolStatsProps) {
   const { data: pool, isLoading } = usePoolData(poolId);
-  const { SQD_TOKEN, SQD } = useContracts();
+  const { SQD_TOKEN } = useContracts();
   const { data: sqdPrice } = useQuery(trpc.price.current.queryOptions());
 
   // APY = (distributionRatePerSecond / tvl.max) * secondsPerYear / sqdPrice
@@ -59,8 +63,16 @@ export function PoolStats({ poolId }: PoolStatsProps) {
       .toNumber();
   }, [pool, sqdPrice]);
 
-  const apyTooltip = STATS_TEXTS.apy.tooltip(SQD_TOKEN);
-  const monthlyPayoutTooltip = STATS_TEXTS.monthlyPayout.tooltip(SQD_TOKEN);
+  const apyTooltip = `APY = (Monthly Payout × 12) / (Max Pool Capacity × ${SQD_TOKEN} Price)\nBased on full pool capacity and live ${SQD_TOKEN} price.`;
+  const monthlyPayoutTooltip = 'The total amount of rewards funded to the pool.';
+
+  const displayTotalRewardsToppedUp = useMemo(() => {
+    if (!pool) return undefined;
+    if (poolId.toLowerCase() !== TOTAL_FUNDING_DISPLAY_FLOOR_POOL) {
+      return pool.totalRewardsToppedUp;
+    }
+    return BigNumber.max(pool.totalRewardsToppedUp, TOTAL_FUNDING_DISPLAY_FLOOR_AMOUNT);
+  }, [pool, poolId]);
 
   return (
     <Stack
@@ -70,8 +82,8 @@ export function PoolStats({ poolId }: PoolStatsProps) {
     >
       <Card sx={{ flex: 1 }}>
         <StatItem
-          label={STATS_TEXTS.tvl.label}
-          tooltip={STATS_TEXTS.tvl.tooltip}
+          label="TVL"
+          tooltip="Total Value Locked: current amount provided to the pool (including pending withdrawals) out of the maximum pool capacity."
           value={
             <Stack direction="row" alignItems="baseline" spacing={0.5} flexWrap="wrap">
               <Typography variant="h6" component="span">
@@ -94,7 +106,7 @@ export function PoolStats({ poolId }: PoolStatsProps) {
       </Card>
       <Card sx={{ flex: 1 }}>
         <StatItem
-          label={STATS_TEXTS.apy.label}
+          label="APY"
           tooltip={apyTooltip}
           value={
             <Typography variant="h6">
@@ -105,7 +117,7 @@ export function PoolStats({ poolId }: PoolStatsProps) {
       </Card>
       <Card sx={{ flex: 1 }}>
         <StatItem
-          label={STATS_TEXTS.monthlyPayout.label}
+          label="Total Funding"
           value={
             <Typography variant="h6">
               <Stack direction="row" alignItems="center" spacing={0.5} flexWrap="wrap">
@@ -113,7 +125,7 @@ export function PoolStats({ poolId }: PoolStatsProps) {
                   {isLoading ? (
                     <Skeleton width="50%" />
                   ) : (
-                    tokenFormatter(pool!.totalRewardsToppedUp, pool!.rewardToken.symbol, 2)
+                    tokenFormatter(displayTotalRewardsToppedUp!, pool!.rewardToken.symbol, 2)
                   )}
                 </Typography>
                 {/* {pool.rewardToken && (

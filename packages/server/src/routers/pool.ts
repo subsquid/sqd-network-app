@@ -34,7 +34,7 @@ function toSqd(value: number): string {
   return BigNumber(value).shiftedBy(SQD_DECIMALS).toFixed(0);
 }
 
-type PoolPhase = 'collecting' | 'active' | 'debt' | 'idle' | 'failed' | 'unknown';
+type PoolPhase = 'collecting' | 'active' | 'debt' | 'idle' | 'failed' | 'closed' | 'unknown';
 
 function getPhase(state?: number, isOutOfMoney?: boolean): PoolPhase {
   switch (state) {
@@ -46,6 +46,8 @@ function getPhase(state?: number, isOutOfMoney?: boolean): PoolPhase {
       return 'idle';
     case 3:
       return 'failed';
+    case 4:
+      return 'closed';
   }
   return 'unknown';
 }

@@ -3,7 +3,6 @@ import { useCallback, useMemo, useState } from 'react';
 import { dateFormat } from '@i18n';
 import {
   OpenInNewOutlined as ExplorerIcon,
-  InfoOutlined,
   LockOpenOutlined,
   LockOutlined,
 } from '@mui/icons-material';
@@ -40,7 +39,6 @@ import { addressFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import type { PendingWithdrawal } from './hooks';
 import { usePoolData, usePoolEvents, usePoolPendingWithdrawals } from './hooks';
 import type { PoolEvent } from './hooks/usePoolEvents';
-import { ACTIVITY_TEXTS, WITHDRAWALS_TEXTS } from './texts';
 import { invalidatePoolQueries } from './utils/poolUtils';
 
 const PAGE_SIZE = 10;
@@ -127,13 +125,13 @@ function PendingWithdrawalsTable({
       {
         id: 'withdrawalId',
         accessorFn: row => Number(row.id) + 1,
-        header: () => WITHDRAWALS_TEXTS.table.withdrawalId,
+        header: () => 'Withdrawal ID',
         cell: info => info.getValue(),
       },
       {
         id: 'amount',
         accessorFn: row => row.amount,
-        header: () => WITHDRAWALS_TEXTS.table.amount,
+        header: () => 'Amount',
         cell: info => tokenFormatter(Number(info.getValue() as string), SQD_TOKEN, 2),
       },
       {
@@ -141,8 +139,8 @@ function PendingWithdrawalsTable({
         accessorFn: row => row,
         header: () => (
           <Stack direction="row" alignItems="center" spacing={0.5}>
-            <span>{WITHDRAWALS_TEXTS.table.timeLeft.label}</span>
-            <HelpTooltip title={WITHDRAWALS_TEXTS.table.timeLeft.tooltip} />
+            <span>Time Left</span>
+            <HelpTooltip title="Remaining time before this withdrawal can be claimed." />
           </Stack>
         ),
         cell: ({ getValue }) => {
@@ -177,7 +175,7 @@ function PendingWithdrawalsTable({
       pageCount={pageCount}
       onPageChange={onPageChange}
       isLoading={isLoading}
-      emptyMessage={WITHDRAWALS_TEXTS.noRequests}
+      emptyMessage="No withdrawal requests"
     />
   );
 }
@@ -202,15 +200,15 @@ function formatTimeAgo(timestamp: string): string {
 function getEventTypeLabel(eventType: EventType): string {
   switch (eventType) {
     case EventType.Deposit:
-      return ACTIVITY_TEXTS.eventTypes.provide;
+      return 'Provide';
     case EventType.Withdrawal:
-      return ACTIVITY_TEXTS.eventTypes.withdrawal;
+      return 'Withdraw';
     case EventType.Exit:
-      return ACTIVITY_TEXTS.eventTypes.exit;
+      return 'Exit';
     case EventType.Topup:
-      return ACTIVITY_TEXTS.eventTypes.topup;
+      return 'Top Up';
     case EventType.Claim:
-      return ACTIVITY_TEXTS.eventTypes.claim;
+      return 'Claim';
     default:
       return eventType;
   }
@@ -289,7 +287,7 @@ export function PoolActivity({ poolId }: PendingWithdrawalsProps) {
       {
         id: 'account',
         accessorFn: row => row.providerId,
-        header: () => ACTIVITY_TEXTS.table.account,
+        header: () => 'Account',
         cell: info => (
           <Typography variant="body1" fontWeight={500}>
             {info.getValue() ? addressFormatter(info.getValue() as string, true) : '—'}
@@ -299,7 +297,7 @@ export function PoolActivity({ poolId }: PendingWithdrawalsProps) {
       {
         id: 'type',
         accessorFn: row => row.eventType,
-        header: () => ACTIVITY_TEXTS.table.type,
+        header: () => 'Type',
         cell: info => (
           <Chip
             label={getEventTypeLabel(info.getValue() as EventType)}
@@ -313,7 +311,7 @@ export function PoolActivity({ poolId }: PendingWithdrawalsProps) {
       {
         id: 'amount',
         accessorFn: row => row,
-        header: () => ACTIVITY_TEXTS.table.amount,
+        header: () => 'Amount',
         cell: ({ getValue }) => (
           <Typography variant="body1" fontWeight={500}>
             {formatEventAmount(getValue() as PoolEvent, SQD_TOKEN, pool?.rewardToken)}
@@ -323,7 +321,7 @@ export function PoolActivity({ poolId }: PendingWithdrawalsProps) {
       {
         id: 'time',
         accessorFn: row => row.timestamp,
-        header: () => ACTIVITY_TEXTS.table.time,
+        header: () => 'Time',
         cell: info => (
           <Tooltip title={dateFormat(info.getValue() as string, 'dateTime')}>
             <Typography
@@ -400,7 +398,7 @@ export function PoolActivity({ poolId }: PendingWithdrawalsProps) {
               disabled={!address}
             />
           }
-          label={ACTIVITY_TEXTS.myActivityToggle}
+          label="My Activity"
         />
       </Box>
       <PaginatedTable
@@ -410,7 +408,7 @@ export function PoolActivity({ poolId }: PendingWithdrawalsProps) {
         pageCount={pageCount}
         onPageChange={setPageIndex}
         isLoading={isLoading}
-        emptyMessage={ACTIVITY_TEXTS.noActivity}
+        emptyMessage="No activity yet"
       />
     </Box>
   );
@@ -449,15 +447,15 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
     <Card
       title={
         <Stack direction="row" alignItems="center" spacing={0.5}>
-          <span>{WITHDRAWALS_TEXTS.tabTitle}</span>
-          <HelpTooltip title={WITHDRAWALS_TEXTS.tooltip} />
+          <span>Pending Withdrawals</span>
+          <HelpTooltip title="Withdrawals that are waiting for the unlock period to complete before they can be claimed." />
         </Stack>
       }
     >
       {pendingWithdrawals.length === 0 ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <Typography variant="body2" color="text.secondary">
-            {WITHDRAWALS_TEXTS.noRequests}
+            No withdrawal requests
           </Typography>
         </Box>
       ) : (

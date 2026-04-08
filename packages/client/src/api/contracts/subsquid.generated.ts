@@ -53,6 +53,89 @@ export const buyBackAbi = [
 ] as const
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// FeeRouter
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const feeRouterAbi = [
+  {
+    type: 'function',
+    inputs: [{ name: 'amount', internalType: 'uint256', type: 'uint256' }],
+    name: 'calculateSplit',
+    outputs: [
+      { name: 'toProviders', internalType: 'uint256', type: 'uint256' },
+      { name: 'toWorkerPool', internalType: 'uint256', type: 'uint256' },
+      { name: 'toBurn', internalType: 'uint256', type: 'uint256' },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'getFeeConfig',
+    outputs: [
+      {
+        name: '',
+        internalType: 'struct IFeeRouter.FeeConfig',
+        type: 'tuple',
+        components: [
+          { name: 'toProvidersBPS', internalType: 'uint16', type: 'uint16' },
+          { name: 'toWorkerPoolBPS', internalType: 'uint16', type: 'uint16' },
+          { name: 'toBurnBPS', internalType: 'uint16', type: 'uint16' },
+        ],
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: 'rewardToken', internalType: 'address', type: 'address' },
+      { name: 'amount', internalType: 'uint256', type: 'uint256' },
+      { name: 'minSqdOut', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'routeToBurnWithSlippage',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'event',
+    inputs: [
+      {
+        name: 'rewardToken',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'amountIn',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'sqdBought',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'toWorkerPool',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'toBurn',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'BuybackExecuted',
+  },
+] as const
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // GatewayRegistry
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -301,13 +384,6 @@ export const portalPoolAbi = [
   {
     type: 'function',
     inputs: [],
-    name: 'claimRewardsFromClosed',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    inputs: [],
     name: 'closePool',
     outputs: [],
     stateMutability: 'nonpayable',
@@ -380,13 +456,6 @@ export const portalPoolAbi = [
     inputs: [],
     name: 'getCurrentRewardBalance',
     outputs: [{ name: '', internalType: 'int256', type: 'int256' }],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    inputs: [],
-    name: 'getDebt',
-    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
   },
   {
@@ -682,7 +751,7 @@ export const portalPoolAbi = [
   {
     type: 'function',
     inputs: [],
-    name: 'recoverRewardsFromFailed',
+    name: 'recoverRewards',
     outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'nonpayable',
   },
@@ -766,7 +835,10 @@ export const portalPoolAbi = [
   },
   {
     type: 'function',
-    inputs: [{ name: 'amount', internalType: 'uint256', type: 'uint256' }],
+    inputs: [
+      { name: 'amount', internalType: 'uint256', type: 'uint256' },
+      { name: 'minSqdOut', internalType: 'uint256', type: 'uint256' },
+    ],
     name: 'topUpRewards',
     outputs: [],
     stateMutability: 'nonpayable',
@@ -841,6 +913,97 @@ export const portalPoolAbi = [
     outputs: [{ name: '', internalType: 'address', type: 'address' }],
     stateMutability: 'view',
   },
+  {
+    type: 'event',
+    inputs: [
+      {
+        name: 'operator',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'received',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'toProviders',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'toWorkerPool',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'toBurn',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'RewardsToppedUp',
+  },
+  { type: 'error', inputs: [], name: 'InvalidState' },
+  { type: 'error', inputs: [], name: 'PoolPaused' },
+  { type: 'error', inputs: [], name: 'PoolNotFailed' },
+  { type: 'error', inputs: [], name: 'NotActivated' },
+  { type: 'error', inputs: [], name: 'PoolClosed' },
+  { type: 'error', inputs: [], name: 'PoolNotClosed' },
+  { type: 'error', inputs: [], name: 'InsufficientStake' },
+  { type: 'error', inputs: [], name: 'InsufficientTransferableStake' },
+  { type: 'error', inputs: [], name: 'CapacityExceeded' },
+  { type: 'error', inputs: [], name: 'ExceedsWalletLimit' },
+  { type: 'error', inputs: [], name: 'NoStakeToWithdraw' },
+  { type: 'error', inputs: [], name: 'InvalidStakeTransfer' },
+  { type: 'error', inputs: [], name: 'UseWithdrawFromFailed' },
+  { type: 'error', inputs: [], name: 'WaitForActivationOrDeadline' },
+  { type: 'error', inputs: [], name: 'ExistingExitRequest' },
+  { type: 'error', inputs: [], name: 'NoActiveExitRequest' },
+  { type: 'error', inputs: [], name: 'StillInQueue' },
+  { type: 'error', inputs: [], name: 'AlreadyWithdrawn' },
+  { type: 'error', inputs: [], name: 'InvalidExitRate' },
+  { type: 'error', inputs: [], name: 'DeadlinePassed' },
+  { type: 'error', inputs: [], name: 'DeadlineNotPassed' },
+  { type: 'error', inputs: [], name: 'InvalidDeadline' },
+  { type: 'error', inputs: [], name: 'NotOperator' },
+  { type: 'error', inputs: [], name: 'NotFactory' },
+  { type: 'error', inputs: [], name: 'NotPoolRegistry' },
+  { type: 'error', inputs: [], name: 'NotLPTToken' },
+  { type: 'error', inputs: [], name: 'NotAuthorized' },
+  { type: 'error', inputs: [], name: 'NotAdmin' },
+  { type: 'error', inputs: [], name: 'NotWhitelisted' },
+  { type: 'error', inputs: [], name: 'WhitelistFeatureDisabled' },
+  { type: 'error', inputs: [], name: 'InvalidAmount' },
+  { type: 'error', inputs: [], name: 'InvalidAddress' },
+  { type: 'error', inputs: [], name: 'BelowMinimum' },
+  { type: 'error', inputs: [], name: 'AboveMaximum' },
+  { type: 'error', inputs: [], name: 'BelowCurrentStake' },
+  { type: 'error', inputs: [], name: 'NoChange' },
+  { type: 'error', inputs: [], name: 'CapacityOutOfRange' },
+  { type: 'error', inputs: [], name: 'EmptyPeerId' },
+  { type: 'error', inputs: [], name: 'TokenNotAllowed' },
+  { type: 'error', inputs: [], name: 'TooManyTokens' },
+  { type: 'error', inputs: [], name: 'AlreadyInitialized' },
+  { type: 'error', inputs: [], name: 'TokenAlreadyAdded' },
+  { type: 'error', inputs: [], name: 'NoPaymentTokens' },
+  { type: 'error', inputs: [], name: 'NothingToClaim' },
+  { type: 'error', inputs: [], name: 'InvalidDecimals' },
+  { type: 'error', inputs: [], name: 'DistributionTurnedOff' },
+  { type: 'error', inputs: [], name: 'PoolHasDebt' },
+  { type: 'error', inputs: [], name: 'RateExceedsMaximum' },
+  { type: 'error', inputs: [], name: 'RateBelowMinimum' },
+  { type: 'error', inputs: [], name: 'InsufficientRewardPrecision' },
+  { type: 'error', inputs: [], name: 'InvalidPool' },
+  { type: 'error', inputs: [], name: 'InvalidRange' },
+  { type: 'error', inputs: [], name: 'InvalidFeeConfig' },
+  { type: 'error', inputs: [], name: 'InvalidPoolFee' },
+  { type: 'error', inputs: [], name: 'NothingToBuyback' },
 ] as const
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -926,6 +1089,37 @@ export const portalPoolFactoryAbi = [
           { name: 'metadata', internalType: 'string', type: 'string' },
           { name: 'rewardToken', internalType: 'address', type: 'address' },
         ],
+      },
+    ],
+    name: 'createPortalPool',
+    outputs: [{ name: 'portal', internalType: 'address', type: 'address' }],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      {
+        name: 'params',
+        internalType: 'struct IPortalFactory.CreatePortalPoolParams',
+        type: 'tuple',
+        components: [
+          { name: 'operator', internalType: 'address', type: 'address' },
+          { name: 'capacity', internalType: 'uint256', type: 'uint256' },
+          { name: 'tokenSuffix', internalType: 'string', type: 'string' },
+          {
+            name: 'distributionRatePerSecond',
+            internalType: 'uint256',
+            type: 'uint256',
+          },
+          { name: 'initialDeposit', internalType: 'uint256', type: 'uint256' },
+          { name: 'metadata', internalType: 'string', type: 'string' },
+          { name: 'rewardToken', internalType: 'address', type: 'address' },
+        ],
+      },
+      {
+        name: 'initialDepositMinSqdOut',
+        internalType: 'uint256',
+        type: 'uint256',
       },
     ],
     name: 'createPortalPool',
@@ -2408,6 +2602,77 @@ export const useSimulateBuyBackWithdraw =
   })
 
 /**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link feeRouterAbi}__
+ */
+export const useReadFeeRouter = /*#__PURE__*/ createUseReadContract({
+  abi: feeRouterAbi,
+})
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link feeRouterAbi}__ and `functionName` set to `"calculateSplit"`
+ */
+export const useReadFeeRouterCalculateSplit =
+  /*#__PURE__*/ createUseReadContract({
+    abi: feeRouterAbi,
+    functionName: 'calculateSplit',
+  })
+
+/**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link feeRouterAbi}__ and `functionName` set to `"getFeeConfig"`
+ */
+export const useReadFeeRouterGetFeeConfig = /*#__PURE__*/ createUseReadContract(
+  { abi: feeRouterAbi, functionName: 'getFeeConfig' },
+)
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link feeRouterAbi}__
+ */
+export const useWriteFeeRouter = /*#__PURE__*/ createUseWriteContract({
+  abi: feeRouterAbi,
+})
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link feeRouterAbi}__ and `functionName` set to `"routeToBurnWithSlippage"`
+ */
+export const useWriteFeeRouterRouteToBurnWithSlippage =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: feeRouterAbi,
+    functionName: 'routeToBurnWithSlippage',
+  })
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link feeRouterAbi}__
+ */
+export const useSimulateFeeRouter = /*#__PURE__*/ createUseSimulateContract({
+  abi: feeRouterAbi,
+})
+
+/**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link feeRouterAbi}__ and `functionName` set to `"routeToBurnWithSlippage"`
+ */
+export const useSimulateFeeRouterRouteToBurnWithSlippage =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: feeRouterAbi,
+    functionName: 'routeToBurnWithSlippage',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link feeRouterAbi}__
+ */
+export const useWatchFeeRouterEvent = /*#__PURE__*/ createUseWatchContractEvent(
+  { abi: feeRouterAbi },
+)
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link feeRouterAbi}__ and `eventName` set to `"BuybackExecuted"`
+ */
+export const useWatchFeeRouterBuybackExecutedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: feeRouterAbi,
+    eventName: 'BuybackExecuted',
+  })
+
+/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link gatewayRegistryAbi}__
  */
 export const useReadGatewayRegistry = /*#__PURE__*/ createUseReadContract({
@@ -2792,14 +3057,6 @@ export const useReadPortalPoolGetCurrentRewardBalance =
   })
 
 /**
- * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getDebt"`
- */
-export const useReadPortalPoolGetDebt = /*#__PURE__*/ createUseReadContract({
-  abi: portalPoolAbi,
-  functionName: 'getDebt',
-})
-
-/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getExitTicket"`
  */
 export const useReadPortalPoolGetExitTicket =
@@ -3103,15 +3360,6 @@ export const useWritePortalPoolClaimRewards =
   })
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"claimRewardsFromClosed"`
- */
-export const useWritePortalPoolClaimRewardsFromClosed =
-  /*#__PURE__*/ createUseWriteContract({
-    abi: portalPoolAbi,
-    functionName: 'claimRewardsFromClosed',
-  })
-
-/**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"closePool"`
  */
 export const useWritePortalPoolClosePool = /*#__PURE__*/ createUseWriteContract(
@@ -3178,12 +3426,12 @@ export const useWritePortalPoolPause = /*#__PURE__*/ createUseWriteContract({
 })
 
 /**
- * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"recoverRewardsFromFailed"`
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"recoverRewards"`
  */
-export const useWritePortalPoolRecoverRewardsFromFailed =
+export const useWritePortalPoolRecoverRewards =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalPoolAbi,
-    functionName: 'recoverRewardsFromFailed',
+    functionName: 'recoverRewards',
   })
 
 /**
@@ -3337,15 +3585,6 @@ export const useSimulatePortalPoolClaimRewards =
   })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"claimRewardsFromClosed"`
- */
-export const useSimulatePortalPoolClaimRewardsFromClosed =
-  /*#__PURE__*/ createUseSimulateContract({
-    abi: portalPoolAbi,
-    functionName: 'claimRewardsFromClosed',
-  })
-
-/**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"closePool"`
  */
 export const useSimulatePortalPoolClosePool =
@@ -3418,12 +3657,12 @@ export const useSimulatePortalPoolPause =
   })
 
 /**
- * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"recoverRewardsFromFailed"`
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"recoverRewards"`
  */
-export const useSimulatePortalPoolRecoverRewardsFromFailed =
+export const useSimulatePortalPoolRecoverRewards =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalPoolAbi,
-    functionName: 'recoverRewardsFromFailed',
+    functionName: 'recoverRewards',
   })
 
 /**
@@ -3541,6 +3780,21 @@ export const useSimulatePortalPoolWithdrawFromFailed =
   /*#__PURE__*/ createUseSimulateContract({
     abi: portalPoolAbi,
     functionName: 'withdrawFromFailed',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__
+ */
+export const useWatchPortalPoolEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({ abi: portalPoolAbi })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"RewardsToppedUp"`
+ */
+export const useWatchPortalPoolRewardsToppedUpEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolAbi,
+    eventName: 'RewardsToppedUp',
   })
 
 /**

@@ -13,6 +13,8 @@ export interface ContractAddresses {
   BUYBACK: `0x${string}`;
   PORTAL_POOL_FACTORY: `0x${string}`;
   PORTAL_REGISTRY: `0x${string}`;
+  /** FeeRouter module (v2); optional — app usually resolves fee router via factory. */
+  FEE_ROUTER?: `0x${string}`;
   SQD_TOKEN: string;
   CHAIN_ID_L1: number;
 }
@@ -31,6 +33,7 @@ export const CONTRACT_ADDRESSES: Record<NetworkName, ContractAddresses> = {
     BUYBACK: '0xe34189ad45044e93d3af7d93ac520d02651faf72',
     PORTAL_POOL_FACTORY: '0xa3f66B4649cf1C70776CfE32352cb9b5006528bC',
     PORTAL_REGISTRY: '0xff09F8eC63946bA2bFa5400F4dc1D09eeA21BcCD',
+    FEE_ROUTER: '0xb8d5266db9197f721b7a3f1370e5c0f9e1e8f947',
     SQD_TOKEN: 'tSQD',
     CHAIN_ID_L1: 11155111, // sepolia
   },

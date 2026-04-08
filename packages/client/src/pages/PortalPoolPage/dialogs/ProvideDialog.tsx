@@ -19,7 +19,6 @@ import { tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, toSqd } from '@lib/network';
 
 import { usePoolData, usePoolUserData } from '../hooks';
-import { PROVIDE_DIALOG_TEXTS } from '../texts';
 import { calculateExpectedMonthlyPayout, invalidatePoolQueries } from '../utils/poolUtils';
 
 const TERMS_ACCEPTANCE_KEY = 'sqd-terms-accepted';
@@ -197,7 +196,7 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
 
   return (
     <ContractCallDialog
-      title={PROVIDE_DIALOG_TEXTS.title}
+      title="Provide to Pool"
       open={open}
       onResult={handleResult}
       loading={isPending}
@@ -208,20 +207,27 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
       ) : !pool || !userData ? null : (
         <Stack spacing={2.5}>
           {isDepositPhase && (
-            <Alert severity="info">{PROVIDE_DIALOG_TEXTS.alerts.collecting}</Alert>
+            <Alert severity="info">
+              Pool is collecting tokens to activate. Your tokens are locked until the pool activates
+              or the provision window closes. If activation fails, you can withdraw in full.
+            </Alert>
           )}
 
           {pool.phase === 'idle' && (
-            <Alert severity="warning">{PROVIDE_DIALOG_TEXTS.alerts.idle}</Alert>
+            <Alert severity="warning">
+              Pool is paused due to low liquidity. Rewards are not being distributed.
+            </Alert>
           )}
 
-          {isPoolFull && <Alert severity="warning">{PROVIDE_DIALOG_TEXTS.alerts.poolFull}</Alert>}
+          {isPoolFull && (
+            <Alert severity="warning">
+              Pool is at maximum capacity. No more tokens are accepted.
+            </Alert>
+          )}
 
           {!isPoolFull && isUserAtLimit && (
             <Alert severity="info">
-              {PROVIDE_DIALOG_TEXTS.alerts.userAtLimit(
-                tokenFormatter(pool.maxDepositPerAddress, SQD_TOKEN, 0),
-              )}
+              {`You have reached the maximum token limit of ${tokenFormatter(pool.maxDepositPerAddress, SQD_TOKEN, 0)}.`}
             </Alert>
           )}
 
@@ -241,7 +247,7 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
           <FormRow>
             <FormikTextInput
               id="amount"
-              label={PROVIDE_DIALOG_TEXTS.amountLabel}
+              label="Amount"
               formik={formik}
               showErrorOnlyOfTouched
               autoComplete="off"
@@ -264,7 +270,7 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
 
           <Stack spacing={1.5}>
             <Stack direction="row" justifyContent="space-between">
-              <Typography variant="body2">{PROVIDE_DIALOG_TEXTS.fields.totalDelegation}</Typography>
+              <Typography variant="body2">Total Tokens</Typography>
               <Typography variant="body2">
                 {typedAmount.gt(0)
                   ? `${tokenFormatter(currentPoolTvl, '', 0).trim()} → ${tokenFormatter(expectedTotalDelegation, SQD_TOKEN, 0)}`
@@ -272,7 +278,7 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
               </Typography>
             </Stack>
             <Stack direction="row" justifyContent="space-between">
-              <Typography variant="body2">{PROVIDE_DIALOG_TEXTS.fields.yourDelegation}</Typography>
+              <Typography variant="body2">Your Tokens</Typography>
               <Typography variant="body2">
                 {typedAmount.gt(0)
                   ? `${tokenFormatter(currentUserBalance, '', 2).trim()} → ${tokenFormatter(expectedUserDelegation, SQD_TOKEN, 2)}`
@@ -281,10 +287,8 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
             </Stack>
             <Stack direction="row" justifyContent="space-between">
               <Stack direction="row" alignItems="center" spacing={0.5}>
-                <Typography variant="body2">
-                  {PROVIDE_DIALOG_TEXTS.fields.expectedMonthlyPayout.label}
-                </Typography>
-                <HelpTooltip title={PROVIDE_DIALOG_TEXTS.fields.expectedMonthlyPayout.tooltip} />
+                <Typography variant="body2">Expected Monthly Payout</Typography>
+                <HelpTooltip title="Estimated monthly rewards based on your share of the pool at current APY." />
               </Stack>
               <Typography variant="body2">
                 {tokenFormatter(userExpectedMonthlyPayout, pool.rewardToken.symbol, 2)}
@@ -733,14 +737,18 @@ export function ProvideButton({ poolId }: ProvideButtonProps) {
   const { isDisabled, disabledReason } = useMemo(() => {
     if (!pool || !userData) return { isDisabled: true, disabledReason: '' };
 
+    if (pool.phase === 'failed' || pool.phase === 'closed') {
+      return { isDisabled: true, disabledReason: 'Pool is no longer accepting deposits' };
+    }
+
     const isNotWhitelisted = userData?.whitelistEnabled && !userData?.isWhitelisted;
     if (isNotWhitelisted) {
-      return { isDisabled: true, disabledReason: PROVIDE_DIALOG_TEXTS.tooltips.notWhitelisted };
+      return { isDisabled: true, disabledReason: 'You are not whitelisted for this pool' };
     }
 
     const isPoolFull = pool.tvl.current.gte(pool.tvl.max);
     if (isPoolFull) {
-      return { isDisabled: true, disabledReason: PROVIDE_DIALOG_TEXTS.tooltips.poolAtCapacity };
+      return { isDisabled: true, disabledReason: 'Pool is at maximum capacity' };
     }
 
     const userBalance = userData.userBalance;
@@ -749,9 +757,7 @@ export function ProvideButton({ poolId }: ProvideButtonProps) {
     if (isUserAtLimit) {
       return {
         isDisabled: true,
-        disabledReason: PROVIDE_DIALOG_TEXTS.alerts.userAtLimit(
-          tokenFormatter(pool.maxDepositPerAddress, SQD_TOKEN, 0),
-        ),
+        disabledReason: `You have reached the maximum token limit of ${tokenFormatter(pool.maxDepositPerAddress, SQD_TOKEN, 0)}.`,
       };
     }
 

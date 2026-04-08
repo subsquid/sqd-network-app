@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 
 import { dateFormat } from '@i18n';
-import { Button, Chip, Divider, Stack, Tooltip, Typography } from '@mui/material';
+import { Alert, Button, Chip, Divider, Stack, Tooltip, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import BigNumber from 'bignumber.js';
 import { useFormik } from 'formik';
@@ -19,7 +19,6 @@ import { tokenFormatter } from '@lib/formatters/formatters';
 import { toSqd } from '@lib/network';
 
 import { usePoolData, usePoolUserData } from '../hooks';
-import { WITHDRAW_DIALOG_TEXTS } from '../texts';
 import { calculateExpectedMonthlyPayout, invalidatePoolQueries } from '../utils/poolUtils';
 
 interface WithdrawDialogProps {
@@ -41,7 +40,7 @@ const createValidationSchema = (maxWithdraw: BigNumber) =>
       }),
   });
 
-export function WithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
+function ImmediateWithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
   const { SQD_TOKEN } = useContracts();
   const queryClient = useQueryClient();
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
@@ -50,13 +49,82 @@ export function WithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
 
   const isLoading = poolLoading || userDataLoading;
 
-  const currentUserBalance = useMemo(
-    () => userData?.userBalance ?? BigNumber(0),
-    [userData?.userBalance],
+  const isFailed = pool?.phase === 'failed';
+  const texts = isFailed
+    ? {
+        title: 'Withdraw from Failed Pool',
+        description:
+          'This pool failed to activate before the deadline. Your full balance will be returned immediately.',
+      }
+    : {
+        title: 'Emergency Withdraw',
+        description:
+          'This pool has been closed. Your full balance will be returned immediately without a waiting period.',
+      };
+
+  const handleConfirm = useCallback(
+    async (confirmed: boolean) => {
+      if (!confirmed) return onClose();
+
+      const functionName = isFailed ? 'withdrawFromFailed' : 'emergencyWithdraw';
+      await writeTransactionAsync({
+        address: poolId as `0x${string}`,
+        abi: portalPoolAbi,
+        functionName,
+        args: [],
+      });
+
+      await invalidatePoolQueries(queryClient, poolId);
+      onClose();
+    },
+    [poolId, isFailed, writeTransactionAsync, queryClient, onClose],
   );
 
-  const currentPoolTvl = useMemo(() => pool?.tvl.current ?? BigNumber(0), [pool?.tvl.current]);
+  return (
+    <ContractCallDialog
+      title={texts.title}
+      open={open}
+      onResult={handleConfirm}
+      loading={isPending}
+      confirmColor="error"
+    >
+      {isLoading ? (
+        <Loader />
+      ) : !pool || !userData ? null : (
+        <Stack spacing={2.5}>
+          <Alert severity="warning">{texts.description}</Alert>
+          <Stack direction="row" justifyContent="space-between">
+            <Typography variant="body2">Your Balance</Typography>
+            <Typography variant="body2" fontWeight={600}>
+              {tokenFormatter(userData.userBalance, SQD_TOKEN, 2)}
+            </Typography>
+          </Stack>
+        </Stack>
+      )}
+    </ContractCallDialog>
+  );
+}
 
+export function WithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
+  const { data: pool } = usePoolData(poolId);
+
+  if (pool?.phase === 'failed' || pool?.phase === 'closed') {
+    return <ImmediateWithdrawDialog open={open} onClose={onClose} poolId={poolId} />;
+  }
+
+  return <ExitQueueWithdrawDialog open={open} onClose={onClose} poolId={poolId} />;
+}
+
+function ExitQueueWithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
+  const { SQD_TOKEN } = useContracts();
+  const queryClient = useQueryClient();
+  const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
+  const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
+  const { data: userData, isLoading: userDataLoading } = usePoolUserData(poolId);
+
+  const isLoading = poolLoading || userDataLoading;
+  const currentUserBalance = userData?.userBalance ?? BigNumber(0);
+  const currentPoolTvl = pool?.tvl.current ?? BigNumber(0);
   const validationSchema = useMemo(
     () => createValidationSchema(currentUserBalance),
     [currentUserBalance],
@@ -130,7 +198,7 @@ export function WithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
 
   return (
     <ContractCallDialog
-      title={WITHDRAW_DIALOG_TEXTS.title}
+      title="Withdraw from Pool"
       open={open}
       onResult={handleResult}
       loading={isPending}
@@ -144,7 +212,7 @@ export function WithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
           <FormRow>
             <FormikTextInput
               id="amount"
-              label={WITHDRAW_DIALOG_TEXTS.amountLabel}
+              label="Amount"
               formik={formik}
               showErrorOnlyOfTouched
               autoComplete="off"
@@ -166,9 +234,7 @@ export function WithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
 
           <Stack spacing={1.5}>
             <Stack direction="row" justifyContent="space-between">
-              <Typography variant="body2">
-                {WITHDRAW_DIALOG_TEXTS.fields.totalDelegation}
-              </Typography>
+              <Typography variant="body2">Total Tokens</Typography>
               <Typography variant="body2">
                 {typedAmount.gt(0)
                   ? `${tokenFormatter(currentPoolTvl, '', 0).trim()} → ${tokenFormatter(expectedTotalDelegation, SQD_TOKEN, 0)}`
@@ -176,7 +242,7 @@ export function WithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
               </Typography>
             </Stack>
             <Stack direction="row" justifyContent="space-between">
-              <Typography variant="body2">{WITHDRAW_DIALOG_TEXTS.fields.yourDelegation}</Typography>
+              <Typography variant="body2">Your Tokens</Typography>
               <Typography variant="body2">
                 {typedAmount.gt(0)
                   ? `${tokenFormatter(currentUserBalance, '', 2).trim()} → ${tokenFormatter(expectedUserDelegation, SQD_TOKEN, 2)}`
@@ -184,19 +250,15 @@ export function WithdrawDialog({ open, onClose, poolId }: WithdrawDialogProps) {
               </Typography>
             </Stack>
             <Stack direction="row" justifyContent="space-between">
-              <Typography variant="body2">
-                {WITHDRAW_DIALOG_TEXTS.fields.expectedMonthlyPayout}
-              </Typography>
+              <Typography variant="body2">Expected Monthly Payout</Typography>
               <Typography variant="body2">
                 {tokenFormatter(userExpectedMonthlyPayout, pool.rewardToken.symbol, 2)}
               </Typography>
             </Stack>
             <Stack direction="row" justifyContent="space-between">
               <Stack direction="row" alignItems="center" spacing={0.5}>
-                <Typography variant="body2">
-                  {WITHDRAW_DIALOG_TEXTS.fields.expectedUnlockDate.label}
-                </Typography>
-                <HelpTooltip title={WITHDRAW_DIALOG_TEXTS.fields.expectedUnlockDate.tooltip} />
+                <Typography variant="body2">Expected Unlock Date</Typography>
+                <HelpTooltip title="Date when withdrawn funds will be available to claim. Withdrawal requests require a waiting period for pool security." />
               </Stack>
               <Typography variant="body2">
                 {dateFormat(
@@ -228,29 +290,37 @@ export function WithdrawButton({ poolId }: WithdrawButtonProps) {
   const handleOpen = useCallback(() => setDialogOpen(true), []);
   const handleClose = useCallback(() => setDialogOpen(false), []);
 
+  const isImmediateWithdraw = pool?.phase === 'failed' || pool?.phase === 'closed';
+
   const tooltipTitle = useMemo(() => {
     if (pool?.phase === 'collecting') {
-      return WITHDRAW_DIALOG_TEXTS.tooltips.collecting;
+      return 'You cannot withdraw funds while the pool is still collecting';
     }
     if (!hasBalance) {
-      return WITHDRAW_DIALOG_TEXTS.tooltips.nothingToWithdraw;
+      return 'Nothing to withdraw';
     }
     return '';
   }, [pool?.phase, hasBalance]);
+
+  const buttonLabel = useMemo(() => {
+    if (pool?.phase === 'failed') return 'WITHDRAW ALL';
+    if (pool?.phase === 'closed') return 'EMERGENCY WITHDRAW';
+    return 'EXIT';
+  }, [pool?.phase]);
 
   return (
     <>
       <Tooltip title={tooltipTitle}>
         <span>
           <Button
-            variant="outlined"
+            variant={isImmediateWithdraw ? 'contained' : 'outlined'}
             fullWidth
             color="error"
             onClick={handleOpen}
             disabled={!hasBalance || pool?.phase === 'collecting'}
             loading={dialogOpen}
           >
-            EXIT
+            {buttonLabel}
           </Button>
         </span>
       </Tooltip>

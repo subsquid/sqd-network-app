@@ -116,7 +116,7 @@ export const FormikTextInput = <T extends Record<string, any>>({
 
   return (
     <FormControl fullWidth variant="standard">
-      <InputLabel shrink>{label}</InputLabel>
+      {label != null && label !== '' ? <InputLabel shrink>{label}</InputLabel> : null}
       <StyledFormikTextField
         id={id as string}
         fullWidth

@@ -16,7 +16,6 @@ import { ProvideButton } from '../dialogs/ProvideDialog';
 import { WithdrawButton } from '../dialogs/WithdrawDialog';
 import { type PoolPhase, usePoolData, usePoolUserData } from '../hooks';
 import { PendingWithdrawals } from '../PendingWithdrawals';
-import { DELEGATE_TEXTS } from '../texts';
 import { invalidatePoolQueries } from '../utils/poolUtils';
 
 interface DelegateTabProps {
@@ -26,7 +25,7 @@ interface DelegateTabProps {
 export function DelegateTab({ poolId }: DelegateTabProps) {
   const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
   const { data: userData, isLoading: userDataLoading } = usePoolUserData(poolId);
-  const { SQD_TOKEN, SQD } = useContracts();
+  const { SQD_TOKEN } = useContracts();
   const { data: sqdPrice } = useQuery(trpc.price.current.queryOptions());
   const queryClient = useQueryClient();
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
@@ -73,8 +72,8 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
       <Card
         title={
           <Stack direction="row" alignItems="center" spacing={0.5}>
-            <span>{DELEGATE_TEXTS.currentBalance.label}</span>
-            <HelpTooltip title={DELEGATE_TEXTS.currentBalance.tooltip(SQD_TOKEN)} />
+            <span>Current Balance</span>
+            <HelpTooltip title={`Your provided ${SQD_TOKEN} tokens in this pool.`} />
           </Stack>
         }
       >
@@ -97,8 +96,8 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
       <Card
         title={
           <Stack direction="row" alignItems="center" spacing={0.5}>
-            <span>{DELEGATE_TEXTS.availableRewards.label}</span>
-            <HelpTooltip title={DELEGATE_TEXTS.availableRewards.tooltip} />
+            <span>Available Rewards</span>
+            <HelpTooltip title="Accumulated rewards ready to claim." />
           </Stack>
         }
       >
@@ -115,7 +114,7 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
               {isLoading ? (
                 <Skeleton width="50%" />
               ) : (
-                `${tokenFormatter(dailyRewardRate, pool?.rewardToken.symbol ?? '', 4)}${DELEGATE_TEXTS.rewardRateUnit}`
+                `${tokenFormatter(dailyRewardRate, pool?.rewardToken.symbol ?? '', 4)}/day`
               )}
             </Typography>
           </Stack>
@@ -143,11 +142,14 @@ export function DelegateTab({ poolId }: DelegateTabProps) {
 function getClaimRewardsTooltip(phase: PoolPhase, tokenSymbol: string): string {
   switch (phase) {
     case 'collecting':
-      return DELEGATE_TEXTS.claimButtonTooltip;
+      return 'Claim your accumulated rewards. Rewards are distributed daily based on your pool share.';
     case 'idle':
-      return DELEGATE_TEXTS.alerts.idle(tokenSymbol);
+      return `The reward distribution is paused because there are insufficient ${tokenSymbol} tokens provided to the pool.`;
     case 'debt':
-      return DELEGATE_TEXTS.alerts.debt;
+      return 'The reward distribution is paused because the pool is out of rewards.';
+    case 'failed':
+    case 'closed':
+      return '';
     default:
       return '';
   }

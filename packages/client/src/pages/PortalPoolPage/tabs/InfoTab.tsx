@@ -19,7 +19,6 @@ import { useExplorer } from '@hooks/useExplorer';
 import { addressFormatter, urlFormatter } from '@lib/formatters/formatters';
 
 import { usePoolData } from '../hooks';
-import { INFO_TEXTS } from '../texts';
 
 interface InfoTabProps {
   poolId: string;
@@ -35,11 +34,11 @@ function AddressActions({ address, explorerUrl, onAddToWallet }: AddressActionsP
   return (
     <Stack direction="row" alignItems="center">
       <CopyToClipboard text={address} content="" showButton={true} />
-      <Tooltip title={INFO_TEXTS.actions.openInExplorer}>
+      <Tooltip title="Open in Explorer">
         <IconButton
           size="small"
           color="inherit"
-          aria-label={INFO_TEXTS.actions.openInExplorer}
+          aria-label="Open in Explorer"
           component={Link}
           to={explorerUrl}
           rel="noreferrer"
@@ -49,11 +48,11 @@ function AddressActions({ address, explorerUrl, onAddToWallet }: AddressActionsP
         </IconButton>
       </Tooltip>
       {onAddToWallet && (
-        <Tooltip title={INFO_TEXTS.actions.addToWallet}>
+        <Tooltip title="Add to Wallet">
           <IconButton
             size="small"
             color="inherit"
-            aria-label={INFO_TEXTS.actions.addToWallet}
+            aria-label="Add to Wallet"
             onClick={onAddToWallet}
           >
             <WalletIcon fontSize="inherit" aria-hidden="true" />
@@ -129,12 +128,12 @@ export function InfoTab({ poolId }: InfoTabProps) {
           options: tokenConfig,
         });
         if (result) {
-          toast.success(INFO_TEXTS.notifications.tokenAddedSuccess);
+          toast.success('Token added to wallet');
         } else {
-          toast.error(INFO_TEXTS.notifications.tokenAddedError);
+          toast.error('Failed to add token to wallet');
         }
       } catch (error) {
-        toast.error(INFO_TEXTS.notifications.tokenAddedErrorWithReason(errorMessage(error)));
+        toast.error(`Failed to add token to wallet: ${errorMessage(error)}`);
       }
     },
     [pool, watchAssetAsync],
@@ -143,11 +142,11 @@ export function InfoTab({ poolId }: InfoTabProps) {
   if (!pool) return null;
 
   return (
-    <Card sx={{}} title={<span>{INFO_TEXTS.title}</span>}>
+    <Card sx={{}} title={<span>Pool Info</span>}>
       <Stack spacing={2} divider={<Divider />}>
         <Stack spacing={1.5}>
           <InfoField
-            label={INFO_TEXTS.contract}
+            label="Contract"
             value={addressFormatter(pool.id, true)}
             actions={
               <AddressActions address={pool.id} explorerUrl={explorer.getAddressUrl(pool.id)} />
@@ -155,7 +154,7 @@ export function InfoTab({ poolId }: InfoTabProps) {
           />
 
           <InfoField
-            label={INFO_TEXTS.operator}
+            label="Operator"
             value={addressFormatter(pool.operator.address, true)}
             actions={
               <AddressActions
@@ -166,9 +165,9 @@ export function InfoTab({ poolId }: InfoTabProps) {
           />
 
           <InfoField
-            label={INFO_TEXTS.lpToken.label}
+            label="LP-Token"
             value={pool.lptToken.symbol}
-            tooltip={INFO_TEXTS.lpToken.tooltip(SQD_TOKEN)}
+            tooltip={`Liquidity Provider token representing your share in the pool. You receive LP tokens when you provide ${SQD_TOKEN}.`}
             actions={
               <AddressActions
                 address={pool.lptToken.address}
@@ -179,9 +178,9 @@ export function InfoTab({ poolId }: InfoTabProps) {
           />
 
           <InfoField
-            label={INFO_TEXTS.rewardToken.label}
+            label="Reward Token"
             value={pool.rewardToken.symbol}
-            tooltip={INFO_TEXTS.rewardToken.tooltip}
+            tooltip="The token used to distribute rewards to pool participants."
             actions={
               <AddressActions
                 address={pool.rewardToken.address}
@@ -191,14 +190,11 @@ export function InfoTab({ poolId }: InfoTabProps) {
             }
           />
 
-          <InfoField
-            label={INFO_TEXTS.created}
-            value={dateFormat(pool.createdAt, 'dateTime') || '-'}
-          />
+          <InfoField label="Created" value={dateFormat(pool.createdAt, 'dateTime') || '-'} />
 
           {pool.website && (
             <InfoField
-              label={INFO_TEXTS.website}
+              label="Website"
               value={
                 <a href={urlFormatter(pool.website)} target="_blank" rel="noreferrer">
                   {pool.website}

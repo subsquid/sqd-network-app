@@ -92,6 +92,7 @@ export function getPhaseColor(
     case 'debt':
       return 'warning';
     case 'failed':
+    case 'closed':
       return 'error';
     default:
       return 'default';
@@ -110,6 +111,8 @@ export function getPhaseLabel(phase: PoolPhase): string {
       return 'Paused';
     case 'failed':
       return 'Failed';
+    case 'closed':
+      return 'Closed';
     default:
       return phase;
   }
@@ -127,6 +130,8 @@ export function getPhaseTooltip(phase: PoolPhase): string {
       return 'Pool has run out of USDC rewards. No rewards are being distributed. Contact the pool operator to add more USDC to resume rewards.';
     case 'failed':
       return 'Pool has failed. No rewards are being distributed. You can withdraw your tokens.';
+    case 'closed':
+      return 'Pool has been closed by admin. You can withdraw your tokens immediately and claim any pending rewards.';
     default:
       return phase;
   }

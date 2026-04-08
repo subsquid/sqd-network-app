@@ -5,6 +5,7 @@ import { erc20Abi } from 'viem';
 import {
   arbMulticallAbi,
   buyBackAbi,
+  feeRouterAbi,
   gatewayRegistryAbi,
   networkControllerAbi,
   portalPoolAbi,
@@ -64,6 +65,10 @@ export default defineConfig({
     {
       name: 'BuyBack',
       abi: buyBackAbi,
+    },
+    {
+      name: 'FeeRouter',
+      abi: feeRouterAbi,
     },
     {
       name: 'PortalPoolFactory',
