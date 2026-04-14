@@ -115,7 +115,7 @@ function TvlLineChart({ poolId, range }: TvlLineChartProps) {
 
     return [
       {
-        name: 'Stable TVL',
+        name: 'Committed',
         type: 'line' as const,
         color: '#4A90E2',
         data: tvlData.data.map(entry => ({
@@ -124,7 +124,7 @@ function TvlLineChart({ poolId, range }: TvlLineChartProps) {
         })),
       },
       {
-        name: 'Total TVL',
+        name: 'TVL',
         type: 'line' as const,
         color: '#82B1FF',
         data: tvlData.data.map(entry => ({
@@ -159,6 +159,7 @@ function TvlLineChart({ poolId, range }: TvlLineChartProps) {
         strokeWidth={2}
         fillOpacity={0.25}
         margin={{ right: 0 }}
+        tooltipShowTotal={false}
       />
     </SharedCursorProvider>
   );

@@ -56,7 +56,7 @@ function WithdrawalTimeLeftCell({ withdrawal }: { withdrawal: PendingWithdrawal 
 
   return (
     <Tooltip title={formattedDate ?? ''}>
-      <span>{isReady ? '—' : timeLeft}</span>
+      <span>{isReady ? 'Ready' : timeLeft}</span>
     </Tooltip>
   );
 }
