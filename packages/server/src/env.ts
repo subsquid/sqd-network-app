@@ -27,7 +27,7 @@ export function getPoolSquidUrl(): string {
 }
 
 export function getRpcUrl(): string | undefined {
-  const rpcUrl = process.env.RPC_URL?.trim();
+  const rpcUrl = process.env.ARBITRUM_ONE_RPC_URL?.trim();
   return rpcUrl || undefined;
 }
 
