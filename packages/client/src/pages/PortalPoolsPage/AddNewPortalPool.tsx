@@ -412,7 +412,10 @@ function AddNewPortalDialog({
       const bn = BigNumber(val);
       if (bn.isNaN() || bn.lte(0)) return undefined;
       return BigInt(
-        bn.times(10 ** selectedToken.decimals).integerValue(BigNumber.ROUND_CEIL).toFixed(0),
+        bn
+          .times(10 ** selectedToken.decimals)
+          .integerValue(BigNumber.ROUND_CEIL)
+          .toFixed(0),
       );
     } catch {
       return undefined;
