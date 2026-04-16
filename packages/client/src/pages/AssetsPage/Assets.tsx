@@ -105,6 +105,7 @@ function useTokenBalances(
         claimable: string;
         bonded: string;
         lockedPortal: string;
+        portalPool: string;
       }
     | undefined,
 ) {
@@ -165,6 +166,15 @@ function useTokenBalances(
           'Tokens locked in Portal stake',
         ),
         value: BigNumber(serverBalances?.lockedPortal || 0),
+      },
+      {
+        ...createTokenBalance(
+          'Portal Pools',
+          theme.palette.error.main,
+          theme.palette.error.main,
+          'Tokens deposited into Portal Pools as liquidity',
+        ),
+        value: BigNumber(serverBalances?.portalPool || 0),
       },
     ];
   }, [serverBalances, theme.palette]);
@@ -252,6 +262,7 @@ export function MyAssets() {
                 <TokenBalance balance={balances[3]} />
                 <TokenBalance balance={balances[4]} />
                 {demoFeaturesEnabled() && <TokenBalance balance={balances[5]} />}
+                <TokenBalance balance={balances[6]} />
               </PropertyList>
             </Box>
             {/* Only render PieChart on md screens and up (1000px+) */}

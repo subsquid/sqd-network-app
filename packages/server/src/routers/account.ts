@@ -4,6 +4,8 @@ import { z } from 'zod';
 import {
   GatewayStakesByOwnerDocument,
   type GatewayStakesByOwnerQuery,
+  PoolProvidersByOwnerDocument,
+  type PoolProvidersByOwnerQuery,
 } from '../generated/gateways-squid/graphql.js';
 import {
   SourcesDocument,
@@ -66,6 +68,7 @@ export const accountRouter = router({
             claimable: '0',
             bonded: '0',
             lockedPortal: '0',
+            portalPool: '0',
           },
           totalBalance: '0',
           claimableSources: [],
@@ -74,10 +77,11 @@ export const accountRouter = router({
 
       const ownerIds = accounts.map(a => a.id);
 
-      const [workersData, delegationsData, stakesData] = await Promise.all([
+      const [workersData, delegationsData, stakesData, poolProvidersData] = await Promise.all([
         queryWorkersSquid<WorkersByOwnerQuery>(WorkersByOwnerDocument, { ownerIds }),
         queryWorkersSquid<DelegationsByOwnerQuery>(DelegationsByOwnerDocument, { ownerIds }),
         queryGatewaysSquid<GatewayStakesByOwnerQuery>(GatewayStakesByOwnerDocument, { ownerIds }),
+        queryGatewaysSquid<PoolProvidersByOwnerQuery>(PoolProvidersByOwnerDocument, { ownerIds }),
       ]);
 
       const workersByOwner = new Map<string, WorkersByOwnerQuery['workers']>();
@@ -101,6 +105,13 @@ export const accountRouter = router({
         stakesByOwner.set(s.ownerId, list);
       }
 
+      const poolProvidersByOwner = new Map<string, PoolProvidersByOwnerQuery['poolProviders']>();
+      for (const p of poolProvidersData.poolProviders) {
+        const list = poolProvidersByOwner.get(p.providerId) ?? [];
+        list.push(p);
+        poolProvidersByOwner.set(p.providerId, list);
+      }
+
       const balances = {
         transferable: '0',
         vesting: '0',
@@ -108,6 +119,7 @@ export const accountRouter = router({
         claimable: '0',
         bonded: '0',
         lockedPortal: '0',
+        portalPool: '0',
       };
 
       const claimableSources = accounts.map(account => {
@@ -134,6 +146,11 @@ export const accountRouter = router({
         const accountStakes = stakesByOwner.get(account.id) ?? [];
         for (const stake of accountStakes) {
           balances.lockedPortal = BigNumber(balances.lockedPortal).plus(stake.amount).toFixed();
+        }
+
+        const accountPoolProviders = poolProvidersByOwner.get(account.id) ?? [];
+        for (const provider of accountPoolProviders) {
+          balances.portalPool = BigNumber(balances.portalPool).plus(provider.deposited).toFixed();
         }
 
         const claims: Array<{
@@ -185,6 +202,7 @@ export const accountRouter = router({
         .plus(balances.delegated)
         .plus(balances.bonded)
         .plus(balances.lockedPortal)
+        .plus(balances.portalPool)
         .toFixed();
 
       return { balances, totalBalance, claimableSources };

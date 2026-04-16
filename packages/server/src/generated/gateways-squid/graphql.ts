@@ -2257,6 +2257,19 @@ export type GatewaysSummaryQuery = {
   gatewaysSummary: { totalGatewayStake: string; totalPortalPoolTvl: string };
 };
 
+export type PoolProvidersByOwnerQueryVariables = Exact<{
+  ownerIds: Array<Scalars["String"]["input"]> | Scalars["String"]["input"];
+}>;
+
+export type PoolProvidersByOwnerQuery = {
+  poolProviders: Array<{
+    id: string;
+    deposited: string;
+    providerId: string;
+    poolId: string;
+  }>;
+};
+
 export type PortalPoolsQueryVariables = Exact<{
   limit: Scalars["Int"]["input"];
   offset: Scalars["Int"]["input"];
@@ -2436,6 +2449,19 @@ export const GatewaysSummaryDocument = new TypedDocumentString(`
     `) as unknown as TypedDocumentString<
   GatewaysSummaryQuery,
   GatewaysSummaryQueryVariables
+>;
+export const PoolProvidersByOwnerDocument = new TypedDocumentString(`
+    query poolProvidersByOwner($ownerIds: [String!]!) {
+  poolProviders(where: {providerId_in: $ownerIds, deposited_gt: "0"}) {
+    id
+    deposited
+    providerId
+    poolId
+  }
+}
+    `) as unknown as TypedDocumentString<
+  PoolProvidersByOwnerQuery,
+  PoolProvidersByOwnerQueryVariables
 >;
 export const PortalPoolsDocument = new TypedDocumentString(`
     query portalPools($limit: Int!, $offset: Int!) {

@@ -61,6 +61,17 @@ query gatewaysSummary {
   }
 }
 
+### POOL PROVIDER QUERIES ###
+
+query poolProvidersByOwner($ownerIds: [String!]!) {
+  poolProviders(where: { providerId_in: $ownerIds, deposited_gt: "0" }) {
+    id
+    deposited
+    providerId
+    poolId
+  }
+}
+
 ### POOL QUERIES ###
 
 query portalPools($limit: Int!, $offset: Int!) {
