@@ -1,22 +1,24 @@
 import { z } from 'zod';
 
 import {
+  HoldersCountTimeseriesDocument,
+  LockedValueTimeseriesDocument,
+  TransfersByTypeTimeseriesDocument,
+  UniqueAccountsTimeseriesDocument,
+} from '../generated/token-squid/graphql.js';
+import {
   ActiveWorkersTimeseriesDocument,
   AprTimeseriesDocument,
   DelegationsTimeseriesDocument,
   DelegatorsTimeseriesDocument,
-  HoldersCountTimeseriesDocument,
-  LockedValueTimeseriesDocument,
   QueriesCountTimeseriesDocument,
   RewardTimeseriesDocument,
   ServedDataTimeseriesDocument,
   StoredDataTimeseriesDocument,
-  TransfersByTypeTimeseriesDocument,
-  UniqueAccountsTimeseriesDocument,
   UniqueOperatorsTimeseriesDocument,
   UptimeTimeseriesDocument,
-} from '../generated/network-squid/graphql.js';
-import { queryNetworkSquid } from '../services/graphql.js';
+} from '../generated/workers-squid/graphql.js';
+import { queryTokenSquid, queryWorkersSquid } from '../services/graphql.js';
 import { publicProcedure, router } from '../trpc.js';
 
 const timeseriesInput = z.object({
@@ -33,19 +35,20 @@ export interface TimeseriesResult {
   to?: string;
 }
 
-function timeseriesProcedure(document: { toString(): string }, key: string) {
+type QueryFn = <T>(
+  query: string | { toString(): string },
+  variables?: Record<string, unknown>,
+) => Promise<T>;
+
+function timeseriesProcedure(document: { toString(): string }, key: string, queryFn: QueryFn) {
   return publicProcedure
     .input(timeseriesInput)
     .query(async ({ input }): Promise<TimeseriesResult> => {
-      const data = await queryNetworkSquid<Record<string, TimeseriesResult>>(document, input);
+      const data = await queryFn<Record<string, TimeseriesResult>>(document, input);
       return data[`${key}Timeseries`];
     });
 }
 
-/**
- * Merges multiple aliased timeseries into a single series keyed by timestamp.
- * Each data point's value becomes `{ [alias]: value, ... }`.
- */
 function mergeAliasedTimeseries(
   series: Record<string, TimeseriesResult>,
   keys: readonly string[],
@@ -80,7 +83,7 @@ const LOCKED_VALUE_KEYS = ['worker', 'delegation', 'portal', 'portalPool'] as co
 const lockedValueProcedure = publicProcedure
   .input(timeseriesInput)
   .query(async ({ input }): Promise<TimeseriesResult> => {
-    const data = await queryNetworkSquid<Record<string, TimeseriesResult>>(
+    const data = await queryTokenSquid<Record<string, TimeseriesResult>>(
       LockedValueTimeseriesDocument,
       input,
     );
@@ -88,18 +91,42 @@ const lockedValueProcedure = publicProcedure
   });
 
 export const timeseriesRouter = router({
-  holdersCount: timeseriesProcedure(HoldersCountTimeseriesDocument, 'holdersCount'),
+  holdersCount: timeseriesProcedure(
+    HoldersCountTimeseriesDocument,
+    'holdersCount',
+    queryTokenSquid,
+  ),
   lockedValue: lockedValueProcedure,
-  activeWorkers: timeseriesProcedure(ActiveWorkersTimeseriesDocument, 'activeWorkers'),
-  uniqueOperators: timeseriesProcedure(UniqueOperatorsTimeseriesDocument, 'uniqueOperators'),
-  delegations: timeseriesProcedure(DelegationsTimeseriesDocument, 'delegations'),
-  delegators: timeseriesProcedure(DelegatorsTimeseriesDocument, 'delegators'),
-  transfersByType: timeseriesProcedure(TransfersByTypeTimeseriesDocument, 'transfersByType'),
-  uniqueAccounts: timeseriesProcedure(UniqueAccountsTimeseriesDocument, 'uniqueAccounts'),
-  queriesCount: timeseriesProcedure(QueriesCountTimeseriesDocument, 'queriesCount'),
-  servedData: timeseriesProcedure(ServedDataTimeseriesDocument, 'servedData'),
-  storedData: timeseriesProcedure(StoredDataTimeseriesDocument, 'storedData'),
-  reward: timeseriesProcedure(RewardTimeseriesDocument, 'reward'),
-  apr: timeseriesProcedure(AprTimeseriesDocument, 'apr'),
-  uptime: timeseriesProcedure(UptimeTimeseriesDocument, 'uptime'),
+  activeWorkers: timeseriesProcedure(
+    ActiveWorkersTimeseriesDocument,
+    'activeWorkers',
+    queryWorkersSquid,
+  ),
+  uniqueOperators: timeseriesProcedure(
+    UniqueOperatorsTimeseriesDocument,
+    'uniqueOperators',
+    queryWorkersSquid,
+  ),
+  delegations: timeseriesProcedure(DelegationsTimeseriesDocument, 'delegations', queryWorkersSquid),
+  delegators: timeseriesProcedure(DelegatorsTimeseriesDocument, 'delegators', queryWorkersSquid),
+  transfersByType: timeseriesProcedure(
+    TransfersByTypeTimeseriesDocument,
+    'transfersByType',
+    queryTokenSquid,
+  ),
+  uniqueAccounts: timeseriesProcedure(
+    UniqueAccountsTimeseriesDocument,
+    'uniqueAccounts',
+    queryTokenSquid,
+  ),
+  queriesCount: timeseriesProcedure(
+    QueriesCountTimeseriesDocument,
+    'queriesCount',
+    queryWorkersSquid,
+  ),
+  servedData: timeseriesProcedure(ServedDataTimeseriesDocument, 'servedData', queryWorkersSquid),
+  storedData: timeseriesProcedure(StoredDataTimeseriesDocument, 'storedData', queryWorkersSquid),
+  reward: timeseriesProcedure(RewardTimeseriesDocument, 'reward', queryWorkersSquid),
+  apr: timeseriesProcedure(AprTimeseriesDocument, 'apr', queryWorkersSquid),
+  uptime: timeseriesProcedure(UptimeTimeseriesDocument, 'uptime', queryWorkersSquid),
 });

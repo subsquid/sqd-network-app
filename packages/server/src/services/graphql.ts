@@ -1,4 +1,4 @@
-import { getNetworkSquidUrl, getPoolSquidUrl } from '../env.js';
+import { getGatewaysSquidUrl, getTokenSquidUrl, getWorkersSquidUrl } from '../env.js';
 
 interface GraphQLResponse<T> {
   data: T;
@@ -25,16 +25,23 @@ async function graphqlRequest<T>(
   return json.data;
 }
 
-export function queryNetworkSquid<T>(
+export function queryWorkersSquid<T>(
   query: string | { toString(): string },
   variables?: Record<string, unknown>,
 ): Promise<T> {
-  return graphqlRequest<T>(getNetworkSquidUrl(), query, variables);
+  return graphqlRequest<T>(getWorkersSquidUrl(), query, variables);
 }
 
-export function queryPoolSquid<T>(
+export function queryGatewaysSquid<T>(
   query: string | { toString(): string },
   variables?: Record<string, unknown>,
 ): Promise<T> {
-  return graphqlRequest<T>(getPoolSquidUrl(), query, variables);
+  return graphqlRequest<T>(getGatewaysSquidUrl(), query, variables);
+}
+
+export function queryTokenSquid<T>(
+  query: string | { toString(): string },
+  variables?: Record<string, unknown>,
+): Promise<T> {
+  return graphqlRequest<T>(getTokenSquidUrl(), query, variables);
 }

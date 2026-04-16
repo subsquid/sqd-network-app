@@ -12,9 +12,9 @@ import { getContractAddresses } from '../env.js';
 import {
   CurrentEpochDocument,
   type CurrentEpochQuery,
-} from '../generated/network-squid/graphql.js';
+} from '../generated/workers-squid/graphql.js';
 import { getPublicClient } from '../services/blockchain.js';
-import { queryNetworkSquid } from '../services/graphql.js';
+import { queryWorkersSquid } from '../services/graphql.js';
 import { publicProcedure, router } from '../trpc.js';
 import { bigintStringSchema, evmAddressSchema } from '../validation.js';
 
@@ -36,7 +36,6 @@ export const contractRouter = router({
       const contracts = getContractAddresses();
       const publicClient = getPublicClient();
 
-      // Parallel: get stake, networkController address, and epoch data
       const [stake, networkControllerAddress, epochData] = await Promise.all([
         publicClient.readContract({
           address: contracts.GATEWAY_REGISTRATION,
@@ -49,7 +48,7 @@ export const contractRouter = router({
           abi: routerAbi,
           functionName: 'networkController',
         }),
-        queryNetworkSquid<CurrentEpochQuery>(CurrentEpochDocument),
+        queryWorkersSquid<CurrentEpochQuery>(CurrentEpochDocument),
       ]);
 
       const stakeData = stake as {
@@ -61,14 +60,12 @@ export const contractRouter = router({
         oldCUs: bigint;
       };
 
-      // Get workerEpochLength from NetworkController
       const workerEpochLength = await publicClient.readContract({
         address: networkControllerAddress as `0x${string}`,
         abi: networkControllerAbi,
         functionName: 'workerEpochLength',
       });
 
-      // Get CU amount if stake exists
       let cuAmount = 0n;
       if (stakeData.amount > 0n) {
         cuAmount = (await publicClient.readContract({
@@ -80,7 +77,7 @@ export const contractRouter = router({
       }
 
       const currentEpoch = {
-        ...epochData.networkStats,
+        ...epochData.workersSummary,
         epoch: epochData.epoches.length ? epochData.epoches[0] : undefined,
       };
 

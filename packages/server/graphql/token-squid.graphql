@@ -1,0 +1,128 @@
+scalar BigInt
+
+### ACCOUNT QUERIES ###
+
+query sources($address: String!) {
+  accounts(
+    where: { OR: [{ id_eq: $address }, { owner: { id_eq: $address } }] }
+    orderBy: [type_ASC, id_ASC]
+  ) {
+    id
+    type
+    balance
+  }
+}
+
+query vestingsByAccount($address: String!) {
+  accounts(where: { owner: { id_eq: $address }, type_eq: VESTING }) {
+    id
+    type
+    balance
+  }
+}
+
+query vestingByAddress($address: String!) {
+  accountById(id: $address) {
+    id
+    type
+    balance
+    owner {
+      id
+    }
+  }
+}
+
+query accountsByOwner($address: String!) {
+  accounts(
+    where: { OR: [{ id_eq: $address }, { owner: { id_eq: $address } }] }
+    orderBy: [type_ASC, id_ASC]
+  ) {
+    id
+    type
+    balance
+    ownerId
+  }
+}
+
+### TIMESERIES ###
+
+query HoldersCountTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  holdersCountTimeseries(from: $from, to: $to, step: $step) {
+    data {
+      timestamp
+      value
+    }
+    step
+    from
+    to
+  }
+}
+
+query LockedValueTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  worker: lockedValueTimeseries(from: $from, to: $to, step: $step, type: WORKER) {
+    data {
+      timestamp
+      value
+    }
+    step
+    from
+    to
+  }
+  delegation: lockedValueTimeseries(from: $from, to: $to, step: $step, type: DELEGATION) {
+    data {
+      timestamp
+      value
+    }
+    step
+    from
+    to
+  }
+  portal: lockedValueTimeseries(from: $from, to: $to, step: $step, type: PORTAL) {
+    data {
+      timestamp
+      value
+    }
+    step
+    from
+    to
+  }
+  portalPool: lockedValueTimeseries(from: $from, to: $to, step: $step, type: PORTAL_POOL) {
+    data {
+      timestamp
+      value
+    }
+    step
+    from
+    to
+  }
+}
+
+query TransfersByTypeTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  transfersByTypeTimeseries(from: $from, to: $to, step: $step) {
+    data {
+      timestamp
+      value {
+        deposit
+        withdraw
+        transfer
+        reward
+        release
+      }
+    }
+    step
+    from
+    to
+  }
+}
+
+query UniqueAccountsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  uniqueAccountsTimeseries(from: $from, to: $to, step: $step) {
+    data {
+      timestamp
+      value
+    }
+    step
+    from
+    to
+  }
+}

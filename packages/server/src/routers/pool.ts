@@ -5,19 +5,19 @@ import { z } from 'zod';
 
 import { getContractAddresses } from '../env.js';
 import {
-  ApyTimeseriesDocument,
-  type ApyTimeseriesQuery,
-  PoolByIdDocument,
-  type PoolByIdQuery,
+  PoolApyTimeseriesDocument,
+  type PoolApyTimeseriesQuery,
   PoolEventsDocument,
   type PoolEventsQuery,
-  PoolsListDocument,
-  type PoolsListQuery,
-  TvlTimeseriesDocument,
-  type TvlTimeseriesQuery,
-} from '../generated/pool-squid/graphql.js';
+  PoolTvlTimeseriesDocument,
+  type PoolTvlTimeseriesQuery,
+  PortalPoolByIdDocument,
+  type PortalPoolByIdQuery,
+  PortalPoolsDocument,
+  type PortalPoolsQuery,
+} from '../generated/gateways-squid/graphql.js';
 import { getPublicClient, readERC20Tokens } from '../services/blockchain.js';
-import { queryPoolSquid } from '../services/graphql.js';
+import { queryGatewaysSquid } from '../services/graphql.js';
 import { publicProcedure, router } from '../trpc.js';
 import { evmAddressSchema, paginationSchema } from '../validation.js';
 import { fetchHistoricalPrices } from './price.js';
@@ -82,14 +82,14 @@ export const poolRouter = router({
     const publicClient = getPublicClient();
     const contracts = getContractAddresses();
 
-    const data = await queryPoolSquid<PoolsListQuery>(PoolsListDocument, {
+    const data = await queryGatewaysSquid<PortalPoolsQuery>(PortalPoolsDocument, {
       limit: POOLS_LIST_LIMIT,
       offset: 0,
     });
 
-    if (!data.pools.length) return [];
+    if (!data.portalPools.length) return [];
 
-    const poolContracts = data.pools.map(pool => ({
+    const poolContracts = data.portalPools.map(pool => ({
       abi: portalPoolAbi,
       address: pool.id as Address,
     }));
@@ -157,7 +157,7 @@ export const poolRouter = router({
       : [];
     const rewardTokenMap = new Map(rewardTokens.map(t => [t.address.toLowerCase(), t]));
 
-    return data.pools.map((pool, i) => {
+    return data.portalPools.map((pool, i) => {
       const cluster = clusterResults[i];
       const metadata =
         cluster.status === 'success'
@@ -239,14 +239,12 @@ export const poolRouter = router({
       address,
     } as const;
 
-    // Step 1: Verify this is a valid portal pool
     if (!(await isPortalPool(publicClient, address))) {
       return null;
     }
 
     const contracts = getContractAddresses();
 
-    // Step 2: Fetch all contract data + GraphQL data in parallel
     const [
       activeStake,
       poolInfo,
@@ -303,12 +301,11 @@ export const poolRouter = router({
         functionName: 'getClusterByAddress',
         args: [address],
       }),
-      queryPoolSquid<PoolByIdQuery>(PoolByIdDocument, {
+      queryGatewaysSquid<PortalPoolByIdQuery>(PortalPoolByIdDocument, {
         id: poolId.toLowerCase(),
       }),
     ]);
 
-    // Step 3: Fetch ERC20 token metadata for LP and reward tokens
     const tokenAddresses: Address[] = [lptTokenAddress as Address];
     if (rewardTokenAddress) {
       tokenAddresses.push(rewardTokenAddress as Address);
@@ -326,7 +323,6 @@ export const poolRouter = router({
       return null;
     }
 
-    // Extract pool info fields
     const { operator, state, capacity, depositDeadline, totalStaked } = poolInfo as {
       operator: Address;
       state: number;
@@ -339,14 +335,16 @@ export const poolRouter = router({
     const isOutOfMoney = !credit;
 
     const depositWindowEndsAt = new Date(Number(depositDeadline) * 1000).toISOString();
-    const createdAt = poolIndexedData.poolById?.createdAt ?? new Date(0).toISOString();
+    const createdAt = poolIndexedData.portalPoolById?.createdAt ?? new Date(0).toISOString();
 
     const distRate = BigNumber(distributionRatePerSecond.toString())
       .div(DISTRIBUTION_RATE_BPS)
       .shiftedBy(-rewardToken.decimals)
       .toFixed();
 
-    const totalRewardsToppedUp = BigNumber(poolIndexedData.poolById?.totalRewardsToppedUp ?? '0')
+    const totalRewardsToppedUp = BigNumber(
+      poolIndexedData.portalPoolById?.totalRewardsToppedUp ?? '0',
+    )
       .shiftedBy(-rewardToken.decimals)
       .toFixed();
 
@@ -390,9 +388,8 @@ export const poolRouter = router({
       const address = poolId as Address;
       const publicClient = getPublicClient();
 
-      // Fetch APY timeseries and reward token address in parallel
       const [apyResult, rewardTokenAddress] = await Promise.all([
-        queryPoolSquid<ApyTimeseriesQuery>(ApyTimeseriesDocument, {
+        queryGatewaysSquid<PoolApyTimeseriesQuery>(PoolApyTimeseriesDocument, {
           poolId,
           from: from.toISOString(),
           to: to.toISOString(),
@@ -404,7 +401,7 @@ export const poolRouter = router({
         }),
       ]);
 
-      const timeseries = apyResult.apyTimeseries;
+      const timeseries = apyResult.poolApyTimeseries;
       if (!timeseries?.data?.length) {
         return {
           data: [] as { value: number; timestamp: string }[],
@@ -414,7 +411,6 @@ export const poolRouter = router({
         };
       }
 
-      // Fetch ERC20 token metadata and historical prices in parallel
       const [tokens, prices] = await Promise.all([
         readERC20Tokens([rewardTokenAddress as Address]),
         fetchHistoricalPrices(new Date(timeseries.from), new Date(timeseries.to)),
@@ -430,13 +426,11 @@ export const poolRouter = router({
         };
       }
 
-      // Map prices to milliseconds for matching
       const sortedPrices = prices.map(({ timestamp, price }) => ({
         timestamp: timestamp * 1000,
         price,
       }));
 
-      // Calculate APY for each data point
       let priceIdx = 0;
       const data = timeseries.data.map((entry, i) => {
         const nextTimestampMs =
@@ -444,7 +438,6 @@ export const poolRouter = router({
             ? new Date(timeseries.data[i + 1].timestamp).getTime()
             : Infinity;
 
-        // Advance price index to the latest price before the next APY point
         while (
           priceIdx < sortedPrices.length - 1 &&
           sortedPrices[priceIdx + 1].timestamp < nextTimestampMs
@@ -483,12 +476,12 @@ export const poolRouter = router({
       }),
     )
     .query(async ({ input }) => {
-      const data = await queryPoolSquid<TvlTimeseriesQuery>(TvlTimeseriesDocument, {
+      const data = await queryGatewaysSquid<PoolTvlTimeseriesQuery>(PoolTvlTimeseriesDocument, {
         poolId: input.poolId,
         from: input.from.toISOString(),
         to: input.to.toISOString(),
       });
-      const timeseries = data.tvlTimeseries;
+      const timeseries = data.poolTvlTimeseries;
       return {
         from: timeseries.from,
         to: timeseries.to,
@@ -510,11 +503,11 @@ export const poolRouter = router({
       }),
     )
     .query(async ({ input }) => {
-      const data = await queryPoolSquid<PoolEventsQuery>(PoolEventsDocument, input);
+      const data = await queryGatewaysSquid<PoolEventsQuery>(PoolEventsDocument, input);
 
       return {
-        events: data.events,
-        totalCount: data.eventsConnection.totalCount,
+        events: data.poolEvents,
+        totalCount: data.poolEventsConnection.totalCount,
       };
     }),
 
