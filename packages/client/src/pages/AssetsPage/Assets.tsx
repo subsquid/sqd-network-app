@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { CircleRounded } from '@mui/icons-material';
 import { Box, Grid, Stack, Typography, useTheme } from '@mui/material';
@@ -27,11 +27,26 @@ type TokenBalance = {
   tip?: string;
 };
 
-function TokenBalance({ balance }: { balance?: TokenBalance }) {
+function TokenBalance({
+  balance,
+  onHover,
+  onLeave,
+}: {
+  balance?: TokenBalance;
+  onHover?: () => void;
+  onLeave?: () => void;
+}) {
   const { SQD_TOKEN } = useContracts();
 
   const label = (
-    <Box display="flex" alignItems="center" gap={0.5}>
+    <Box
+      display="flex"
+      alignItems="center"
+      gap={0.5}
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
+      sx={{ cursor: 'default' }}
+    >
       <CircleRounded sx={{ fontSize: 11, color: balance?.color }} />
       <Typography>{balance?.name}</Typography>
       <HelpTooltip title={balance?.tip} />
@@ -43,7 +58,17 @@ function TokenBalance({ balance }: { balance?: TokenBalance }) {
   return <Property label={label} value={value} />;
 }
 
-function PieChart({ balances }: { balances: TokenBalance[] }) {
+function PieChart({
+  balances,
+  hoveredName,
+  onHover,
+  onLeave,
+}: {
+  balances: TokenBalance[];
+  hoveredName: string | null;
+  onHover: (name: string) => void;
+  onLeave: () => void;
+}) {
   const filteredBalances = useMemo(() => balances.filter(b => !b.value.isZero()), [balances]);
 
   return (
@@ -61,8 +86,20 @@ function PieChart({ balances }: { balances: TokenBalance[] }) {
             {pie => {
               return pie.arcs.map((arc, i) => {
                 return (
-                  <g key={`arc-${i}`}>
-                    <path d={pie.path(arc) || ''} fill={arc.data.color} />
+                  <g
+                    key={`arc-${i}`}
+                    onMouseEnter={() => onHover(arc.data.name)}
+                    onMouseLeave={onLeave}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <path
+                      d={pie.path(arc) || ''}
+                      fill={arc.data.color}
+                      style={{
+                        opacity: hoveredName && arc.data.name !== hoveredName ? 0.3 : 1,
+                        transition: 'opacity 0.2s ease',
+                      }}
+                    />
                   </g>
                 );
               });
@@ -203,6 +240,8 @@ export function MyAssets() {
 
   const isLoading = isSourcesLoading || isPriceLoading;
 
+  const [hoveredName, setHoveredName] = useState<string | null>(null);
+
   return (
     <Grid container spacing={2}>
       <Grid container spacing={2} size={{ xs: 12, xl: 4.5 }}>
@@ -257,12 +296,38 @@ export function MyAssets() {
           >
             <Box flex={1}>
               <PropertyList>
-                <TokenBalance balance={balances[0]} />
-                <TokenBalance balance={balances[1]} />
-                <TokenBalance balance={balances[3]} />
-                <TokenBalance balance={balances[4]} />
-                {demoFeaturesEnabled() && <TokenBalance balance={balances[5]} />}
-                <TokenBalance balance={balances[6]} />
+                <TokenBalance
+                  balance={balances[0]}
+                  onHover={() => setHoveredName(balances[0]?.name)}
+                  onLeave={() => setHoveredName(null)}
+                />
+                <TokenBalance
+                  balance={balances[1]}
+                  onHover={() => setHoveredName(balances[1]?.name)}
+                  onLeave={() => setHoveredName(null)}
+                />
+                <TokenBalance
+                  balance={balances[3]}
+                  onHover={() => setHoveredName(balances[3]?.name)}
+                  onLeave={() => setHoveredName(null)}
+                />
+                <TokenBalance
+                  balance={balances[4]}
+                  onHover={() => setHoveredName(balances[4]?.name)}
+                  onLeave={() => setHoveredName(null)}
+                />
+                {demoFeaturesEnabled() && (
+                  <TokenBalance
+                    balance={balances[5]}
+                    onHover={() => setHoveredName(balances[5]?.name)}
+                    onLeave={() => setHoveredName(null)}
+                  />
+                )}
+                <TokenBalance
+                  balance={balances[6]}
+                  onHover={() => setHoveredName(balances[6]?.name)}
+                  onLeave={() => setHoveredName(null)}
+                />
               </PropertyList>
             </Box>
             {/* Only render PieChart on md screens and up (1000px+) */}
@@ -274,7 +339,12 @@ export function MyAssets() {
                 },
               })}
             >
-              <PieChart balances={balances} />
+              <PieChart
+                balances={balances}
+                hoveredName={hoveredName}
+                onHover={setHoveredName}
+                onLeave={() => setHoveredName(null)}
+              />
             </Box>
           </Box>
         </Card>
