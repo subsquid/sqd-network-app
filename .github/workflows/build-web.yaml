@@ -54,17 +54,21 @@ jobs:
           echo "tag=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           if [ "$REF" = "refs/heads/main" ]; then
               echo "app_env=prod" >> $GITHUB_OUTPUT
-              echo "testnet_squid_api_url=https://subsquid.squids.live/subsquid-network-testnet:prod/api/graphql" >> $GITHUB_OUTPUT
-              echo "mainnet_squid_api_url=https://subsquid.squids.live/subsquid-network-mainnet:prod/api/graphql" >> $GITHUB_OUTPUT
-              echo "testnet_pool_squid_api_url=https://subsquid.squids.live/portal-pools-testnet@v3/api/graphql" >> $GITHUB_OUTPUT
-              echo "mainnet_pool_squid_api_url=https://subsquid.squids.live/portal-pools-mainnet@v3/api/graphql" >> $GITHUB_OUTPUT
+              echo "testnet_workers_squid_api_url=https://subsquid.squids.live/sqd-workers-tethys@v1/api/graphql" >> $GITHUB_OUTPUT
+              echo "mainnet_workers_squid_api_url=https://subsquid.squids.live/sqd-workers-mainnet@v1/api/graphql" >> $GITHUB_OUTPUT
+              echo "testnet_gateways_squid_api_url=https://subsquid.squids.live/sqd-gateways-tethys@v1/api/graphql" >> $GITHUB_OUTPUT
+              echo "mainnet_gateways_squid_api_url=https://subsquid.squids.live/sqd-gateways-mainnet@v1/api/graphql" >> $GITHUB_OUTPUT
+              echo "testnet_token_squid_api_url=https://subsquid.squids.live/sqd-token-tethys@v1/api/graphql" >> $GITHUB_OUTPUT
+              echo "mainnet_token_squid_api_url=https://subsquid.squids.live/sqd-token-mainnet@v1/api/graphql" >> $GITHUB_OUTPUT
               echo "enable_demo_features=false" >> $GITHUB_OUTPUT
           else
               echo "app_env=dev" >> $GITHUB_OUTPUT
-              echo "testnet_squid_api_url=https://subsquid.squids.live/subsquid-network-testnet:dev/api/graphql" >> $GITHUB_OUTPUT
-              echo "mainnet_squid_api_url=https://subsquid.squids.live/subsquid-network-mainnet:dev/api/graphql" >> $GITHUB_OUTPUT
-              echo "testnet_pool_squid_api_url=https://subsquid.squids.live/portal-pools-testnet@v3/api/graphql" >> $GITHUB_OUTPUT
-              echo "mainnet_pool_squid_api_url=https://subsquid.squids.live/portal-pools-mainnet@v3/api/graphql" >> $GITHUB_OUTPUT
+              echo "testnet_workers_squid_api_url=https://subsquid.squids.live/sqd-workers-tethys@v1/api/graphql" >> $GITHUB_OUTPUT
+              echo "mainnet_workers_squid_api_url=https://subsquid.squids.live/sqd-workers-mainnet@v1/api/graphql" >> $GITHUB_OUTPUT
+              echo "testnet_gateways_squid_api_url=https://subsquid.squids.live/sqd-gateways-tethys@v1/api/graphql" >> $GITHUB_OUTPUT
+              echo "mainnet_gateways_squid_api_url=https://subsquid.squids.live/sqd-gateways-mainnet@v1/api/graphql" >> $GITHUB_OUTPUT
+              echo "testnet_token_squid_api_url=https://subsquid.squids.live/sqd-token-tethys@v1/api/graphql" >> $GITHUB_OUTPUT
+              echo "mainnet_token_squid_api_url=https://subsquid.squids.live/sqd-token-mainnet@v1/api/graphql" >> $GITHUB_OUTPUT
               echo "enable_demo_features=true" >> $GITHUB_OUTPUT
               echo "sentry_dsn=https://3a283cbad35b86e2afa2acd0e6b66794@o1149243.ingest.us.sentry.io/4509162478960640" >> $GITHUB_OUTPUT
           fi
@@ -89,10 +93,12 @@ jobs:
           WALLET_CONNECT_PROJECT_ID: ${{ steps.env.outputs.wc_project_id }}
           ENABLE_DEMO_FEATURES: ${{ steps.env.outputs.enable_demo_features }}
           NETWORK: ${{ matrix.network }}
-          TESTNET_SQUID_API_URL: ${{ steps.env.outputs.testnet_squid_api_url }}
-          MAINNET_SQUID_API_URL: ${{ steps.env.outputs.mainnet_squid_api_url }}
-          TESTNET_POOL_SQUID_API_URL: ${{ steps.env.outputs.testnet_pool_squid_api_url }}
-          MAINNET_POOL_SQUID_API_URL: ${{ steps.env.outputs.mainnet_pool_squid_api_url }}
+          TESTNET_WORKERS_SQUID_API_URL: ${{ steps.env.outputs.testnet_workers_squid_api_url }}
+          MAINNET_WORKERS_SQUID_API_URL: ${{ steps.env.outputs.mainnet_workers_squid_api_url }}
+          TESTNET_GATEWAYS_SQUID_API_URL: ${{ steps.env.outputs.testnet_gateways_squid_api_url }}
+          MAINNET_GATEWAYS_SQUID_API_URL: ${{ steps.env.outputs.mainnet_gateways_squid_api_url }}
+          TESTNET_TOKEN_SQUID_API_URL: ${{ steps.env.outputs.testnet_token_squid_api_url }}
+          MAINNET_TOKEN_SQUID_API_URL: ${{ steps.env.outputs.mainnet_token_squid_api_url }}
           NODE_ENV: production
           SENTRY_DSN: ${{ steps.env.outputs.sentry_dsn }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}

@@ -1,0 +1,153 @@
+scalar BigInt
+
+### GATEWAY QUERIES ###
+
+query gatewayByPeerId($peerId: String!) {
+  gatewayById(id: $peerId) {
+    id
+    name
+    status
+    description
+    email
+    endpointUrl
+    website
+    createdAt
+    ownerId
+  }
+}
+
+query myGateways($address: String!) {
+  gateways(where: { ownerId_eq: $address, status_not_eq: DEREGISTERED }) {
+    id
+    name
+    status
+    description
+    email
+    endpointUrl
+    website
+    createdAt
+    ownerId
+  }
+}
+
+query myGatewayStakes($ownerIds: [String!]!) {
+  gatewayStakes(where: { ownerId_in: $ownerIds, amount_gt: "0" }) {
+    id
+    amount
+    ownerId
+    autoExtension
+    computationUnits
+    computationUnitsPending
+    locked
+    lockStart
+    lockEnd
+  }
+}
+
+query gatewayStakesByOwner($ownerIds: [String!]!) {
+  gatewayStakes(where: { ownerId_in: $ownerIds, amount_gt: "0" }) {
+    id
+    amount
+    ownerId
+  }
+}
+
+### SUMMARY ###
+
+query gatewaysSummary {
+  gatewaysSummary {
+    totalGatewayStake
+    totalPortalPoolTvl
+  }
+}
+
+### POOL PROVIDER QUERIES ###
+
+query poolProvidersByOwner($ownerIds: [String!]!) {
+  poolProviders(where: { providerId_in: $ownerIds, deposited_gt: "0" }) {
+    id
+    deposited
+    providerId
+    poolId
+  }
+}
+
+### POOL QUERIES ###
+
+query portalPools($limit: Int!, $offset: Int!) {
+  portalPools(limit: $limit, offset: $offset, orderBy: createdAt_DESC) {
+    id
+    rewardRate
+    totalRewardsToppedUp
+    tvlStable
+    tvlTotal
+    closedAt
+    closedAtBlock
+    createdAt
+    createdAtBlock
+    capacity
+  }
+}
+
+query portalPoolById($id: String!) {
+  portalPoolById(id: $id) {
+    totalRewardsToppedUp
+    createdAt
+  }
+}
+
+query poolApyTimeseries($from: DateTime!, $poolId: String!, $to: DateTime!) {
+  poolApyTimeseries(from: $from, poolId: $poolId, to: $to) {
+    data {
+      value
+      timestamp
+    }
+    from
+    step
+    to
+  }
+}
+
+query poolTvlTimeseries($from: DateTime!, $poolId: String!, $to: DateTime!) {
+  poolTvlTimeseries(from: $from, poolId: $poolId, to: $to) {
+    data {
+      value {
+        tvlStable
+        tvlTotal
+      }
+      timestamp
+    }
+    from
+    step
+    to
+  }
+}
+
+query poolEvents(
+  $limit: Int!
+  $offset: Int!
+  $poolId: String!
+  $providerId: String
+  $eventTypes: [PoolEventType!]
+) {
+  poolEvents(
+    limit: $limit
+    offset: $offset
+    orderBy: timestamp_DESC
+    where: { pool: { id_eq: $poolId }, providerId_eq: $providerId, eventType_in: $eventTypes }
+  ) {
+    id
+    eventType
+    txHash
+    timestamp
+    providerId
+    amount
+    blockNumber
+  }
+  poolEventsConnection(
+    orderBy: id_ASC
+    where: { pool: { id_eq: $poolId }, providerId_eq: $providerId, eventType_in: $eventTypes }
+  ) {
+    totalCount
+  }
+}

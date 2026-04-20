@@ -1,19 +1,23 @@
 import { BigNumber } from 'bignumber.js';
 
 import {
+  GatewaysSummaryDocument,
+  type GatewaysSummaryQuery,
+} from '../generated/gateways-squid/graphql.js';
+import {
   CurrentEpochDocument,
   type CurrentEpochQuery,
-  NetworkSummaryDocument,
-  type NetworkSummaryQuery,
   SettingsDocument,
   type SettingsQuery,
-} from '../generated/network-squid/graphql.js';
-import { queryNetworkSquid } from '../services/graphql.js';
+  WorkersSummaryDocument,
+  type WorkersSummaryQuery,
+} from '../generated/workers-squid/graphql.js';
+import { queryGatewaysSquid, queryWorkersSquid } from '../services/graphql.js';
 import { publicProcedure, router } from '../trpc.js';
 
 export const networkRouter = router({
   settings: publicProcedure.query(async () => {
-    const data = await queryNetworkSquid<SettingsQuery>(SettingsDocument);
+    const data = await queryWorkersSquid<SettingsQuery>(SettingsDocument);
     const node = data.settingsConnection.edges?.[0]?.node;
 
     return {
@@ -25,34 +29,48 @@ export const networkRouter = router({
   }),
 
   stats: publicProcedure.query(async () => {
-    const data = await queryNetworkSquid<NetworkSummaryQuery>(NetworkSummaryDocument);
-    const stats = data.networkStats;
+    const [workersData, gatewaysData] = await Promise.all([
+      queryWorkersSquid<WorkersSummaryQuery>(WorkersSummaryDocument),
+      queryGatewaysSquid<GatewaysSummaryQuery>(GatewaysSummaryDocument),
+    ]);
+
+    const ws = workersData.workersSummary;
+    const gs = gatewaysData.gatewaysSummary;
+    const totalPortalLock = BigNumber(gs.totalGatewayStake).plus(gs.totalPortalPoolTvl).toFixed();
+
     return {
-      ...stats,
-      totalLockedValue: BigNumber(stats.totalBond)
-        .plus(stats.totalDelegation)
-        .plus(stats.totalPortalLock)
+      ...ws,
+      totalPortalLock,
+      totalLockedValue: BigNumber(ws.totalBond)
+        .plus(ws.totalDelegation)
+        .plus(totalPortalLock)
         .toFixed(),
     };
   }),
 
   currentEpoch: publicProcedure.query(async () => {
-    const data = await queryNetworkSquid<CurrentEpochQuery>(CurrentEpochDocument);
+    const data = await queryWorkersSquid<CurrentEpochQuery>(CurrentEpochDocument);
     return {
-      ...data.networkStats,
+      ...data.workersSummary,
       epoch: data.epoches.length ? data.epoches[0] : undefined,
     };
   }),
 
   summary: publicProcedure.query(async () => {
-    const [summaryData, epochData] = await Promise.all([
-      queryNetworkSquid<NetworkSummaryQuery>(NetworkSummaryDocument),
-      queryNetworkSquid<CurrentEpochQuery>(CurrentEpochDocument),
+    const [workersData, gatewaysData, epochData] = await Promise.all([
+      queryWorkersSquid<WorkersSummaryQuery>(WorkersSummaryDocument),
+      queryGatewaysSquid<GatewaysSummaryQuery>(GatewaysSummaryDocument),
+      queryWorkersSquid<CurrentEpochQuery>(CurrentEpochDocument),
     ]);
 
+    const ws = workersData.workersSummary;
+    const gs = gatewaysData.gatewaysSummary;
+    const totalPortalLock = BigNumber(gs.totalGatewayStake).plus(gs.totalPortalPoolTvl).toFixed();
+
     return {
-      ...summaryData.networkStats,
-      ...epochData.networkStats,
+      ...ws,
+      ...epochData.workersSummary,
+      totalPortalLock,
       epoch: epochData.epoches.length ? epochData.epoches[0] : undefined,
     };
   }),

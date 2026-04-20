@@ -3,11 +3,12 @@ import { createHTTPServer } from '@trpc/server/adapters/standalone';
 
 import {
   getContractAddresses,
-  getNetworkSquidUrl,
-  getPoolSquidUrl,
+  getGatewaysSquidUrl,
   getPort,
   getRpcUrl,
   getSentryDsn,
+  getTokenSquidUrl,
+  getWorkersSquidUrl,
 } from './env.js';
 import { appRouter } from './router.js';
 import { createContext } from './trpc.js';
@@ -28,8 +29,9 @@ const startupLogs = [
   `Server environment: ${process.env.APP_ENV}`,
   `Server network: ${process.env.NETWORK}`,
   `Sentry enabled: ${Boolean(sentryDsn)}`,
-  `Server squid url: ${getNetworkSquidUrl()}`,
-  `Server pool squid url: ${getPoolSquidUrl()}`,
+  `Server workers squid url: ${getWorkersSquidUrl()}`,
+  `Server gateways squid url: ${getGatewaysSquidUrl()}`,
+  `Server token squid url: ${getTokenSquidUrl()}`,
   `Server rpc url: ${getRpcUrl()}`,
   `Server contract addresses: ${Object.entries(getContractAddresses())
     .map(([key, value]) => `${key}: ${value}`)

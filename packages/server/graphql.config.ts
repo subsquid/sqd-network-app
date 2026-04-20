@@ -6,12 +6,15 @@ import { CodegenConfig } from '@graphql-codegen/cli';
 
 const isMainnet = process.env.NETWORK === 'mainnet';
 
-const networkSquidSchema = isMainnet
-  ? process.env.MAINNET_SQUID_API_URL!
-  : process.env.TESTNET_SQUID_API_URL!;
-const poolSquidSchema = isMainnet
-  ? process.env.MAINNET_POOL_SQUID_API_URL!
-  : process.env.TESTNET_POOL_SQUID_API_URL!;
+const workersSquidSchema = isMainnet
+  ? process.env.MAINNET_WORKERS_SQUID_API_URL!
+  : process.env.TESTNET_WORKERS_SQUID_API_URL!;
+const gatewaysSquidSchema = isMainnet
+  ? process.env.MAINNET_GATEWAYS_SQUID_API_URL!
+  : process.env.TESTNET_GATEWAYS_SQUID_API_URL!;
+const tokenSquidSchema = isMainnet
+  ? process.env.MAINNET_TOKEN_SQUID_API_URL!
+  : process.env.TESTNET_TOKEN_SQUID_API_URL!;
 
 const sharedConfig = {
   maybeValue: 'T',
@@ -23,38 +26,38 @@ const sharedConfig = {
   },
 };
 
+const sharedPreset = {
+  preset: 'client' as const,
+  presetConfig: {
+    fragmentMasking: false,
+  },
+  config: {
+    ...sharedConfig,
+    documentMode: 'string',
+    useTypeImports: true,
+  },
+};
+
 export default {
   overwrite: true,
   hooks: {
     afterOneFileWrite: ['prettier --write'],
   },
   generates: {
-    // Server: types + document strings (TypedDocumentString)
-    'packages/server/src/generated/network-squid/': {
-      schema: networkSquidSchema,
-      documents: ['packages/server/graphql/network-squid.graphql'],
-      preset: 'client',
-      presetConfig: {
-        fragmentMasking: false,
-      },
-      config: {
-        ...sharedConfig,
-        documentMode: 'string',
-        useTypeImports: true,
-      },
+    'packages/server/src/generated/workers-squid/': {
+      schema: workersSquidSchema,
+      documents: ['packages/server/graphql/workers-squid.graphql'],
+      ...sharedPreset,
     },
-    'packages/server/src/generated/pool-squid/': {
-      schema: poolSquidSchema,
-      documents: ['packages/server/graphql/pool-squid.graphql'],
-      preset: 'client',
-      presetConfig: {
-        fragmentMasking: false,
-      },
-      config: {
-        ...sharedConfig,
-        documentMode: 'string',
-        useTypeImports: true,
-      },
+    'packages/server/src/generated/gateways-squid/': {
+      schema: gatewaysSquidSchema,
+      documents: ['packages/server/graphql/gateways-squid.graphql'],
+      ...sharedPreset,
+    },
+    'packages/server/src/generated/token-squid/': {
+      schema: tokenSquidSchema,
+      documents: ['packages/server/graphql/token-squid.graphql'],
+      ...sharedPreset,
     },
   },
 } satisfies CodegenConfig;

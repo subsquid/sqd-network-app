@@ -1,0 +1,420 @@
+scalar BigInt
+
+### STATUS ###
+
+query squidNetworkHeight {
+  squidStatus {
+    height
+  }
+}
+
+### SETTINGS ###
+
+query settings {
+  settingsConnection(orderBy: id_ASC) {
+    edges {
+      node {
+        id
+        bondAmount
+        delegationLimitCoefficient
+        minimalWorkerVersion
+        recommendedWorkerVersion
+      }
+    }
+  }
+}
+
+### WORKER QUERIES ###
+
+query allWorkers {
+  workers(where: { status_eq: ACTIVE }, orderBy: totalDelegation_ASC) {
+    id
+    name
+    peerId
+    ownerId
+    status
+    online
+    jailed
+    dialOk
+    jailReason
+    statusHistory(orderBy: id_DESC, limit: 1) {
+      blockNumber
+      pending
+      timestamp
+    }
+    version
+    createdAt
+    uptime90Days
+    uptime24Hours
+    apr
+    stakerApr
+    totalDelegation
+    capedDelegation
+    delegationCount
+    locked
+    lockEnd
+  }
+}
+
+query workerByPeerId($peerId: String!, $ownerIds: [String!]) {
+  workers(where: { peerId_eq: $peerId }, limit: 1) {
+    id
+    name
+    peerId
+    ownerId
+    status
+    online
+    jailed
+    dialOk
+    jailReason
+    statusHistory(orderBy: id_DESC, limit: 1) {
+      blockNumber
+      pending
+      timestamp
+    }
+    version
+    createdAt
+    uptime90Days
+    uptime24Hours
+    apr
+    stakerApr
+    totalDelegation
+    capedDelegation
+    delegationCount
+    locked
+    lockEnd
+    bond
+    claimableReward
+    claimedReward
+    totalDelegationRewards
+    queries24Hours
+    queries90Days
+    scannedData24Hours
+    scannedData90Days
+    servedData24Hours
+    servedData90Days
+    storedData
+    website
+    email
+    description
+    dayUptimes {
+      timestamp
+      uptime
+    }
+    delegations(where: { ownerId_in: $ownerIds, deposit_gt: "0" }) {
+      deposit
+      claimableReward
+      claimedReward
+      locked
+      lockEnd
+      ownerId
+    }
+  }
+}
+
+query myWorkers($ownerIds: [String!]!) {
+  workers(
+    orderBy: id_ASC
+    where: { ownerId_in: $ownerIds, status_not_eq: WITHDRAWN }
+  ) {
+    id
+    name
+    peerId
+    ownerId
+    status
+    online
+    jailed
+    dialOk
+    jailReason
+    statusHistory(orderBy: id_DESC, limit: 1) {
+      blockNumber
+      pending
+      timestamp
+    }
+    version
+    createdAt
+    uptime90Days
+    uptime24Hours
+    apr
+    stakerApr
+    totalDelegation
+    capedDelegation
+    delegationCount
+    locked
+    lockEnd
+    bond
+    claimableReward
+    claimedReward
+  }
+}
+
+query myWorkersCount($ownerIds: [String!]!) {
+  workersConnection(orderBy: id_ASC, where: { ownerId_in: $ownerIds }) {
+    totalCount
+  }
+}
+
+query workerDelegationInfo($workerId: String!) {
+  workerById(id: $workerId) {
+    bond
+    totalDelegation
+    capedDelegation
+    liveness
+    dTenure
+    trafficWeight
+  }
+  settings(limit: 1) {
+    utilizedStake
+    baseApr
+  }
+}
+
+query myDelegations($ownerIds: [String!]!, $peerId: String) {
+  workers(
+    orderBy: id_ASC
+    where: {
+      peerId_eq: $peerId
+      delegations_some: { ownerId_in: $ownerIds, deposit_gt: "0" }
+    }
+  ) {
+    id
+    name
+    peerId
+    ownerId
+    status
+    online
+    jailed
+    dialOk
+    jailReason
+    statusHistory(orderBy: id_DESC, limit: 1) {
+      blockNumber
+      pending
+      timestamp
+    }
+    version
+    createdAt
+    uptime90Days
+    uptime24Hours
+    apr
+    stakerApr
+    totalDelegation
+    capedDelegation
+    delegationCount
+    locked
+    lockEnd
+    delegations(where: { ownerId_in: $ownerIds, deposit_gt: "0" }) {
+      deposit
+      claimableReward
+      claimedReward
+      locked
+      lockEnd
+      ownerId
+    }
+  }
+}
+
+### ASSETS QUERIES ###
+
+query workersByOwner($ownerIds: [String!]!) {
+  workers(
+    where: {
+      ownerId_in: $ownerIds
+      OR: [{ bond_gt: "0" }, { claimableReward_gt: "0" }]
+    }
+  ) {
+    id
+    name
+    peerId
+    ownerId
+    bond
+    claimableReward
+  }
+}
+
+query delegationsByOwner($ownerIds: [String!]!) {
+  delegations(
+    where: {
+      ownerId_in: $ownerIds
+      OR: [{ deposit_gt: "0" }, { claimableReward_gt: "0" }]
+    }
+  ) {
+    deposit
+    claimableReward
+    claimedReward
+    locked
+    lockEnd
+    ownerId
+    worker {
+      id
+      name
+      peerId
+    }
+  }
+}
+
+### NETWORK / SUMMARY ###
+
+query workersSummary {
+  workersSummary {
+    onlineWorkersCount
+    queries90Days
+    queries24Hours
+    servedData90Days
+    servedData24Hours
+    stakerApr
+    totalBond
+    totalDelegation
+    storedData
+    workerApr
+    workersCount
+    blockTimeL1
+    lastBlockL1
+    lastBlockTimestampL1
+    aprs {
+      stakerApr
+      timestamp
+      workerApr
+    }
+  }
+}
+
+query currentEpoch {
+  workersSummary {
+    blockTimeL1
+    lastBlockL1
+    lastBlockTimestampL1
+  }
+  epoches(limit: 1, orderBy: id_DESC) {
+    number
+    start
+    end
+  }
+}
+
+### TIMESERIES ###
+
+query ActiveWorkersTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  activeWorkersTimeseries(from: $from, to: $to, step: $step) {
+    data {
+      timestamp
+      value
+    }
+    step
+    from
+    to
+  }
+}
+
+query UniqueOperatorsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  uniqueOperatorsTimeseries(from: $from, to: $to, step: $step) {
+    data {
+      timestamp
+      value
+    }
+    step
+    from
+    to
+  }
+}
+
+query DelegationsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  delegationsTimeseries(from: $from, to: $to, step: $step) {
+    data {
+      timestamp
+      value
+    }
+    step
+    from
+    to
+  }
+}
+
+query DelegatorsTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
+  delegatorsTimeseries(from: $from, to: $to, step: $step) {
+    data {
+      timestamp
+      value
+    }
+    step
+    from
+    to
+  }
+}
+
+query QueriesCountTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
+  queriesCountTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
+    data {
+      timestamp
+      value
+    }
+    step
+    from
+    to
+  }
+}
+
+query ServedDataTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
+  servedDataTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
+    data {
+      timestamp
+      value
+    }
+    step
+    from
+    to
+  }
+}
+
+query StoredDataTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
+  storedDataTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
+    data {
+      timestamp
+      value
+    }
+    step
+    from
+    to
+  }
+}
+
+query RewardTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
+  rewardTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
+    data {
+      timestamp
+      value {
+        workerReward
+        stakerReward
+      }
+    }
+    step
+    from
+    to
+  }
+}
+
+query AprTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
+  aprTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
+    data {
+      timestamp
+      value {
+        workerApr
+        stakerApr
+      }
+    }
+    step
+    from
+    to
+  }
+}
+
+query UptimeTimeseries($from: DateTime!, $to: DateTime!, $step: String, $workerId: String) {
+  uptimeTimeseries(from: $from, to: $to, step: $step, workerId: $workerId) {
+    data {
+      timestamp
+      value
+    }
+    step
+    from
+    to
+  }
+}
