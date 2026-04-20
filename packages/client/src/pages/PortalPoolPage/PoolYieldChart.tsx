@@ -156,6 +156,7 @@ function TvlLineChart({ poolId, range }: TvlLineChartProps) {
         xAxis={{ min: xAxisRange.min, max: xAxisRange.max }}
         yAxis={{ min: 0 }}
         tooltipFormat={{ y: tvlTooltipFormatter }}
+        tooltipShowTotal={false}
         strokeWidth={2}
         fillOpacity={0.25}
         margin={{ right: 0 }}

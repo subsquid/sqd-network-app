@@ -40,7 +40,15 @@ export function ChartTooltip({
   tooltipShowTotal = true,
 }: ChartTooltipProps) {
   const firstDatum = Object.values(tooltipData)[0];
-  const entries = Object.entries(tooltipData);
+  const entries = useMemo(
+    () =>
+      Object.entries(tooltipData).sort(([, a], [, b]) => {
+        const ya = typeof a.y === 'number' ? a.y : -Infinity;
+        const yb = typeof b.y === 'number' ? b.y : -Infinity;
+        return yb - ya;
+      }),
+    [tooltipData],
+  );
   const showTotal = tooltipShowTotal && entries.length >= 2;
   const totalY = showTotal
     ? entries.reduce((sum, [, d]) => sum + (typeof d.y === 'number' ? d.y : 0), 0)

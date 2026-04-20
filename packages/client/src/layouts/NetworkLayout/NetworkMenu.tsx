@@ -180,7 +180,7 @@ export const NetworkMenu = ({ onItemClick, collapsed }: NetworkMenuProps) => {
   );
   const isWorkerOperator = workersCount ? workersCount > 0 : false;
   const workersChatUrl = useWorkersChatUrl();
-  const communityChatUrl = process.env.DISCORD_API_URL ?? 'https://discord.gg/subsquid';
+  const communityChatUrl = process.env.COMMUNITY_CHAT_URL ?? 'https://t.me/subsquid';
   const location = useLocation();
   const previousPathRef = useRef<string>('/dashboard');
 
