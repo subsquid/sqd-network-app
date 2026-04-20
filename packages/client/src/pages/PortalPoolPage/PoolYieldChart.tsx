@@ -160,7 +160,6 @@ function TvlLineChart({ poolId, range }: TvlLineChartProps) {
         strokeWidth={2}
         fillOpacity={0.25}
         margin={{ right: 0 }}
-        tooltipShowTotal={false}
       />
     </SharedCursorProvider>
   );
