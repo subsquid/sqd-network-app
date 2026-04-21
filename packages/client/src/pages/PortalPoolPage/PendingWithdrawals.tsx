@@ -217,11 +217,11 @@ function getEventTypeColor(
     case EventType.Deposit:
       return 'info';
     case EventType.Withdrawal:
-      return 'warning';
+      return 'secondary';
     case EventType.Exit:
       return 'error';
     case EventType.Topup:
-      return 'secondary';
+      return 'warning';
     case EventType.Claim:
       return 'success';
     default:
