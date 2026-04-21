@@ -14,16 +14,22 @@ export function getNetwork(): NetworkName {
   return 'mainnet';
 }
 
-export function getNetworkSquidUrl(): string {
+export function getWorkersSquidUrl(): string {
   return getNetwork() === 'tethys'
-    ? getEnv('TESTNET_SQUID_API_URL', 'http://localhost:4350')
-    : getEnv('MAINNET_SQUID_API_URL', 'http://localhost:4350');
+    ? getEnv('TESTNET_WORKERS_SQUID_API_URL', 'http://localhost:4350')
+    : getEnv('MAINNET_WORKERS_SQUID_API_URL', 'http://localhost:4350');
 }
 
-export function getPoolSquidUrl(): string {
+export function getGatewaysSquidUrl(): string {
   return getNetwork() === 'tethys'
-    ? getEnv('TESTNET_POOL_SQUID_API_URL', 'http://localhost:4350')
-    : getEnv('MAINNET_POOL_SQUID_API_URL', 'http://localhost:4350');
+    ? getEnv('TESTNET_GATEWAYS_SQUID_API_URL', 'http://localhost:4350')
+    : getEnv('MAINNET_GATEWAYS_SQUID_API_URL', 'http://localhost:4350');
+}
+
+export function getTokenSquidUrl(): string {
+  return getNetwork() === 'tethys'
+    ? getEnv('TESTNET_TOKEN_SQUID_API_URL', 'http://localhost:4350')
+    : getEnv('MAINNET_TOKEN_SQUID_API_URL', 'http://localhost:4350');
 }
 
 export function getRpcUrl(): string | undefined {

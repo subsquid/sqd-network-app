@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 
 import type { SxProps, Theme } from '@mui/material';
-import { Button, Divider, Skeleton, Stack, Typography } from '@mui/material';
+import { Alert, Button, Divider, Skeleton, Stack, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
 import toast from 'react-hot-toast';
@@ -14,9 +14,7 @@ import { ContractCallDialog } from '@components/ContractCallDialog';
 import { FormRow, FormikTextInput } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { Loader } from '@components/Loader';
-import { supportsPortalPoolMinSqdOut } from '@hooks/network/useSubsquidNetwork';
 
-import { SlippageSelector } from '../components/SlippageSelector';
 import { SplitPreviewRow } from '../components/SplitPreviewRow';
 import { type FeePreviewState, type PoolData, usePoolData, useTopUpFeePreview } from '../hooks';
 import { invalidatePoolQueries } from '../utils/poolUtils';
@@ -28,8 +26,6 @@ import {
 
 type FormValues = {
   amount: string;
-  isAutoSlippage: boolean;
-  slippagePct: string;
 };
 
 const styles: Record<string, SxProps<Theme>> = {
@@ -38,8 +34,6 @@ const styles: Record<string, SxProps<Theme>> = {
   },
 };
 
-const DEFAULT_SLIPPAGE_PCT = '1';
-
 const validationSchema = yup.object({
   amount: yup
     .string()
@@ -47,16 +41,6 @@ const validationSchema = yup.object({
     .test('positive', 'Amount must be positive', value => {
       return parseFloat(value || '0') > 0;
     }),
-  isAutoSlippage: yup.boolean().required(),
-  slippagePct: yup.string().when('isAutoSlippage', {
-    is: false,
-    then: schema =>
-      schema.required('Slippage is required').test('range', 'Must be between 0.01 and 50', v => {
-        const n = parseFloat(v ?? '');
-        return !isNaN(n) && n >= 0.01 && n <= 50;
-      }),
-    otherwise: schema => schema.optional(),
-  }),
 });
 
 function tryParseRewardAmount(s: string, decimals: number): bigint | undefined {
@@ -74,22 +58,12 @@ function TopUpDialogContent({
   pool,
   isLoading,
   fee,
-  showSlippageSelector,
 }: {
   formik: ReturnType<typeof useFormik<FormValues>>;
   pool?: PoolData;
   isLoading: boolean;
   fee: FeePreviewState;
-  showSlippageSelector: boolean;
 }) {
-  const handleSlippageChange = useCallback(
-    (isAuto: boolean, pct: string) => {
-      void formik.setFieldValue('isAutoSlippage', isAuto);
-      void formik.setFieldValue('slippagePct', pct);
-    },
-    [formik.setFieldValue],
-  );
-
   if (isLoading) return <Loader />;
   if (!pool) return null;
 
@@ -99,9 +73,9 @@ function TopUpDialogContent({
   return (
     <Stack spacing={2.5}>
       <Typography variant="body2" color="text.secondary">
-        Enter the total {pool.rewardToken.symbol} to add. The pool contract splits provider credit,
-        worker pool, and burn per the fee router; worker and burn portions are swapped toward SQD
-        when enabled.
+        Enter the {pool.rewardToken.symbol} amount to deposit. A portion is automatically used to
+        buy SQD from the market and burn it, supporting the SQD ecosystem. The rest funds token
+        provider rewards.
       </Typography>
 
       <FormRow>
@@ -130,9 +104,9 @@ function TopUpDialogContent({
       )}
 
       <Stack spacing={1}>
-        <HelpTooltip title="Estimated shares from on-chain fee settings (basis points). Worker and burn rows show approximate SQD from the current SQD/USD price when the reward token is treated as USD-pegged. Actual amounts may differ.">
+        <HelpTooltip title="Set on-chain and applies to all pools. May change over time.">
           <Typography component="span" variant="subtitle2" sx={styles.splitPreviewTitle}>
-            Fee split preview
+            Where your deposit goes
           </Typography>
         </HelpTooltip>
 
@@ -182,29 +156,26 @@ function TopUpDialogContent({
 
             {fee.buybackSpotSqdWei != null && (
               <SplitPreviewRow
-                label="Buyback total (spot ~SQD)"
+                label="Total SQD bought"
                 value={`~${formatTopUpAmountLine(fee.buybackSpotSqdWei, 18, fee.sqdSymbol)}`}
                 bold
               />
             )}
+
+            {pool.phase === 'collecting' && fee.display.swapInputTotal > 0n && (
+              <Alert severity="warning" sx={{ mt: 1 }}>
+                {formatTopUpAmountLine(
+                  fee.display.swapInputTotal,
+                  pool.rewardToken.decimals,
+                  pool.rewardToken.symbol,
+                )}{' '}
+                is spent immediately to buy SQD from the market and cannot be recovered if the
+                initial pool collection fails.
+              </Alert>
+            )}
           </Stack>
         )}
       </Stack>
-
-      {showSlippageSelector && (
-        <>
-          <Divider />
-          <SlippageSelector
-            isAuto={formik.values.isAutoSlippage}
-            slippagePct={formik.values.slippagePct}
-            isStableToken={fee.isStableToken}
-            minSqdReceived={fee.minSqdFromPrice}
-            minSqdBlocked={fee.minSqdBlockedReason}
-            sqdSymbol={fee.sqdSymbol}
-            onChange={handleSlippageChange}
-          />
-        </>
-      )}
     </Stack>
   );
 }
@@ -213,13 +184,10 @@ export function TopUpDialog({ open, onClose, poolId }: TopUpDialogProps) {
   const queryClient = useQueryClient();
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
   const { data: pool, isLoading } = usePoolData(poolId);
-  const showSlippageSelector = supportsPortalPoolMinSqdOut();
 
   const formik = useFormik<FormValues>({
     initialValues: {
       amount: '',
-      isAutoSlippage: true,
-      slippagePct: DEFAULT_SLIPPAGE_PCT,
     },
     validationSchema,
     validateOnChange: true,
@@ -231,14 +199,11 @@ export function TopUpDialog({ open, onClose, poolId }: TopUpDialogProps) {
       const rewardAmount = tryParseRewardAmount(values.amount, decimals);
       if (rewardAmount === undefined || rewardAmount === 0n) return;
 
-      const minSqdOut =
-        showSlippageSelector && !values.isAutoSlippage ? (fee.minSqdFromPrice ?? 0n) : 0n;
-
       const receipt = await writeTransactionAsync({
         address: poolId as `0x${string}`,
         abi: portalPoolAbi,
         functionName: 'topUpRewards',
-        args: [rewardAmount, minSqdOut],
+        args: [rewardAmount, 0n],
         approve: rewardAmount,
         approveToken: pool.rewardToken.address,
       });
@@ -267,17 +232,11 @@ export function TopUpDialog({ open, onClose, poolId }: TopUpDialogProps) {
     [formik.values.amount, pool?.rewardToken.decimals],
   );
 
-  const slippageBps = useMemo(() => {
-    if (!showSlippageSelector || formik.values.isAutoSlippage) return null;
-    const n = parseFloat(formik.values.slippagePct);
-    return isNaN(n) ? null : Math.round(n * 100);
-  }, [showSlippageSelector, formik.values.isAutoSlippage, formik.values.slippagePct]);
-
   const fee = useTopUpFeePreview({
     rewardSymbol: pool?.rewardToken.symbol,
     rewardDecimals: pool?.rewardToken.decimals,
     parsedAmount,
-    slippageBps,
+    slippageBps: null,
   });
 
   const confirmDisabled =
@@ -304,13 +263,7 @@ export function TopUpDialog({ open, onClose, poolId }: TopUpDialogProps) {
       disableConfirmButton={confirmDisabled}
       minWidth={640}
     >
-      <TopUpDialogContent
-        formik={formik}
-        pool={pool}
-        isLoading={isLoading}
-        fee={fee}
-        showSlippageSelector={showSlippageSelector}
-      />
+      <TopUpDialogContent formik={formik} pool={pool} isLoading={isLoading} fee={fee} />
     </ContractCallDialog>
   );
 }
@@ -339,8 +292,7 @@ export function TopUpButton({ poolId }: TopUpButtonProps) {
         color="success"
         fullWidth
         onClick={handleOpen}
-        disabled={pool?.phase === 'failed' || pool?.phase === 'closed'
-        }
+        disabled={pool?.phase === 'failed' || pool?.phase === 'closed'}
       >
         TOP UP
       </Button>

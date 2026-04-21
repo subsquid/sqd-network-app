@@ -31,7 +31,7 @@ function TokenBalance({ balance }: { balance?: TokenBalance }) {
   const { SQD_TOKEN } = useContracts();
 
   const label = (
-    <Box display="flex" alignItems="center" gap={0.5}>
+    <Box display="flex" alignItems="center" gap={0.5} sx={{ cursor: 'default' }}>
       <CircleRounded sx={{ fontSize: 11, color: balance?.color }} />
       <Typography>{balance?.name}</Typography>
       <HelpTooltip title={balance?.tip} />
@@ -105,6 +105,7 @@ function useTokenBalances(
         claimable: string;
         bonded: string;
         lockedPortal: string;
+        portalPool: string;
       }
     | undefined,
 ) {
@@ -166,6 +167,15 @@ function useTokenBalances(
         ),
         value: BigNumber(serverBalances?.lockedPortal || 0),
       },
+      {
+        ...createTokenBalance(
+          'Portal Pools',
+          theme.palette.error.main,
+          theme.palette.error.main,
+          'Tokens deposited into Portal Pools as liquidity',
+        ),
+        value: BigNumber(serverBalances?.portalPool || 0),
+      },
     ];
   }, [serverBalances, theme.palette]);
 }
@@ -192,6 +202,24 @@ export function MyAssets() {
   const hasAvailableClaims = !!claimableSources?.some(source => source.balance !== '0');
 
   const isLoading = isSourcesLoading || isPriceLoading;
+
+  const showDemoPortals = demoFeaturesEnabled();
+  const breakdownBalances = useMemo(() => {
+    const items: TokenBalance[] = [
+      balances[0]!,
+      balances[1]!,
+      balances[3]!,
+      balances[4]!,
+      ...(showDemoPortals ? [balances[5]!] : []),
+      balances[6]!,
+    ];
+    return [...items].sort((a, b) => b.value.comparedTo(a.value) ?? 0);
+  }, [balances, showDemoPortals]);
+
+  const pieBalances = useMemo(
+    () => balances.filter(b => b.name !== 'Claimable'),
+    [balances],
+  );
 
   return (
     <Grid container spacing={2}>
@@ -247,11 +275,9 @@ export function MyAssets() {
           >
             <Box flex={1}>
               <PropertyList>
-                <TokenBalance balance={balances[0]} />
-                <TokenBalance balance={balances[1]} />
-                <TokenBalance balance={balances[3]} />
-                <TokenBalance balance={balances[4]} />
-                {demoFeaturesEnabled() && <TokenBalance balance={balances[5]} />}
+                {breakdownBalances.map(balance => (
+                  <TokenBalance key={balance.name} balance={balance} />
+                ))}
               </PropertyList>
             </Box>
             {/* Only render PieChart on md screens and up (1000px+) */}
@@ -263,7 +289,7 @@ export function MyAssets() {
                 },
               })}
             >
-              <PieChart balances={balances} />
+              <PieChart balances={pieBalances} />
             </Box>
           </Box>
         </Card>

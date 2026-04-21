@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { dateFormat } from '@i18n';
 import { Add } from '@mui/icons-material';
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -13,7 +14,6 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
-import { SlippageSelector } from '@pages/PortalPoolPage/components/SlippageSelector';
 import { SplitPreviewRow } from '@pages/PortalPoolPage/components/SplitPreviewRow';
 import {
   DISTRIBUTION_RATE_BPS,
@@ -56,8 +56,6 @@ type FormikValues = {
   capacity: BigNumber | undefined;
   earnings: string;
   initialDeposit: BigNumber | undefined;
-  isAutoSlippage: boolean;
-  slippagePct: string;
 };
 
 export const addPortalSchema = ({ minCapacity }: { minCapacity: BigNumber }) => {
@@ -78,7 +76,7 @@ export const addPortalSchema = ({ minCapacity }: { minCapacity: BigNumber }) => 
       .typeError('${path} is invalid'),
     earnings: yup
       .decimal()
-      .label('Expected Monthly Payment')
+      .label('Monthly Distribution Rate')
       .required()
       .min('0')
       .typeError('${path} is invalid'),
@@ -93,16 +91,6 @@ export const addPortalSchema = ({ minCapacity }: { minCapacity: BigNumber }) => 
         const dailyRate = BigNumber(earnings).div(30);
         return BigNumber(value).gte(dailyRate);
       }),
-    isAutoSlippage: yup.boolean().required(),
-    slippagePct: yup.string().when('isAutoSlippage', {
-      is: false,
-      then: schema =>
-        schema.required('Slippage is required').test('range', 'Must be between 0.01 and 50', v => {
-          const n = parseFloat(v ?? '');
-          return !isNaN(n) && n >= 0.01 && n <= 50;
-        }),
-      otherwise: schema => schema.optional(),
-    }),
   });
 };
 
@@ -154,7 +142,6 @@ function DepositStepContent({
   tokenSymbol,
   tokenDecimals,
   suggestedInitialDeposit,
-  showSlippageSelector,
 }: {
   formik: ReturnType<typeof useFormik<FormikValues>>;
   isLoading: boolean;
@@ -162,16 +149,7 @@ function DepositStepContent({
   tokenSymbol: string;
   tokenDecimals: number;
   suggestedInitialDeposit: BigNumber;
-  showSlippageSelector: boolean;
 }) {
-  const handleSlippageChange = useCallback(
-    (isAuto: boolean, pct: string) => {
-      void formik.setFieldValue('isAutoSlippage', isAuto);
-      void formik.setFieldValue('slippagePct', pct);
-    },
-    [formik.setFieldValue],
-  );
-
   if (isLoading) return <Loader />;
 
   const showSplitPreview =
@@ -180,8 +158,8 @@ function DepositStepContent({
   return (
     <Stack spacing={2.5}>
       <Typography variant="body2" color="text.secondary">
-        Enter the total {tokenSymbol} to add. The pool contract splits provider credit, worker pool,
-        and burn per the fee router; worker and burn portions are swapped toward SQD when enabled.
+        Enter the {tokenSymbol} amount to deposit. A portion is automatically used to buy SQD from
+        the market and burn it, supporting the SQD ecosystem. The rest funds token provider rewards.
       </Typography>
 
       <FormRow>
@@ -222,9 +200,9 @@ function DepositStepContent({
       )}
 
       <Stack spacing={1}>
-        <HelpTooltip title="Estimated shares from on-chain fee settings (basis points). Worker and burn rows show approximate SQD from the current SQD/USD price when the reward token is treated as USD-pegged. Actual amounts may differ.">
+        <HelpTooltip title="Set on-chain and applies to all pools. May change over time.">
           <Typography component="span" variant="subtitle2" sx={depositStyles.splitPreviewTitle}>
-            Fee split preview
+            Where your deposit goes
           </Typography>
         </HelpTooltip>
 
@@ -270,29 +248,22 @@ function DepositStepContent({
 
             {fee.buybackSpotSqdWei != null && (
               <SplitPreviewRow
-                label="Buyback total (spot ~SQD)"
+                label="Total SQD bought"
                 value={`~${formatTopUpAmountLine(fee.buybackSpotSqdWei, 18, fee.sqdSymbol)}`}
                 bold
               />
             )}
+
+            {fee.display.swapInputTotal > 0n && (
+              <Alert severity="warning" sx={{ mt: 1 }}>
+                {formatTopUpAmountLine(fee.display.swapInputTotal, tokenDecimals, tokenSymbol)} is
+                spent immediately to buy SQD from the market and cannot be recovered if the initial
+                pool collection fails.
+              </Alert>
+            )}
           </Stack>
         )}
       </Stack>
-
-      {showSlippageSelector && (
-        <>
-          <Divider />
-          <SlippageSelector
-            isAuto={formik.values.isAutoSlippage}
-            slippagePct={formik.values.slippagePct}
-            isStableToken={fee.isStableToken}
-            minSqdReceived={fee.minSqdFromPrice}
-            minSqdBlocked={fee.minSqdBlockedReason}
-            sqdSymbol={fee.sqdSymbol}
-            onChange={handleSlippageChange}
-          />
-        </>
-      )}
     </Stack>
   );
 }
@@ -360,8 +331,6 @@ function AddNewPortalDialog({
       capacity: undefined,
       earnings: '',
       initialDeposit: undefined,
-      isAutoSlippage: true,
-      slippagePct: '',
     },
     validationSchema,
     validateOnChange: true,
@@ -386,6 +355,7 @@ function AddNewPortalDialog({
       const initialDeposit = BigInt(
         BigNumber(values.initialDeposit!)
           .times(10 ** selectedToken.decimals)
+          .integerValue(BigNumber.ROUND_CEIL)
           .toFixed(0),
       );
 
@@ -410,9 +380,7 @@ function AddNewPortalDialog({
         functionName: 'createPortalPool',
         approve: initialDeposit,
         approveToken: selectedToken.address,
-        args: showSlippageSelector
-          ? [params, values.isAutoSlippage ? 0n : (fee.minSqdFromPrice ?? 0n)]
-          : [params],
+        args: showSlippageSelector ? [params, 0n] : [params],
       });
 
       setWaitHeight(receipt.blockNumber, []);
@@ -427,7 +395,9 @@ function AddNewPortalDialog({
   }, [formik.values.capacity]);
 
   const suggestedInitialDeposit = useMemo(() => {
-    return BigNumber(formik.values.earnings || '0').div(30);
+    return BigNumber(formik.values.earnings || '0')
+      .div(30)
+      .decimalPlaces(2, BigNumber.ROUND_CEIL);
   }, [formik.values.earnings]);
 
   const deadlineDate = useMemo(() => {
@@ -441,46 +411,67 @@ function AddNewPortalDialog({
     try {
       const bn = BigNumber(val);
       if (bn.isNaN() || bn.lte(0)) return undefined;
-      return BigInt(bn.times(10 ** selectedToken.decimals).toFixed(0));
+      return BigInt(
+        bn
+          .times(10 ** selectedToken.decimals)
+          .integerValue(BigNumber.ROUND_CEIL)
+          .toFixed(0),
+      );
     } catch {
       return undefined;
     }
   }, [formik.values.initialDeposit, selectedToken]);
 
-  const slippageBps = useMemo(() => {
-    if (!showSlippageSelector || formik.values.isAutoSlippage) return null;
-    const n = parseFloat(formik.values.slippagePct);
-    return isNaN(n) ? null : Math.round(n * 100);
-  }, [showSlippageSelector, formik.values.isAutoSlippage, formik.values.slippagePct]);
-
   const fee = useTopUpFeePreview({
     rewardSymbol: selectedToken?.symbol,
     rewardDecimals: selectedToken?.decimals,
     parsedAmount: parsedInitialDeposit,
-    slippageBps,
+    slippageBps: null,
   });
+
+  const estimatedMonthlyTopUp = useMemo(() => {
+    const symbol = selectedToken?.symbol ?? 'Token';
+    const earningsBn = BigNumber(formik.values.earnings || '0');
+    const bps = fee.providersFeeBps;
+    if (
+      !fee.feeRouterReady ||
+      fee.feeConfigError ||
+      fee.feeConfigLoading ||
+      bps == null ||
+      bps <= 0 ||
+      earningsBn.isNaN() ||
+      earningsBn.lte(0)
+    ) {
+      return { amount: '0', symbol };
+    }
+    const amount = earningsBn.times(10_000).div(bps).decimalPlaces(6, BigNumber.ROUND_HALF_UP);
+    return { amount: amount.toFixed(), symbol };
+  }, [
+    selectedToken?.symbol,
+    formik.values.earnings,
+    fee.feeRouterReady,
+    fee.feeConfigError,
+    fee.feeConfigLoading,
+    fee.providersFeeBps,
+  ]);
 
   const isStep1Valid = useMemo(() => {
     if (!selectedToken) return false;
-    return ['name', 'description', 'website', 'capacity', 'earnings', 'rateType'].every(
-      field => !formik.errors[field as keyof FormikValues],
+    return (['name', 'description', 'website', 'capacity', 'earnings'] as const).every(
+      field => !formik.errors[field],
     );
   }, [formik.errors, selectedToken]);
 
   const isStep2ConfirmDisabled = useMemo(() => {
-    const step2Fields: (keyof FormikValues)[] = showSlippageSelector
-      ? ['initialDeposit', 'isAutoSlippage', 'slippagePct']
-      : ['initialDeposit'];
-    const hasStep2Errors = step2Fields.some(field => !!formik.errors[field]);
+    const hasStep2Errors = !!formik.errors.initialDeposit;
     return (
       hasStep2Errors || !formik.values.initialDeposit || !fee.feeRouterReady || fee.feeConfigError
     );
   }, [
-    formik.errors,
+    formik.errors.initialDeposit,
     formik.values.initialDeposit,
     fee.feeRouterReady,
     fee.feeConfigError,
-    showSlippageSelector,
   ]);
 
   const handleResult = useCallback(
@@ -596,10 +587,16 @@ function AddNewPortalDialog({
             <FormRow>
               <FormikTextInput
                 id="earnings"
-                label={`Expected Monthly Payment (${selectedToken?.symbol || 'Token'})`}
+                label={
+                  <Stack direction="row" alignItems="center" spacing={0.5} component="span">
+                    <span>Monthly Distribution Rate ({selectedToken?.symbol || 'Token'})</span>
+                    <HelpTooltip title="This is what token providers earn. Your actual monthly top-up cost will be higher due to the fee split." />
+                  </Stack>
+                }
                 placeholder="0"
                 formik={formik}
                 showErrorOnlyOfTouched
+                helperText={`Your estimated monthly cost: ${estimatedMonthlyTopUp.amount} ${estimatedMonthlyTopUp.symbol}`}
               />
             </FormRow>
 
@@ -611,12 +608,16 @@ function AddNewPortalDialog({
                   {estimatedCUs.toLocaleString()}
                 </Typography>
               </Stack>
-              <Stack direction="row" justifyContent="space-between" alignContent="center">
-                <Typography variant="body2">Collection Deadline</Typography>
-                <Typography variant="body2" fontWeight={600}>
-                  {deadlineDate}
-                </Typography>
-              </Stack>
+              <Typography variant="body2" component="span">
+                <Stack direction="row" justifyContent="space-between" alignContent="center">
+                  <HelpTooltip title="If the pool does not reach its full capacity by this deadline, it will be cancelled. Only part of your deposit will be recoverable - the rest is used immediately upon deposit. You'll see the exact breakdown in the next step.">
+                    Collection Deadline
+                  </HelpTooltip>
+                  <Typography variant="body2" fontWeight={600}>
+                    {deadlineDate}
+                  </Typography>
+                </Stack>
+              </Typography>
             </Stack>
           </Form>
         )
@@ -628,7 +629,6 @@ function AddNewPortalDialog({
           tokenSymbol={selectedToken?.symbol ?? 'Token'}
           tokenDecimals={selectedToken?.decimals ?? 18}
           suggestedInitialDeposit={suggestedInitialDeposit}
-          showSlippageSelector={showSlippageSelector}
         />
       )}
     </ContractCallDialog>

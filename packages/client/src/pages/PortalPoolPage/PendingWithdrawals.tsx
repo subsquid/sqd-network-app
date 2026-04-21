@@ -1,11 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 
 import { dateFormat } from '@i18n';
-import {
-  OpenInNewOutlined as ExplorerIcon,
-  LockOpenOutlined,
-  LockOutlined,
-} from '@mui/icons-material';
+import { OpenInNewOutlined as ExplorerIcon } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -56,7 +52,7 @@ function WithdrawalTimeLeftCell({ withdrawal }: { withdrawal: PendingWithdrawal 
 
   return (
     <Tooltip title={formattedDate ?? ''}>
-      <span>{isReady ? '—' : timeLeft}</span>
+      <span>{isReady ? 'Ready' : timeLeft}</span>
     </Tooltip>
   );
 }
@@ -83,14 +79,14 @@ function WithdrawalActionCell({
   return (
     <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
       <Button
-        variant="outlined"
+        variant="contained"
         size="small"
         onClick={() => onClaim(withdrawal.id)}
         loading={isClaiming}
         disabled={!isReady}
-        color="error"
+        color="warning"
       >
-        WITHDRAW
+        RELEASE
       </Button>
     </Box>
   );
@@ -125,7 +121,7 @@ function PendingWithdrawalsTable({
       {
         id: 'withdrawalId',
         accessorFn: row => Number(row.id) + 1,
-        header: () => 'Withdrawal ID',
+        header: () => 'Exit ID',
         cell: info => info.getValue(),
       },
       {
@@ -175,7 +171,7 @@ function PendingWithdrawalsTable({
       pageCount={pageCount}
       onPageChange={onPageChange}
       isLoading={isLoading}
-      emptyMessage="No withdrawal requests"
+      emptyMessage="No exit requests"
     />
   );
 }
@@ -202,7 +198,7 @@ function getEventTypeLabel(eventType: EventType): string {
     case EventType.Deposit:
       return 'Provide';
     case EventType.Withdrawal:
-      return 'Withdraw';
+      return 'Release';
     case EventType.Exit:
       return 'Exit';
     case EventType.Topup:
@@ -221,13 +217,13 @@ function getEventTypeColor(
     case EventType.Deposit:
       return 'info';
     case EventType.Withdrawal:
-      return 'error';
-    case EventType.Exit:
-      return 'warning';
-    case EventType.Topup:
-      return 'success';
-    case EventType.Claim:
       return 'secondary';
+    case EventType.Exit:
+      return 'error';
+    case EventType.Topup:
+      return 'warning';
+    case EventType.Claim:
+      return 'success';
     default:
       return 'default';
   }
@@ -417,11 +413,11 @@ export function PoolActivity({ poolId }: PendingWithdrawalsProps) {
 export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
   const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
   const [claimingId, setClaimingId] = useState<string | null>(null);
+  const [pageIndex, setPageIndex] = useState(0);
   const { writeTransactionAsync } = useWriteSQDTransaction();
   const queryClient = useQueryClient();
   const { data: pendingWithdrawals = [], isLoading: withdrawalsLoading } =
     usePoolPendingWithdrawals(poolId);
-  const { SQD_TOKEN } = useContracts();
 
   const handleClaim = useCallback(
     async (withdrawalId: string) => {
@@ -442,62 +438,18 @@ export function PendingWithdrawals({ poolId }: PendingWithdrawalsProps) {
   );
 
   if (!pool && !poolLoading) return null;
+  if (pendingWithdrawals.length === 0) return null;
 
   return (
-    <Card
-      title={
-        <Stack direction="row" alignItems="center" spacing={0.5}>
-          <span>Pending Withdrawals</span>
-          <HelpTooltip title="Withdrawals that are waiting for the unlock period to complete before they can be claimed." />
-        </Stack>
-      }
-    >
-      {pendingWithdrawals.length === 0 ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
-            No withdrawal requests
-          </Typography>
-        </Box>
-      ) : (
-        <Stack spacing={1.5}>
-          {pendingWithdrawals.map(withdrawal => (
-            <Stack
-              key={withdrawal.id}
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-              spacing={1}
-              sx={{
-                py: 1.5,
-                borderTop: 1,
-                borderBottom: 1,
-                borderColor: 'divider',
-              }}
-            >
-              <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
-                {withdrawal.estimatedCompletionAt.getTime() < Date.now() ? (
-                  <LockOpenOutlined sx={{ fontSize: 20 }} />
-                ) : (
-                  <LockOutlined sx={{ fontSize: 20 }} />
-                )}
-                <Stack spacing={0.25} sx={{ minWidth: 0 }}>
-                  <Typography variant="body1" fontWeight={500}>
-                    {tokenFormatter(Number(withdrawal.amount), SQD_TOKEN, 2)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    <WithdrawalTimeLeftCell withdrawal={withdrawal} />
-                  </Typography>
-                </Stack>
-              </Stack>
-              <WithdrawalActionCell
-                withdrawal={withdrawal}
-                onClaim={handleClaim}
-                isClaiming={claimingId === withdrawal.id}
-              />
-            </Stack>
-          ))}
-        </Stack>
-      )}
+    <Card>
+      <PendingWithdrawalsTable
+        pendingWithdrawals={pendingWithdrawals}
+        claimingId={claimingId}
+        onClaim={handleClaim}
+        isLoading={withdrawalsLoading}
+        pageIndex={pageIndex}
+        onPageChange={setPageIndex}
+      />
     </Card>
   );
 }

@@ -96,6 +96,16 @@ const MenuListItemSecondaryIcon = styled(ListItemIcon, {
   },
 }));
 
+const BuySqdIconContainer = styled('div', {
+  name: 'BuySqdIconContainer',
+})(() => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 24,
+  height: 24,
+}));
+
 interface ItemProps {
   selected: boolean;
   path: string;
@@ -285,13 +295,17 @@ export const NetworkMenu = ({ onItemClick, collapsed }: NetworkMenuProps) => {
         collapsed={collapsed}
       />
       <Item
-        label="Purchase SQD Token"
+        label="Purchase SQD"
         path="https://1inch.com/swap?src=42161:USDC&dst=42161:0x1337420ded5adb9980cfc35f8f2b054ea86f8ab1"
         target="_blank"
         textSx={{
           fontSize: '0.95rem',
         }}
-        LeftIcon={<BuySqdIcon />}
+        LeftIcon={
+          <BuySqdIconContainer>
+            <BuySqdIcon size={20} />
+          </BuySqdIconContainer>
+        }
         RightIcon={<ArrowOutwardOutlined />}
         onClick={onItemClick}
         selected={false}

@@ -120,16 +120,20 @@ function ProgressBar({ pool }: { pool: PoolData }) {
             )}
           </Box>
         </Typography>
-        <Stack direction="row" spacing={1}>
-          {showBuffer && (
-            <Typography variant="body2" fontWeight="medium">
-              Stable: {percentFormatter(progress.main)}
+        <Tooltip
+          title={`How full the pool is relative to its capacity.${showBuffer ? ' Filled includes all deposited tokens. Committed excludes tokens queued for withdrawal — only committed tokens earn rewards.' : ''}`}
+        >
+          <Stack direction="row" spacing={1}>
+            {showBuffer && (
+              <Typography variant="body2" fontWeight="medium">
+                Committed: {percentFormatter(progress.main)}
+              </Typography>
+            )}
+            <Typography variant="body2" color={`${color}.main`} fontWeight="medium">
+              Filled: {percentFormatter(progress.buffer)}
             </Typography>
-          )}
-          <Typography variant="body2" color={`${color}.main`} fontWeight="medium">
-            Total: {percentFormatter(progress.buffer)}
-          </Typography>
-        </Stack>
+          </Stack>
+        </Tooltip>
       </Stack>
 
       <Box sx={{ position: 'relative' }}>
@@ -142,7 +146,7 @@ function ProgressBar({ pool }: { pool: PoolData }) {
             overflow: 'hidden',
           }}
         >
-          <Tooltip title={`Stable: ${tokenFormatter(tvl.current, SQD_TOKEN)}`}>
+          <Tooltip title={`Committed: ${tokenFormatter(tvl.current, SQD_TOKEN)}`}>
             <Box
               sx={{
                 position: 'absolute',
