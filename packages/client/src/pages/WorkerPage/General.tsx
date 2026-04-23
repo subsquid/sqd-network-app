@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 
 import { useWorkerByPeerId } from '@api/subsquid-network-squid';
 import { Card } from '@components/Card';
+import { HelpTooltip } from '@components/HelpTooltip';
 import { Loader } from '@components/Loader';
 import { NotFound } from '@components/NotFound';
 import { Property, PropertyList } from '@components/Property';
@@ -85,7 +86,11 @@ export function WorkerGeneral() {
                 value={worker.apr != null ? percentFormatter(worker.apr) : '-'}
               />
               <Property
-                label="Total reward"
+                label={
+                  <HelpTooltip title="Per-worker reward totals come from the indexer and may be slightly out of date. The aggregated Claimable balance shown on the Assets page is read directly from the on-chain rewards contract and is always accurate.">
+                    Total reward
+                  </HelpTooltip>
+                }
                 value={tokenFormatter(fromSqd(worker.totalReward), SQD_TOKEN)}
               />
             </PropertyList>

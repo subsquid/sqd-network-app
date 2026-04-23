@@ -23,6 +23,7 @@ import {
 } from '../generated/workers-squid/graphql.js';
 import { resolveAccounts } from '../services/accounts.js';
 import { queryGatewaysSquid, queryTokenSquid, queryWorkersSquid } from '../services/graphql.js';
+import { readClaimableRewards } from '../services/rewards.js';
 import { publicProcedure, router } from '../trpc.js';
 import { evmAddressSchema } from '../validation.js';
 
@@ -77,12 +78,14 @@ export const accountRouter = router({
 
       const ownerIds = accounts.map(a => a.id);
 
-      const [workersData, delegationsData, stakesData, poolProvidersData] = await Promise.all([
-        queryWorkersSquid<WorkersByOwnerQuery>(WorkersByOwnerDocument, { ownerIds }),
-        queryWorkersSquid<DelegationsByOwnerQuery>(DelegationsByOwnerDocument, { ownerIds }),
-        queryGatewaysSquid<GatewayStakesByOwnerQuery>(GatewayStakesByOwnerDocument, { ownerIds }),
-        queryGatewaysSquid<PoolProvidersByOwnerQuery>(PoolProvidersByOwnerDocument, { ownerIds }),
-      ]);
+      const [workersData, delegationsData, stakesData, poolProvidersData, claimableByAddress] =
+        await Promise.all([
+          queryWorkersSquid<WorkersByOwnerQuery>(WorkersByOwnerDocument, { ownerIds }),
+          queryWorkersSquid<DelegationsByOwnerQuery>(DelegationsByOwnerDocument, { ownerIds }),
+          queryGatewaysSquid<GatewayStakesByOwnerQuery>(GatewayStakesByOwnerDocument, { ownerIds }),
+          queryGatewaysSquid<PoolProvidersByOwnerQuery>(PoolProvidersByOwnerDocument, { ownerIds }),
+          readClaimableRewards(ownerIds),
+        ]);
 
       const workersByOwner = new Map<string, WorkersByOwnerQuery['workers']>();
       for (const w of workersData.workers) {
@@ -132,15 +135,11 @@ export const accountRouter = router({
         const accountDelegations = delegationsByOwner.get(account.id) ?? [];
         for (const delegation of accountDelegations) {
           balances.delegated = BigNumber(balances.delegated).plus(delegation.deposit).toFixed();
-          balances.claimable = BigNumber(balances.claimable)
-            .plus(delegation.claimableReward)
-            .toFixed();
         }
 
         const accountWorkers = workersByOwner.get(account.id) ?? [];
         for (const worker of accountWorkers) {
           balances.bonded = BigNumber(balances.bonded).plus(worker.bond).toFixed();
-          balances.claimable = BigNumber(balances.claimable).plus(worker.claimableReward).toFixed();
         }
 
         const accountStakes = stakesByOwner.get(account.id) ?? [];
@@ -153,47 +152,19 @@ export const accountRouter = router({
           balances.portalPool = BigNumber(balances.portalPool).plus(provider.deposited).toFixed();
         }
 
-        const claims: Array<{
-          id: string;
-          peerId: string;
-          name: string | null;
-          claimableReward: string;
-          type: 'worker' | 'delegation';
-        }> = [];
-
-        for (const delegation of accountDelegations) {
-          if (delegation.claimableReward === '0') continue;
-          claims.push({
-            id: delegation.worker.id,
-            peerId: delegation.worker.peerId,
-            name: delegation.worker.name ?? null,
-            claimableReward: delegation.claimableReward,
-            type: 'delegation',
-          });
-        }
-
-        for (const worker of accountWorkers) {
-          if (worker.claimableReward === '0') continue;
-          claims.push({
-            id: worker.id,
-            peerId: worker.peerId,
-            name: worker.name ?? null,
-            claimableReward: worker.claimableReward,
-            type: 'worker',
-          });
-        }
-
-        claims.sort((a, b) => BigNumber(b.claimableReward).comparedTo(a.claimableReward) ?? 0);
-
-        const totalClaimableBalance = claims
-          .reduce((total, claim) => total.plus(claim.claimableReward), BigNumber(0))
-          .toFixed();
+        // Claimable totals are read from the on-chain
+        // DistributedRewardsDistribution contract (see packages/common `rewardDistributionAbi`)
+        // instead of from the Squid indexer, so the UI reflects the actual
+        // amount that `claimFor` will transfer even when the indexer lags.
+        const claimableOnChain = (
+          claimableByAddress.get(account.id.toLowerCase()) ?? 0n
+        ).toString();
+        balances.claimable = BigNumber(balances.claimable).plus(claimableOnChain).toFixed();
 
         return {
           id: account.id,
           type: account.type,
-          balance: totalClaimableBalance,
-          claims,
+          balance: claimableOnChain,
         };
       });
 
