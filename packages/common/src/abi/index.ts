@@ -6,6 +6,7 @@ export { networkControllerAbi } from './networkController';
 export { portalPoolAbi } from './portalPool';
 export { portalPoolFactoryAbi } from './portalPoolFactory';
 export { portalRegistryAbi } from './portalRegistry';
+export { rewardDistributionAbi } from './rewardDistribution';
 export { rewardTreasuryAbi } from './rewardTreasury';
 export { routerAbi } from './router';
 export { softCapAbi } from './softCap';

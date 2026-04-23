@@ -136,7 +136,7 @@ function useTokenBalances(
           'Claimable',
           theme.palette.info.main,
           theme.palette.info.main,
-          'Earned but not yet claimed token rewards, aggregated across all workers and delegations',
+          'Earned but not yet claimed token rewards, aggregated across all workers and delegations. Read directly from the rewards distribution contract on-chain, so it always matches what `Claim` will transfer. Note: per-worker and per-delegation reward figures shown elsewhere come from the indexer and may briefly diverge from this on-chain total.',
         ),
         value: BigNumber(serverBalances?.claimable || 0),
       },
@@ -216,10 +216,7 @@ export function MyAssets() {
     return [...items].sort((a, b) => b.value.comparedTo(a.value) ?? 0);
   }, [balances, showDemoPortals]);
 
-  const pieBalances = useMemo(
-    () => balances.filter(b => b.name !== 'Claimable'),
-    [balances],
-  );
+  const pieBalances = useMemo(() => balances.filter(b => b.name !== 'Claimable'), [balances]);
 
   return (
     <Grid container spacing={2}>

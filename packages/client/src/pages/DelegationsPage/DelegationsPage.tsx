@@ -78,6 +78,7 @@ export function MyDelegations() {
                 sort={WorkerSortBy.MyDelegationReward}
                 query={query}
                 setQuery={setQuery}
+                help="Per-delegation reward totals come from the indexer and may be slightly out of date. The aggregated Claimable balance shown on the Assets page is read directly from the on-chain rewards contract and is always accurate."
               >
                 Total reward
               </SortableHeaderCell>
