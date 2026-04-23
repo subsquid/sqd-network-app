@@ -97,6 +97,7 @@ export function MyWorkers() {
                   sort={WorkerSortBy.WorkerReward}
                   query={query}
                   setQuery={setQuery}
+                  help="Per-worker reward totals come from the indexer and may be slightly out of date. The aggregated Claimable balance shown on the Assets page is read directly from the on-chain rewards contract and is always accurate."
                 >
                   Total reward
                 </SortableHeaderCell>
