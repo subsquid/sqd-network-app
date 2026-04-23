@@ -1,35 +1,26 @@
 import { useMemo, useState } from 'react';
 
 import { TollOutlined } from '@mui/icons-material';
-import { Box, Button, TableBody, TableCell, TableRow } from '@mui/material';
+import { Button } from '@mui/material';
 import { useFormik } from 'formik';
 import { useAccount, useClient } from 'wagmi';
 import * as yup from 'yup';
 
 import { rewardTreasuryAbi, useReadRouterRewardTreasury } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import { AccountType, SourceWalletWithBalance, Worker } from '@api/subsquid-network-squid';
+import { AccountType, SourceWalletWithBalance } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { Form, FormRow, FormikSelect } from '@components/Form';
 import { Loader } from '@components/Loader';
 import { SourceWalletOption } from '@components/SourceWallet';
-import { TableList } from '@components/Table/TableList.tsx';
-import { WorkerName } from '@components/Worker';
 import { useContracts } from '@hooks/network/useContracts';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
-import { tokenFormatter } from '@lib/formatters/formatters';
-import { fromSqd } from '@lib/network/utils';
 
 export const claimSchema = yup.object({
   source: yup.string().label('Source').trim().required('Source is required'),
 });
 
-export type SourceWalletWithClaims = SourceWalletWithBalance & {
-  claims: (Pick<Worker, 'id' | 'peerId' | 'name'> & {
-    type: 'worker' | 'delegation';
-    claimableReward: string;
-  })[];
-};
+export type SourceWalletWithClaims = SourceWalletWithBalance;
 
 export function ClaimButton({
   sources,
@@ -157,35 +148,6 @@ export function ClaimDialog({
               }}
             />
           </FormRow>
-
-          <Box
-            sx={{
-              maxHeight: '50vh',
-              overflow: 'auto',
-            }}
-          >
-            <TableList>
-              <TableBody>
-                {sources
-                  .find(s => s.id === formik.values.source)
-                  ?.claims.map(w => {
-                    return (
-                      <TableRow key={w.id}>
-                        <TableCell>
-                          <WorkerName worker={w} />
-                        </TableCell>
-                        <TableCell>
-                          {w.type === 'worker' ? 'Worker reward' : 'Delegation reward'}
-                        </TableCell>
-                        <TableCell align="right">
-                          {tokenFormatter(fromSqd(w.claimableReward), contracts.SQD_TOKEN)}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-              </TableBody>
-            </TableList>
-          </Box>
         </Form>
       )}
     </ContractCallDialog>
