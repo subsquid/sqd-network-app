@@ -25,6 +25,11 @@ export default defineConfig({
     'process.env.NETWORK': encode(process.env.NETWORK || 'mainnet'),
     'process.env.SENTRY_DSN': encode(process.env.SENTRY_DSN || ''),
     'process.env.HOST_URL': encode(process.env.HOST_URL || ''),
+    // When set to a valid 0x-prefixed address the app bypasses the real wallet
+    // flow and uses wagmi's built-in mock connector instead, auto-connecting to
+    // that address on startup.  Set in .env for local development only — never
+    // ship this to production.
+    'process.env.MOCK_WALLET_ADDRESS': encode(process.env.MOCK_WALLET_ADDRESS || ''),
   },
 
   server: {
