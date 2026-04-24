@@ -2,27 +2,34 @@ import { useEffect, useRef } from 'react';
 
 import { useConnect } from 'wagmi';
 
+import { getMockAccountIndex } from '../config';
+
 /**
- * When the app is running with a mock wagmi config (MOCK_WALLET_ADDRESS set),
- * this component triggers an automatic connection to the mock connector on
- * first render so that the rest of the UI sees a pre-connected wallet without
- * any user interaction.
+ * When the app is running in mock mode AND the user has previously selected
+ * an account (stored in sessionStorage by MockConnectDialog), this component
+ * triggers an automatic re-connection to the mock connector on first render.
  *
- * The mock connector's `defaultConnected: true` flag initialises the internal
- * state, but wagmi still requires an explicit `connect()` call to broadcast
- * the connection to subscribers.  This component bridges that gap.
+ * Context: wagmi's mock connector with `defaultConnected: true` initialises
+ * its internal state as connected, but doesn't broadcast the connection to
+ * React subscribers until `connect()` is called explicitly.  This component
+ * bridges that gap after a page reload.
  *
- * It is a no-op in production builds (MOCK_WALLET_ADDRESS is always empty).
+ * If no account has been selected yet (getMockAccountIndex() returns -1),
+ * this is a no-op and the user sees the Connect Wallet button.
  */
 export function MockWalletAutoConnect() {
   const { connect, connectors } = useConnect();
-  const connected = useRef(false);
+  const triggered = useRef(false);
 
   useEffect(() => {
-    if (connected.current) return;
+    if (triggered.current) return;
+    const hasSelection = getMockAccountIndex() >= 0;
+    if (!hasSelection) return;
+
     const mockConnector = connectors.find(c => c.id === 'mock');
     if (!mockConnector) return;
-    connected.current = true;
+
+    triggered.current = true;
     connect({ connector: mockConnector });
   }, [connect, connectors]);
 

@@ -25,11 +25,13 @@ export default defineConfig({
     'process.env.NETWORK': encode(process.env.NETWORK || 'mainnet'),
     'process.env.SENTRY_DSN': encode(process.env.SENTRY_DSN || ''),
     'process.env.HOST_URL': encode(process.env.HOST_URL || ''),
-    // When set to a valid 0x-prefixed address the app bypasses the real wallet
-    // flow and uses wagmi's built-in mock connector instead, auto-connecting to
-    // that address on startup.  Set in .env for local development only — never
-    // ship this to production.
-    'process.env.MOCK_WALLET_ADDRESS': encode(process.env.MOCK_WALLET_ADDRESS || ''),
+    // Master switch for the full mock environment.  When 'true' the client uses
+    // the mock wagmi connector (all 4 fixture accounts), routes RPC calls to the
+    // local mock RPC server, and the server activates the mock GraphQL fixture
+    // server.  Never set in production.
+    'process.env.MOCK_WALLET': encode(process.env.MOCK_WALLET || ''),
+    // URL of the mock JSON-RPC server started by the dev server (default 8545).
+    'process.env.MOCK_RPC_URL': encode(process.env.MOCK_RPC_URL || 'http://localhost:8545'),
   },
 
   server: {

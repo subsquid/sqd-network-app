@@ -1,21 +1,20 @@
 /**
  * Mock GraphQL server for local development and testing.
  *
- * Activated when MOCK_GRAPHQL=true is set in the environment.  Starts an
- * in-process HTTP server on MOCK_GRAPHQL_PORT (default 4321) that responds
- * to every POST /graphql request with realistic fixture data regardless of
- * which Squid (workers / gateways / token) the tRPC server is calling.
+ * Activated when MOCK_WALLET=true (or MOCK_GRAPHQL=true) is set in the
+ * environment.  Starts an in-process HTTP server on MOCK_GRAPHQL_PORT
+ * (default 4321) that responds to every POST /graphql request with realistic
+ * fixture data.  Account-scoped queries (sources, workers, delegations) return
+ * data appropriate to each fixture account's role.
  *
  * The response is chosen by matching the GraphQL operation name in the
  * incoming request body.  Unknown operations receive an empty-but-valid
  * response so new procedures degrade gracefully.
- *
- * Usage: set the following in .env
- *   MOCK_GRAPHQL=true
- *   MOCK_GRAPHQL_PORT=4321   # optional, default 4321
  */
 
 import http from 'node:http';
+
+import { MOCK_ACCOUNTS } from './mockRpcServer.js';
 
 export const MOCK_GRAPHQL_PORT = Number(process.env.MOCK_GRAPHQL_PORT ?? 4321);
 export const MOCK_GRAPHQL_URL = `http://localhost:${MOCK_GRAPHQL_PORT}/graphql`;
@@ -301,6 +300,130 @@ const FIXTURES: Record<string, unknown> = {
 };
 
 // ---------------------------------------------------------------------------
+// Dynamic (account-scoped) fixtures
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns the fixture for operations that depend on the queried address.
+ * Falls back to the static FIXTURES map for non-account-scoped operations.
+ */
+function resolveFixture(operationName: string, variables: Record<string, unknown>): unknown {
+  // Normalise address from various variable shapes tRPC might send
+  const rawAddress =
+    (variables.address as string | undefined) ??
+    (variables.ownerIds as string[] | undefined)?.[0] ??
+    '';
+  const address = rawAddress.toLowerCase();
+
+  const account = MOCK_ACCOUNTS.find(a => a.address.toLowerCase() === address);
+
+  // ── sources (token-squid) ─────────────────────────────────────────────────
+  // Returns the USER account balance for the queried address.
+  if (operationName === 'sources') {
+    if (!account) return { accounts: [] };
+    return {
+      accounts: [
+        {
+          id: account.address.toLowerCase(),
+          type: 'USER',
+          balance: account.sqdBalance.toString(),
+          claimableDelegationCount: 0,
+          owner: null,
+          ownerId: null,
+        },
+      ],
+    };
+  }
+
+  // ── accountsByOwner (token-squid) — used by resolveAccounts ──────────────
+  if (operationName === 'accountsByOwner') {
+    if (!account) return { accounts: [] };
+    return {
+      accounts: [
+        {
+          id: account.address.toLowerCase(),
+          type: 'USER',
+          balance: account.sqdBalance.toString(),
+          claimableDelegationCount: 0,
+          owner: null,
+          ownerId: null,
+        },
+      ],
+    };
+  }
+
+  // ── Carol's workers (worker operator, Hardhat #2) ─────────────────────────
+  const carolAddress = MOCK_ACCOUNTS[2].address.toLowerCase();
+  const isCarol =
+    address === carolAddress ||
+    (variables.ownerIds as string[] | undefined)?.map(a => a.toLowerCase()).includes(carolAddress);
+
+  if (operationName === 'workersByOwner') {
+    if (!isCarol) return { workers: [] };
+    return {
+      workers: [
+        {
+          id: 'worker-carol-1',
+          peerId: 'QmCarolWorker1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+          name: 'Carol Worker #1',
+          bond: '100000000000000000000000',
+          claimedReward: '5000000000000000000000',
+          ownerId: carolAddress,
+        },
+        {
+          id: 'worker-carol-2',
+          peerId: 'QmCarolWorker2BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+          name: 'Carol Worker #2',
+          bond: '100000000000000000000000',
+          claimedReward: '3000000000000000000000',
+          ownerId: carolAddress,
+        },
+      ],
+    };
+  }
+
+  if (operationName === 'myWorkersCount') {
+    if (!isCarol) return { workersConnection: { totalCount: 0 } };
+    return { workersConnection: { totalCount: 2 } };
+  }
+
+  // ── Bob's delegations (delegator, Hardhat #1) ─────────────────────────────
+  const bobAddress = MOCK_ACCOUNTS[1].address.toLowerCase();
+  const isBob =
+    address === bobAddress ||
+    (variables.ownerIds as string[] | undefined)?.map(a => a.toLowerCase()).includes(bobAddress);
+
+  if (operationName === 'delegationsByOwner' || operationName === 'myDelegations') {
+    if (!isBob) return { delegations: [] };
+    return {
+      delegations: [
+        {
+          id: 'delegation-bob-1',
+          ownerId: bobAddress,
+          worker: {
+            id: 'worker-mock-1',
+            peerId: 'QmMockWorker1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+            name: 'Mock Worker Alpha',
+            status: 'ACTIVE',
+          },
+          deposit: '50000000000000000000000',
+          claimableReward: '1000000000000000000000',
+          claimedReward: '2000000000000000000000',
+        },
+      ],
+    };
+  }
+
+  // Fallback to static fixture
+  const staticFixture = (FIXTURES as Record<string, unknown>)[operationName];
+  if (staticFixture !== undefined) return staticFixture;
+
+  // biome-ignore lint/suspicious/noConsole: mock server diagnostic
+  console.warn(`[mock-graphql] Unknown operation: ${operationName} — returning empty data`);
+  return {};
+}
+
+// ---------------------------------------------------------------------------
 // HTTP server
 // ---------------------------------------------------------------------------
 
@@ -338,9 +461,15 @@ export function startMockGraphqlServer(): Promise<void> {
       });
       req.on('end', () => {
         let operationName: string | undefined;
+        let variables: Record<string, unknown> = {};
         try {
-          const parsed = JSON.parse(body) as { operationName?: string; query?: string };
+          const parsed = JSON.parse(body) as {
+            operationName?: string;
+            query?: string;
+            variables?: Record<string, unknown>;
+          };
           operationName = parsed.operationName;
+          variables = parsed.variables ?? {};
 
           // Fallback: extract operation name from the query string directly
           if (!operationName && parsed.query) {
@@ -352,14 +481,9 @@ export function startMockGraphqlServer(): Promise<void> {
           return;
         }
 
-        const fixture = operationName ? FIXTURES[operationName] : undefined;
-        if (fixture !== undefined) {
-          respond(res, fixture);
+        if (operationName) {
+          respond(res, resolveFixture(operationName, variables));
         } else {
-          // biome-ignore lint/suspicious/noConsole: mock server diagnostic
-          console.warn(
-            `[mock-graphql] Unknown operation: ${operationName ?? '(none)'} — returning empty data`,
-          );
           respond(res, {});
         }
       });

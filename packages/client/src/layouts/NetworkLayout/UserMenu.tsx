@@ -6,10 +6,8 @@ import { bindMenu, bindTrigger, usePopupState } from 'material-ui-popup-state/ho
 import { useAccount } from 'wagmi';
 
 import { ConnectButton } from '@components/Button';
-import { MockAccountSwitcher } from '@components/MockAccountSwitcher';
 import { addressFormatter } from '@lib/formatters/formatters';
 
-import { mockWalletAddress } from '../../config';
 import { LogoutMenuItem } from './LogoutMenuItem';
 
 export const UserMenuStyled = styled(Menu, {
@@ -88,7 +86,6 @@ export function UserMenu() {
         }}
       >
         <LogoutMenuItem />
-        {mockWalletAddress && <MockAccountSwitcher />}
       </UserMenuStyled>
     </>
   );

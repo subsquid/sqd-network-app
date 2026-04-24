@@ -15,11 +15,21 @@ export function getNetwork(): NetworkName {
 }
 
 /**
+ * Master switch: set MOCK_WALLET=true to activate the entire mock environment
+ * (mock GraphQL fixtures, mock RPC server, mock wagmi connector on the client).
+ * Never set in production.
+ */
+export function isMockMode(): boolean {
+  return process.env.MOCK_WALLET === 'true';
+}
+
+/**
  * Whether to use the in-process mock GraphQL fixture server instead of the
- * real Squid APIs.  Set MOCK_GRAPHQL=true in .env to activate.
+ * real Squid APIs.  Activated automatically when MOCK_WALLET=true, or can be
+ * set explicitly via MOCK_GRAPHQL=true.
  */
 export function isMockGraphql(): boolean {
-  return process.env.MOCK_GRAPHQL === 'true';
+  return isMockMode() || process.env.MOCK_GRAPHQL === 'true';
 }
 
 /** Port the mock GraphQL server will listen on (default 4321). */
