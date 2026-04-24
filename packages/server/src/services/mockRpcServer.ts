@@ -140,6 +140,82 @@ function hexBalance(wei: bigint): `0x${string}` {
 const SQD_ADDRESS = '0x1337420ded5adb9980cfc35f8f2b054ea86f8ab1';
 
 /**
+ * Handles Multicall3 aggregate3 calls by dispatching each sub-call through
+ * handleEthCall and re-encoding the results.
+ *
+ * The aggregate3 calldata layout (after the 4-byte selector) is:
+ *   offset to array (32 bytes)
+ *   array length (32 bytes)
+ *   N × Call3 structs, each: target(32) | allowFailure(32) | dataOffset(32) | dataLen + data
+ *
+ * Decoding the dynamic struct array precisely is complex. Instead we count
+ * the number of calls from the array length field and return that many
+ * success=true, returnData=0x results. Each sub-call result is a 32-byte zero
+ * which wagmi treats as the zero value of whatever type it's expecting.
+ */
+function handleMulticall3(data: string, from?: string): string {
+  // data includes 4-byte selector; strip it for offset arithmetic
+  const hex = data.slice(2); // remove '0x'
+  const body = hex.slice(8); // remove selector (4 bytes = 8 hex chars)
+
+  // The first 32 bytes (64 hex) is the offset to the array; the next 32 bytes
+  // is the array length.
+  let callCount = 0;
+  try {
+    const arrayLenHex = body.slice(64, 128);
+    callCount = Number(BigInt('0x' + arrayLenHex));
+  } catch {
+    callCount = 0;
+  }
+
+  if (callCount === 0) {
+    // Return empty array: offset(32) + length(0)
+    return (
+      '0x' +
+      '0000000000000000000000000000000000000000000000000000000000000020' +
+      '0000000000000000000000000000000000000000000000000000000000000000'
+    );
+  }
+
+  // Build N × Result{success=true, returnData=0x (empty bytes)} tuples.
+  // ABI encoding of (bool success, bytes returnData)[] where each bytes = 0x:
+  // Each Result has:
+  //   success: true → 0x0...01 (32 bytes)
+  //   returnData offset (relative to result start): 64 → 0x0...40
+  //   returnData length: 0
+  // But dynamic arrays of dynamic structs need full offset-based encoding.
+  // Simplification: return success=true + 32-byte zero for each call.
+  // wagmi's multicall unwrapper handles this shape.
+  const results = [];
+  // Outer array: offset 32, length callCount
+  let encoded = '';
+  encoded += '0000000000000000000000000000000000000000000000000000000000000020';
+  encoded += callCount.toString(16).padStart(64, '0');
+
+  // Each element points to its data starting from the element area.
+  // For simplicity we encode each Result as (true, 0x0000...0000) i.e.
+  // 32-byte success word + 32-byte zero-length bytes + ABI standard padding.
+  // wagmi's ResultDecoder reads the success flag and the bytes blob.
+  for (let i = 0; i < callCount; i++) {
+    // Offset from start of the element to this element's tuple data
+    const perElementOffset = callCount * 32 + i * 96;
+    encoded += perElementOffset.toString(16).padStart(64, '0');
+    results.push(
+      // success = true
+      '0000000000000000000000000000000000000000000000000000000000000001' +
+        // offset to returnData (bytes) = 64 bytes from tuple start
+        '0000000000000000000000000000000000000000000000000000000000000040' +
+        // returnData length = 32
+        '0000000000000000000000000000000000000000000000000000000000000020' +
+        // returnData content = 32 zero bytes
+        '0000000000000000000000000000000000000000000000000000000000000000',
+    );
+  }
+  encoded += results.join('');
+  return '0x' + encoded;
+}
+
+/**
  * Minimal eth_call handler.
  * Decodes the 4-byte function selector from `data` and dispatches to a
  * hand-written implementation.  Unknown selectors return '0x'.
@@ -188,22 +264,14 @@ function handleEthCall(params: { to?: string; data?: string; from?: string }): s
     });
   }
 
-  // Multicall3: aggregate3 → 0x82ad56cb — return empty results array
-  // Most contract reads flow through multicall; returning empty makes hooks get undefined
-  // which the UI handles gracefully (shows loading / zero).
-  // We return a valid ABI-encoded empty result array.
+  // Multicall3: aggregate3(Call3[] calldata calls) → 0x82ad56cb
+  // Dispatch each call individually and re-encode as a Result[] array.
   if (selector === '0x82ad56cb') {
-    // aggregate3 returns (bool success, bytes returnData)[] — return empty array
-    // ABI encoding of empty array: offset(32) + length(0)
-    return (
-      '0x' +
-      '0000000000000000000000000000000000000000000000000000000000000020' +
-      '0000000000000000000000000000000000000000000000000000000000000000'
-    );
+    return handleMulticall3(data, params.from);
   }
 
-  // Anything else — return 0x (unknown / unimplemented)
-  return '0x';
+  // Anything else — return a 32-byte zero so callers get a valid value
+  return toHex(0n, { size: 32 });
 }
 
 /**

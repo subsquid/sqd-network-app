@@ -1,15 +1,12 @@
 /**
  * Mock GraphQL server for local development and testing.
  *
- * Activated when MOCK_WALLET=true (or MOCK_GRAPHQL=true) is set in the
- * environment.  Starts an in-process HTTP server on MOCK_GRAPHQL_PORT
- * (default 4321) that responds to every POST /graphql request with realistic
- * fixture data.  Account-scoped queries (sources, workers, delegations) return
- * data appropriate to each fixture account's role.
+ * Activated when MOCK_WALLET=true (or MOCK_GRAPHQL=true).  Returns complete,
+ * realistic fixture data for every Squid GraphQL operation so all pages of the
+ * app render meaningful content.  Account-scoped queries return data tailored
+ * to each fixture persona's role.
  *
- * The response is chosen by matching the GraphQL operation name in the
- * incoming request body.  Unknown operations receive an empty-but-valid
- * response so new procedures degrade gracefully.
+ * Operation names match the generated TypedDocumentString query names exactly.
  */
 
 import http from 'node:http';
@@ -20,21 +17,48 @@ export const MOCK_GRAPHQL_PORT = Number(process.env.MOCK_GRAPHQL_PORT ?? 4321);
 export const MOCK_GRAPHQL_URL = `http://localhost:${MOCK_GRAPHQL_PORT}/graphql`;
 
 // ---------------------------------------------------------------------------
-// Fixture helpers
+// Addresses (lower-cased to match what the Squid stores)
 // ---------------------------------------------------------------------------
+const [ALICE, BOB, CAROL, DAVE] = MOCK_ACCOUNTS.map(a => a.address.toLowerCase());
 
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 const NOW = new Date().toISOString();
-const PAST = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-function ts(series: { field: string; from?: string; to?: string; step?: number }) {
-  const count = 10;
-  const from = series.from ?? PAST;
-  const to = series.to ?? NOW;
-  const stepMs = (new Date(to).getTime() - new Date(from).getTime()) / count;
+function daysAgo(n: number) {
+  return new Date(Date.now() - n * 86400_000).toISOString();
+}
+
+function daysFromNow(n: number) {
+  return new Date(Date.now() + n * 86400_000).toISOString();
+}
+
+/** Generate a numeric timeseries with `count` points between PAST and NOW. */
+function numericSeries(from: string, to: string, count = 30, base = 100, variance = 0.3) {
+  const fromMs = new Date(from).getTime();
+  const toMs = new Date(to).getTime();
+  const stepMs = (toMs - fromMs) / count;
   return {
     data: Array.from({ length: count }, (_, i) => ({
-      timestamp: new Date(new Date(from).getTime() + i * stepMs).toISOString(),
-      value: Math.random() * 100,
+      timestamp: new Date(fromMs + i * stepMs).toISOString(),
+      value: base * (1 + (Math.random() - 0.5) * variance),
+    })),
+    step: stepMs / 1000,
+    from,
+    to,
+  };
+}
+
+/** Timeseries with per-entry object values (e.g. APR, Reward). */
+function objectSeries<T>(from: string, to: string, count = 30, makeValue: (i: number) => T) {
+  const fromMs = new Date(from).getTime();
+  const toMs = new Date(to).getTime();
+  const stepMs = (toMs - fromMs) / count;
+  return {
+    data: Array.from({ length: count }, (_, i) => ({
+      timestamp: new Date(fromMs + i * stepMs).toISOString(),
+      value: makeValue(i),
     })),
     step: stepMs / 1000,
     from,
@@ -43,383 +67,490 @@ function ts(series: { field: string; from?: string; to?: string; step?: number }
 }
 
 // ---------------------------------------------------------------------------
-// Per-operation fixture responses
-// Map key = GraphQL operationName string (case-sensitive, matches generated docs)
+// Shared worker fixture (full field set matching allWorkers / myWorkers shapes)
 // ---------------------------------------------------------------------------
-
-const FIXTURES: Record<string, unknown> = {
-  // ── workers-squid ──────────────────────────────────────────────────────────
-  squidNetworkHeight: {
-    squidStatus: { height: 280_000_000 },
-  },
-
-  settings: {
-    settingsConnection: {
-      edges: [
-        {
-          node: {
-            bondAmount: '100000000000000000000000',
-            delegationLimitCoefficient: '20',
-            minimalWorkerVersion: '>=1.0.0',
-            recommendedWorkerVersion: '>=1.1.0',
-          },
-        },
-      ],
-    },
-  },
-
-  allWorkers: {
-    workers: [
-      {
-        id: 'worker-mock-1',
-        peerId: 'QmMockWorker1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-        name: 'Mock Worker Alpha',
-        status: 'ACTIVE',
-        totalDelegation: '50000000000000000000000',
-        bond: '100000000000000000000000',
-        claimedReward: '5000000000000000000000',
-        ownerId: '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
-        delegations: [],
-        uptime90Days: 0.99,
-        apr: 0.14,
-        stakerApr: 0.08,
-        delegationCapacity: 50000,
-        queries24Hours: 12345,
-        servedData24Hours: '1048576000',
-        storedData: '10737418240',
-        version: '1.1.0',
-        jailReason: null,
-        dialOk: true,
-      },
-      {
-        id: 'worker-mock-2',
-        peerId: 'QmMockWorker2BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
-        name: 'Mock Worker Beta',
-        status: 'ACTIVE',
-        totalDelegation: '20000000000000000000000',
-        bond: '100000000000000000000000',
-        claimedReward: '1200000000000000000000',
-        ownerId: '0x70997970c51812dc3a010c7d01b50e0d17dc79c8',
-        delegations: [],
-        uptime90Days: 0.97,
-        apr: 0.12,
-        stakerApr: 0.07,
-        delegationCapacity: 20000,
-        queries24Hours: 8000,
-        servedData24Hours: '524288000',
-        storedData: '5368709120',
-        version: '1.1.0',
-        jailReason: null,
-        dialOk: true,
-      },
-    ],
-  },
-
-  workerByPeerId: {
-    workers: [],
-  },
-
-  myWorkers: {
-    workers: [],
-  },
-
-  myWorkersCount: {
-    workersConnection: { totalCount: 0 },
-  },
-
-  workerDelegationInfo: {
-    workers: [],
-    settingsConnection: {
-      edges: [
-        {
-          node: {
-            bondAmount: '100000000000000000000000',
-            delegationLimitCoefficient: '20',
-          },
-        },
-      ],
-    },
-  },
-
-  myDelegations: {
+function makeWorker(overrides: Record<string, unknown>) {
+  return {
+    id: 'worker-mock-1',
+    name: 'Mock Worker Alpha',
+    peerId: 'QmMockWorker1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+    ownerId: ALICE,
+    status: 'ACTIVE',
+    online: true,
+    jailed: false,
+    dialOk: true,
+    jailReason: null,
+    statusHistory: [{ blockNumber: 100, pending: false, timestamp: daysAgo(60) }],
+    version: '1.1.2',
+    createdAt: daysAgo(90),
+    uptime90Days: 0.99,
+    uptime24Hours: 1.0,
+    apr: 0.14,
+    stakerApr: 0.08,
+    totalDelegation: '50000000000000000000000',
+    capedDelegation: '50000000000000000000000',
+    delegationCount: 3,
+    locked: false,
+    lockEnd: null,
+    bond: '100000000000000000000000',
+    claimableReward: '3000000000000000000000',
+    claimedReward: '5000000000000000000000',
+    totalDelegationRewards: '8000000000000000000000',
+    queries24Hours: 182345,
+    queries90Days: 14500000,
+    scannedData24Hours: '2147483648',
+    scannedData90Days: '193273528320',
+    servedData24Hours: '1073741824',
+    servedData90Days: '96636764160',
+    storedData: '10737418240',
+    website: 'https://example.com',
+    email: 'operator@example.com',
+    description: 'A reliable mock worker for testing',
+    dayUptimes: Array.from({ length: 7 }, (_, i) => ({
+      timestamp: daysAgo(7 - i),
+      uptime: 0.95 + Math.random() * 0.05,
+    })),
     delegations: [],
-  },
+    ...overrides,
+  };
+}
 
-  workersByOwner: {
-    workers: [],
-  },
+// Carol's two workers (she is the operator)
+const CAROL_WORKER_1 = makeWorker({
+  id: 'worker-carol-1',
+  name: 'Carol Worker #1',
+  peerId: 'QmCarolWorker1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  ownerId: CAROL,
+  bond: '100000000000000000000000',
+  claimableReward: '4500000000000000000000',
+  claimedReward: '8000000000000000000000',
+  totalDelegation: '30000000000000000000000',
+  capedDelegation: '30000000000000000000000',
+  delegationCount: 2,
+  apr: 0.13,
+  stakerApr: 0.07,
+  uptime90Days: 0.98,
+  uptime24Hours: 1.0,
+});
 
-  delegationsByOwner: {
-    delegations: [],
-  },
+const CAROL_WORKER_2 = makeWorker({
+  id: 'worker-carol-2',
+  name: 'Carol Worker #2',
+  peerId: 'QmCarolWorker2BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+  ownerId: CAROL,
+  bond: '100000000000000000000000',
+  claimableReward: '2000000000000000000000',
+  claimedReward: '3500000000000000000000',
+  totalDelegation: '10000000000000000000000',
+  capedDelegation: '10000000000000000000000',
+  delegationCount: 1,
+  apr: 0.11,
+  stakerApr: 0.065,
+  uptime90Days: 0.97,
+  uptime24Hours: 0.99,
+});
 
-  workersSummary: {
-    workersSummary: {
-      onlineWorkers: 1420,
-      totalWorkers: 1500,
-      totalBond: '150000000000000000000000000',
-      totalDelegation: '80000000000000000000000000',
-      aprs: { workerApr: 0.14, stakerApr: 0.08 },
-      currentEpoch: 42,
-      lastBlockL1: 19_800_000,
-      lastBlockTimestamp: NOW,
-    },
-  },
+// The two public workers (visible to everyone on the workers list)
+const PUBLIC_WORKER_1 = makeWorker({ id: 'worker-mock-1', ownerId: ALICE });
+const PUBLIC_WORKER_2 = makeWorker({
+  id: 'worker-mock-2',
+  name: 'Mock Worker Beta',
+  peerId: 'QmMockWorker2BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+  ownerId: BOB,
+  totalDelegation: '20000000000000000000000',
+  capedDelegation: '20000000000000000000000',
+  bond: '100000000000000000000000',
+  claimableReward: '1200000000000000000000',
+  claimedReward: '2400000000000000000000',
+  apr: 0.12,
+  stakerApr: 0.07,
+  uptime90Days: 0.97,
+  queries24Hours: 95000,
+  queries90Days: 8200000,
+  servedData24Hours: '536870912',
+  storedData: '5368709120',
+});
 
-  currentEpoch: {
-    workersSummary: {
-      currentEpoch: 42,
-      lastBlockL1: 19_800_000,
-      lastBlockTimestamp: NOW,
-    },
-    epoches: [
-      {
-        id: 'epoch-42',
-        number: 42,
-        start: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        end: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-        startedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-        endedAt: null,
-      },
-    ],
-  },
-
-  ActiveWorkersTimeseries: { activeWorkersTimeseries: ts({ field: 'value' }) },
-  UniqueOperatorsTimeseries: { uniqueOperatorsTimeseries: ts({ field: 'value' }) },
-  DelegationsTimeseries: { delegationsTimeseries: ts({ field: 'value' }) },
-  DelegatorsTimeseries: { delegatorsTimeseries: ts({ field: 'value' }) },
-  QueriesCountTimeseries: { queriesCountTimeseries: ts({ field: 'value' }) },
-  ServedDataTimeseries: { servedDataTimeseries: ts({ field: 'value' }) },
-  StoredDataTimeseries: { storedDataTimeseries: ts({ field: 'value' }) },
-  RewardTimeseries: { rewardTimeseries: ts({ field: 'value' }) },
-  AprTimeseries: {
-    aprTimeseries: {
-      ...ts({ field: 'value' }),
-      data: Array.from({ length: 10 }, (_, i) => ({
-        timestamp: new Date(Date.now() - (10 - i) * 86400_000).toISOString(),
-        value: { stakerApr: 0.07 + i * 0.001, workerApr: 0.13 + i * 0.001 },
-      })),
-    },
-  },
-  UptimeTimeseries: { uptimeTimeseries: ts({ field: 'value' }) },
-
-  // ── gateways-squid ────────────────────────────────────────────────────────
-  gatewayByPeerId: {
-    gateways: [],
-  },
-
-  myGateways: {
-    gateways: [],
-  },
-
-  myGatewayStakes: {
-    gatewayStakes: [],
-  },
-
-  gatewayStakesByOwner: {
-    gatewayStakes: [],
-  },
-
-  gatewaysSummary: {
-    gatewaysSummary: {
-      totalGateways: 48,
-      totalGatewayStake: '5000000000000000000000000',
-      totalPortalPoolTvl: '3000000000000000000000000',
-    },
-  },
-
-  poolProvidersByOwner: {
-    poolProviders: [],
-  },
-
-  portalPools: {
-    portalPools: [],
-  },
-
-  portalPoolById: {
-    portalPoolById: null,
-  },
-
-  poolApyTimeseries: {
-    poolApyTimeseries: ts({ field: 'value' }),
-  },
-
-  poolTvlTimeseries: {
-    poolTvlTimeseries: ts({ field: 'value' }),
-  },
-
-  poolEvents: {
-    poolEvents: [],
-  },
-
-  poolEventsConnection: {
-    poolEventsConnection: { totalCount: 0 },
-  },
-
-  // ── token-squid ────────────────────────────────────────────────────────────
-  sources: {
-    accounts: [],
-  },
-
-  vestingsByAccount: {
-    accounts: [],
-  },
-
-  vestingByAddress: {
-    accountById: null,
-  },
-
-  accountsByOwner: {
-    accounts: [],
-  },
-
-  HoldersCountTimeseries: {
-    holdersCountTimeseries: ts({ field: 'value' }),
-  },
-
-  LockedValueTimeseries: {
-    worker: ts({ field: 'value' }),
-    delegation: ts({ field: 'value' }),
-    portal: ts({ field: 'value' }),
-    portalPool: ts({ field: 'value' }),
-  },
-
-  TransfersByTypeTimeseries: {
-    transfersByTypeTimeseries: {
-      ...ts({ field: 'value' }),
-      data: Array.from({ length: 10 }, (_, i) => ({
-        timestamp: new Date(Date.now() - (10 - i) * 86400_000).toISOString(),
-        value: { deposit: '100', withdraw: '50', transfer: '20', reward: '10', release: '5' },
-      })),
-    },
-  },
-
-  UniqueAccountsTimeseries: {
-    uniqueAccountsTimeseries: ts({ field: 'value' }),
-  },
-};
+// All workers list includes Carol's workers too (public network view)
+const ALL_WORKERS = [PUBLIC_WORKER_1, PUBLIC_WORKER_2, CAROL_WORKER_1, CAROL_WORKER_2];
 
 // ---------------------------------------------------------------------------
-// Dynamic (account-scoped) fixtures
+// Dynamic fixture resolver — dispatches by operationName + variables
 // ---------------------------------------------------------------------------
-
-/**
- * Returns the fixture for operations that depend on the queried address.
- * Falls back to the static FIXTURES map for non-account-scoped operations.
- */
 function resolveFixture(operationName: string, variables: Record<string, unknown>): unknown {
-  // Normalise address from various variable shapes tRPC might send
   const rawAddress =
-    (variables.address as string | undefined) ??
-    (variables.ownerIds as string[] | undefined)?.[0] ??
-    '';
-  const address = rawAddress.toLowerCase();
+    (variables.address as string | undefined) ?? (variables.ownerIds as string[] | undefined)?.[0];
+  const address = (rawAddress ?? '').toLowerCase();
 
-  const account = MOCK_ACCOUNTS.find(a => a.address.toLowerCase() === address);
+  const fromVar = (variables.from as string | undefined) ?? daysAgo(30);
+  const toVar = (variables.to as string | undefined) ?? NOW;
 
-  // ── sources (token-squid) ─────────────────────────────────────────────────
-  // Returns the USER account balance for the queried address.
-  if (operationName === 'sources') {
-    if (!account) return { accounts: [] };
+  // ── workers-squid ──────────────────────────────────────────────────────────
+
+  if (operationName === 'squidNetworkHeight') {
+    return { squidStatus: { height: 280_000_000 } };
+  }
+
+  if (operationName === 'settings') {
     return {
-      accounts: [
-        {
-          id: account.address.toLowerCase(),
-          type: 'USER',
-          balance: account.sqdBalance.toString(),
-          claimableDelegationCount: 0,
-          owner: null,
-          ownerId: null,
-        },
-      ],
+      settingsConnection: {
+        edges: [
+          {
+            node: {
+              bondAmount: '100000000000000000000000',
+              delegationLimitCoefficient: '20',
+              minimalWorkerVersion: '>=1.0.0',
+              recommendedWorkerVersion: '>=1.1.2',
+            },
+          },
+        ],
+      },
     };
   }
 
-  // ── accountsByOwner (token-squid) — used by resolveAccounts ──────────────
-  if (operationName === 'accountsByOwner') {
-    if (!account) return { accounts: [] };
-    return {
-      accounts: [
-        {
-          id: account.address.toLowerCase(),
-          type: 'USER',
-          balance: account.sqdBalance.toString(),
-          claimableDelegationCount: 0,
-          owner: null,
-          ownerId: null,
-        },
-      ],
-    };
+  if (operationName === 'allWorkers') {
+    return { workers: ALL_WORKERS };
   }
 
-  // ── Carol's workers (worker operator, Hardhat #2) ─────────────────────────
-  const carolAddress = MOCK_ACCOUNTS[2].address.toLowerCase();
-  const isCarol =
-    address === carolAddress ||
-    (variables.ownerIds as string[] | undefined)?.map(a => a.toLowerCase()).includes(carolAddress);
+  if (operationName === 'workerByPeerId') {
+    const peerId = variables.peerId as string | undefined;
+    const worker = ALL_WORKERS.find(w => w.peerId === peerId);
+    return { workers: worker ? [worker] : [] };
+  }
 
-  if (operationName === 'workersByOwner') {
-    if (!isCarol) return { workers: [] };
+  if (operationName === 'myWorkers') {
+    const ownerIds = (variables.ownerIds as string[] | undefined)?.map(a => a.toLowerCase()) ?? [];
     return {
-      workers: [
-        {
-          id: 'worker-carol-1',
-          peerId: 'QmCarolWorker1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-          name: 'Carol Worker #1',
-          bond: '100000000000000000000000',
-          claimedReward: '5000000000000000000000',
-          ownerId: carolAddress,
-        },
-        {
-          id: 'worker-carol-2',
-          peerId: 'QmCarolWorker2BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
-          name: 'Carol Worker #2',
-          bond: '100000000000000000000000',
-          claimedReward: '3000000000000000000000',
-          ownerId: carolAddress,
-        },
-      ],
+      workers: [CAROL_WORKER_1, CAROL_WORKER_2].filter(w =>
+        ownerIds.includes(w.ownerId.toLowerCase()),
+      ),
     };
   }
 
   if (operationName === 'myWorkersCount') {
-    if (!isCarol) return { workersConnection: { totalCount: 0 } };
-    return { workersConnection: { totalCount: 2 } };
+    const ownerIds = (variables.ownerIds as string[] | undefined)?.map(a => a.toLowerCase()) ?? [];
+    const count = ownerIds.includes(CAROL) ? 2 : 0;
+    return { workersConnection: { totalCount: count } };
   }
 
-  // ── Bob's delegations (delegator, Hardhat #1) ─────────────────────────────
-  const bobAddress = MOCK_ACCOUNTS[1].address.toLowerCase();
-  const isBob =
-    address === bobAddress ||
-    (variables.ownerIds as string[] | undefined)?.map(a => a.toLowerCase()).includes(bobAddress);
-
-  if (operationName === 'delegationsByOwner' || operationName === 'myDelegations') {
-    if (!isBob) return { delegations: [] };
+  if (operationName === 'workerDelegationInfo') {
+    const workerId = variables.workerId as string | undefined;
+    const worker = ALL_WORKERS.find(w => w.id === workerId);
     return {
-      delegations: [
+      workerById: worker
+        ? {
+            bond: worker.bond,
+            totalDelegation: worker.totalDelegation,
+            capedDelegation: worker.capedDelegation,
+            liveness: 0.99,
+            dTenure: 0.95,
+            trafficWeight: 0.85,
+          }
+        : null,
+      settings: [{ utilizedStake: '60000000000000000000000000', baseApr: 0.15 }],
+    };
+  }
+
+  if (operationName === 'myDelegations') {
+    // Bob has delegations; others don't
+    const ownerIds = (variables.ownerIds as string[] | undefined)?.map(a => a.toLowerCase()) ?? [];
+    if (!ownerIds.includes(BOB)) return { workers: [] };
+
+    const bobDelegation = {
+      deposit: '50000000000000000000000',
+      claimableReward: '1000000000000000000000',
+      claimedReward: '2000000000000000000000',
+      locked: false,
+      lockEnd: null,
+      ownerId: BOB,
+    };
+    return {
+      workers: [
         {
-          id: 'delegation-bob-1',
-          ownerId: bobAddress,
-          worker: {
-            id: 'worker-mock-1',
-            peerId: 'QmMockWorker1AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
-            name: 'Mock Worker Alpha',
-            status: 'ACTIVE',
-          },
-          deposit: '50000000000000000000000',
-          claimableReward: '1000000000000000000000',
-          claimedReward: '2000000000000000000000',
+          ...PUBLIC_WORKER_1,
+          delegations: [bobDelegation],
         },
       ],
     };
   }
 
-  // Fallback to static fixture
-  const staticFixture = (FIXTURES as Record<string, unknown>)[operationName];
-  if (staticFixture !== undefined) return staticFixture;
+  if (operationName === 'workersByOwner') {
+    const ownerIds = (variables.ownerIds as string[] | undefined)?.map(a => a.toLowerCase()) ?? [];
+    return {
+      workers: [CAROL_WORKER_1, CAROL_WORKER_2]
+        .filter(w => ownerIds.includes(w.ownerId.toLowerCase()))
+        .map(w => ({
+          id: w.id,
+          name: w.name,
+          peerId: w.peerId,
+          ownerId: w.ownerId,
+          bond: w.bond,
+          claimableReward: w.claimableReward,
+        })),
+    };
+  }
 
+  if (operationName === 'delegationsByOwner') {
+    const ownerIds = (variables.ownerIds as string[] | undefined)?.map(a => a.toLowerCase()) ?? [];
+    if (!ownerIds.includes(BOB)) return { delegations: [] };
+    return {
+      delegations: [
+        {
+          id: 'delegation-bob-1',
+          ownerId: BOB,
+          deposit: '50000000000000000000000',
+          claimableReward: '1000000000000000000000',
+          claimedReward: '2000000000000000000000',
+          locked: false,
+          lockEnd: null,
+        },
+      ],
+    };
+  }
+
+  if (operationName === 'workersSummary') {
+    return {
+      workersSummary: {
+        onlineWorkersCount: 1420,
+        workersCount: 1500,
+        queries90Days: '1850000000',
+        queries24Hours: '22000000',
+        servedData90Days: '193273528320',
+        servedData24Hours: '2147483648',
+        stakerApr: 0.08,
+        totalBond: '150000000000000000000000000',
+        totalDelegation: '80000000000000000000000000',
+        storedData: '10737418240000',
+        workerApr: 0.14,
+        blockTimeL1: 12,
+        lastBlockL1: 19_800_000,
+        lastBlockTimestampL1: NOW,
+        aprs: Array.from({ length: 7 }, (_, i) => ({
+          timestamp: daysAgo(7 - i),
+          workerApr: 0.13 + i * 0.001,
+          stakerApr: 0.07 + i * 0.001,
+        })),
+      },
+    };
+  }
+
+  if (operationName === 'currentEpoch') {
+    return {
+      workersSummary: {
+        blockTimeL1: 12,
+        lastBlockL1: 19_800_000,
+        lastBlockTimestampL1: NOW,
+      },
+      epoches: [
+        {
+          number: 42,
+          start: daysAgo(5),
+          end: daysFromNow(2),
+        },
+      ],
+    };
+  }
+
+  // Workers-squid timeseries
+  if (operationName === 'ActiveWorkersTimeseries') {
+    return { activeWorkersTimeseries: numericSeries(fromVar, toVar, 30, 1420, 0.05) };
+  }
+  if (operationName === 'UniqueOperatorsTimeseries') {
+    return { uniqueOperatorsTimeseries: numericSeries(fromVar, toVar, 30, 380, 0.08) };
+  }
+  if (operationName === 'DelegationsTimeseries') {
+    return { delegationsTimeseries: numericSeries(fromVar, toVar, 30, 4200, 0.12) };
+  }
+  if (operationName === 'DelegatorsTimeseries') {
+    return { delegatorsTimeseries: numericSeries(fromVar, toVar, 30, 2800, 0.1) };
+  }
+  if (operationName === 'QueriesCountTimeseries') {
+    return { queriesCountTimeseries: numericSeries(fromVar, toVar, 30, 22_000_000, 0.2) };
+  }
+  if (operationName === 'ServedDataTimeseries') {
+    return { servedDataTimeseries: numericSeries(fromVar, toVar, 30, 2_147_483_648, 0.15) };
+  }
+  if (operationName === 'StoredDataTimeseries') {
+    return { storedDataTimeseries: numericSeries(fromVar, toVar, 30, 10_737_418_240_000, 0.03) };
+  }
+  if (operationName === 'RewardTimeseries') {
+    return {
+      rewardTimeseries: objectSeries(fromVar, toVar, 30, i => ({
+        workerReward: (800_000 + i * 5000) * 1e18,
+        stakerReward: (200_000 + i * 2000) * 1e18,
+      })),
+    };
+  }
+  if (operationName === 'AprTimeseries') {
+    return {
+      aprTimeseries: objectSeries(fromVar, toVar, 30, i => ({
+        workerApr: 0.13 + i * 0.0003,
+        stakerApr: 0.07 + i * 0.0002,
+      })),
+    };
+  }
+  if (operationName === 'UptimeTimeseries') {
+    return { uptimeTimeseries: numericSeries(fromVar, toVar, 30, 0.98, 0.02) };
+  }
+
+  // ── gateways-squid ────────────────────────────────────────────────────────
+
+  if (operationName === 'gatewayByPeerId') {
+    return { gateways: [] };
+  }
+  if (operationName === 'myGateways') {
+    return { gateways: [] };
+  }
+  if (operationName === 'myGatewayStakes') {
+    return { gatewayStakes: [] };
+  }
+  if (operationName === 'gatewayStakesByOwner') {
+    return { gatewayStakes: [] };
+  }
+  if (operationName === 'gatewaysSummary') {
+    return {
+      gatewaysSummary: {
+        totalGateways: 48,
+        totalGatewayStake: '5000000000000000000000000',
+        totalPortalPoolTvl: '3000000000000000000000000',
+      },
+    };
+  }
+  if (operationName === 'poolProvidersByOwner') {
+    return { poolProviders: [] };
+  }
+  if (operationName === 'portalPools') {
+    return { portalPools: [] };
+  }
+  if (operationName === 'portalPoolById') {
+    return { portalPoolById: null };
+  }
+  if (operationName === 'poolApyTimeseries') {
+    return { poolApyTimeseries: numericSeries(fromVar, toVar, 30, 0.12, 0.1) };
+  }
+  if (operationName === 'poolTvlTimeseries') {
+    return { poolTvlTimeseries: numericSeries(fromVar, toVar, 30, 3_000_000, 0.05) };
+  }
+  if (operationName === 'poolEvents') {
+    return { poolEvents: [] };
+  }
+  if (operationName === 'poolEventsConnection') {
+    return { poolEventsConnection: { totalCount: 0 } };
+  }
+
+  // ── token-squid ───────────────────────────────────────────────────────────
+
+  if (operationName === 'sources') {
+    const account = MOCK_ACCOUNTS.find(a => a.address.toLowerCase() === address);
+    if (!account) return { accounts: [] };
+    return {
+      accounts: [
+        {
+          id: account.address.toLowerCase(),
+          type: 'USER',
+          balance: account.sqdBalance.toString(),
+          claimableDelegationCount: account.address.toLowerCase() === BOB ? 1 : 0,
+          owner: null,
+          ownerId: null,
+        },
+      ],
+    };
+  }
+
+  if (operationName === 'vestingByAddress') {
+    // Dave has a vesting account
+    if (address === DAVE) {
+      return {
+        accountById: {
+          id: `vesting-${DAVE}`,
+          type: 'VESTING',
+          balance: '1000000000000000000000000',
+          claimableDelegationCount: 0,
+          owner: { id: DAVE, type: 'USER' },
+          ownerId: DAVE,
+        },
+      };
+    }
+    return { accountById: null };
+  }
+
+  if (operationName === 'vestingsByAccount') {
+    if (address === DAVE) {
+      return {
+        accounts: [
+          {
+            id: `vesting-${DAVE}`,
+            type: 'VESTING',
+            balance: '1000000000000000000000000',
+            claimableDelegationCount: 0,
+            owner: { id: DAVE, type: 'USER' },
+            ownerId: DAVE,
+          },
+        ],
+      };
+    }
+    return { accounts: [] };
+  }
+
+  if (operationName === 'accountsByOwner') {
+    const account = MOCK_ACCOUNTS.find(a => a.address.toLowerCase() === address);
+    const results = [];
+    if (account) {
+      results.push({
+        id: account.address.toLowerCase(),
+        type: 'USER',
+        balance: account.sqdBalance.toString(),
+        claimableDelegationCount: account.address.toLowerCase() === BOB ? 1 : 0,
+        owner: null,
+        ownerId: null,
+      });
+    }
+    if (address === DAVE) {
+      results.push({
+        id: `vesting-${DAVE}`,
+        type: 'VESTING',
+        balance: '1000000000000000000000000',
+        claimableDelegationCount: 0,
+        owner: { id: DAVE, type: 'USER' },
+        ownerId: DAVE,
+      });
+    }
+    return { accounts: results };
+  }
+
+  // Token-squid timeseries
+  if (operationName === 'HoldersCountTimeseries') {
+    return { holdersCountTimeseries: numericSeries(fromVar, toVar, 30, 18500, 0.05) };
+  }
+
+  if (operationName === 'LockedValueTimeseries') {
+    return {
+      worker: numericSeries(fromVar, toVar, 30, 150_000_000, 0.04),
+      delegation: numericSeries(fromVar, toVar, 30, 80_000_000, 0.08),
+      portal: numericSeries(fromVar, toVar, 30, 5_000_000, 0.12),
+      portalPool: numericSeries(fromVar, toVar, 30, 3_000_000, 0.1),
+    };
+  }
+
+  if (operationName === 'TransfersByTypeTimeseries') {
+    return {
+      transfersByTypeTimeseries: objectSeries(fromVar, toVar, 30, () => ({
+        deposit: String(Math.floor(Math.random() * 100_000) * 1e18),
+        withdraw: String(Math.floor(Math.random() * 50_000) * 1e18),
+        transfer: String(Math.floor(Math.random() * 20_000) * 1e18),
+        reward: String(Math.floor(Math.random() * 10_000) * 1e18),
+        release: String(Math.floor(Math.random() * 5_000) * 1e18),
+      })),
+    };
+  }
+
+  if (operationName === 'UniqueAccountsTimeseries') {
+    return { uniqueAccountsTimeseries: numericSeries(fromVar, toVar, 30, 18500, 0.05) };
+  }
+
+  // Fallback
   // biome-ignore lint/suspicious/noConsole: mock server diagnostic
-  console.warn(`[mock-graphql] Unknown operation: ${operationName} — returning empty data`);
+  console.warn(`[mock-graphql] Unknown operation: "${operationName}" — returning empty data`);
   return {};
 }
 
@@ -433,6 +564,7 @@ function respond(res: http.ServerResponse, data: unknown, status = 200) {
     'Content-Type': 'application/json',
     'Content-Length': Buffer.byteLength(body),
     'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'content-type',
   });
   res.end(body);
 }
@@ -448,7 +580,6 @@ export function startMockGraphqlServer(): Promise<void> {
         res.end();
         return;
       }
-
       if (req.method !== 'POST') {
         res.writeHead(405);
         res.end();
@@ -470,8 +601,6 @@ export function startMockGraphqlServer(): Promise<void> {
           };
           operationName = parsed.operationName;
           variables = parsed.variables ?? {};
-
-          // Fallback: extract operation name from the query string directly
           if (!operationName && parsed.query) {
             const m = parsed.query.match(/(?:query|mutation)\s+(\w+)/);
             operationName = m?.[1];
@@ -481,11 +610,7 @@ export function startMockGraphqlServer(): Promise<void> {
           return;
         }
 
-        if (operationName) {
-          respond(res, resolveFixture(operationName, variables));
-        } else {
-          respond(res, {});
-        }
+        respond(res, operationName ? resolveFixture(operationName, variables) : {});
       });
     });
 
