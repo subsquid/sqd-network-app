@@ -30,8 +30,27 @@ import { NetworkName, getSubsquidNetwork } from './hooks/network/useSubsquidNetw
 
 const network = getSubsquidNetwork();
 
-/** Address supplied via MOCK_WALLET_ADDRESS env var, or null in production. */
+/**
+ * The build-time env var address — empty string in production builds.
+ * Exported so MockAccountSwitcher can use it as the fallback default.
+ */
 export const mockWalletAddress = (process.env.MOCK_WALLET_ADDRESS || '') as Address | '';
+
+/**
+ * Resolves the actual address to use for the mock connector.
+ * Priority: localStorage override (set by MockAccountSwitcher) → env var.
+ * This lets testers switch accounts without restarting the dev server.
+ */
+function resolveMockAddress(): Address | '' {
+  if (!mockWalletAddress) return '';
+  try {
+    return (localStorage.getItem('mock:wallet:address') as Address) || mockWalletAddress;
+  } catch {
+    return mockWalletAddress;
+  }
+}
+
+const activeMockAddress = resolveMockAddress();
 
 /**
  * Lightweight wagmi config used when MOCK_WALLET_ADDRESS is set.
@@ -39,12 +58,12 @@ export const mockWalletAddress = (process.env.MOCK_WALLET_ADDRESS || '') as Addr
  * The mock connector's `defaultConnected` flag means the app starts pre-connected
  * without any user interaction.
  */
-export const mockConfig = mockWalletAddress
+export const mockConfig = activeMockAddress
   ? createConfig({
       chains: network === NetworkName.Mainnet ? [arbitrum] : [arbitrumSepolia],
       connectors: [
         mock({
-          accounts: [mockWalletAddress],
+          accounts: [activeMockAddress],
           features: { defaultConnected: true, reconnect: true },
         }),
       ],

@@ -9,12 +9,18 @@ import {
   getSentryDsn,
   getTokenSquidUrl,
   getWorkersSquidUrl,
+  isMockGraphql,
 } from './env.js';
 import { appRouter } from './router.js';
+import { startMockGraphqlServer } from './services/mockGraphqlServer.js';
 import { createContext } from './trpc.js';
 
 const port = getPort();
 const sentryDsn = getSentryDsn();
+
+if (isMockGraphql()) {
+  await startMockGraphqlServer();
+}
 
 if (sentryDsn) {
   Sentry.init({

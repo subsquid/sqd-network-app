@@ -14,19 +14,39 @@ export function getNetwork(): NetworkName {
   return 'mainnet';
 }
 
+/**
+ * Whether to use the in-process mock GraphQL fixture server instead of the
+ * real Squid APIs.  Set MOCK_GRAPHQL=true in .env to activate.
+ */
+export function isMockGraphql(): boolean {
+  return process.env.MOCK_GRAPHQL === 'true';
+}
+
+/** Port the mock GraphQL server will listen on (default 4321). */
+export function getMockGraphqlPort(): number {
+  return Number(process.env.MOCK_GRAPHQL_PORT ?? 4321);
+}
+
+function getMockGraphqlUrl(): string {
+  return `http://localhost:${getMockGraphqlPort()}/graphql`;
+}
+
 export function getWorkersSquidUrl(): string {
+  if (isMockGraphql()) return getMockGraphqlUrl();
   return getNetwork() === 'tethys'
     ? getEnv('TESTNET_WORKERS_SQUID_API_URL', 'http://localhost:4350')
     : getEnv('MAINNET_WORKERS_SQUID_API_URL', 'http://localhost:4350');
 }
 
 export function getGatewaysSquidUrl(): string {
+  if (isMockGraphql()) return getMockGraphqlUrl();
   return getNetwork() === 'tethys'
     ? getEnv('TESTNET_GATEWAYS_SQUID_API_URL', 'http://localhost:4350')
     : getEnv('MAINNET_GATEWAYS_SQUID_API_URL', 'http://localhost:4350');
 }
 
 export function getTokenSquidUrl(): string {
+  if (isMockGraphql()) return getMockGraphqlUrl();
   return getNetwork() === 'tethys'
     ? getEnv('TESTNET_TOKEN_SQUID_API_URL', 'http://localhost:4350')
     : getEnv('MAINNET_TOKEN_SQUID_API_URL', 'http://localhost:4350');
