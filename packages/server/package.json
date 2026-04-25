@@ -11,6 +11,7 @@
   },
   "scripts": {
     "dev": "tsx --env-file=../../.env --watch src/main.ts",
+    "dev:mock": "tsx --env-file=../../.env.mock --watch src/main.mock.ts",
     "start": "tsx --env-file=../../.env --watch src/main.ts",
     "build": "rolldown -c rolldown.config.ts",
     "tsc": "tsc --noEmit",

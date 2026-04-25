@@ -19,16 +19,23 @@ import { NetworkName, getSubsquidNetwork } from './hooks/network/useSubsquidNetw
 const network = getSubsquidNetwork();
 
 /**
- * True when the full mock environment is active (MOCK_WALLET=true at build time).
- * Drives the `mode` argument to `createAppWagmiConfig()` plus a handful of
- * mock-only UI affordances (e.g. the disconnect menu item label).
+ * True when this bundle was built with `pnpm dev:mock` / `pnpm build:mock`
+ * (vite's `--mode mock` flag injects `process.env.MOCK = 'true'`).
+ *
+ * Drives:
+ *   - `createAppWagmiConfig`'s mode argument
+ *   - the Connect Wallet button picking the mock dialog
+ *   - the disconnect menu clearing the persisted persona index
  */
-export const isMockMode = process.env.MOCK_WALLET === 'true';
+export const isMockMode = process.env.MOCK === 'true';
+
+/** RPC URL used by the mock wagmi config — talks to the in-process mock RPC. */
+const MOCK_RPC_URL = 'http://localhost:8545';
 
 /**
- * Fixture accounts available when MOCK_WALLET=true.
- * Must stay in sync with packages/server/src/services/mockRpcServer.ts MOCK_ACCOUNTS.
- * These are the well-known Hardhat test addresses.
+ * Fixture accounts available in mock mode. Mirror
+ * `packages/server/src/services/mockRpcServer.ts` MOCK_ACCOUNTS — these are
+ * the well-known Hardhat / anvil dev addresses.
  */
 export const MOCK_FIXTURE_ACCOUNTS: readonly {
   address: Address;
@@ -57,12 +64,9 @@ export const MOCK_FIXTURE_ACCOUNTS: readonly {
   },
 ] as const;
 
-/** Mock RPC URL — the in-process JSON-RPC server started by the dev server. */
-export const MOCK_RPC_URL = process.env.MOCK_RPC_URL || 'http://localhost:8545';
-
 const SESSION_KEY = 'mock:account:index';
 
-/** Returns the account index stored in sessionStorage, defaulting to -1 (no selection yet). */
+/** Returns the account index stored in sessionStorage, defaulting to -1. */
 export function getMockAccountIndex(): number {
   try {
     const v = sessionStorage.getItem(SESSION_KEY);
@@ -94,31 +98,18 @@ export function clearMockAccountIndex(): void {
 // Wagmi config factory
 // ---------------------------------------------------------------------------
 
-export type AppMode = 'live' | 'mock';
-
 export interface AppWagmiConfigOpts {
-  /** Selects between the RainbowKit-backed live config and the wagmi-mock config. */
-  mode: AppMode;
   /** Selected Subsquid network (mainnet → arbitrum, tethys → arbitrumSepolia). */
   network: NetworkName;
-  /** WalletConnect v2 project id, used only when `mode === 'live'`. */
+  /** WalletConnect v2 project id, used only in live mode. */
   walletConnectProjectId?: string;
-  /** RPC URL for the mock JSON-RPC server (default: `MOCK_RPC_URL`). */
-  mockRpcUrl?: string;
   /**
-   * Optional Multicall3 contract address override (mock-stack deploys to
-   * a non-canonical address). Only honoured in mock mode.
+   * Optional Multicall3 contract address override (the mock-stack deploys
+   * Multicall3 to a non-canonical address). Only honoured in mock mode.
    */
   multicall3Override?: Address;
-  /**
-   * Account list passed to the wagmi mock connector. Defaults to the four
-   * `MOCK_FIXTURE_ACCOUNTS` addresses, with the persisted-selection re-ordered
-   * to index 0 when present.
-   */
-  mockAccounts?: readonly Address[];
 }
 
-/** Apply a Multicall3 address override to a chain object. */
 function withMulticall3Override<T extends Chain>(chain: T, address?: Address): T {
   if (!address) return chain;
   return {
@@ -130,24 +121,18 @@ function withMulticall3Override<T extends Chain>(chain: T, address?: Address): T
   };
 }
 
-/** Resolve the chain (with optional Multicall3 override) for the active network. */
 function resolveChain(selected: NetworkName, multicall3Override?: Address): Chain {
   const base = selected === NetworkName.Mainnet ? arbitrum : arbitrumSepolia;
   return withMulticall3Override(base, multicall3Override);
 }
 
 function buildMockConfig(opts: AppWagmiConfigOpts): Config {
-  const rpcUrl = opts.mockRpcUrl ?? MOCK_RPC_URL;
-
-  // If the user has previously selected a persona, hoist that address to
-  // index 0 so wagmi reports it as the connected address.
   const selectedIndex = getMockAccountIndex();
   const fixtureAddrs = MOCK_FIXTURE_ACCOUNTS.map(a => a.address);
-  const baseAccounts = (opts.mockAccounts ?? fixtureAddrs) as Address[];
-  const hasSelection = selectedIndex >= 0 && selectedIndex < baseAccounts.length;
+  const hasSelection = selectedIndex >= 0 && selectedIndex < fixtureAddrs.length;
   const accounts = hasSelection
-    ? ([baseAccounts[selectedIndex]] as [Address, ...Address[]])
-    : (baseAccounts as [Address, ...Address[]]);
+    ? ([fixtureAddrs[selectedIndex]] as [Address, ...Address[]])
+    : (fixtureAddrs as [Address, ...Address[]]);
 
   const chain = resolveChain(opts.network, opts.multicall3Override);
 
@@ -163,7 +148,7 @@ function buildMockConfig(opts: AppWagmiConfigOpts): Config {
       }),
     ],
     transports: {
-      [chain.id]: http(rpcUrl),
+      [chain.id]: http(MOCK_RPC_URL),
     },
   });
 }
@@ -196,18 +181,17 @@ function buildLiveConfig(opts: AppWagmiConfigOpts): Config {
 }
 
 /**
- * Build the wagmi `Config` used by the app, based on whether the mock
- * environment is active. Keep this function pure — its result is meant to be
- * memoised once per app boot in `App.tsx`, with all environment lookups
- * collected at the call site (NOT here).
+ * Build the wagmi `Config` used by the app. Branches on the build-time
+ * `isMockMode` flag, so callers don't need to pass it explicitly.
  *
- * Test code can call this with arbitrary options to obtain a config that
- * matches the production tree exactly, sidestepping module-level singletons.
+ * Tests use `createUnitWagmiConfig()` from `src/test/wagmi/testConfig.ts`
+ * instead — that helper sidesteps this factory entirely so unit specs
+ * don't depend on build-time defines.
  */
 export function createAppWagmiConfig(opts: AppWagmiConfigOpts): Config {
-  return opts.mode === 'mock' ? buildMockConfig(opts) : buildLiveConfig(opts);
+  return isMockMode ? buildMockConfig(opts) : buildLiveConfig(opts);
 }
 
-// Back-compat: a few callers (and the integration test harness) still want
-// the network the config was built for without re-deriving it.
+// Back-compat: a few call sites still want the active network without
+// re-deriving it.
 export { network as currentNetwork };

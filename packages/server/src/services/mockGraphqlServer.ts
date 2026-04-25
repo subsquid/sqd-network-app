@@ -13,7 +13,9 @@ import http from 'node:http';
 
 import { MOCK_ACCOUNTS } from './mockRpcServer.js';
 
-export const MOCK_GRAPHQL_PORT = Number(process.env.MOCK_GRAPHQL_PORT ?? 4321);
+// Fixed dev-mode port: the mock-mode `.env.mock` file points the
+// `*_SQUID_API_URL` vars at `http://localhost:4321/graphql` to match.
+export const MOCK_GRAPHQL_PORT = 4321;
 export const MOCK_GRAPHQL_URL = `http://localhost:${MOCK_GRAPHQL_PORT}/graphql`;
 
 // ---------------------------------------------------------------------------

@@ -4,7 +4,8 @@ Single-owner mock environment for the Subsquid Network app. Used by:
 
 - Vitest globalSetup (Layer-2 integration tests).
 - Future Playwright E2E (see `plans/playwright-e2e.md`).
-- `pnpm dev` mock mode (`MOCK_WALLET=true`).
+- `pnpm dev:mock` (legacy in-process mock servers; the full mock-stack
+  takes over once the migration is complete).
 
 The package wraps three pieces that together replicate everything the app
 needs to render meaningfully without real Squid APIs or mainnet RPC:
@@ -53,12 +54,10 @@ Phase 10 deletes those.
 ## Test setup ergonomics
 
 - **Ephemeral ports.** `startMockStack()` defaults to OS-allocated ports for
-  both anvil and the GraphQL server. The dev-mode `pnpm dev` workflow can
-  pin them to 8545/4321 via `MOCK_RPC_PORT` / `MOCK_GRAPHQL_PORT` env vars.
+  both anvil and the GraphQL server.
 - **No env vars in tests.** The server's `setRuntimeOverride()` API
   (in `@subsquid/server/env`) injects the GraphQL URL, RPC URL, and
-  contract address book directly. `process.env.MOCK_*` is only consumed
-  by the legacy dev-mode in-process servers.
+  contract address book directly.
 - **Auto-prepare.** Pass `{ autoPrepare: true }` to `startMockStack()` and
   it'll run `forge build` + the deploy harness if `.anvil-state.json` is
   absent. Vitest's globalSetup uses this so a fresh checkout boots with a

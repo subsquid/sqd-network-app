@@ -23,10 +23,10 @@ const TEST_DEFINES = Object.fromEntries(
     HOST_URL: '',
     TESTNET_WORKERS_CHAT_URL: '',
     MAINNET_WORKERS_CHAT_URL: '',
-    // MOCK_WALLET stays falsy in unit tests — they configure the mock
-    // connector directly via `createUnitWagmiConfig()` and never read this.
-    MOCK_WALLET: '',
-    MOCK_RPC_URL: 'http://localhost:8545',
+    // Build-time mock flag stays falsy — unit tests configure the mock
+    // wagmi connector directly via `createUnitWagmiConfig()` and never read
+    // this; integration tests configure the server via setRuntimeOverride().
+    MOCK: '',
   }).map(([k, v]) => [`process.env.${k}`, JSON.stringify(v)]),
 );
 

@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "turbo run dev",
+    "dev:mock": "turbo run dev:mock",
     "build": "turbo run build",
     "build:client": "turbo run build --filter=@subsquid/client",
     "build:server": "turbo run build --filter=@subsquid/server",

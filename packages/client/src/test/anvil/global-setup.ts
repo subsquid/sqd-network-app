@@ -50,7 +50,6 @@ export default async function setup(ctx: GlobalSetupCtx): Promise<() => Promise<
   const { setRuntimeOverride } = await import('@subsquid/server/env');
   setRuntimeOverride({
     network: 'mainnet',
-    mockMode: true,
     squidGraphqlUrl: stack.graphqlUrl,
     rpcUrl: stack.rpcUrl,
     contractAddressOverride: stack.deployments,

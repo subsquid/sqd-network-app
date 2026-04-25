@@ -21,7 +21,9 @@ import http from 'node:http';
 
 import { type Address, encodeFunctionResult, erc20Abi, keccak256, toBytes, toHex } from 'viem';
 
-export const MOCK_RPC_PORT = Number(process.env.MOCK_RPC_PORT ?? 8545);
+// Fixed dev-mode ports: the mock-mode `.env.mock` file points
+// `ARBITRUM_ONE_RPC_URL` at `http://localhost:8545` to match.
+export const MOCK_RPC_PORT = 8545;
 export const MOCK_RPC_URL = `http://localhost:${MOCK_RPC_PORT}`;
 
 // ---------------------------------------------------------------------------

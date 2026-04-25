@@ -5,12 +5,19 @@ import { defineConfig } from 'vite';
 import { createHtmlPlugin } from 'vite-plugin-html';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
-dotenvConfig({ path: '../../.env' });
+// `dev:mock` and `build:mock` invoke vite with `--mode mock`, which makes
+// vite load `.env.mock`. Pass that file through dotenv so plain
+// `process.env.X` reads here see the same values.
+export default defineConfig(({ mode }) => {
+  const envFile = mode === 'mock' ? '../../.env.mock' : '../../.env';
+  dotenvConfig({ path: envFile });
+  const encode = JSON.stringify;
+  // Build-time signal: `true` when this bundle was produced for mock mode.
+  // The client reads it as `process.env.MOCK` (no MOCK_WALLET, no MOCK_RPC_URL,
+  // no other MOCK_* sprinkles).
+  const isMock = mode === 'mock';
 
-const encode = JSON.stringify;
-
-// https://vite.dev/config/
-export default defineConfig({
+  return {
   define: {
     'process.env.APP_VERSION': encode(process.env.APP_VERSION || 'local'),
 
@@ -25,13 +32,11 @@ export default defineConfig({
     'process.env.NETWORK': encode(process.env.NETWORK || 'mainnet'),
     'process.env.SENTRY_DSN': encode(process.env.SENTRY_DSN || ''),
     'process.env.HOST_URL': encode(process.env.HOST_URL || ''),
-    // Master switch for the full mock environment.  When 'true' the client uses
-    // the mock wagmi connector (all 4 fixture accounts), routes RPC calls to the
-    // local mock RPC server, and the server activates the mock GraphQL fixture
-    // server.  Never set in production.
-    'process.env.MOCK_WALLET': encode(process.env.MOCK_WALLET || ''),
-    // URL of the mock JSON-RPC server started by the dev server (default 8545).
-    'process.env.MOCK_RPC_URL': encode(process.env.MOCK_RPC_URL || 'http://localhost:8545'),
+    // Single master switch for the mock environment. Set to `'true'` only by
+    // `pnpm dev:mock` / `pnpm build:mock`. When set, the wagmi mock
+    // connector + the mock RPC URL kick in; otherwise the live RainbowKit
+    // config and real RPCs are used. Never set in production.
+    'process.env.MOCK': encode(isMock ? 'true' : ''),
   },
 
   server: {
@@ -94,4 +99,5 @@ export default defineConfig({
       },
     },
   },
+  };
 });

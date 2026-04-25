@@ -1,6 +1,3 @@
-import fs from 'node:fs';
-import path from 'node:path';
-
 import {
   type ContractAddresses,
   getContractAddresses as getCommonContractAddresses,
@@ -11,16 +8,13 @@ export type NetworkName = 'mainnet' | 'tethys';
 export type { ContractAddresses };
 
 /**
- * Runtime override slot for tests.
+ * Runtime override slot for tests + the mock-mode entrypoint.
  *
- * Production (`pnpm dev`, `pnpm start`) reads everything from `process.env`.
- * Tests call `setRuntimeOverride({ ... })` once before importing `appRouter`
- * and the override values win — no `process.env.*` mutation, no
- * pseudo-environment vars (`MOCK_GRAPHQL_PORT`, `MOCK_STACK_DEPLOYMENTS`, …)
- * cluttering the codebase for a value that's always the same in tests.
- *
- * The shape mirrors only the getters that vary between envs. Anything not
- * overridden falls through to the standard `process.env` resolution.
+ * Production reads everything from `process.env`. The mock-mode startup
+ * (`main.mock.ts`) and Vitest's globalSetup populate this once before
+ * importing `appRouter` — every getter checks the override first, then
+ * falls through to `process.env`. This removes the need for boolean
+ * `MOCK_*` flags scattered through the env contract.
  */
 export interface RuntimeOverride {
   network?: NetworkName;
@@ -30,18 +24,16 @@ export interface RuntimeOverride {
   rpcUrl?: string;
   /** Merge into the contract address book (typically from .deployments.json). */
   contractAddressOverride?: Partial<ContractAddresses>;
-  /** When true, treat the runtime as mock mode regardless of MOCK_WALLET. */
-  mockMode?: boolean;
 }
 
 let runtimeOverride: RuntimeOverride = {};
 
-/** Tests call this once during globalSetup; production never does. */
+/** Mock entrypoint and tests call this once before importing appRouter. */
 export function setRuntimeOverride(override: RuntimeOverride): void {
   runtimeOverride = override;
 }
 
-/** Get the active override (read-only) — primarily for diagnostics. */
+/** Read the active override (diagnostics + introspection only). */
 export function getRuntimeOverride(): Readonly<RuntimeOverride> {
   return runtimeOverride;
 }
@@ -57,52 +49,25 @@ function getEnv(key: string, fallback?: string): string {
 export function getNetwork(): NetworkName {
   if (runtimeOverride.network) return runtimeOverride.network;
   const network = process.env.NETWORK ?? 'mainnet';
-  if (network === 'tethys' || network === 'mainnet') return network;
-  return 'mainnet';
+  return network === 'tethys' ? 'tethys' : 'mainnet';
 }
 
-/**
- * Master switch: set MOCK_WALLET=true to activate the mock environment for
- * `pnpm dev`. Tests use `setRuntimeOverride({ mockMode: true })` instead.
- */
-export function isMockMode(): boolean {
-  return runtimeOverride.mockMode === true || process.env.MOCK_WALLET === 'true';
-}
-
-/**
- * Whether the legacy in-process mock GraphQL server should be started by
- * `pnpm dev`. Activated when `MOCK_WALLET=true` (or explicitly via
- * `MOCK_GRAPHQL=true`). Tests do not use this — they override the GraphQL
- * URL directly via `setRuntimeOverride({ squidGraphqlUrl })`.
- */
-export function isMockGraphql(): boolean {
-  return isMockMode() || process.env.MOCK_GRAPHQL === 'true';
-}
-
-/** Port the legacy in-process mock GraphQL server listens on (default 4321). */
-export function getMockGraphqlPort(): number {
-  return Number(process.env.MOCK_GRAPHQL_PORT ?? 4321);
+function getSquidUrl(envKey: string): string {
+  if (runtimeOverride.squidGraphqlUrl) return runtimeOverride.squidGraphqlUrl;
+  const network = getNetwork().toUpperCase();
+  return getEnv(`${network}_${envKey}`, 'http://localhost:4350');
 }
 
 export function getWorkersSquidUrl(): string {
-  if (runtimeOverride.squidGraphqlUrl) return runtimeOverride.squidGraphqlUrl;
-  return getNetwork() === 'tethys'
-    ? getEnv('TESTNET_WORKERS_SQUID_API_URL', 'http://localhost:4350')
-    : getEnv('MAINNET_WORKERS_SQUID_API_URL', 'http://localhost:4350');
+  return getSquidUrl('WORKERS_SQUID_API_URL');
 }
 
 export function getGatewaysSquidUrl(): string {
-  if (runtimeOverride.squidGraphqlUrl) return runtimeOverride.squidGraphqlUrl;
-  return getNetwork() === 'tethys'
-    ? getEnv('TESTNET_GATEWAYS_SQUID_API_URL', 'http://localhost:4350')
-    : getEnv('MAINNET_GATEWAYS_SQUID_API_URL', 'http://localhost:4350');
+  return getSquidUrl('GATEWAYS_SQUID_API_URL');
 }
 
 export function getTokenSquidUrl(): string {
-  if (runtimeOverride.squidGraphqlUrl) return runtimeOverride.squidGraphqlUrl;
-  return getNetwork() === 'tethys'
-    ? getEnv('TESTNET_TOKEN_SQUID_API_URL', 'http://localhost:4350')
-    : getEnv('MAINNET_TOKEN_SQUID_API_URL', 'http://localhost:4350');
+  return getSquidUrl('TOKEN_SQUID_API_URL');
 }
 
 export function getRpcUrl(): string | undefined {
@@ -120,35 +85,9 @@ export function getSentryDsn(): string | undefined {
   return dsn ? dsn : undefined;
 }
 
-/**
- * Locate the mock-stack `.deployments.json` produced by
- * `pnpm --filter @subsquid/mock-stack stack:prepare`. Used by `pnpm dev`
- * mock mode so the dev server's contract address book picks up
- * mock-stack-deployed addresses without further configuration. Tests should
- * use `setRuntimeOverride({ contractAddressOverride })` instead.
- */
-function loadMockDeploymentsFromDisk(): Partial<ContractAddresses> | null {
-  if (!isMockMode()) return null;
-  const candidates = [
-    path.resolve(process.cwd(), '../mock-stack/.deployments.json'),
-    path.resolve(process.cwd(), '../../packages/mock-stack/.deployments.json'),
-    path.resolve(process.cwd(), 'packages/mock-stack/.deployments.json'),
-  ];
-  for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) {
-      try {
-        const raw = JSON.parse(fs.readFileSync(candidate, 'utf-8')) as Record<string, string>;
-        return raw as Partial<ContractAddresses>;
-      } catch {
-        // ignore — fall through to next candidate
-      }
-    }
-  }
-  return null;
-}
-
 export function getContractAddresses(): ContractAddresses {
-  const override =
-    runtimeOverride.contractAddressOverride ?? loadMockDeploymentsFromDisk() ?? undefined;
-  return getCommonContractAddresses({ network: getNetwork(), override });
+  return getCommonContractAddresses({
+    network: getNetwork(),
+    override: runtimeOverride.contractAddressOverride,
+  });
 }

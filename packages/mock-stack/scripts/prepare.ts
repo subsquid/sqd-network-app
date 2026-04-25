@@ -8,12 +8,9 @@
 import { runPrepare } from '../src/prepare';
 
 async function main(): Promise<void> {
-  const port = Number(process.env.MOCK_RPC_PORT ?? 0);
-  const chainId = Number(process.env.MOCK_CHAIN_ID ?? 42161);
-
   // biome-ignore lint/suspicious/noConsole: progress
-  console.log(`[mock-stack] preparing anvil snapshot (port=${port || 'ephemeral'}, chainId=${chainId})`);
-  const result = await runPrepare({ port, chainId });
+  console.log('[mock-stack] preparing anvil snapshot (ephemeral port)');
+  const result = await runPrepare();
   // biome-ignore lint/suspicious/noConsole: success summary
   console.log(
     `[mock-stack] prepare complete — bootBlock=${result.bootBlock}, ${

@@ -14,24 +14,20 @@ import { SquidHeightProvider } from '@hooks/useSquidNetworkHeightHooks';
 import { TickerProvider } from '@hooks/useTicker';
 
 import { AppRoutes } from './AppRoutes';
-import { MOCK_RPC_URL, createAppWagmiConfig, isMockMode } from './config';
+import { createAppWagmiConfig, isMockMode } from './config';
 import { useCreateRainbowKitTheme, useCreateTheme, useThemeState } from './theme';
 
 /**
- * App-level wagmi config: built once on first render so reading a fresh
- * `getMockAccountIndex()` value during reload-driven account switching still
- * works (the read happens inside `createAppWagmiConfig`). Once Phase 10 lands
- * the reload flow goes away and this stays correct because env-derived inputs
- * don't change between renders.
+ * Build the wagmi config once per app boot. `createAppWagmiConfig` reads
+ * `isMockMode` (a build-time flag from `process.env.MOCK`) internally and
+ * picks the mock vs. live tree.
  */
 function useAppWagmiConfig() {
   return useMemo(
     () =>
       createAppWagmiConfig({
-        mode: isMockMode ? 'mock' : 'live',
         network: getSubsquidNetwork(),
         walletConnectProjectId: process.env.WALLET_CONNECT_PROJECT_ID,
-        mockRpcUrl: MOCK_RPC_URL,
       }),
     [],
   );
