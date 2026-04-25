@@ -8,6 +8,7 @@ import { WagmiProvider } from 'wagmi';
 
 import { queryClient } from '@api/client';
 import { Toaster } from '@components/Toaster';
+import { getContractsSync } from '@hooks/network/useContracts';
 import { getChain, getSubsquidNetwork } from '@hooks/network/useSubsquidNetwork';
 import { SquidHeightProvider } from '@hooks/useSquidNetworkHeightHooks';
 import { TickerProvider } from '@hooks/useTicker';
@@ -27,6 +28,9 @@ function useAppWagmiConfig() {
       createAppWagmiConfig({
         network: getSubsquidNetwork(),
         walletConnectProjectId: process.env.WALLET_CONNECT_PROJECT_ID,
+        // Mock-stack deploys Multicall3 to a non-canonical address; patch
+        // the chain object so wagmi's read-batching hits the right contract.
+        multicall3Override: getContractsSync()?.MULTICALL,
       }),
     [],
   );

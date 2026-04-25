@@ -29,6 +29,21 @@ function getBlockTime(blocks: number): number {
 }
 
 export const contractRouter = router({
+  /**
+   * Active contract address book. Live mode returns the static map from
+   * `@subsquid/common`; mock mode returns whatever the running mock-stack
+   * deployed (mock-SQD address, mock-Multicall3 address, etc.). The client's
+   * `useContracts()` hook is backed by this — so a single source of truth
+   * drives both server tRPC routers and client read/write hooks.
+   *
+   * Includes a few mock-only addresses (USDC, WETH, MULTICALL) when present
+   * so the wagmi config can patch its Multicall3 address before any
+   * `useReadContracts` aggregation runs.
+   */
+  list: publicProcedure.query(() => {
+    return getContractAddresses() as unknown as Record<string, string | number>;
+  }),
+
   stakeInfo: publicProcedure
     .input(z.object({ sourceAddress: evmAddressSchema }))
     .query(async ({ input }) => {
