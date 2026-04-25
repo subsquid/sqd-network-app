@@ -20,8 +20,8 @@
     },
     "test": {
       "dependsOn": ["^build", "transit"],
-      "outputs": ["coverage/**"],
-      "env": ["NETWORK"]
+      "outputs": [],
+      "env": ["NETWORK", "MOCK_WALLET", "MOCK_GRAPHQL_PORT", "MOCK_RPC_PORT"]
     },
     "transit": {
       "dependsOn": ["^transit"]
