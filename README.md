@@ -19,10 +19,26 @@ pnpm mock       # same, but loads .env.mock and routes the server at the in-proc
 
 `pnpm mock` loads [`.env.mock`](.env.mock) (already pointed at
 `http://localhost:4321/graphql` and `http://localhost:8545`) and starts the
-server via `main.mock.ts`, which boots the in-process mock GraphQL fixture
-server + mock JSON-RPC server before the regular startup. The client is
-built with `vite --mode mock`, which sets the build-time `process.env.MOCK`
-flag, switching it to the wagmi mock connector + the local RPC URL.
+server via `main.mock.ts`, which boots the full
+[`@subsquid/mock-stack`](packages/mock-stack/README.md):
+
+- Anvil chain id 42161 with 15 deployed contracts (MockSQD, Multicall3,
+  Router proxy, NetworkController, Staking, WorkerRegistration,
+  RewardTreasury, GatewayRegistry proxy, etc.).
+- Personas seeded with **realistic on-chain state** — Carol registers two
+  workers, Bob delegates 50 000 SQD to one of them.
+- Log-driven mini-indexer subscribes to `WorkerRegistration` + `Staking`
+  events and projects them into entities.
+- GraphQL HTTP server (4321) where the high-traffic operations
+  (`allWorkers`, `myWorkers`, `myDelegations`, `sources`, `settings`, …)
+  resolve from the entity store + on-chain reads. Worker IDs, peer IDs,
+  delegation amounts, account balances all come from chain state.
+
+Foundry must be installed (the same as for `pnpm test`).
+
+The client is built with `vite --mode mock`, which sets the build-time
+`process.env.MOCK` flag, switching it to the wagmi mock connector + the
+local RPC URL.
 
 ## Build
 
