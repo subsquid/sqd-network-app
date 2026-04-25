@@ -18,6 +18,8 @@ async function main() {
       'portalPools',
       'poolProvidersByOwner',
       'gatewaysSummary',
+      'workersSummary',
+      'ActiveWorkersTimeseries',
     ];
     for (const op of ops) {
       const variables: Record<string, unknown> =
@@ -33,7 +35,12 @@ async function main() {
                   ? { limit: 50, offset: 0 }
                   : op === 'poolProvidersByOwner'
                     ? { ownerIds: ['0x70997970C51812dc3A010C7d01b50e0d17dc79C8'] }
-                    : {};
+                    : op === 'ActiveWorkersTimeseries'
+                      ? {
+                          from: new Date(Date.now() - 30 * 86_400_000).toISOString(),
+                          to: new Date().toISOString(),
+                        }
+                      : {};
       const res = await fetch(handle.graphqlUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
