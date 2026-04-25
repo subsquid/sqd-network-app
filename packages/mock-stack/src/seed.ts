@@ -25,7 +25,7 @@ import {
 import { privateKeyToAccount } from 'viem/accounts';
 
 import { localArtifact, networkArtifact } from './artifacts';
-import { chainFor, type DeployOpts } from './deploy';
+import { type DeployOpts, chainFor } from './deploy';
 import type { AddressMap } from './deployments';
 import { DEPLOYER_PRIVATE_KEY, PERSONAS, type Persona } from './personas';
 
@@ -168,9 +168,7 @@ async function registerWorkersForCarol(
     });
   }
   // biome-ignore lint/suspicious/noConsole: seed progress
-  console.log(
-    `[mock-stack] Carol registered workers ${firstId} + ${firstId + 1n}`,
-  );
+  console.log(`[mock-stack] Carol registered workers ${firstId} + ${firstId + 1n}`);
   return [firstId, firstId + 1n];
 }
 

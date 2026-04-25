@@ -12,8 +12,8 @@
 import { type Address, type PublicClient, erc20Abi } from 'viem';
 
 import type { AddressMap } from '../../deployments';
-import type { EntityStore } from '../entities';
 import { type Resolver, registerResolver } from '../dispatcher';
+import type { EntityStore } from '../entities';
 
 export interface TokenResolverDeps {
   client: PublicClient;

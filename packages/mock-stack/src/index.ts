@@ -9,7 +9,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { type Address, http, createPublicClient } from 'viem';
+import { type Address, createPublicClient, http } from 'viem';
 
 import { packageRoot } from './artifacts';
 import { type AnvilHandle, spawnAnvil } from './chain';

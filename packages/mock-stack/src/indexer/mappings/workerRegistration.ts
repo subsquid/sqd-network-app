@@ -12,17 +12,9 @@
  */
 import { type Abi, type Log, decodeEventLog } from 'viem';
 
-import {
-  type EntityStore,
-  type WorkerEntity,
-  addToSetMap,
-} from '../entities';
+import { type EntityStore, type WorkerEntity, addToSetMap } from '../entities';
 
-export function applyWorkerRegistrationLog(
-  store: EntityStore,
-  abi: Abi,
-  log: Log,
-): void {
+export function applyWorkerRegistrationLog(store: EntityStore, abi: Abi, log: Log): void {
   let decoded: { eventName: string; args: unknown };
   try {
     decoded = decodeEventLog({ abi, data: log.data, topics: log.topics }) as {

@@ -10,12 +10,8 @@ import bs58 from 'bs58';
 import { type Address, type PublicClient, hexToBytes } from 'viem';
 
 import type { AddressMap } from '../../deployments';
-import type {
-  DelegationEntity,
-  EntityStore,
-  WorkerEntity,
-} from '../entities';
 import { type Resolver, registerResolver } from '../dispatcher';
+import type { DelegationEntity, EntityStore, WorkerEntity } from '../entities';
 
 export interface WorkersResolverDeps {
   store: EntityStore;

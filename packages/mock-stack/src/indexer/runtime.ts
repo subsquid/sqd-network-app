@@ -11,12 +11,11 @@
  *   4. `waitUntilCaughtUp()` resolves once the indexer has consumed up to
  *      the latest chain block.
  */
-import { type Abi, type Address, http, type PublicClient, createPublicClient } from 'viem';
+import { type Abi, type Address, type PublicClient, createPublicClient, http } from 'viem';
 
 import { networkArtifact } from '../artifacts';
 import type { AddressMap } from '../deployments';
-
-import { clearEntities, createEntityStore, type EntityStore } from './entities';
+import { type EntityStore, clearEntities, createEntityStore } from './entities';
 import { applyStakingLog } from './mappings/staking';
 import { applyWorkerRegistrationLog } from './mappings/workerRegistration';
 

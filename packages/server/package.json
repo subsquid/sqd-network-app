@@ -24,6 +24,7 @@
     "@sentry/node": "^10.40.0",
     "@sentry/rollup-plugin": "^5.1.1",
     "@subsquid/common": "workspace:*",
+    "@subsquid/mock-stack": "workspace:*",
     "@trpc/server": "^11",
     "bignumber.js": "^9.3.1",
     "graphql": "^16.11.0",
