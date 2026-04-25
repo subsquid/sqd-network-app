@@ -1,6 +1,11 @@
 /**
- * Manual smoke test of the indexer + entity store.
- * Run with `pnpm --filter @subsquid/mock-stack tsx scripts/_indexer-smoke.ts`.
+ * Manual smoke test of the indexer registry — confirms the slim
+ * enumeration sets (portal pools, vesting contracts) populate after
+ * `pnpm --filter @subsquid/mock-stack stack:prepare`. Worker /
+ * delegation data is read through to the chain on demand and isn't
+ * tracked by the indexer.
+ *
+ *   pnpm --filter @subsquid/mock-stack tsx scripts/_indexer-smoke.ts
  */
 import { startMockStack } from '../src';
 
@@ -10,24 +15,17 @@ async function main() {
     // biome-ignore lint/suspicious/noConsole: smoke output
     console.log('lastBlock:', handle.indexer.lastBlock);
     // biome-ignore lint/suspicious/noConsole: smoke output
-    console.log('workers:', handle.indexer.store.workers.size);
-    for (const [id, w] of handle.indexer.store.workers) {
+    console.log('portal pools:', handle.indexer.registry.portalPools.size);
+    for (const id of handle.indexer.registry.portalPools) {
+      const block = handle.indexer.registry.portalPoolCreatedAt.get(id);
       // biome-ignore lint/suspicious/noConsole: smoke output
-      console.log(`  worker ${id}: peerId=${w.peerId.slice(0, 18)}… owner=${w.ownerId}`);
+      console.log(`  ${id} (createdAt=${block})`);
     }
     // biome-ignore lint/suspicious/noConsole: smoke output
-    console.log('delegations:', handle.indexer.store.delegations.size);
-    for (const [k, d] of handle.indexer.store.delegations) {
+    console.log('vestings:', handle.indexer.registry.vestings.size);
+    for (const [id, beneficiary] of handle.indexer.registry.vestings) {
       // biome-ignore lint/suspicious/noConsole: smoke output
-      console.log(`  ${k}: deposit=${d.deposit}`);
-    }
-    // biome-ignore lint/suspicious/noConsole: smoke output
-    console.log('vestings:', handle.indexer.store.vestings.size);
-    for (const [id, v] of handle.indexer.store.vestings) {
-      // biome-ignore lint/suspicious/noConsole: smoke output
-      console.log(
-        `  ${id}: beneficiary=${v.beneficiaryId} expectedTotal=${v.expectedTotalAmount}`,
-      );
+      console.log(`  ${id}: beneficiary=${beneficiary}`);
     }
   } finally {
     await handle.stop();

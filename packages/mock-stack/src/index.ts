@@ -16,10 +16,11 @@ import { type AnvilHandle, spawnAnvil } from './chain';
 import { chainFor, loadAnvilState } from './deploy';
 import { type AddressMap, readDeployments } from './deployments';
 import { clearResolvers } from './indexer/dispatcher';
-import type { EntityStore } from './indexer/entities';
 import { registerNetworkResolvers } from './indexer/operations/network';
+import { registerPortalResolvers } from './indexer/operations/portals';
 import { registerTokenResolvers } from './indexer/operations/token';
 import { registerWorkerResolvers } from './indexer/operations/workers';
+import type { IndexerRegistry } from './indexer/registry';
 import { startIndexer } from './indexer/runtime';
 import { type MockGraphqlServer, startGraphqlServer } from './indexer/server';
 
@@ -27,13 +28,7 @@ export type { AddressMap };
 
 export type { Resolver, ResolverContext } from './indexer/dispatcher';
 export { clearResolvers, dispatch, registerResolver } from './indexer/dispatcher';
-export type {
-  DelegationEntity,
-  EntityStore,
-  VestingEntity,
-  WorkerEntity,
-} from './indexer/entities';
-export { delegationKey } from './indexer/entities';
+export type { IndexerRegistry } from './indexer/registry';
 
 export interface MockStackHandle {
   /** URL of the anvil JSON-RPC endpoint. */
@@ -46,7 +41,8 @@ export interface MockStackHandle {
     resetAndReplay(): Promise<void>;
     waitUntilCaughtUp(): Promise<void>;
     readonly lastBlock: number;
-    readonly store: EntityStore;
+    /** Slim address registry. The only state the indexer keeps in memory. */
+    readonly registry: IndexerRegistry;
   };
   stop(): Promise<void>;
 }
@@ -71,24 +67,10 @@ export interface StartMockStackOpts {
   chainId?: number;
   /**
    * If true, run `stack:prepare` automatically when no state file is found.
-   * Useful for tests so a fresh checkout works without a manual setup step.
-   * Defaults to false (the default state file path is checked first).
    */
   autoPrepare?: boolean;
 }
 
-/**
- * Boot the full mock environment.
- *
- * Order:
- *   1. Read `.deployments.json` so we know which addresses to advertise.
- *   2. Spawn anvil.
- *   3. Load the dumped state (if available) into anvil via `anvil_loadState`.
- *   4. Start the GraphQL HTTP server (operation-name dispatcher).
- *   5. Start the indexer runtime (lastBlock polling).
- *
- * The stop() function tears down everything in reverse.
- */
 export async function startMockStack(opts: StartMockStackOpts = {}): Promise<MockStackHandle> {
   const rpcPort = opts.rpcPort ?? 0;
   const graphqlPort = opts.graphqlPort ?? 0;
@@ -98,9 +80,6 @@ export async function startMockStack(opts: StartMockStackOpts = {}): Promise<Moc
       ? null
       : (opts.stateFile ?? path.resolve(packageRoot(), '.anvil-state.json'));
 
-  // Auto-prepare: if the state file doesn't exist and the caller opted in,
-  // run the deploy harness in-process. Keeps the test setup contract to a
-  // single command (`pnpm test`) on a fresh checkout — no manual prepare step.
   if (opts.autoPrepare && stateFile && !fileExists(stateFile)) {
     const { runPrepare } = await import('./prepare');
     await runPrepare();
@@ -131,9 +110,6 @@ export async function startMockStack(opts: StartMockStackOpts = {}): Promise<Moc
     indexer = startIndexer({ rpcUrl: anvil.url, deployments });
     await indexer.waitUntilCaughtUp();
 
-    // Register chain-derived resolvers. Wipe any previously-registered
-    // resolvers so a hot-restart inside the same process picks up the new
-    // entity store without leaking stale closures.
     clearResolvers();
     const publicClient = createPublicClient({
       chain: chainFor(chainId),
@@ -145,7 +121,6 @@ export async function startMockStack(opts: StartMockStackOpts = {}): Promise<Moc
       return new Date(Date.now() - ageBlocks * 12_000).toISOString();
     };
     registerWorkerResolvers({
-      store: indexer.store,
       client: publicClient,
       deployments,
       blockTimestamp: blockTimestampNow,
@@ -158,10 +133,14 @@ export async function startMockStack(opts: StartMockStackOpts = {}): Promise<Moc
     registerTokenResolvers({
       client: publicClient,
       deployments,
-      store: indexer.store,
+      registry: indexer.registry,
+    });
+    registerPortalResolvers({
+      client: publicClient,
+      registry: indexer.registry,
+      blockTimestamp: blockTimestampNow,
     });
   } catch (err) {
-    // Tear down anything we managed to start before re-throwing.
     indexer?.stop();
     if (graphql) await graphql.stop();
     if (anvil) await anvil.stop();
@@ -176,8 +155,8 @@ export async function startMockStack(opts: StartMockStackOpts = {}): Promise<Moc
       get lastBlock() {
         return indexer!.lastBlock;
       },
-      get store() {
-        return indexer!.store;
+      get registry() {
+        return indexer!.registry;
       },
       resetAndReplay: () => indexer!.resetAndReplay(),
       waitUntilCaughtUp: () => indexer!.waitUntilCaughtUp(),
@@ -199,5 +178,4 @@ function fileExists(p: string): boolean {
   }
 }
 
-// Re-export selected helpers so consumers don't need to reach into subpaths.
 export type { Address };

@@ -1,19 +1,16 @@
 /**
- * Project VestingFactory.VestingCreated events into the entity store.
+ * Project VestingFactory.VestingCreated events into the slim registry.
  *
- * VestingCreated(
- *   SubsquidVesting indexed vesting,
- *   address indexed beneficiary,
- *   uint64 startTimestamp,
- *   uint64 durationSeconds,
- *   uint256 expectedTotalAmount
- * )
+ * Per-vesting fields (start, duration, expectedTotalAmount, current
+ * locked balance) are read on demand inside the resolver. We only need
+ * to know which vesting contracts exist for which beneficiary so the
+ * `vestingsByAccount` and `accountsByOwner` resolvers can enumerate.
  */
 import { type Abi, type Log, decodeEventLog } from 'viem';
 
-import { type EntityStore, addToSetMap } from '../entities';
+import { type IndexerRegistry, rememberVesting } from '../registry';
 
-export function applyVestingFactoryLog(store: EntityStore, abi: Abi, log: Log): void {
+export function applyVestingFactoryLog(registry: IndexerRegistry, abi: Abi, log: Log): void {
   let decoded: { eventName: string; args: unknown };
   try {
     decoded = decodeEventLog({ abi, data: log.data, topics: log.topics }) as {
@@ -23,24 +20,10 @@ export function applyVestingFactoryLog(store: EntityStore, abi: Abi, log: Log): 
   } catch {
     return;
   }
-
   if (decoded.eventName !== 'VestingCreated') return;
-
   const args = decoded.args as {
     vesting: `0x${string}`;
     beneficiary: `0x${string}`;
-    startTimestamp: bigint;
-    durationSeconds: bigint;
-    expectedTotalAmount: bigint;
   };
-  const id = args.vesting.toLowerCase();
-  const beneficiary = args.beneficiary.toLowerCase();
-  store.vestings.set(id, {
-    id,
-    beneficiaryId: beneficiary,
-    startTimestamp: args.startTimestamp,
-    durationSeconds: args.durationSeconds,
-    expectedTotalAmount: args.expectedTotalAmount,
-  });
-  addToSetMap(store.vestingsByBeneficiary, beneficiary, id);
+  rememberVesting(registry, args.vesting, args.beneficiary);
 }

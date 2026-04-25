@@ -1,27 +1,27 @@
 /**
- * Mini-indexer runtime — subscribes to logs from the network contracts and
- * projects them into entities consumed by the chain-derived resolvers.
+ * Mini-indexer runtime — slim version.
  *
- * Phase 7 shipped only the lastBlock barrier; this iteration adds:
- *   1. **Bootstrap**: `getLogs(fromBlock=0, toBlock='latest', address=[…])`,
- *      apply mappings.
- *   2. **Tail**: every `pollIntervalMs` ms, fetch logs since the last
- *      processed block, apply mappings, advance the cursor.
- *   3. `resetAndReplay()` clears the entity store and re-runs bootstrap.
- *   4. `waitUntilCaughtUp()` resolves once the indexer has consumed up to
- *      the latest chain block.
+ * Subscribes to two factory events (`PortalPoolFactory.PoolCreated`,
+ * `VestingFactory.VestingCreated`) and maintains a small address registry.
+ * Every other piece of data the resolvers need is read through to the chain
+ * via `viem.readContract`, keyed off these enumerated addresses + the
+ * contracts' own view functions (`getActiveWorkerIds`, `Staking.delegates`,
+ * `Pool.getPoolInfo`, etc.).
+ *
+ * Public surface:
+ *   - resetAndReplay() / waitUntilCaughtUp() / lastBlock for test setup
+ *   - registry: the only state the indexer keeps in memory
  */
 import { type Abi, type Address, type PublicClient, createPublicClient, http } from 'viem';
 
-import { networkArtifact } from '../artifacts';
+import { networkArtifact, portalArtifact } from '../artifacts';
 import type { AddressMap } from '../deployments';
-import { type EntityStore, clearEntities, createEntityStore } from './entities';
-import { applyStakingLog } from './mappings/staking';
+import { applyPortalFactoryLog } from './mappings/portalFactory';
 import { applyVestingFactoryLog } from './mappings/vestingFactory';
-import { applyWorkerRegistrationLog } from './mappings/workerRegistration';
+import { type IndexerRegistry, clearRegistry, createRegistry } from './registry';
 
 export interface IndexerRuntime {
-  readonly store: EntityStore;
+  readonly registry: IndexerRegistry;
   resetAndReplay(): Promise<void>;
   waitUntilCaughtUp(): Promise<void>;
   readonly lastBlock: number;
@@ -37,34 +37,28 @@ export interface StartIndexerOpts {
 interface LogSource {
   address: Address;
   abi: Abi;
-  apply: (store: EntityStore, abi: Abi, log: Parameters<typeof applyStakingLog>[2]) => void;
+  apply: (
+    registry: IndexerRegistry,
+    abi: Abi,
+    log: Parameters<typeof applyPortalFactoryLog>[2],
+  ) => void;
 }
 
 export function startIndexer(opts: StartIndexerOpts): IndexerRuntime {
   const client: PublicClient = createPublicClient({ transport: http(opts.rpcUrl) });
   const pollMs = opts.pollIntervalMs ?? 100;
-  const store = createEntityStore();
+  const registry = createRegistry();
   let lastBlock = 0;
   let cursor = 0n;
   let stopped = false;
   let inFlight: Promise<void> | null = null;
 
-  // Build the list of log sources only for addresses present in `.deployments.json`.
-  // If a contract isn't deployed (e.g. portal-contracts skipped), simply
-  // don't subscribe — its events were never going to fire.
   const sources: LogSource[] = [];
-  if (opts.deployments.WORKER_REGISTRATION) {
+  if (opts.deployments.PORTAL_POOL_FACTORY) {
     sources.push({
-      address: opts.deployments.WORKER_REGISTRATION,
-      abi: networkArtifact('WorkerRegistration').abi,
-      apply: applyWorkerRegistrationLog,
-    });
-  }
-  if (opts.deployments.STAKING) {
-    sources.push({
-      address: opts.deployments.STAKING,
-      abi: networkArtifact('Staking').abi,
-      apply: applyStakingLog,
+      address: opts.deployments.PORTAL_POOL_FACTORY,
+      abi: portalArtifact('PortalPoolFactory').abi,
+      apply: applyPortalFactoryLog,
     });
   }
   if (opts.deployments.VESTING_FACTORY) {
@@ -84,7 +78,7 @@ export function startIndexer(opts: StartIndexerOpts): IndexerRuntime {
         toBlock,
       });
       for (const log of logs) {
-        source.apply(store, source.abi, log);
+        source.apply(registry, source.abi, log);
       }
     }
   }
@@ -115,26 +109,22 @@ export function startIndexer(opts: StartIndexerOpts): IndexerRuntime {
     }
   }
 
-  // Eagerly bootstrap so the resetAndReplay()/waitUntilCaughtUp() callers
-  // don't race with an empty store.
   inFlight = bootstrap().then(() => {
     if (!stopped) tick();
   });
 
   return {
-    store,
+    registry,
     get lastBlock() {
       return lastBlock;
     },
     async resetAndReplay() {
-      clearEntities(store);
+      clearRegistry(registry);
       cursor = 0n;
       await bootstrap();
     },
     async waitUntilCaughtUp() {
       const target = Number(await client.getBlockNumber());
-      // Make sure the in-flight bootstrap (if any) has completed before we
-      // observe lastBlock.
       if (inFlight) await inFlight;
       const deadline = Date.now() + 5_000;
       while (lastBlock < target && Date.now() < deadline) {

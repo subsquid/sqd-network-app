@@ -68,6 +68,14 @@ function ensureContractArtifacts(): void {
   if (!fs.existsSync(networkSentinel)) {
     forgeBuild(networkRoot, 'sqd-network-contracts');
   }
+  const portalRoot = path.resolve(packageRoot(), '../../sqd-portal-contracts');
+  const portalSentinel = path.resolve(
+    portalRoot,
+    'out/PortalPoolFactory.sol/PortalPoolFactory.json',
+  );
+  if (!fs.existsSync(portalSentinel)) {
+    forgeBuild(portalRoot, 'sqd-portal-contracts');
+  }
 }
 
 function forgeBuild(cwd: string, label: string): void {

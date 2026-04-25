@@ -20,6 +20,7 @@ import {
   type WalletClient,
   createPublicClient,
   createWalletClient,
+  encodeFunctionData,
   http,
   keccak256,
   parseEther,
@@ -27,7 +28,7 @@ import {
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 
-import { localArtifact, networkArtifact } from './artifacts';
+import { localArtifact, networkArtifact, portalArtifact } from './artifacts';
 import { type AddressMap } from './deployments';
 import { DEPLOYER_PRIVATE_KEY } from './personas';
 import { seedPersonas } from './seed';
@@ -77,7 +78,11 @@ export async function runDeploy(opts: DeployOpts): Promise<DeployResult> {
   // Router.initialize() is called once all referenced contracts exist.
   await deployNetworkContracts(wallet, publicClient, deployments, account.address);
 
-  // 3. Seed personas with realistic on-chain state.
+  // 3. Portal contracts (subset of sqd-portal-contracts/Deploy.s.sol's
+  //    DeployArbitrum mainnet flow — no FeeRouterV2 buyback).
+  await deployPortalContracts(wallet, publicClient, deployments);
+
+  // 4. Seed personas with realistic on-chain state.
   await seedPersonas(opts, deployments);
 
   const bootBlock = await publicClient.getBlockNumber();
@@ -308,6 +313,151 @@ async function deployNetworkContracts(
 /** Compute keccak256(role) — used for AccessControl role hashes. */
 function roleHash(role: string): `0x${string}` {
   return keccak256(toBytes(role));
+}
+
+/**
+ * Deploy the portal-contracts subset that the app reads. Mirrors the
+ * `DeployArbitrum` flow from sqd-portal-contracts/script/Deploy.s.sol —
+ * upgradable PortalRegistry + FeeRouterModule + PortalPoolImplementation
+ * + PortalPoolFactory (proxy). Skips the gateway whitelist + the second
+ * pool deployer role grants (single-deployer test stack).
+ */
+async function deployPortalContracts(
+  wallet: WalletClient,
+  publicClient: PublicClient,
+  deployments: AddressMap,
+): Promise<void> {
+  const sqd = deployments.SQD;
+  // PortalRegistry: needs an initialize(SQD, minStakeThreshold, mana) call
+  // delegated through ERC1967Proxy.
+  const minStakeThreshold = 100_000n * 10n ** 18n;
+  const mana = 1_000n;
+  const maxStakePerWallet = 100_000n * 10n ** 18n;
+  const workerEpochLength = 100n;
+
+  // 1. PortalRegistry: impl + ERC1967Proxy initialised via initialize(SQD, minStakeThreshold, mana).
+  const registryImpl = await deployRaw(
+    wallet,
+    publicClient,
+    'PortalRegistry-impl',
+    portalArtifact('PortalRegistry'),
+    [],
+  );
+  const registryAbi = portalArtifact('PortalRegistry').abi;
+  const registryInitData = encodeFunctionData({
+    abi: registryAbi,
+    functionName: 'initialize',
+    args: [sqd, minStakeThreshold, mana],
+  });
+  deployments.PORTAL_REGISTRY = await deployRaw(
+    wallet,
+    publicClient,
+    'PortalRegistry',
+    portalArtifact('ERC1967Proxy'),
+    [registryImpl, registryInitData],
+  );
+
+  // 2. FeeRouterModule (v1): no constructor args.
+  deployments.FEE_ROUTER = await deployRaw(
+    wallet,
+    publicClient,
+    'FeeRouterModule',
+    portalArtifact('FeeRouterModule'),
+    [],
+  );
+
+  // 3. PortalPoolImplementation (used as the beacon impl for cloned pools).
+  const portalPoolImpl = await deployRaw(
+    wallet,
+    publicClient,
+    'PortalPoolImplementation',
+    portalArtifact('PortalPoolImplementation'),
+    [],
+  );
+  deployments.PORTAL_POOL_IMPL = portalPoolImpl;
+
+  // 4. PortalPoolFactory: impl + ERC1967Proxy init with the
+  //    initialize(impl, registry, feeRouter, sqd, maxStakePerWallet,
+  //              minStakeThreshold, workerEpochLength) selector.
+  const factoryImpl = await deployRaw(
+    wallet,
+    publicClient,
+    'PortalPoolFactory-impl',
+    portalArtifact('PortalPoolFactory'),
+    [],
+  );
+  const factoryAbi = portalArtifact('PortalPoolFactory').abi;
+  const factoryInitData = encodeFunctionData({
+    abi: factoryAbi,
+    functionName: 'initialize',
+    args: [
+      portalPoolImpl,
+      deployments.PORTAL_REGISTRY,
+      deployments.FEE_ROUTER,
+      sqd,
+      maxStakePerWallet,
+      minStakeThreshold,
+      workerEpochLength,
+    ],
+  });
+  deployments.PORTAL_POOL_FACTORY = await deployRaw(
+    wallet,
+    publicClient,
+    'PortalPoolFactory',
+    portalArtifact('ERC1967Proxy'),
+    [factoryImpl, factoryInitData],
+  );
+
+  // Read out the beacon address (the factory deploys it during initialize).
+  try {
+    const beacon = (await publicClient.readContract({
+      abi: factoryAbi,
+      address: deployments.PORTAL_POOL_FACTORY,
+      functionName: 'beacon',
+    })) as Address;
+    deployments.PORTAL_POOL_BEACON = beacon;
+  } catch {
+    // Optional — beacon read isn't critical for resolvers.
+  }
+
+  // 5. Wire registry → factory + add USDC as payment token + worker pool addr.
+  await sendTx(wallet, publicClient, {
+    abi: registryAbi,
+    address: deployments.PORTAL_REGISTRY,
+    functionName: 'setFactory',
+    args: [deployments.PORTAL_POOL_FACTORY],
+  });
+  await sendTx(wallet, publicClient, {
+    abi: factoryAbi,
+    address: deployments.PORTAL_POOL_FACTORY,
+    functionName: 'addPaymentToken',
+    args: [deployments.USDC],
+  });
+  const feeRouterAbi = portalArtifact('FeeRouterModule').abi;
+  // Use the staking address as a stand-in worker pool — fee router only
+  // needs a non-zero address; no SQD ever moves through it in mock mode.
+  await sendTx(wallet, publicClient, {
+    abi: feeRouterAbi,
+    address: deployments.FEE_ROUTER,
+    functionName: 'setWorkerPoolAddress',
+    args: [deployments.STAKING],
+  });
+  // Open the factory so any persona can `createPortalPool` (we don't bother
+  // with the role-grant ceremony for a single-tenant test stack).
+  await sendTx(wallet, publicClient, {
+    abi: factoryAbi,
+    address: deployments.PORTAL_POOL_FACTORY,
+    functionName: 'setPoolDeploymentOpen',
+    args: [true],
+  });
+  // Disable default whitelist so personas can deposit without being on a
+  // per-pool allow-list (defaultWhitelistEnabled defaults to true).
+  await sendTx(wallet, publicClient, {
+    abi: factoryAbi,
+    address: deployments.PORTAL_POOL_FACTORY,
+    functionName: 'setDefaultWhitelistEnabled',
+    args: [false],
+  });
 }
 
 async function sendTx(

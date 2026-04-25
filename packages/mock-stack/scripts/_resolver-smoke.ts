@@ -15,6 +15,9 @@ async function main() {
       'settings',
       'vestingsByAccount',
       'accountsByOwner',
+      'portalPools',
+      'poolProvidersByOwner',
+      'gatewaysSummary',
     ];
     for (const op of ops) {
       const variables: Record<string, unknown> =
@@ -26,7 +29,11 @@ async function main() {
               ? { address: '0x90F79bf6EB2c4f870365E785982E1f101E93b906' } // Dave
               : op === 'vestingsByAccount'
                 ? { address: '0x90F79bf6EB2c4f870365E785982E1f101E93b906' }
-                : {};
+                : op === 'portalPools'
+                  ? { limit: 50, offset: 0 }
+                  : op === 'poolProvidersByOwner'
+                    ? { ownerIds: ['0x70997970C51812dc3A010C7d01b50e0d17dc79C8'] }
+                    : {};
       const res = await fetch(handle.graphqlUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

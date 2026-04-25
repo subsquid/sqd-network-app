@@ -17,9 +17,11 @@ import { describe, expect, inject, it } from 'vitest';
 import '../anvil/types';
 
 const BOB = getAddress('0x70997970C51812dc3A010C7d01b50e0d17dc79C8');
-// Bob is seeded with 200_000 SQD then immediately delegates 50_000 to Carol's
-// first worker, so the on-chain balance after the seed completes is 150_000.
-const BOB_SQD_BALANCE_WEI = 150_000n * 10n ** 18n;
+// Bob is seeded with 200_000 SQD; during the seed flow he then:
+//   - delegates 50_000 SQD to Carol's worker 1
+//   - deposits 25_000 SQD into Carol's portal pool
+// Net on-chain SQD balance after the seed completes: 125_000.
+const BOB_SQD_BALANCE_WEI = 125_000n * 10n ** 18n;
 // Bob's seeded ETH balance is 10 ETH (anvil_setBalance during deploy).
 const BOB_ETH_BALANCE_WEI = 10n * 10n ** 18n;
 

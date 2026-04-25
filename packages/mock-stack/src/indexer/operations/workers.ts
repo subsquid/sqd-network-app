@@ -1,27 +1,28 @@
 /**
- * Chain-derived resolvers for worker / delegation operations.
+ * Read-through resolvers for worker / delegation operations.
  *
- * Each resolver consults the entity store (`store.workers`,
- * `store.delegations`, …) populated by the log-driven indexer, plus pulls
- * synthetic metric fields (uptime / APR / queries / served data) from
- * `synthetic.ts` so the UI still has dummy timeseries to render.
+ * Every worker projection comes from `WorkerRegistration.getWorker(id)` +
+ * `Staking.delegated(id)` for the per-worker total. Per-staker delegations
+ * come from `Staking.delegates(staker)` + `Staking.getDeposit(staker, id)`.
+ *
+ * The mini-indexer registry isn't consulted here — the contracts already
+ * expose enumeration views (`getActiveWorkerIds`, `getOwnedWorkers(addr)`,
+ * `Staking.delegates(staker)`).
  */
 import bs58 from 'bs58';
-import { type Address, type PublicClient, hexToBytes } from 'viem';
+import { type Abi, type Address, type PublicClient, hexToBytes, toHex } from 'viem';
 
+import { networkArtifact } from '../../artifacts';
 import type { AddressMap } from '../../deployments';
 import { type Resolver, registerResolver } from '../dispatcher';
-import type { DelegationEntity, EntityStore, WorkerEntity } from '../entities';
 
 export interface WorkersResolverDeps {
-  store: EntityStore;
   client: PublicClient;
   deployments: AddressMap;
   /** Block timestamp helper used to project registeredAt into ISO strings. */
   blockTimestamp(block: bigint): string;
 }
 
-/** PRNG-derived synthetic metrics shared between worker projections. */
 interface SyntheticMetrics {
   apr: number;
   stakerApr: number;
@@ -36,10 +37,7 @@ interface SyntheticMetrics {
   storedData: string;
 }
 
-/** Deterministic synthetic metrics seeded by workerId. */
 function syntheticMetrics(workerId: bigint): SyntheticMetrics {
-  // Wide multiplier keeps numbers visually distinct between workers without
-  // pulling in a full PRNG for these few fields.
   const offset = Number(workerId);
   return {
     apr: 0.12 + offset * 0.005,
@@ -56,28 +54,194 @@ function syntheticMetrics(workerId: bigint): SyntheticMetrics {
   };
 }
 
+interface OnChainWorker {
+  creator: `0x${string}`;
+  peerId: `0x${string}`;
+  bond: bigint;
+  registeredAt: bigint;
+  deregisteredAt: bigint;
+  metadata: string;
+}
+
 function bytesToBase58(hex: `0x${string}`): string {
   return bs58.encode(hexToBytes(hex));
 }
 
-function projectWorker(
-  worker: WorkerEntity,
+function parseWorkerName(metadata: string, fallback: string): string {
+  try {
+    const obj = JSON.parse(metadata) as { name?: string };
+    return obj.name ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+const workerRegAbi = networkArtifact('WorkerRegistration').abi;
+const stakingAbi = networkArtifact('Staking').abi;
+const networkAbi = networkArtifact('NetworkController').abi;
+
+async function readWorker(
+  client: PublicClient,
+  registration: Address,
+  workerId: bigint,
+): Promise<OnChainWorker | null> {
+  try {
+    const w = (await client.readContract({
+      abi: workerRegAbi,
+      address: registration,
+      functionName: 'getWorker',
+      args: [workerId],
+    })) as OnChainWorker;
+    return w;
+  } catch {
+    return null;
+  }
+}
+
+async function readDelegated(
+  client: PublicClient,
+  staking: Address,
+  workerId: bigint,
+): Promise<bigint> {
+  try {
+    return (await client.readContract({
+      abi: stakingAbi,
+      address: staking,
+      functionName: 'delegated',
+      args: [workerId],
+    })) as bigint;
+  } catch {
+    return 0n;
+  }
+}
+
+async function readBondAmount(
+  client: PublicClient,
+  controller: Address | undefined,
+): Promise<bigint> {
+  if (!controller) return 100_000n * 10n ** 18n;
+  try {
+    return (await client.readContract({
+      abi: networkAbi,
+      address: controller,
+      functionName: 'bondAmount',
+    })) as bigint;
+  } catch {
+    return 100_000n * 10n ** 18n;
+  }
+}
+
+async function readActiveWorkerIds(
+  client: PublicClient,
+  registration: Address,
+): Promise<readonly bigint[]> {
+  try {
+    return (await client.readContract({
+      abi: workerRegAbi,
+      address: registration,
+      functionName: 'getActiveWorkerIds',
+    })) as readonly bigint[];
+  } catch {
+    return [];
+  }
+}
+
+async function readOwnedWorkers(
+  client: PublicClient,
+  registration: Address,
+  owner: Address,
+): Promise<readonly bigint[]> {
+  try {
+    return (await client.readContract({
+      abi: workerRegAbi,
+      address: registration,
+      functionName: 'getOwnedWorkers',
+      args: [owner],
+    })) as readonly bigint[];
+  } catch {
+    return [];
+  }
+}
+
+async function readDelegates(
+  client: PublicClient,
+  staking: Address,
+  staker: Address,
+): Promise<readonly bigint[]> {
+  try {
+    return (await client.readContract({
+      abi: stakingAbi,
+      address: staking,
+      functionName: 'delegates',
+      args: [staker],
+    })) as readonly bigint[];
+  } catch {
+    return [];
+  }
+}
+
+async function readDeposit(
+  client: PublicClient,
+  staking: Address,
+  staker: Address,
+  workerId: bigint,
+): Promise<{ depositAmount: bigint; withdrawAllowed: bigint }> {
+  try {
+    const result = (await client.readContract({
+      abi: stakingAbi,
+      address: staking,
+      functionName: 'getDeposit',
+      args: [staker, workerId],
+    })) as readonly [bigint, bigint];
+    return { depositAmount: result[0], withdrawAllowed: result[1] };
+  } catch {
+    return { depositAmount: 0n, withdrawAllowed: 0n };
+  }
+}
+
+async function projectWorker(
   deps: WorkersResolverDeps,
+  workerId: bigint,
   bondAmount: bigint,
   delegationLimit: bigint,
-): Record<string, unknown> {
-  const delegations = collectDelegations(worker.id, deps.store);
-  const totalDelegation = delegations.reduce((acc, d) => acc + d.deposit, 0n);
+  ownersForDelegationFilter?: readonly string[],
+): Promise<Record<string, unknown> | null> {
+  const w = await readWorker(deps.client, deps.deployments.WORKER_REGISTRATION, workerId);
+  if (!w) return null;
+  const totalDelegation = await readDelegated(deps.client, deps.deployments.STAKING, workerId);
   const cap = delegationLimit > 0n ? bondAmount * delegationLimit : totalDelegation;
   const capedDelegation = totalDelegation > cap ? cap : totalDelegation;
-  const metrics = syntheticMetrics(worker.id);
-  const status = worker.deregisteredAtBlock !== null ? 'DEREGISTERED' : 'ACTIVE';
+  const metrics = syntheticMetrics(workerId);
+  const status = w.deregisteredAt !== 0n ? 'DEREGISTERED' : 'ACTIVE';
+  const ownerId = w.creator.toLowerCase();
+
+  const delegations: Record<string, unknown>[] = [];
+  if (ownersForDelegationFilter && ownersForDelegationFilter.length > 0) {
+    for (const owner of ownersForDelegationFilter) {
+      const { depositAmount } = await readDeposit(
+        deps.client,
+        deps.deployments.STAKING,
+        owner as Address,
+        workerId,
+      );
+      if (depositAmount > 0n) {
+        delegations.push({
+          deposit: depositAmount.toString(),
+          claimableReward: '0',
+          claimedReward: '0',
+          locked: false,
+          lockEnd: null,
+          ownerId: owner.toLowerCase(),
+        });
+      }
+    }
+  }
 
   return {
-    id: String(worker.id),
-    name: parseWorkerName(worker.metadata) ?? `Worker ${worker.id}`,
-    peerId: bytesToBase58(worker.peerId),
-    ownerId: worker.ownerId,
+    id: String(workerId),
+    name: parseWorkerName(w.metadata, `Worker ${workerId}`),
+    peerId: bytesToBase58(w.peerId),
+    ownerId,
     status,
     online: true,
     jailed: false,
@@ -85,23 +249,23 @@ function projectWorker(
     jailReason: null,
     statusHistory: [
       {
-        blockNumber: Number(worker.registeredAtBlock),
+        blockNumber: Number(w.registeredAt),
         pending: false,
-        timestamp: deps.blockTimestamp(worker.registeredAtBlock),
+        timestamp: deps.blockTimestamp(w.registeredAt),
       },
     ],
     version: '1.1.2',
-    createdAt: deps.blockTimestamp(worker.registeredAtBlock),
+    createdAt: deps.blockTimestamp(w.registeredAt),
     apr: metrics.apr,
     stakerApr: metrics.stakerApr,
     uptime90Days: metrics.uptime90Days,
     uptime24Hours: metrics.uptime24Hours,
     totalDelegation: totalDelegation.toString(),
     capedDelegation: capedDelegation.toString(),
-    delegationCount: delegations.length,
+    delegationCount: 0, // resolver doesn't enumerate stakers; UI mostly uses totalDelegation
     locked: false,
     lockEnd: null,
-    bond: bondAmount.toString(),
+    bond: w.bond.toString(),
     claimableReward: '0',
     claimedReward: '0',
     totalDelegationRewards: '0',
@@ -119,156 +283,96 @@ function projectWorker(
       timestamp: new Date(Date.now() - (7 - i) * 86_400_000).toISOString(),
       uptime: metrics.uptime90Days,
     })),
-    delegations: delegations.map(d => ({
-      deposit: d.deposit.toString(),
-      claimableReward: '0',
-      claimedReward: '0',
-      locked: false,
-      lockEnd: null,
-      ownerId: d.ownerId,
-    })),
+    delegations,
   };
 }
 
-function parseWorkerName(metadata: string): string | null {
-  try {
-    const obj = JSON.parse(metadata) as { name?: string };
-    return obj.name ?? null;
-  } catch {
-    return null;
-  }
-}
-
-function collectDelegations(workerId: bigint, store: EntityStore): DelegationEntity[] {
-  const keys = store.delegationsByWorker.get(workerId);
-  if (!keys) return [];
-  const result: DelegationEntity[] = [];
-  for (const key of keys) {
-    const d = store.delegations.get(key);
-    if (d && d.deposit > 0n) result.push(d);
-  }
-  return result;
-}
-
-let cachedBondAmount: bigint | null = null;
-async function getBondAmount(deps: WorkersResolverDeps): Promise<bigint> {
-  if (cachedBondAmount !== null) return cachedBondAmount;
-  if (!deps.deployments.NETWORK_CONTROLLER) return 100_000n * 10n ** 18n;
-  cachedBondAmount = (await deps.client.readContract({
-    abi: [
-      {
-        type: 'function',
-        name: 'bondAmount',
-        stateMutability: 'view',
-        inputs: [],
-        outputs: [{ type: 'uint256' }],
-      },
-    ],
-    address: deps.deployments.NETWORK_CONTROLLER as Address,
-    functionName: 'bondAmount',
-  })) as bigint;
-  return cachedBondAmount;
-}
-
-let cachedDelegationLimit: bigint | null = null;
-async function getDelegationLimitCoefficient(deps: WorkersResolverDeps): Promise<bigint> {
-  if (cachedDelegationLimit !== null) return cachedDelegationLimit;
-  if (!deps.deployments.STAKING) return 20n;
-  // Best-effort: viem.readContract throws if the function is missing; fall
-  // back to the default coefficient of 20 used in production today.
-  try {
-    cachedDelegationLimit = (await deps.client.readContract({
-      abi: [
-        {
-          type: 'function',
-          name: 'delegationLimitCoefficient',
-          stateMutability: 'view',
-          inputs: [],
-          outputs: [{ type: 'uint256' }],
-        },
-      ],
-      address: deps.deployments.STAKING as Address,
-      functionName: 'delegationLimitCoefficient',
-    })) as bigint;
-  } catch {
-    cachedDelegationLimit = 20n;
-  }
-  return cachedDelegationLimit;
-}
-
-/**
- * Build a `(operationName, variables) => result` for each chain-derived
- * worker operation and register it with the global dispatcher.
- */
 export function registerWorkerResolvers(deps: WorkersResolverDeps): void {
   const allWorkers: Resolver = async () => {
-    const bond = await getBondAmount(deps);
-    const limit = await getDelegationLimitCoefficient(deps);
-    const list = [...deps.store.workers.values()]
-      .filter(w => w.deregisteredAtBlock === null)
-      .sort((a, b) => Number(a.id - b.id))
-      .map(w => projectWorker(w, deps, bond, limit));
+    const ids = await readActiveWorkerIds(deps.client, deps.deployments.WORKER_REGISTRATION);
+    const bond = await readBondAmount(deps.client, deps.deployments.NETWORK_CONTROLLER);
+    const limit = 20n;
+    const list: Record<string, unknown>[] = [];
+    for (const id of ids) {
+      const projected = await projectWorker(deps, id, bond, limit);
+      if (projected) list.push(projected);
+    }
     return { workers: list };
   };
   registerResolver('allWorkers', allWorkers);
 
   registerResolver('workerByPeerId', async vars => {
-    const bond = await getBondAmount(deps);
-    const limit = await getDelegationLimitCoefficient(deps);
     const peerId = vars.peerId as string | undefined;
     if (!peerId) return { workers: [] };
-    const peerHex = `0x${Buffer.from(bs58.decode(peerId)).toString('hex')}`.toLowerCase();
-    const id = deps.store.workersByPeerId.get(peerHex);
-    if (!id) return { workers: [] };
-    const w = deps.store.workers.get(id);
-    return { workers: w ? [projectWorker(w, deps, bond, limit)] : [] };
+    let peerHex: `0x${string}`;
+    try {
+      peerHex = toHex(bs58.decode(peerId));
+    } catch {
+      return { workers: [] };
+    }
+    let id: bigint = 0n;
+    try {
+      id = (await deps.client.readContract({
+        abi: workerRegAbi,
+        address: deps.deployments.WORKER_REGISTRATION,
+        functionName: 'workerIds',
+        args: [peerHex],
+      })) as bigint;
+    } catch {
+      return { workers: [] };
+    }
+    if (id === 0n) return { workers: [] };
+    const bond = await readBondAmount(deps.client, deps.deployments.NETWORK_CONTROLLER);
+    const projected = await projectWorker(deps, id, bond, 20n);
+    return { workers: projected ? [projected] : [] };
   });
 
   registerResolver('myWorkers', async vars => {
-    const bond = await getBondAmount(deps);
-    const limit = await getDelegationLimitCoefficient(deps);
     const owners = ((vars.ownerIds as string[] | undefined) ?? []).map(s => s.toLowerCase());
+    const bond = await readBondAmount(deps.client, deps.deployments.NETWORK_CONTROLLER);
+    const seen = new Set<bigint>();
     const list: Record<string, unknown>[] = [];
     for (const owner of owners) {
-      const ids = deps.store.workersByOwner.get(owner);
-      if (!ids) continue;
-      for (const id of [...ids].sort((a, b) => Number(a - b))) {
-        const w = deps.store.workers.get(id);
-        if (w && w.deregisteredAtBlock === null) {
-          list.push(projectWorker(w, deps, bond, limit));
-        }
+      const ids = await readOwnedWorkers(
+        deps.client,
+        deps.deployments.WORKER_REGISTRATION,
+        owner as Address,
+      );
+      for (const id of ids) {
+        if (seen.has(id)) continue;
+        seen.add(id);
+        const projected = await projectWorker(deps, id, bond, 20n);
+        if (projected) list.push(projected);
       }
     }
     return { workers: list };
   });
 
-  registerResolver('myWorkersCount', vars => {
+  registerResolver('myWorkersCount', async vars => {
     const owners = ((vars.ownerIds as string[] | undefined) ?? []).map(s => s.toLowerCase());
-    let count = 0;
+    const seen = new Set<bigint>();
     for (const owner of owners) {
-      const ids = deps.store.workersByOwner.get(owner);
-      if (!ids) continue;
-      for (const id of ids) {
-        const w = deps.store.workers.get(id);
-        if (w && w.deregisteredAtBlock === null) count += 1;
-      }
+      const ids = await readOwnedWorkers(
+        deps.client,
+        deps.deployments.WORKER_REGISTRATION,
+        owner as Address,
+      );
+      for (const id of ids) seen.add(id);
     }
-    return { workersConnection: { totalCount: count } };
+    return { workersConnection: { totalCount: seen.size } };
   });
 
   registerResolver('workerDelegationInfo', async vars => {
-    const bond = await getBondAmount(deps);
-    const limit = await getDelegationLimitCoefficient(deps);
     const wid = BigInt(vars.workerId as string);
-    const w = deps.store.workers.get(wid);
+    const w = await readWorker(deps.client, deps.deployments.WORKER_REGISTRATION, wid);
     if (!w) return { workerById: null, settings: [] };
-    const delegations = collectDelegations(wid, deps.store);
-    const total = delegations.reduce((acc, d) => acc + d.deposit, 0n);
-    const cap = limit > 0n ? bond * limit : total;
+    const total = await readDelegated(deps.client, deps.deployments.STAKING, wid);
+    const bond = await readBondAmount(deps.client, deps.deployments.NETWORK_CONTROLLER);
+    const cap = bond * 20n;
     const capedDelegation = total > cap ? cap : total;
     return {
       workerById: {
-        bond: bond.toString(),
+        bond: w.bond.toString(),
         totalDelegation: total.toString(),
         capedDelegation: capedDelegation.toString(),
         liveness: 0.99,
@@ -279,21 +383,24 @@ export function registerWorkerResolvers(deps: WorkersResolverDeps): void {
     };
   });
 
-  registerResolver('workersByOwner', vars => {
+  registerResolver('workersByOwner', async vars => {
     const owners = ((vars.ownerIds as string[] | undefined) ?? []).map(s => s.toLowerCase());
     const list: Record<string, unknown>[] = [];
     for (const owner of owners) {
-      const ids = deps.store.workersByOwner.get(owner);
-      if (!ids) continue;
-      for (const id of [...ids].sort((a, b) => Number(a - b))) {
-        const w = deps.store.workers.get(id);
+      const ids = await readOwnedWorkers(
+        deps.client,
+        deps.deployments.WORKER_REGISTRATION,
+        owner as Address,
+      );
+      for (const id of ids) {
+        const w = await readWorker(deps.client, deps.deployments.WORKER_REGISTRATION, id);
         if (!w) continue;
         list.push({
-          id: String(w.id),
-          name: parseWorkerName(w.metadata) ?? `Worker ${w.id}`,
+          id: String(id),
+          name: parseWorkerName(w.metadata, `Worker ${id}`),
           peerId: bytesToBase58(w.peerId),
-          ownerId: w.ownerId,
-          bond: '100000000000000000000000', // synthetic; matches NetworkController.bondAmount
+          ownerId: w.creator.toLowerCase(),
+          bond: w.bond.toString(),
           claimableReward: '0',
         });
       }
@@ -302,53 +409,40 @@ export function registerWorkerResolvers(deps: WorkersResolverDeps): void {
   });
 
   registerResolver('myDelegations', async vars => {
-    const bond = await getBondAmount(deps);
-    const limit = await getDelegationLimitCoefficient(deps);
     const owners = ((vars.ownerIds as string[] | undefined) ?? []).map(s => s.toLowerCase());
-    const seenWorkers = new Set<bigint>();
+    const bond = await readBondAmount(deps.client, deps.deployments.NETWORK_CONTROLLER);
+    const seen = new Set<string>(); // workerId-ownerCSV — combine to dedupe per-spec
     const list: Record<string, unknown>[] = [];
     for (const owner of owners) {
-      const keys = deps.store.delegationsByOwner.get(owner);
-      if (!keys) continue;
-      for (const key of keys) {
-        const d = deps.store.delegations.get(key);
-        if (!d || d.deposit === 0n) continue;
-        const w = deps.store.workers.get(d.workerId);
-        if (!w) continue;
-        if (seenWorkers.has(w.id)) continue;
-        seenWorkers.add(w.id);
-        const projected = projectWorker(w, deps, bond, limit);
-        // Filter the delegations array to only those owned by the queried
-        // owners (matches the GraphQL where: { ownerId_in } filter).
-        const filtered = collectDelegations(w.id, deps.store)
-          .filter(x => owners.includes(x.ownerId))
-          .map(x => ({
-            deposit: x.deposit.toString(),
-            claimableReward: '0',
-            claimedReward: '0',
-            locked: false,
-            lockEnd: null,
-            ownerId: x.ownerId,
-          }));
-        list.push({ ...projected, delegations: filtered });
+      const ids = await readDelegates(deps.client, deps.deployments.STAKING, owner as Address);
+      for (const id of ids) {
+        const key = `${id}:${owner}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const projected = await projectWorker(deps, id, bond, 20n, [owner]);
+        if (projected) list.push(projected);
       }
     }
     return { workers: list };
   });
 
-  registerResolver('delegationsByOwner', vars => {
+  registerResolver('delegationsByOwner', async vars => {
     const owners = ((vars.ownerIds as string[] | undefined) ?? []).map(s => s.toLowerCase());
     const list: Record<string, unknown>[] = [];
     for (const owner of owners) {
-      const keys = deps.store.delegationsByOwner.get(owner);
-      if (!keys) continue;
-      for (const key of keys) {
-        const d = deps.store.delegations.get(key);
-        if (!d || d.deposit === 0n) continue;
+      const ids = await readDelegates(deps.client, deps.deployments.STAKING, owner as Address);
+      for (const id of ids) {
+        const { depositAmount } = await readDeposit(
+          deps.client,
+          deps.deployments.STAKING,
+          owner as Address,
+          id,
+        );
+        if (depositAmount === 0n) continue;
         list.push({
-          id: `delegation-${d.workerId}-${d.ownerId}`,
-          ownerId: d.ownerId,
-          deposit: d.deposit.toString(),
+          id: `delegation-${id}-${owner}`,
+          ownerId: owner,
+          deposit: depositAmount.toString(),
           claimableReward: '0',
           claimedReward: '0',
           locked: false,

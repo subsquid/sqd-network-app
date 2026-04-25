@@ -94,6 +94,17 @@ export function networkArtifact(contractFile: string, contractName?: string): Co
 export function portalArtifact(contractFile: string, contractName?: string): ContractArtifact {
   const file = contractFile.endsWith('.sol') ? contractFile : `${contractFile}.sol`;
   const cn = contractName ?? contractFile.replace(/\.sol$/, '');
+  // Portal contracts compile via_ir; openzeppelin's ERC1967Proxy lives under the
+  // openzeppelin-contracts submodule which forge places under the same out/.
+  return readArtifact(
+    path.resolve(packageRoot(), `../../sqd-portal-contracts/out/${file}/${cn}.json`),
+  );
+}
+
+/** Path to an OpenZeppelin contract artefact built as part of portal-contracts. */
+export function ozArtifact(contractFile: string, contractName?: string): ContractArtifact {
+  const file = contractFile.endsWith('.sol') ? contractFile : `${contractFile}.sol`;
+  const cn = contractName ?? contractFile.replace(/\.sol$/, '');
   return readArtifact(
     path.resolve(packageRoot(), `../../sqd-portal-contracts/out/${file}/${cn}.json`),
   );

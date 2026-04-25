@@ -1,25 +1,29 @@
 /**
- * Chain-derived resolvers for the token-squid surface: sources,
- * accountsByOwner, vestingByAddress, vestingsByAccount.
+ * Read-through resolvers for the token-squid surface.
  *
- * `sources` and `accountsByOwner` read MockSQD.balanceOf via viem so the
- * Assets page reflects the persona's actual on-chain SQD balance after
- * dev-mode operations (deposits, withdrawals, etc.).
+ * `sources` / `accountsByOwner`: MockSQD.balanceOf via viem.
+ * `vestingByAddress` / `vestingsByAccount`: registry tells us *which*
+ *   vesting contracts exist for the queried address; per-vesting balance
+ *   comes from MockSQD.balanceOf(<vesting-addr>).
  *
- * Vesting accounts stay hand-rolled until the deploy harness creates one
- * via VestingFactory (deferred).
+ * The `delegations`-claimable-count field is approximated from
+ * `Staking.delegates(staker).length` — exact enough for the UI's
+ * "do I have anything to claim?" badge.
  */
 import { type Address, type PublicClient, erc20Abi } from 'viem';
 
+import { networkArtifact } from '../../artifacts';
 import type { AddressMap } from '../../deployments';
 import { type Resolver, registerResolver } from '../dispatcher';
-import type { EntityStore } from '../entities';
+import type { IndexerRegistry } from '../registry';
 
 export interface TokenResolverDeps {
   client: PublicClient;
   deployments: AddressMap;
-  store: EntityStore;
+  registry: IndexerRegistry;
 }
+
+const stakingAbi = networkArtifact('Staking').abi;
 
 async function balanceOf(deps: TokenResolverDeps, address: Address): Promise<bigint> {
   if (!deps.deployments.SQD) return 0n;
@@ -35,38 +39,36 @@ async function balanceOf(deps: TokenResolverDeps, address: Address): Promise<big
   }
 }
 
-/**
- * Project a vesting entity into the GraphQL `account` shape with a
- * chain-derived current balance. The contract holds SQD, so its current
- * locked balance is just `MockSQD.balanceOf(vesting)`.
- */
+async function delegationCount(deps: TokenResolverDeps, owner: Address): Promise<number> {
+  if (!deps.deployments.STAKING) return 0;
+  try {
+    const ids = (await deps.client.readContract({
+      abi: stakingAbi,
+      address: deps.deployments.STAKING as Address,
+      functionName: 'delegates',
+      args: [owner],
+    })) as readonly bigint[];
+    return ids.length;
+  } catch {
+    return 0;
+  }
+}
+
 async function projectVesting(
   deps: TokenResolverDeps,
   vestingId: string,
 ): Promise<Record<string, unknown> | null> {
-  const v = deps.store.vestings.get(vestingId);
-  if (!v) return null;
+  const beneficiary = deps.registry.vestings.get(vestingId);
+  if (!beneficiary) return null;
   const balance = await balanceOf(deps, vestingId as Address);
   return {
-    id: v.id,
+    id: vestingId,
     type: 'VESTING',
     balance: balance.toString(),
     claimableDelegationCount: 0,
-    owner: { id: v.beneficiaryId, type: 'USER' },
-    ownerId: v.beneficiaryId,
+    owner: { id: beneficiary, type: 'USER' },
+    ownerId: beneficiary,
   };
-}
-
-/** Count how many delegations (across all workers) the address has stake in. */
-function claimableDelegationCount(deps: TokenResolverDeps, owner: string): number {
-  const keys = deps.store.delegationsByOwner.get(owner.toLowerCase());
-  if (!keys) return 0;
-  let count = 0;
-  for (const key of keys) {
-    const d = deps.store.delegations.get(key);
-    if (d && d.deposit > 0n) count += 1;
-  }
-  return count;
 }
 
 export function registerTokenResolvers(deps: TokenResolverDeps): void {
@@ -80,7 +82,7 @@ export function registerTokenResolvers(deps: TokenResolverDeps): void {
           id: address,
           type: 'USER',
           balance: balance.toString(),
-          claimableDelegationCount: claimableDelegationCount(deps, address),
+          claimableDelegationCount: await delegationCount(deps, address as Address),
           owner: null,
           ownerId: null,
         },
@@ -93,18 +95,16 @@ export function registerTokenResolvers(deps: TokenResolverDeps): void {
     const address = (vars.address as string | undefined)?.toLowerCase();
     if (!address) return { accounts: [] };
     const accounts: Record<string, unknown>[] = [];
-    // USER account.
     const balance = await balanceOf(deps, address as Address);
     accounts.push({
       id: address,
       type: 'USER',
       balance: balance.toString(),
-      claimableDelegationCount: claimableDelegationCount(deps, address),
+      claimableDelegationCount: await delegationCount(deps, address as Address),
       owner: null,
       ownerId: null,
     });
-    // VESTING accounts owned by `address`.
-    const vestingIds = deps.store.vestingsByBeneficiary.get(address);
+    const vestingIds = deps.registry.vestingsByBeneficiary.get(address);
     if (vestingIds) {
       for (const vid of vestingIds) {
         const projected = await projectVesting(deps, vid);
@@ -115,7 +115,6 @@ export function registerTokenResolvers(deps: TokenResolverDeps): void {
   };
   registerResolver('accountsByOwner', accountsByOwner);
 
-  // vestingByAddress: address arg is the vesting contract id.
   registerResolver('vestingByAddress', async vars => {
     const address = (vars.address as string | undefined)?.toLowerCase();
     if (!address) return { accountById: null };
@@ -123,12 +122,10 @@ export function registerTokenResolvers(deps: TokenResolverDeps): void {
     return { accountById: projected };
   });
 
-  // vestingsByAccount: address arg is the beneficiary; return all VESTING
-  // accounts owned by them.
   registerResolver('vestingsByAccount', async vars => {
     const address = (vars.address as string | undefined)?.toLowerCase();
     if (!address) return { accounts: [] };
-    const vestingIds = deps.store.vestingsByBeneficiary.get(address);
+    const vestingIds = deps.registry.vestingsByBeneficiary.get(address);
     if (!vestingIds) return { accounts: [] };
     const accounts: Record<string, unknown>[] = [];
     for (const vid of vestingIds) {
