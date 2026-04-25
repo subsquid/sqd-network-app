@@ -9,6 +9,8 @@
   "scripts": {
     "tsc": "tsc --noEmit",
     "lint": "biome check src --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "stack:prepare": "tsx scripts/prepare.ts",
     "stack:rebuild": "rm -rf out .anvil-state.json .deployments.json && pnpm stack:prepare"
   },
@@ -19,6 +21,7 @@
   "devDependencies": {
     "@types/node": "^22.19.11",
     "tsx": "^4",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.5"
   }
 }

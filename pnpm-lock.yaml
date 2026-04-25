@@ -301,6 +301,9 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+      vitest:
+        specifier: ^4.1.5
+        version: 4.1.5(@opentelemetry/api@1.9.0)(@types/node@22.19.11)(jsdom@29.0.2(@noble/hashes@1.8.0))(msw@2.13.6(@types/node@22.19.11)(typescript@5.9.3))(vite@8.0.0-beta.15(@types/node@22.19.11)(esbuild@0.27.3)(jiti@2.6.1)(terser@5.46.0)(tsx@4.21.0)(yaml@2.8.2))
 
   packages/server:
     dependencies:

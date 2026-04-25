@@ -1,74 +1,133 @@
 /**
  * Public entrypoint of `@subsquid/mock-stack`.
  *
- * This is the **single owner** of the mock environment lifecycle. Every
- * consumer — Vitest globalSetup, future Playwright globalSetup, and the
- * `pnpm dev` mock mode — calls `startMockStack()` and never instantiates
- * anvil / the mini-indexer / the deploy harness directly.
- *
- * Phases 5–7 fill this in:
- *   - Phase 5: ship local mock contracts and produce `out/` artifacts.
- *   - Phase 6: TS deploy harness writes `.deployments.json` + `.anvil-state.json`.
- *   - Phase 7: log-driven mini-indexer + HTTP server with the operation-name
- *     dispatcher contract `mockGraphqlServer.ts` exposes today.
- *
- * For now the entrypoint exists, types are stable, and the stub throws — so
- * consumers can wire imports without forcing the indexer to be ready first.
+ * The single owner of the mock environment lifecycle. Every consumer —
+ * Vitest globalSetup, future Playwright globalSetup, and the `pnpm dev`
+ * mock mode — calls `startMockStack()` and never instantiates anvil /
+ * the mini-indexer / the deploy harness directly.
  */
+import path from 'node:path';
+
 import type { Address } from 'viem';
 
-export type AddressMap = Record<string, Address>;
+import { packageRoot } from './artifacts';
+import { type AnvilHandle, spawnAnvil } from './chain';
+import { loadAnvilState } from './deploy';
+import { type AddressMap, readDeployments } from './deployments';
+import { startIndexer } from './indexer/runtime';
+import { type MockGraphqlServer, startGraphqlServer } from './indexer/server';
+
+export type { AddressMap };
+
+export type { Resolver, ResolverContext } from './indexer/dispatcher';
+export { clearResolvers, dispatch, registerResolver } from './indexer/dispatcher';
 
 export interface MockStackHandle {
-  /** URL of the in-process anvil instance. */
+  /** URL of the anvil JSON-RPC endpoint. */
   rpcUrl: string;
   /** URL of the mini-indexer's GraphQL HTTP endpoint. */
   graphqlUrl: string;
   /** Map of contract name → deployed address (mirror of `.deployments.json`). */
   deployments: AddressMap;
-  /**
-   * Mini-indexer control surface used by per-test setup hooks.
-   *
-   * `resetAndReplay` clears the entity store and re-fetches logs from genesis.
-   * `waitUntilCaughtUp` resolves once `getLogs` has caught up to the current
-   * block — used as a barrier before assertions to keep tests deterministic.
-   */
   indexer: {
     resetAndReplay(): Promise<void>;
     waitUntilCaughtUp(): Promise<void>;
     readonly lastBlock: number;
   };
-  /** Tear down anvil + indexer + servers. Must be idempotent. */
   stop(): Promise<void>;
 }
 
 export interface StartMockStackOpts {
   /**
-   * Path to the anvil dump-state file produced by `pnpm --filter @subsquid/mock-stack prepare`.
-   * Defaults to `<package-root>/.anvil-state.json` resolved relative to this module.
+   * Path to the anvil dump-state file produced by
+   * `pnpm --filter @subsquid/mock-stack stack:prepare`.
+   * Defaults to `<package-root>/.anvil-state.json`.
+   * Set explicitly to `null` to start with a fresh chain (no prior state load).
    */
-  stateFile?: string;
-  /** Override the mock RPC port (default: 8545). */
+  stateFile?: string | null;
+  /** Override the anvil RPC port (default 8545). */
   rpcPort?: number;
-  /** Override the mini-indexer GraphQL port (default: 4321). */
+  /** Override the GraphQL HTTP port (default 4321). */
   graphqlPort?: number;
+  /** Chain id (default 42161 / arbitrum mainnet — matches mainnet build). */
+  chainId?: number;
 }
 
+const DEFAULT_RPC_PORT = 8545;
+const DEFAULT_GRAPHQL_PORT = 4321;
+
 /**
- * Boot the full mock environment: anvil pre-loaded with deployed contracts,
- * the mini-indexer subscribing to logs, and the HTTP server replicating the
- * operation-name dispatcher contract from `mockGraphqlServer.ts`.
+ * Boot the full mock environment.
  *
- * **Phase 4 stub:** throws so dev mode falls back to the legacy
- * `mockRpcServer.ts` / `mockGraphqlServer.ts` until Phases 5–7 implement
- * the real bootstrap. Layer-2 integration tests (Phase 8) will fail with a
- * clear error if invoked before then — by design.
+ * Order:
+ *   1. Read `.deployments.json` so we know which addresses to advertise.
+ *   2. Spawn anvil.
+ *   3. Load the dumped state (if available) into anvil via `anvil_loadState`.
+ *   4. Start the GraphQL HTTP server (operation-name dispatcher).
+ *   5. Start the indexer runtime (lastBlock polling).
+ *
+ * The stop() function tears down everything in reverse.
  */
-export function startMockStack(_opts: StartMockStackOpts = {}): Promise<MockStackHandle> {
-  return Promise.reject(
-    new Error(
-      'startMockStack() not implemented yet — pending phases 5–7 of the mock-stack rollout. ' +
-        'See plans/wagmi-viem-testing.md.',
-    ),
-  );
+export async function startMockStack(opts: StartMockStackOpts = {}): Promise<MockStackHandle> {
+  const rpcPort = opts.rpcPort ?? DEFAULT_RPC_PORT;
+  const graphqlPort = opts.graphqlPort ?? DEFAULT_GRAPHQL_PORT;
+  const chainId = opts.chainId ?? 42161;
+  const stateFile =
+    opts.stateFile === null
+      ? null
+      : (opts.stateFile ?? path.resolve(packageRoot(), '.anvil-state.json'));
+
+  const deployments = readDeployments() ?? {};
+
+  let anvil: AnvilHandle | undefined;
+  let graphql: MockGraphqlServer | undefined;
+  let indexer: ReturnType<typeof startIndexer> | undefined;
+  try {
+    anvil = await spawnAnvil({ port: rpcPort, chainId });
+
+    if (stateFile) {
+      try {
+        await loadAnvilState(anvil.url, stateFile);
+      } catch (err) {
+        // biome-ignore lint/suspicious/noConsole: warn-and-continue path
+        console.warn(
+          `[mock-stack] could not load state from ${stateFile}: ${
+            err instanceof Error ? err.message : String(err)
+          }`,
+        );
+      }
+    }
+
+    graphql = await startGraphqlServer({ port: graphqlPort });
+    indexer = startIndexer({ rpcUrl: anvil.url });
+    await indexer.waitUntilCaughtUp();
+  } catch (err) {
+    // Tear down anything we managed to start before re-throwing.
+    indexer?.stop();
+    if (graphql) await graphql.stop();
+    if (anvil) await anvil.stop();
+    throw err;
+  }
+
+  const handle: MockStackHandle = {
+    rpcUrl: anvil.url,
+    graphqlUrl: graphql.url,
+    deployments,
+    indexer: {
+      get lastBlock() {
+        return indexer!.lastBlock;
+      },
+      resetAndReplay: () => indexer!.resetAndReplay(),
+      waitUntilCaughtUp: () => indexer!.waitUntilCaughtUp(),
+    },
+    async stop() {
+      indexer?.stop();
+      if (graphql) await graphql.stop();
+      if (anvil) await anvil.stop();
+    },
+  };
+  return handle;
 }
+
+// Re-export selected helpers so consumers don't need to reach into subpaths.
+export type { Address };
