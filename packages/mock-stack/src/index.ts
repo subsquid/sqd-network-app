@@ -15,6 +15,7 @@ import { packageRoot } from './artifacts';
 import { type AnvilHandle, spawnAnvil } from './chain';
 import { loadAnvilState } from './deploy';
 import { type AddressMap, readDeployments } from './deployments';
+import type { EntityStore } from './indexer/entities';
 import { startIndexer } from './indexer/runtime';
 import { type MockGraphqlServer, startGraphqlServer } from './indexer/server';
 
@@ -22,6 +23,8 @@ export type { AddressMap };
 
 export type { Resolver, ResolverContext } from './indexer/dispatcher';
 export { clearResolvers, dispatch, registerResolver } from './indexer/dispatcher';
+export type { DelegationEntity, EntityStore, WorkerEntity } from './indexer/entities';
+export { delegationKey } from './indexer/entities';
 
 export interface MockStackHandle {
   /** URL of the anvil JSON-RPC endpoint. */
@@ -34,6 +37,7 @@ export interface MockStackHandle {
     resetAndReplay(): Promise<void>;
     waitUntilCaughtUp(): Promise<void>;
     readonly lastBlock: number;
+    readonly store: EntityStore;
   };
   stop(): Promise<void>;
 }
@@ -115,7 +119,7 @@ export async function startMockStack(opts: StartMockStackOpts = {}): Promise<Moc
     }
 
     graphql = await startGraphqlServer({ port: graphqlPort });
-    indexer = startIndexer({ rpcUrl: anvil.url });
+    indexer = startIndexer({ rpcUrl: anvil.url, deployments });
     await indexer.waitUntilCaughtUp();
   } catch (err) {
     // Tear down anything we managed to start before re-throwing.
@@ -132,6 +136,9 @@ export async function startMockStack(opts: StartMockStackOpts = {}): Promise<Moc
     indexer: {
       get lastBlock() {
         return indexer!.lastBlock;
+      },
+      get store() {
+        return indexer!.store;
       },
       resetAndReplay: () => indexer!.resetAndReplay(),
       waitUntilCaughtUp: () => indexer!.waitUntilCaughtUp(),
