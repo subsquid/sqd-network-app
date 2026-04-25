@@ -91,6 +91,12 @@ export async function spawnAnvil(opts: SpawnAnvilOpts = {}): Promise<AnvilHandle
     '--accounts',
     String(accounts),
     '--silent',
+    // The network contracts (DistributedRewardsDistribution, GatewayRegistry,
+    // …) are above EIP-170's 24KB runtime limit. Anvil enforces it by default;
+    // bump it so the deploy harness can install them. Mainnet uses Arbitrum
+    // which has a much larger limit anyway.
+    '--code-size-limit',
+    '50000',
   ];
   const binary = resolveAnvilBinary();
   const child = spawn(binary, args, {

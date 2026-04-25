@@ -21,16 +21,19 @@ import {
   createPublicClient,
   createWalletClient,
   http,
+  keccak256,
   parseEther,
+  toBytes,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 
-import { localArtifact } from './artifacts';
-import { type AddressMap, writeDeployments } from './deployments';
-import { DEPLOYER_PRIVATE_KEY, PERSONAS } from './personas';
+import { localArtifact, networkArtifact } from './artifacts';
+import { type AddressMap } from './deployments';
+import { DEPLOYER_PRIVATE_KEY } from './personas';
+import { seedPersonas } from './seed';
 
 /** Minimal viem chain — chain id is the only field we use. */
-function chainFor(chainId: number) {
+export function chainFor(chainId: number) {
   return {
     id: chainId,
     name: chainId === 421614 ? 'arbitrum-sepolia-mock' : 'arbitrum-mock',
@@ -60,84 +63,275 @@ export async function runDeploy(opts: DeployOpts): Promise<DeployResult> {
   const deployments: AddressMap = {};
 
   // 1. Mock tokens + Multicall3 + V3 router.
-  deployments.MULTICALL = await deployContract(wallet, publicClient, 'Multicall3', []);
-  deployments.SQD = await deployContract(wallet, publicClient, 'MockSQD', []);
-  deployments.USDC = await deployContract(wallet, publicClient, 'MockUSDC', []);
-  deployments.WETH = await deployContract(wallet, publicClient, 'MockWETH', []);
-  deployments.V3_ROUTER = await deployContract(wallet, publicClient, 'MockV3Router', []);
+  deployments.MULTICALL = await deployLocal(wallet, publicClient, 'Multicall3', []);
+  deployments.SQD = await deployLocal(wallet, publicClient, 'MockSQD', []);
+  deployments.USDC = await deployLocal(wallet, publicClient, 'MockUSDC', []);
+  deployments.WETH = await deployLocal(wallet, publicClient, 'MockWETH', []);
+  deployments.V3_ROUTER = await deployLocal(wallet, publicClient, 'MockV3Router', []);
 
-  // 2. Seed personas: ETH balance + SQD balance.
+  // 2. Network contracts (subset of sqd-network-contracts/Deploy.s.sol).
+  //
+  // Order is constrained by constructor dependencies: Router is deployed as
+  // an upgradeable proxy first (with placeholder impl), then network +
+  // staking + worker registration etc. take it via constructor; finally
+  // Router.initialize() is called once all referenced contracts exist.
+  await deployNetworkContracts(wallet, publicClient, deployments, account.address);
+
+  // 3. Seed personas with realistic on-chain state.
   await seedPersonas(opts, deployments);
 
   const bootBlock = await publicClient.getBlockNumber();
   return { deployments, bootBlock };
 }
 
-/** Deploy a contract from the local mock-stack `out/` artifacts. */
-async function deployContract(
+/** Deploy a contract from the local mock-stack `out/` artefacts. */
+async function deployLocal(
   wallet: WalletClient,
   publicClient: PublicClient,
   contractName: string,
   args: readonly unknown[],
 ): Promise<Address> {
-  const { abi, bytecode } = localArtifact(contractName);
+  return deployRaw(wallet, publicClient, contractName, localArtifact(contractName), args);
+}
+
+/** Deploy a contract from the `sqd-network-contracts` submodule's artefacts. */
+async function deployNetwork(
+  wallet: WalletClient,
+  publicClient: PublicClient,
+  contractFile: string,
+  contractName: string,
+  args: readonly unknown[],
+): Promise<Address> {
+  return deployRaw(
+    wallet,
+    publicClient,
+    contractName,
+    networkArtifact(contractFile, contractName),
+    args,
+  );
+}
+
+async function deployRaw(
+  wallet: WalletClient,
+  publicClient: PublicClient,
+  label: string,
+  artifact: { abi: ContractAbi; bytecode: `0x${string}` },
+  args: readonly unknown[],
+): Promise<Address> {
   const hash = await wallet.deployContract({
-    abi,
-    bytecode,
+    abi: artifact.abi,
+    bytecode: artifact.bytecode,
     args: args as readonly unknown[],
-    // viem requires both account+chain in the call signature when wallet was
-    // built without their inference; passing through to keep types happy.
     account: wallet.account!,
     chain: wallet.chain,
   });
   const receipt = await publicClient.waitForTransactionReceipt({ hash });
   if (!receipt.contractAddress) {
-    throw new Error(`Deploy of ${contractName} produced no contractAddress`);
+    throw new Error(`Deploy of ${label} produced no contractAddress`);
   }
   // biome-ignore lint/suspicious/noConsole: deploy progress
-  console.log(`[mock-stack] deployed ${contractName} at ${receipt.contractAddress}`);
+  console.log(`[mock-stack] deployed ${label} at ${receipt.contractAddress}`);
   return receipt.contractAddress;
 }
 
 /**
- * Set ETH and SQD balances on each persona, plus a small ERC-20 allowance
- * setup tests can rely on. ETH uses the `anvil_setBalance` cheatcode for
- * speed; SQD is minted via the public `mint` function on the mock token.
+ * Deploy the subsquid-network-contracts subset that the app actually
+ * reads in mock mode.
+ *
+ * Order mirrors `script/Deploy.s.sol` from the network-contracts submodule
+ * with the gateway strategies + AllocationsViewer + portal contracts
+ * skipped (not consumed by current mock-mode flows).
  */
-async function seedPersonas(opts: DeployOpts, deployments: AddressMap): Promise<void> {
-  const chain = chainFor(opts.chainId);
-  const account = privateKeyToAccount(DEPLOYER_PRIVATE_KEY);
-  const wallet = createWalletClient({ account, chain, transport: http(opts.rpcUrl) });
-  const publicClient = createPublicClient({ chain, transport: http(opts.rpcUrl) });
-  const sqd = localArtifact('MockSQD');
+async function deployNetworkContracts(
+  wallet: WalletClient,
+  publicClient: PublicClient,
+  deployments: AddressMap,
+  deployer: Address,
+): Promise<void> {
+  const sqd = deployments.SQD;
 
-  for (const persona of PERSONAS) {
-    // anvil_setBalance — JSON-RPC cheatcode on anvil.
-    await publicClient.request({
-      // viem's typed request schema doesn't include anvil cheatcodes; we have
-      // to bypass the type check here.
-      // biome-ignore lint/suspicious/noExplicitAny: cheatcode escape hatch
-      method: 'anvil_setBalance' as any,
-      // biome-ignore lint/suspicious/noExplicitAny: see above
-      params: [persona.address, `0x${persona.ethBalance.toString(16)}`] as any,
+  // Router behind a transparent proxy. Initialise after dependencies exist.
+  const routerImpl = await deployNetwork(wallet, publicClient, 'Router', 'Router', []);
+  const routerProxy = await deployNetwork(
+    wallet,
+    publicClient,
+    'TransparentUpgradeableProxy',
+    'TransparentUpgradeableProxy',
+    [routerImpl, deployer, '0x'],
+  );
+  deployments.ROUTER = routerProxy;
+
+  // NetworkController: epochLength=2 (blocks; deliberately small for tests so
+  // workers become active after a single anvil_mine call), firstEpoch=0,
+  // epochCheckpoint=0, bondAmount=100_000 SQD, allowedVestedTargets=[]
+  // (filled via setters below).
+  deployments.NETWORK_CONTROLLER = await deployNetwork(
+    wallet,
+    publicClient,
+    'NetworkController',
+    'NetworkController',
+    [2n, 0n, 0n, 100_000n * 10n ** 18n, []],
+  );
+
+  deployments.STAKING = await deployNetwork(wallet, publicClient, 'Staking', 'Staking', [
+    sqd,
+    routerProxy,
+  ]);
+  deployments.WORKER_REGISTRATION = await deployNetwork(
+    wallet,
+    publicClient,
+    'WorkerRegistration',
+    'WorkerRegistration',
+    [sqd, routerProxy],
+  );
+  deployments.REWARD_TREASURY = await deployNetwork(
+    wallet,
+    publicClient,
+    'RewardTreasury',
+    'RewardTreasury',
+    [sqd],
+  );
+  deployments.SOFT_CAP = await deployNetwork(wallet, publicClient, 'SoftCap', 'SoftCap', [
+    routerProxy,
+  ]);
+  deployments.REWARD_DISTRIBUTION = await deployNetwork(
+    wallet,
+    publicClient,
+    'DistributedRewardDistribution',
+    'DistributedRewardsDistribution',
+    [routerProxy],
+  );
+  deployments.REWARD_CALCULATION = await deployNetwork(
+    wallet,
+    publicClient,
+    'RewardCalculation',
+    'RewardCalculation',
+    [routerProxy, deployments.SOFT_CAP],
+  );
+
+  // GatewayRegistry behind a proxy.
+  const gatewayImpl = await deployNetwork(
+    wallet,
+    publicClient,
+    'GatewayRegistry',
+    'GatewayRegistry',
+    [],
+  );
+  deployments.GATEWAY_REGISTRATION = await deployNetwork(
+    wallet,
+    publicClient,
+    'TransparentUpgradeableProxy',
+    'TransparentUpgradeableProxy',
+    [gatewayImpl, deployer, '0x'],
+  );
+
+  // VestingFactory(token, router).
+  deployments.VESTING_FACTORY = await deployNetwork(
+    wallet,
+    publicClient,
+    'VestingFactory',
+    'VestingFactory',
+    [sqd, routerProxy],
+  );
+
+  // Wire roles + Router.initialize.
+  const routerAbi = networkArtifact('Router').abi;
+  const stakingAbi = networkArtifact('Staking').abi;
+  const treasuryAbi = networkArtifact('RewardTreasury').abi;
+  const distributorAbi = networkArtifact(
+    'DistributedRewardDistribution',
+    'DistributedRewardsDistribution',
+  ).abi;
+  const gatewayAbi = networkArtifact('GatewayRegistry').abi;
+  const networkAbi = networkArtifact('NetworkController').abi;
+
+  await sendTx(wallet, publicClient, {
+    abi: routerAbi,
+    address: routerProxy,
+    functionName: 'initialize',
+    args: [
+      deployments.WORKER_REGISTRATION,
+      deployments.STAKING,
+      deployments.REWARD_TREASURY,
+      deployments.NETWORK_CONTROLLER,
+      deployments.REWARD_CALCULATION,
+    ],
+  });
+
+  await sendTx(wallet, publicClient, {
+    abi: gatewayAbi,
+    address: deployments.GATEWAY_REGISTRATION,
+    functionName: 'initialize',
+    args: [sqd, routerProxy],
+  });
+
+  // Roles: Staking grants REWARDS_DISTRIBUTOR_ROLE to the Distributor;
+  // Treasury whitelists the distributor; Distributor grants
+  // REWARDS_TREASURY_ROLE to the treasury.
+  const REWARDS_DISTRIBUTOR_ROLE = roleHash('REWARDS_DISTRIBUTOR_ROLE');
+  const REWARDS_TREASURY_ROLE = roleHash('REWARDS_TREASURY_ROLE');
+
+  await sendTx(wallet, publicClient, {
+    abi: stakingAbi,
+    address: deployments.STAKING,
+    functionName: 'grantRole',
+    args: [REWARDS_DISTRIBUTOR_ROLE, deployments.REWARD_DISTRIBUTION],
+  });
+  await sendTx(wallet, publicClient, {
+    abi: treasuryAbi,
+    address: deployments.REWARD_TREASURY,
+    functionName: 'setWhitelistedDistributor',
+    args: [deployments.REWARD_DISTRIBUTION, true],
+  });
+  await sendTx(wallet, publicClient, {
+    abi: distributorAbi,
+    address: deployments.REWARD_DISTRIBUTION,
+    functionName: 'grantRole',
+    args: [REWARDS_TREASURY_ROLE, deployments.REWARD_TREASURY],
+  });
+
+  for (const target of [
+    deployments.WORKER_REGISTRATION,
+    deployments.STAKING,
+    deployments.GATEWAY_REGISTRATION,
+    deployments.REWARD_TREASURY,
+  ]) {
+    await sendTx(wallet, publicClient, {
+      abi: networkAbi,
+      address: deployments.NETWORK_CONTROLLER,
+      functionName: 'setAllowedVestedTarget',
+      args: [target, true],
     });
-    if (persona.sqdBalance > 0n) {
-      const hash = await wallet.writeContract({
-        abi: sqd.abi,
-        address: deployments.SQD,
-        functionName: 'mint',
-        args: [persona.address, persona.sqdBalance],
-      });
-      await publicClient.waitForTransactionReceipt({ hash });
-    }
-    // biome-ignore lint/suspicious/noConsole: seed progress
-    console.log(
-      `[mock-stack] seeded ${persona.label} (${persona.address}): ${
-        Number(persona.ethBalance / 10n ** 15n) / 1000
-      } ETH, ${Number(persona.sqdBalance / 10n ** 15n) / 1000} SQD`,
-    );
   }
 }
+
+/** Compute keccak256(role) — used for AccessControl role hashes. */
+function roleHash(role: string): `0x${string}` {
+  return keccak256(toBytes(role));
+}
+
+async function sendTx(
+  wallet: WalletClient,
+  publicClient: PublicClient,
+  args: {
+    abi: ContractAbi;
+    address: Address;
+    functionName: string;
+    args: readonly unknown[];
+  },
+): Promise<void> {
+  const hash = await wallet.writeContract({
+    abi: args.abi,
+    address: args.address,
+    functionName: args.functionName,
+    args: args.args,
+    account: wallet.account!,
+    chain: wallet.chain,
+  });
+  await publicClient.waitForTransactionReceipt({ hash });
+}
+
+type ContractAbi = ReturnType<typeof networkArtifact>['abi'];
 
 /**
  * Dump anvil state to a file so subsequent boots can replay it via

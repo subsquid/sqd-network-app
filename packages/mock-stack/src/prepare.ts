@@ -53,22 +53,30 @@ export async function runPrepare(opts: RunPrepareOpts = {}): Promise<RunPrepareR
 }
 
 /**
- * Make sure `out/MockERC20.sol/MockSQD.json` exists. If not, run
- * `forge build` once. Skipped when artefacts are already on disk so
+ * Make sure local mock-stack artefacts and the network-contracts submodule
+ * artefacts are on disk. If a sentinel file is missing, run `forge build`
+ * in the relevant directory. Skipped when artefacts already exist so
  * cached CI runs stay fast.
  */
 function ensureContractArtifacts(): void {
-  const sentinel = path.resolve(packageRoot(), 'out/MockERC20.sol/MockSQD.json');
-  if (fs.existsSync(sentinel)) return;
+  const localSentinel = path.resolve(packageRoot(), 'out/MockERC20.sol/MockSQD.json');
+  if (!fs.existsSync(localSentinel)) {
+    forgeBuild(packageRoot(), 'packages/mock-stack');
+  }
+  const networkRoot = path.resolve(packageRoot(), '../../sqd-network-contracts/packages/contracts');
+  const networkSentinel = path.resolve(networkRoot, 'artifacts/Staking.sol/Staking.json');
+  if (!fs.existsSync(networkSentinel)) {
+    forgeBuild(networkRoot, 'sqd-network-contracts');
+  }
+}
+
+function forgeBuild(cwd: string, label: string): void {
   const forge = resolveForgeBinary();
   // biome-ignore lint/suspicious/noConsole: progress
-  console.log('[mock-stack] running `forge build` (artefacts missing)');
-  const result = spawnSync(forge, ['build'], {
-    cwd: packageRoot(),
-    stdio: 'inherit',
-  });
+  console.log(`[mock-stack] running \`forge build\` in ${label} (artefacts missing)`);
+  const result = spawnSync(forge, ['build'], { cwd, stdio: 'inherit' });
   if (result.status !== 0) {
-    throw new Error('`forge build` in packages/mock-stack failed — is Foundry installed?');
+    throw new Error(`\`forge build\` in ${label} failed — is Foundry installed?`);
   }
 }
 
