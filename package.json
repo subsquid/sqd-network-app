@@ -11,6 +11,7 @@
     "build:common": "turbo run build --filter=@subsquid/common",
     "tsc": "turbo run tsc",
     "lint": "turbo run lint",
+    "test": "turbo run test",
     "codegen:graphql": "npx graphql-codegen --config packages/server/graphql.config.ts",
     "codegen:wagmi": "pnpm --filter @subsquid/client codegen:wagmi",
     "codegen": "pnpm codegen:graphql && pnpm codegen:wagmi",

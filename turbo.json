@@ -18,6 +18,11 @@
     "lint": {
       "outputs": []
     },
+    "test": {
+      "dependsOn": ["^build", "transit"],
+      "outputs": ["coverage/**"],
+      "env": ["NETWORK"]
+    },
     "transit": {
       "dependsOn": ["^transit"]
     }

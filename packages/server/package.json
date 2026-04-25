@@ -11,7 +11,9 @@
     "start": "tsx --env-file=../../.env --watch src/main.ts",
     "build": "rolldown -c rolldown.config.ts",
     "tsc": "tsc --noEmit",
-    "lint": "biome check src --fix"
+    "lint": "biome check src --fix",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@graphql-typed-document-node/core": "^3.2.0",
@@ -31,6 +33,7 @@
     "dotenv": "^17.2.3",
     "rolldown": "^1.0.0-rc.4",
     "tsx": "^4",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.5"
   }
 }
