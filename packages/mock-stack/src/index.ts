@@ -27,7 +27,12 @@ export type { AddressMap };
 
 export type { Resolver, ResolverContext } from './indexer/dispatcher';
 export { clearResolvers, dispatch, registerResolver } from './indexer/dispatcher';
-export type { DelegationEntity, EntityStore, WorkerEntity } from './indexer/entities';
+export type {
+  DelegationEntity,
+  EntityStore,
+  VestingEntity,
+  WorkerEntity,
+} from './indexer/entities';
 export { delegationKey } from './indexer/entities';
 
 export interface MockStackHandle {

@@ -17,6 +17,7 @@ import { networkArtifact } from '../artifacts';
 import type { AddressMap } from '../deployments';
 import { type EntityStore, clearEntities, createEntityStore } from './entities';
 import { applyStakingLog } from './mappings/staking';
+import { applyVestingFactoryLog } from './mappings/vestingFactory';
 import { applyWorkerRegistrationLog } from './mappings/workerRegistration';
 
 export interface IndexerRuntime {
@@ -64,6 +65,13 @@ export function startIndexer(opts: StartIndexerOpts): IndexerRuntime {
       address: opts.deployments.STAKING,
       abi: networkArtifact('Staking').abi,
       apply: applyStakingLog,
+    });
+  }
+  if (opts.deployments.VESTING_FACTORY) {
+    sources.push({
+      address: opts.deployments.VESTING_FACTORY,
+      abi: networkArtifact('VestingFactory').abi,
+      apply: applyVestingFactoryLog,
     });
   }
 

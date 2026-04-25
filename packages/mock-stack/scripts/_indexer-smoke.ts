@@ -21,6 +21,14 @@ async function main() {
       // biome-ignore lint/suspicious/noConsole: smoke output
       console.log(`  ${k}: deposit=${d.deposit}`);
     }
+    // biome-ignore lint/suspicious/noConsole: smoke output
+    console.log('vestings:', handle.indexer.store.vestings.size);
+    for (const [id, v] of handle.indexer.store.vestings) {
+      // biome-ignore lint/suspicious/noConsole: smoke output
+      console.log(
+        `  ${id}: beneficiary=${v.beneficiaryId} expectedTotal=${v.expectedTotalAmount}`,
+      );
+    }
   } finally {
     await handle.stop();
   }

@@ -35,6 +35,28 @@ async function balanceOf(deps: TokenResolverDeps, address: Address): Promise<big
   }
 }
 
+/**
+ * Project a vesting entity into the GraphQL `account` shape with a
+ * chain-derived current balance. The contract holds SQD, so its current
+ * locked balance is just `MockSQD.balanceOf(vesting)`.
+ */
+async function projectVesting(
+  deps: TokenResolverDeps,
+  vestingId: string,
+): Promise<Record<string, unknown> | null> {
+  const v = deps.store.vestings.get(vestingId);
+  if (!v) return null;
+  const balance = await balanceOf(deps, vestingId as Address);
+  return {
+    id: v.id,
+    type: 'VESTING',
+    balance: balance.toString(),
+    claimableDelegationCount: 0,
+    owner: { id: v.beneficiaryId, type: 'USER' },
+    ownerId: v.beneficiaryId,
+  };
+}
+
 /** Count how many delegations (across all workers) the address has stake in. */
 function claimableDelegationCount(deps: TokenResolverDeps, owner: string): number {
   const keys = deps.store.delegationsByOwner.get(owner.toLowerCase());
@@ -70,24 +92,49 @@ export function registerTokenResolvers(deps: TokenResolverDeps): void {
   const accountsByOwner: Resolver = async vars => {
     const address = (vars.address as string | undefined)?.toLowerCase();
     if (!address) return { accounts: [] };
+    const accounts: Record<string, unknown>[] = [];
+    // USER account.
     const balance = await balanceOf(deps, address as Address);
-    return {
-      accounts: [
-        {
-          id: address,
-          type: 'USER',
-          balance: balance.toString(),
-          claimableDelegationCount: claimableDelegationCount(deps, address),
-          owner: null,
-          ownerId: null,
-        },
-      ],
-    };
+    accounts.push({
+      id: address,
+      type: 'USER',
+      balance: balance.toString(),
+      claimableDelegationCount: claimableDelegationCount(deps, address),
+      owner: null,
+      ownerId: null,
+    });
+    // VESTING accounts owned by `address`.
+    const vestingIds = deps.store.vestingsByBeneficiary.get(address);
+    if (vestingIds) {
+      for (const vid of vestingIds) {
+        const projected = await projectVesting(deps, vid);
+        if (projected) accounts.push(projected);
+      }
+    }
+    return { accounts };
   };
   registerResolver('accountsByOwner', accountsByOwner);
 
-  // Vesting flows aren't deployed yet; return null/empty so the UI knows
-  // there's no vesting account for the queried address.
-  registerResolver('vestingByAddress', () => ({ accountById: null }));
-  registerResolver('vestingsByAccount', () => ({ accounts: [] }));
+  // vestingByAddress: address arg is the vesting contract id.
+  registerResolver('vestingByAddress', async vars => {
+    const address = (vars.address as string | undefined)?.toLowerCase();
+    if (!address) return { accountById: null };
+    const projected = await projectVesting(deps, address);
+    return { accountById: projected };
+  });
+
+  // vestingsByAccount: address arg is the beneficiary; return all VESTING
+  // accounts owned by them.
+  registerResolver('vestingsByAccount', async vars => {
+    const address = (vars.address as string | undefined)?.toLowerCase();
+    if (!address) return { accounts: [] };
+    const vestingIds = deps.store.vestingsByBeneficiary.get(address);
+    if (!vestingIds) return { accounts: [] };
+    const accounts: Record<string, unknown>[] = [];
+    for (const vid of vestingIds) {
+      const projected = await projectVesting(deps, vid);
+      if (projected) accounts.push(projected);
+    }
+    return { accounts };
+  });
 }

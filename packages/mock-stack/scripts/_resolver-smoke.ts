@@ -7,7 +7,15 @@ import { startMockStack } from '../src';
 async function main() {
   const handle = await startMockStack({ autoPrepare: true });
   try {
-    const ops = ['allWorkers', 'myWorkers', 'myDelegations', 'sources', 'settings'];
+    const ops = [
+      'allWorkers',
+      'myWorkers',
+      'myDelegations',
+      'sources',
+      'settings',
+      'vestingsByAccount',
+      'accountsByOwner',
+    ];
     for (const op of ops) {
       const variables: Record<string, unknown> =
         op === 'myWorkers' || op === 'workersByOwner'
@@ -15,8 +23,10 @@ async function main() {
           : op === 'myDelegations' || op === 'delegationsByOwner'
             ? { ownerIds: ['0x70997970C51812dc3A010C7d01b50e0d17dc79C8'] }
             : op === 'sources' || op === 'accountsByOwner'
-              ? { address: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8' }
-              : {};
+              ? { address: '0x90F79bf6EB2c4f870365E785982E1f101E93b906' } // Dave
+              : op === 'vestingsByAccount'
+                ? { address: '0x90F79bf6EB2c4f870365E785982E1f101E93b906' }
+                : {};
       const res = await fetch(handle.graphqlUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

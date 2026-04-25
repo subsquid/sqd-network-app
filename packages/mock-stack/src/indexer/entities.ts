@@ -34,6 +34,19 @@ export interface DelegationEntity {
   updatedAtBlock: bigint;
 }
 
+export interface VestingEntity {
+  /** Lower-cased Vesting contract address — used as the GraphQL `id`. */
+  id: string;
+  /** Lower-cased beneficiary address. */
+  beneficiaryId: string;
+  /** When linear vesting starts (unix seconds). */
+  startTimestamp: bigint;
+  /** Total vesting duration (seconds). */
+  durationSeconds: bigint;
+  /** Total amount the contract is expected to hold (wei). */
+  expectedTotalAmount: bigint;
+}
+
 /** In-memory entity store. Exported so tests can inspect it directly. */
 export interface EntityStore {
   workers: Map<bigint, WorkerEntity>;
@@ -42,6 +55,10 @@ export interface EntityStore {
   delegations: Map<string, DelegationEntity>;
   delegationsByOwner: Map<string, Set<string>>;
   delegationsByWorker: Map<bigint, Set<string>>;
+  /** Vesting accounts keyed by lower-cased contract address. */
+  vestings: Map<string, VestingEntity>;
+  /** Inverse lookup: beneficiary address → set of vesting ids. */
+  vestingsByBeneficiary: Map<string, Set<string>>;
 }
 
 export function createEntityStore(): EntityStore {
@@ -52,6 +69,8 @@ export function createEntityStore(): EntityStore {
     delegations: new Map(),
     delegationsByOwner: new Map(),
     delegationsByWorker: new Map(),
+    vestings: new Map(),
+    vestingsByBeneficiary: new Map(),
   };
 }
 
@@ -77,4 +96,6 @@ export function clearEntities(store: EntityStore): void {
   store.delegations.clear();
   store.delegationsByOwner.clear();
   store.delegationsByWorker.clear();
+  store.vestings.clear();
+  store.vestingsByBeneficiary.clear();
 }

@@ -109,9 +109,9 @@ export async function seedPersonas(opts: DeployOpts, deployments: AddressMap): P
   const bobWallet = walletFor(bob, chain, opts.rpcUrl);
   await delegateForBob(bobWallet, publicClient, deployments, sqdAbi, carolWorkerIds[0]);
 
-  // 4. Dave — vesting placeholder (skipped until VestingFactory's
-  //    VESTING_CREATOR_ROLE flow lands; SQD balance alone is enough for
-  //    sources/accountsByOwner to render meaningfully).
+  // 4. Dave — create a vesting account funded with 1_000_000 SQD.
+  const dave = byLabel('Dave');
+  await createVestingForDave(deployerWallet, publicClient, deployments, sqdAbi, dave.address);
 }
 
 function byLabel(label: Persona['label']): Persona {
@@ -198,6 +198,67 @@ async function delegateForBob(
   console.log(
     `[mock-stack] Bob delegated ${Number(amount / 10n ** 18n)} SQD to worker ${workerId}`,
   );
+}
+
+/**
+ * Create a vesting account for Dave via the VestingFactory's
+ * VESTING_CREATOR_ROLE (granted to the deployer at construction). Funds the
+ * resulting Vesting contract with 1_000_000 SQD so `release()` calls have
+ * something to release.
+ *
+ * Linear vesting starting 30 days ago, 365-day duration, 10% immediate
+ * release — visually matches what a real beneficiary would see.
+ */
+async function createVestingForDave(
+  deployerWallet: WalletClient,
+  publicClient: PublicClient,
+  deployments: AddressMap,
+  sqdAbi: ReturnType<typeof localArtifact>['abi'],
+  daveAddress: Address,
+): Promise<Address> {
+  const factoryAbi = networkArtifact('VestingFactory').abi;
+  const expectedTotalAmount = 1_000_000n * 10n ** 18n;
+  const startTimestamp = BigInt(Math.floor(Date.now() / 1000) - 30 * 86_400);
+  const durationSeconds = 365n * 86_400n;
+  const immediateReleaseBIP = 1_000n; // 10%
+
+  // Capture the next deployed Vesting contract address by parsing the receipt's
+  // VestingCreated event log.
+  const hash = await deployerWallet.writeContract({
+    abi: factoryAbi,
+    address: deployments.VESTING_FACTORY,
+    functionName: 'createVesting',
+    args: [daveAddress, startTimestamp, durationSeconds, immediateReleaseBIP, expectedTotalAmount],
+    account: deployerWallet.account!,
+    chain: deployerWallet.chain,
+  });
+  const receipt = await publicClient.waitForTransactionReceipt({ hash });
+
+  // The factory's VestingCreated event has the vesting address as the indexed
+  // first topic (after the 0xkeccak signature). topics[1] is the address
+  // padded to 32 bytes.
+  const eventTopic = receipt.logs.find(l => l.address.toLowerCase() === deployments.VESTING_FACTORY.toLowerCase());
+  if (!eventTopic) {
+    throw new Error('Vesting creation: no VestingCreated event found in receipt');
+  }
+  const vestingAddress = (`0x${eventTopic.topics[1]!.slice(-40)}`) as Address;
+
+  // Fund the vesting contract.
+  const fundHash = await deployerWallet.writeContract({
+    abi: sqdAbi,
+    address: deployments.SQD,
+    functionName: 'mint',
+    args: [vestingAddress, expectedTotalAmount],
+    account: deployerWallet.account!,
+    chain: deployerWallet.chain,
+  });
+  await publicClient.waitForTransactionReceipt({ hash: fundHash });
+
+  // biome-ignore lint/suspicious/noConsole: seed progress
+  console.log(
+    `[mock-stack] Dave's vesting at ${vestingAddress}: ${Number(expectedTotalAmount / 10n ** 18n)} SQD`,
+  );
+  return vestingAddress;
 }
 
 async function sendFrom(
