@@ -76,10 +76,46 @@ export function getSentryDsn(): string | undefined {
   return dsn ? dsn : undefined;
 }
 
-import { CONTRACT_ADDRESSES, type ContractAddresses } from '@subsquid/common';
+import fs from 'node:fs';
+import path from 'node:path';
+
+import {
+  type ContractAddresses,
+  getContractAddresses as getCommonContractAddresses,
+} from '@subsquid/common';
 
 export type { ContractAddresses };
 
+/**
+ * Locate the mock-stack `.deployments.json` produced by
+ * `pnpm --filter @subsquid/mock-stack stack:prepare`. We look in the
+ * standard relative location plus any explicit override via
+ * `MOCK_STACK_DEPLOYMENTS` so test harnesses can point at a custom file.
+ */
+function loadMockDeployments(): Partial<ContractAddresses> | null {
+  if (!isMockMode()) return null;
+  const explicit = process.env.MOCK_STACK_DEPLOYMENTS;
+  const candidates = [
+    explicit,
+    path.resolve(process.cwd(), '../mock-stack/.deployments.json'),
+    path.resolve(process.cwd(), '../../packages/mock-stack/.deployments.json'),
+    path.resolve(process.cwd(), 'packages/mock-stack/.deployments.json'),
+  ].filter((p): p is string => Boolean(p));
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      try {
+        const raw = JSON.parse(fs.readFileSync(candidate, 'utf-8')) as Record<string, string>;
+        return raw as Partial<ContractAddresses>;
+      } catch {
+        // ignore — fall through to next candidate
+      }
+    }
+  }
+  return null;
+}
+
 export function getContractAddresses(): ContractAddresses {
-  return CONTRACT_ADDRESSES[getNetwork()];
+  const override = loadMockDeployments() ?? undefined;
+  return getCommonContractAddresses({ network: getNetwork(), override });
 }

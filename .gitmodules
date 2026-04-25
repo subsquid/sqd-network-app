@@ -2,3 +2,7 @@
 	path = sqd-portal-contracts
 	url = https://github.com/subsquid/sqd-portal-contracts.git
 	branch = feat-fee-switch
+[submodule "sqd-network-contracts"]
+	path = sqd-network-contracts
+	url = https://github.com/subsquid/subsquid-network-contracts.git
+	branch = main

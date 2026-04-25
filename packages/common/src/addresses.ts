@@ -19,6 +19,23 @@ export interface ContractAddresses {
   CHAIN_ID_L1: number;
 }
 
+/**
+ * Resolve the contract address book for the given network, optionally
+ * overriding individual entries (e.g. when the mock-stack deploys to
+ * non-canonical addresses).
+ *
+ * `network` defaults to `mainnet` to match the legacy `CONTRACT_ADDRESSES`
+ * export's typical usage. Pass `'tethys'` for testnet.
+ */
+export function getContractAddresses(
+  options: { network?: NetworkName; override?: Partial<ContractAddresses> } = {},
+): ContractAddresses {
+  const network = options.network ?? 'mainnet';
+  const base = CONTRACT_ADDRESSES[network];
+  if (!options.override) return base;
+  return { ...base, ...options.override };
+}
+
 export const CONTRACT_ADDRESSES: Record<NetworkName, ContractAddresses> = {
   tethys: {
     SQD: '0x24f9C46d86c064a6FA2a568F918fe62fC6917B3c',
