@@ -1,13 +1,24 @@
 import { type Address, createPublicClient, erc20Abi, http } from 'viem';
 import { arbitrum, arbitrumSepolia } from 'viem/chains';
 
-import { getNetwork, getRpcUrl } from '../env.js';
+import { getContractAddresses, getNetwork, getRpcUrl } from '../env.js';
 
 let client: ReturnType<typeof createPublicClient> | undefined;
 
 export function getPublicClient() {
   if (!client) {
-    const chain = getNetwork() === 'tethys' ? arbitrumSepolia : arbitrum;
+    const baseChain = getNetwork() === 'tethys' ? arbitrumSepolia : arbitrum;
+    const { MULTICALL } = getContractAddresses();
+    // Override the chain's multicall3 address so viem batches against the
+    // correct deployment. In mock/test mode the address differs from the
+    // canonical 0xcA11… that the Arbitrum chain definition ships with.
+    const chain = {
+      ...baseChain,
+      contracts: {
+        ...baseChain.contracts,
+        multicall3: { address: MULTICALL },
+      },
+    } as typeof baseChain;
     client = createPublicClient({
       chain,
       transport: http(getRpcUrl()),

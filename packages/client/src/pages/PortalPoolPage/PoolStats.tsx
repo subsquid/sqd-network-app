@@ -30,12 +30,16 @@ const StatItem = memo(function StatItem({
 }) {
   return (
     <Box sx={{ minWidth: 0 }}>
-      <Typography variant="body2" color="text.secondary" noWrap>
-        <Stack direction="row" alignItems="center" spacing={0.5}>
-          <span>{label}</span>
-          {tooltip && <HelpTooltip title={tooltip} />}
-        </Stack>
-      </Typography>
+      <Stack
+        component="span"
+        direction="row"
+        alignItems="center"
+        spacing={0.5}
+        sx={{ color: 'text.secondary', typography: 'body2' }}
+      >
+        <span>{label}</span>
+        {tooltip && <HelpTooltip title={tooltip} />}
+      </Stack>
       <Box sx={{ '& > *': { lineHeight: 1.3 } }}>{value}</Box>
     </Box>
   );
@@ -107,30 +111,11 @@ export function PoolStats({ poolId }: PoolStatsProps) {
           label="Total Funding"
           value={
             <Typography variant="h6">
-              <Stack direction="row" alignItems="center" spacing={0.5} flexWrap="wrap">
-                <Typography variant="h6">
-                  {isLoading ? (
-                    <Skeleton width="50%" />
-                  ) : (
-                    tokenFormatter(pool!.totalRewardsToppedUp, pool!.rewardToken.symbol, 2)
-                  )}
-                </Typography>
-                {/* {pool.rewardToken && (
-                  <Link
-                    href={`https://arbiscan.io/token/${pool.rewardToken.address}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    underline="hover"
-                    sx={{ display: 'flex', alignItems: 'center' }}
-                  >
-                    <Avatar
-                      src={USDC_LOGO_URL}
-                      alt={pool.rewardToken.symbol}
-                      sx={{ width: '1.5rem', height: '1.5rem' }}
-                    />
-                  </Link>
-                )} */}
-              </Stack>
+              {isLoading ? (
+                <Skeleton width="50%" />
+              ) : (
+                tokenFormatter(pool!.totalRewardsToppedUp, pool!.rewardToken.symbol, 2)
+              )}
             </Typography>
           }
           tooltip={monthlyPayoutTooltip}
