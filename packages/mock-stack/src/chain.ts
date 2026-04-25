@@ -10,12 +10,17 @@
  */
 import { type ChildProcess, spawn } from 'node:child_process';
 import fs from 'node:fs';
+import net from 'node:net';
 import path from 'node:path';
 
 import { createPublicClient, http } from 'viem';
 
 export interface SpawnAnvilOpts {
-  /** TCP port (default 8545). */
+  /**
+   * TCP port. Default `0` — pick an ephemeral free port automatically so
+   * concurrent test runs and rerun loops can't collide on 8545. Pass an
+   * explicit port (e.g. `8545`) only for `pnpm dev` mock mode.
+   */
   port?: number;
   /** Chain id (default 42161 / arbitrum mainnet). */
   chainId?: number;
@@ -46,9 +51,34 @@ function resolveAnvilBinary(): string {
   return 'anvil'; // fall back to PATH
 }
 
+/**
+ * Reserve an OS-allocated TCP port on `127.0.0.1` and return it.
+ *
+ * Anvil itself doesn't print the port it bound to when given `--port 0`, so
+ * we pre-allocate a free port via `net.Server` and pass that explicit number
+ * to anvil. The kernel guarantees the same port stays free for a brief
+ * window after close — long enough for anvil to grab it.
+ */
+async function pickFreePort(): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.unref();
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', () => {
+      const addr = server.address();
+      if (!addr || typeof addr === 'string') {
+        reject(new Error('failed to allocate ephemeral port'));
+        return;
+      }
+      const port = addr.port;
+      server.close(() => resolve(port));
+    });
+  });
+}
+
 /** Spawn a fresh anvil process, waiting until it answers `eth_blockNumber`. */
 export async function spawnAnvil(opts: SpawnAnvilOpts = {}): Promise<AnvilHandle> {
-  const port = opts.port ?? 8545;
+  const port = opts.port && opts.port > 0 ? opts.port : await pickFreePort();
   const chainId = opts.chainId ?? 42161;
   const accounts = opts.accounts ?? 10;
   const url = `http://127.0.0.1:${port}`;

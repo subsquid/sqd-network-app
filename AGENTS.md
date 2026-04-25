@@ -139,9 +139,12 @@ The root `turbo.json` defines five tasks:
     GraphQL operation in `packages/server/graphql/*.graphql` and asserting
     a resolver exists.
 - **Foundry prerequisite (integration tests only):** install with
-  `curl -L https://foundry.paradigm.xyz | bash && foundryup`, then run
-  `pnpm --filter @subsquid/mock-stack stack:prepare` once to produce
-  `.anvil-state.json` + `.deployments.json` (cached by Turbo afterwards).
+  `curl -L https://foundry.paradigm.xyz | bash && foundryup`. That's the
+  only setup step — `pnpm test` auto-runs `forge build` and the deploy
+  harness on the first invocation; subsequent runs reuse
+  `packages/mock-stack/.anvil-state.json`. Anvil and the GraphQL server
+  bind to ephemeral ports so concurrent runs and rerun loops don't
+  collide.
 - **Linting:** Biome — run `pnpm lint` before committing.
 - **Type-check:** `pnpm tsc` runs `tsc --noEmit` across all packages.
 - **Generated files:** Never edit `packages/server/src/generated/` or any `*.generated.*` files by hand; always regenerate with `pnpm codegen`.

@@ -44,7 +44,22 @@ Phase 10 deletes those.
 ## Scripts
 
 - `pnpm --filter @subsquid/mock-stack stack:prepare` — runs the deploy harness
-  and writes `.anvil-state.json` + `.deployments.json` (also wired as the
-  `mock-stack#stack:prepare` Turbo task with appropriate cache inputs).
+  and writes `.anvil-state.json` + `.deployments.json`. Tests don't require
+  this step explicitly: `startMockStack({ autoPrepare: true })` runs it
+  in-process when the snapshot is missing.
 - `pnpm --filter @subsquid/mock-stack stack:rebuild` — wipes generated state
   and re-runs `stack:prepare`.
+
+## Test setup ergonomics
+
+- **Ephemeral ports.** `startMockStack()` defaults to OS-allocated ports for
+  both anvil and the GraphQL server. The dev-mode `pnpm dev` workflow can
+  pin them to 8545/4321 via `MOCK_RPC_PORT` / `MOCK_GRAPHQL_PORT` env vars.
+- **No env vars in tests.** The server's `setRuntimeOverride()` API
+  (in `@subsquid/server/env`) injects the GraphQL URL, RPC URL, and
+  contract address book directly. `process.env.MOCK_*` is only consumed
+  by the legacy dev-mode in-process servers.
+- **Auto-prepare.** Pass `{ autoPrepare: true }` to `startMockStack()` and
+  it'll run `forge build` + the deploy harness if `.anvil-state.json` is
+  absent. Vitest's globalSetup uses this so a fresh checkout boots with a
+  single `pnpm test` command.

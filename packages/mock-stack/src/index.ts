@@ -6,6 +6,7 @@
  * mock mode — calls `startMockStack()` and never instantiates anvil /
  * the mini-indexer / the deploy harness directly.
  */
+import fs from 'node:fs';
 import path from 'node:path';
 
 import type { Address } from 'viem';
@@ -45,16 +46,23 @@ export interface StartMockStackOpts {
    * Set explicitly to `null` to start with a fresh chain (no prior state load).
    */
   stateFile?: string | null;
-  /** Override the anvil RPC port (default 8545). */
+  /**
+   * Anvil RPC port. Default `0` — ephemeral, picked by the OS. Pass an
+   * explicit port (e.g. 8545) for `pnpm dev` mock mode where the client
+   * vite config points at a fixed URL.
+   */
   rpcPort?: number;
-  /** Override the GraphQL HTTP port (default 4321). */
+  /** GraphQL HTTP port. Default `0` — ephemeral. */
   graphqlPort?: number;
   /** Chain id (default 42161 / arbitrum mainnet — matches mainnet build). */
   chainId?: number;
+  /**
+   * If true, run `stack:prepare` automatically when no state file is found.
+   * Useful for tests so a fresh checkout works without a manual setup step.
+   * Defaults to false (the default state file path is checked first).
+   */
+  autoPrepare?: boolean;
 }
-
-const DEFAULT_RPC_PORT = 8545;
-const DEFAULT_GRAPHQL_PORT = 4321;
 
 /**
  * Boot the full mock environment.
@@ -69,13 +77,21 @@ const DEFAULT_GRAPHQL_PORT = 4321;
  * The stop() function tears down everything in reverse.
  */
 export async function startMockStack(opts: StartMockStackOpts = {}): Promise<MockStackHandle> {
-  const rpcPort = opts.rpcPort ?? DEFAULT_RPC_PORT;
-  const graphqlPort = opts.graphqlPort ?? DEFAULT_GRAPHQL_PORT;
+  const rpcPort = opts.rpcPort ?? 0;
+  const graphqlPort = opts.graphqlPort ?? 0;
   const chainId = opts.chainId ?? 42161;
   const stateFile =
     opts.stateFile === null
       ? null
       : (opts.stateFile ?? path.resolve(packageRoot(), '.anvil-state.json'));
+
+  // Auto-prepare: if the state file doesn't exist and the caller opted in,
+  // run the deploy harness in-process. Keeps the test setup contract to a
+  // single command (`pnpm test`) on a fresh checkout — no manual prepare step.
+  if (opts.autoPrepare && stateFile && !fileExists(stateFile)) {
+    const { runPrepare } = await import('./prepare');
+    await runPrepare();
+  }
 
   const deployments = readDeployments() ?? {};
 
@@ -127,6 +143,14 @@ export async function startMockStack(opts: StartMockStackOpts = {}): Promise<Moc
     },
   };
   return handle;
+}
+
+function fileExists(p: string): boolean {
+  try {
+    return fs.existsSync(p);
+  } catch {
+    return false;
+  }
 }
 
 // Re-export selected helpers so consumers don't need to reach into subpaths.

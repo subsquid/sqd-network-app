@@ -20,14 +20,18 @@ export interface MockGraphqlServer {
 }
 
 export interface StartGraphqlOpts {
-  /** Port to listen on (default 4321 — matches the legacy mockGraphqlServer.ts). */
+  /**
+   * Port to listen on. Default `0` — pick an OS-allocated ephemeral port so
+   * concurrent test runs can't collide on 4321. Pass an explicit port only
+   * for `pnpm dev` mock mode.
+   */
   port?: number;
   /** Bind address (default 127.0.0.1). */
   host?: string;
 }
 
 export function startGraphqlServer(opts: StartGraphqlOpts = {}): Promise<MockGraphqlServer> {
-  const port = opts.port ?? 4321;
+  const port = opts.port ?? 0;
   const host = opts.host ?? '127.0.0.1';
 
   return new Promise((resolve, reject) => {
@@ -81,9 +85,11 @@ export function startGraphqlServer(opts: StartGraphqlOpts = {}): Promise<MockGra
 
     server.on('error', reject);
     server.listen(port, host, () => {
+      const addr = server.address();
+      const boundPort = addr && typeof addr !== 'string' ? addr.port : port;
       resolve({
-        url: `http://${host}:${port}/graphql`,
-        port,
+        url: `http://${host}:${boundPort}/graphql`,
+        port: boundPort,
         async stop() {
           await new Promise<void>((res, rej) => {
             server.close(err => (err ? rej(err) : res()));

@@ -32,11 +32,12 @@ pnpm --filter @subsquid/client test:unit          # layer-1 hook + component spe
 pnpm --filter @subsquid/client test:integration   # layer-2 specs (Foundry required)
 ```
 
-The `integration` project requires [Foundry](https://book.getfoundry.sh/)
-to be installed (`curl -L https://foundry.paradigm.xyz | bash && foundryup`).
-Run `pnpm --filter @subsquid/mock-stack stack:prepare` once after install to
-produce `packages/mock-stack/.anvil-state.json` and `.deployments.json`;
-subsequent test runs reuse the cached snapshot.
+The `integration` project needs [Foundry](https://book.getfoundry.sh/)
+installed (`curl -L https://foundry.paradigm.xyz | bash && foundryup`).
+**No other setup steps are required** — the test runner spawns Anvil on an
+ephemeral port, runs `forge build` + the deploy harness automatically the
+first time, and reuses the resulting `.anvil-state.json` snapshot
+afterwards. No env vars to set, no commands to memorize.
 
 See [`packages/mock-stack/README.md`](packages/mock-stack/README.md) for
 details on how the mock environment is constructed.

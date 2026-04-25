@@ -7,36 +7,47 @@ import { defineConfig } from 'vitest/config';
 const dirname = path.dirname(new URL(import.meta.url).pathname);
 
 /**
+ * Bare-minimum `process.env.*` substitutions so the production-mode
+ * `process.env.X` accesses scattered through the client bundle don't
+ * crash inside tests. Tests **don't** use these for behaviour control —
+ * mock mode is signalled via wagmi config in unit tests and via the
+ * server's `setRuntimeOverride()` in integration tests.
+ */
+const TEST_DEFINES = Object.fromEntries(
+  Object.entries({
+    APP_VERSION: 'test',
+    NETWORK: 'mainnet',
+    WALLET_CONNECT_PROJECT_ID: '',
+    SENTRY_DSN: '',
+    ENABLE_DEMO_FEATURES: 'false',
+    HOST_URL: '',
+    TESTNET_WORKERS_CHAT_URL: '',
+    MAINNET_WORKERS_CHAT_URL: '',
+    // MOCK_WALLET stays falsy in unit tests — they configure the mock
+    // connector directly via `createUnitWagmiConfig()` and never read this.
+    MOCK_WALLET: '',
+    MOCK_RPC_URL: 'http://localhost:8545',
+  }).map(([k, v]) => [`process.env.${k}`, JSON.stringify(v)]),
+);
+
+/**
  * Vitest config for @subsquid/client.
  *
- * Two projects:
- * - `unit`        — fast, parallel, jsdom; canned viem transports + wagmi mock connector.
- *                  Globs all `*.test.{ts,tsx}` except `*.integration.test.*`.
- * - `integration` — single-fork, jsdom; backed by Anvil + mini-indexer + tRPC server
- *                  (wired up in Phase 8). Globs `*.integration.test.{ts,tsx}`.
+ * - `unit`        — fast, parallel, jsdom; canned viem transports + wagmi
+ *                  mock connector. No process.env reads, no Anvil.
+ * - `integration` — single-fork, jsdom; backed by Anvil + mini-indexer +
+ *                  in-process tRPC server (all spawned on ephemeral ports
+ *                  by `src/test/anvil/global-setup.ts`).
  */
 export default defineConfig({
   test: {
-    // Allow the integration project to pass while it has zero specs (added incrementally
-    // as Phase 8 lands) — saves needing a placeholder spec just to satisfy the runner.
+    // Allow projects to pass with zero specs (e.g. before the first
+    // integration test lands in a feature branch).
     passWithNoTests: true,
     projects: [
       {
         plugins: [tsconfigPaths(), react()],
-        define: {
-          // Mirror the bare-minimum subset of vite.config.ts `define` block so that
-          // production-mode `process.env.*` accesses don't crash inside tests.
-          'process.env.MOCK_WALLET': JSON.stringify(''),
-          'process.env.MOCK_RPC_URL': JSON.stringify('http://localhost:8545'),
-          'process.env.NETWORK': JSON.stringify('mainnet'),
-          'process.env.WALLET_CONNECT_PROJECT_ID': JSON.stringify(''),
-          'process.env.SENTRY_DSN': JSON.stringify(''),
-          'process.env.APP_VERSION': JSON.stringify('test'),
-          'process.env.ENABLE_DEMO_FEATURES': JSON.stringify('false'),
-          'process.env.HOST_URL': JSON.stringify(''),
-          'process.env.TESTNET_WORKERS_CHAT_URL': JSON.stringify(''),
-          'process.env.MAINNET_WORKERS_CHAT_URL': JSON.stringify(''),
-        },
+        define: TEST_DEFINES,
         test: {
           name: 'unit',
           environment: 'jsdom',
@@ -54,18 +65,7 @@ export default defineConfig({
       },
       {
         plugins: [tsconfigPaths(), react()],
-        define: {
-          'process.env.MOCK_WALLET': JSON.stringify('true'),
-          'process.env.MOCK_RPC_URL': JSON.stringify('http://localhost:8545'),
-          'process.env.NETWORK': JSON.stringify('mainnet'),
-          'process.env.WALLET_CONNECT_PROJECT_ID': JSON.stringify(''),
-          'process.env.SENTRY_DSN': JSON.stringify(''),
-          'process.env.APP_VERSION': JSON.stringify('test'),
-          'process.env.ENABLE_DEMO_FEATURES': JSON.stringify('false'),
-          'process.env.HOST_URL': JSON.stringify(''),
-          'process.env.TESTNET_WORKERS_CHAT_URL': JSON.stringify(''),
-          'process.env.MAINNET_WORKERS_CHAT_URL': JSON.stringify(''),
-        },
+        define: TEST_DEFINES,
         test: {
           name: 'integration',
           environment: 'jsdom',
@@ -78,15 +78,11 @@ export default defineConfig({
           ],
           globalSetup: [path.resolve(dirname, './src/test/anvil/global-setup.ts')],
           pool: 'forks',
-          // Vitest 4: pool-specific options are now top-level.
-          // Run all integration specs in a single forked process so they share
-          // one Anvil instance + mini-indexer.
-          forks: {
-            singleFork: true,
-          },
-          // Integration tests must complete; allow longer timeouts for tx confirmations.
-          testTimeout: 30000,
-          hookTimeout: 60000,
+          // Run all integration specs in a single forked process so they
+          // share one Anvil instance + mini-indexer.
+          forks: { singleFork: true },
+          testTimeout: 30_000,
+          hookTimeout: 60_000,
         },
       },
     ],
