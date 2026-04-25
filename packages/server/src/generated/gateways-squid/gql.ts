@@ -1,5 +1,5 @@
 /* eslint-disable */
-import * as types from './graphql';
+import * as types from "./graphql";
 
 /**
  * Map of all GraphQL operations in the project.
@@ -25,7 +25,7 @@ const documents: Documents = {
  */
 export function graphql(
   source: 'query gatewayByPeerId($peerId: String!) {\n  gatewayById(id: $peerId) {\n    id\n    name\n    status\n    description\n    email\n    endpointUrl\n    website\n    createdAt\n    ownerId\n  }\n}\n\nquery myGateways($address: String!) {\n  gateways(where: {ownerId_eq: $address, status_not_eq: DEREGISTERED}) {\n    id\n    name\n    status\n    description\n    email\n    endpointUrl\n    website\n    createdAt\n    ownerId\n  }\n}\n\nquery myGatewayStakes($ownerIds: [String!]!) {\n  gatewayStakes(where: {ownerId_in: $ownerIds, amount_gt: "0"}) {\n    id\n    amount\n    ownerId\n    autoExtension\n    computationUnits\n    computationUnitsPending\n    locked\n    lockStart\n    lockEnd\n  }\n}\n\nquery gatewayStakesByOwner($ownerIds: [String!]!) {\n  gatewayStakes(where: {ownerId_in: $ownerIds, amount_gt: "0"}) {\n    id\n    amount\n    ownerId\n  }\n}\n\nquery gatewaysSummary {\n  gatewaysSummary {\n    totalGatewayStake\n    totalPortalPoolTvl\n  }\n}\n\nquery poolProvidersByOwner($ownerIds: [String!]!) {\n  poolProviders(where: {providerId_in: $ownerIds, deposited_gt: "0"}) {\n    id\n    deposited\n    providerId\n    poolId\n  }\n}\n\nquery portalPools($limit: Int!, $offset: Int!) {\n  portalPools(limit: $limit, offset: $offset, orderBy: createdAt_DESC) {\n    id\n    rewardRate\n    totalRewardsToppedUp\n    tvlStable\n    tvlTotal\n    closedAt\n    closedAtBlock\n    createdAt\n    createdAtBlock\n    capacity\n  }\n}\n\nquery portalPoolById($id: String!) {\n  portalPoolById(id: $id) {\n    totalRewardsToppedUp\n    createdAt\n  }\n}\n\nquery poolApyTimeseries($from: DateTime!, $poolId: String!, $to: DateTime!) {\n  poolApyTimeseries(from: $from, poolId: $poolId, to: $to) {\n    data {\n      value\n      timestamp\n    }\n    from\n    step\n    to\n  }\n}\n\nquery poolTvlTimeseries($from: DateTime!, $poolId: String!, $to: DateTime!) {\n  poolTvlTimeseries(from: $from, poolId: $poolId, to: $to) {\n    data {\n      value {\n        tvlStable\n        tvlTotal\n      }\n      timestamp\n    }\n    from\n    step\n    to\n  }\n}\n\nquery poolEvents($limit: Int!, $offset: Int!, $poolId: String!, $providerId: String, $eventTypes: [PoolEventType!]) {\n  poolEvents(\n    limit: $limit\n    offset: $offset\n    orderBy: timestamp_DESC\n    where: {pool: {id_eq: $poolId}, providerId_eq: $providerId, eventType_in: $eventTypes}\n  ) {\n    id\n    eventType\n    txHash\n    timestamp\n    providerId\n    amount\n    blockNumber\n  }\n  poolEventsConnection(\n    orderBy: id_ASC\n    where: {pool: {id_eq: $poolId}, providerId_eq: $providerId, eventType_in: $eventTypes}\n  ) {\n    totalCount\n  }\n}',
-): typeof import('./graphql').GatewayByPeerIdDocument;
+): typeof import("./graphql").GatewayByPeerIdDocument;
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};
