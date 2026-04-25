@@ -1,0 +1,24 @@
+{
+  "name": "@subsquid/mock-stack",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "tsc": "tsc --noEmit",
+    "lint": "biome check src --fix",
+    "stack:prepare": "tsx scripts/prepare.ts",
+    "stack:rebuild": "rm -rf out .anvil-state.json .deployments.json && pnpm stack:prepare"
+  },
+  "dependencies": {
+    "@subsquid/common": "workspace:*",
+    "viem": "^2.38.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.11",
+    "tsx": "^4",
+    "typescript": "^5.9.3"
+  }
+}

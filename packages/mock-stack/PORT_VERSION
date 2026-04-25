@@ -1,0 +1,11 @@
+# Pinned upstream commit of the squid-subsquid-network indexer.
+#
+# The mini-indexer mappings under src/indexer/mappings/ are ported from this
+# repository. When updating the pin, re-port any changed mappings.
+#
+# Format: a single-line `<owner>/<repo>@<commit-sha>`.
+#
+# TODO(phase-7): replace placeholder with the real upstream pin once the
+# mini-indexer port lands. Intentionally left as TBD so we don't lock in a
+# specific commit before the porting work has happened.
+TBD

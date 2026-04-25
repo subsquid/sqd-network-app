@@ -73,6 +73,7 @@
     "yup": "^1.7.1"
   },
   "devDependencies": {
+    "@subsquid/mock-stack": "workspace:*",
     "@subsquid/server": "workspace:*",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
