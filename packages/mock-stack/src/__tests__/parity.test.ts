@@ -50,9 +50,9 @@ describe('mock-stack dispatcher parity', () => {
     expect(missing, `Missing synthetic resolvers for: ${missing.join(', ')}`).toEqual([]);
   });
 
-  it('returns non-undefined data for every declared operation', () => {
+  it('returns non-undefined data for every declared operation', async () => {
     for (const op of declared) {
-      const data = dispatch(op, {});
+      const data = await dispatch(op, {});
       expect(data, `dispatch("${op}") returned undefined`).toBeDefined();
     }
   });

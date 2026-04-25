@@ -19,7 +19,10 @@
  */
 import { resolveSynthetic } from './synthetic';
 
-export type Resolver = (variables: Record<string, unknown>, ctx: ResolverContext) => unknown;
+export type Resolver = (
+  variables: Record<string, unknown>,
+  ctx: ResolverContext,
+) => unknown | Promise<unknown>;
 
 export interface ResolverContext {
   operationName: string;
@@ -35,10 +38,13 @@ export function clearResolvers(): void {
   customResolvers.clear();
 }
 
-export function dispatch(operationName: string, variables: Record<string, unknown>): unknown {
+export async function dispatch(
+  operationName: string,
+  variables: Record<string, unknown>,
+): Promise<unknown> {
   const ctx: ResolverContext = { operationName };
   const custom = customResolvers.get(operationName);
-  if (custom) return custom(variables, ctx);
+  if (custom) return await custom(variables, ctx);
   const synthetic = resolveSynthetic(operationName, variables);
   if (synthetic !== null) return synthetic;
   // biome-ignore lint/suspicious/noConsole: dev diagnostic for missing operations

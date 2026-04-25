@@ -9,13 +9,17 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import type { Address } from 'viem';
+import { type Address, http, createPublicClient } from 'viem';
 
 import { packageRoot } from './artifacts';
 import { type AnvilHandle, spawnAnvil } from './chain';
-import { loadAnvilState } from './deploy';
+import { chainFor, loadAnvilState } from './deploy';
 import { type AddressMap, readDeployments } from './deployments';
+import { clearResolvers } from './indexer/dispatcher';
 import type { EntityStore } from './indexer/entities';
+import { registerNetworkResolvers } from './indexer/operations/network';
+import { registerTokenResolvers } from './indexer/operations/token';
+import { registerWorkerResolvers } from './indexer/operations/workers';
 import { startIndexer } from './indexer/runtime';
 import { type MockGraphqlServer, startGraphqlServer } from './indexer/server';
 
@@ -121,6 +125,36 @@ export async function startMockStack(opts: StartMockStackOpts = {}): Promise<Moc
     graphql = await startGraphqlServer({ port: graphqlPort });
     indexer = startIndexer({ rpcUrl: anvil.url, deployments });
     await indexer.waitUntilCaughtUp();
+
+    // Register chain-derived resolvers. Wipe any previously-registered
+    // resolvers so a hot-restart inside the same process picks up the new
+    // entity store without leaking stale closures.
+    clearResolvers();
+    const publicClient = createPublicClient({
+      chain: chainFor(chainId),
+      transport: http(anvil.url),
+    });
+    const blockTimestampNow = (block: bigint): string => {
+      const head = indexer!.lastBlock;
+      const ageBlocks = Math.max(0, head - Number(block));
+      return new Date(Date.now() - ageBlocks * 12_000).toISOString();
+    };
+    registerWorkerResolvers({
+      store: indexer.store,
+      client: publicClient,
+      deployments,
+      blockTimestamp: blockTimestampNow,
+    });
+    registerNetworkResolvers({
+      client: publicClient,
+      deployments,
+      getLastBlock: () => indexer!.lastBlock,
+    });
+    registerTokenResolvers({
+      client: publicClient,
+      deployments,
+      store: indexer.store,
+    });
   } catch (err) {
     // Tear down anything we managed to start before re-throwing.
     indexer?.stop();

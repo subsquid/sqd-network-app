@@ -78,8 +78,16 @@ export function startGraphqlServer(opts: StartGraphqlOpts = {}): Promise<MockGra
           return;
         }
 
-        const data = operationName ? dispatch(operationName, variables) : {};
-        respond(res, data);
+        (async () => {
+          try {
+            const data = operationName ? await dispatch(operationName, variables) : {};
+            respond(res, data);
+          } catch (err) {
+            // biome-ignore lint/suspicious/noConsole: surface resolver errors during dev
+            console.error(`[mock-stack] resolver error for "${operationName}":`, err);
+            respond(res, null, 500);
+          }
+        })();
       });
     });
 

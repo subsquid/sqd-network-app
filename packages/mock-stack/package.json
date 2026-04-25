@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@subsquid/common": "workspace:*",
+    "bs58": "^6.0.0",
     "viem": "^2.38.5"
   },
   "devDependencies": {
