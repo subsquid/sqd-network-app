@@ -2,16 +2,18 @@ import { LoginOutlined } from '@mui/icons-material';
 import { Button, ButtonProps } from '@mui/material';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 
-import { MockConnectButton } from '@components/MockConnectDialog';
-
-import { isMockMode } from '../../config';
-
 interface ConnectButtonProps extends Omit<ButtonProps, 'onClick' | 'loading'> {
   className?: string;
   label?: string;
 }
 
-function RainbowConnectButton({
+/**
+ * Connect-wallet button — opens the RainbowKit modal in both live and mock
+ * mode. In mock mode the modal includes a "Mock Personas" group at the top
+ * (see `createAppWagmiConfig` in src/config.ts) so contributors pick a
+ * fixture wallet without leaving the standard RainbowKit UX.
+ */
+export function ConnectButton({
   className,
   label = 'CONNECT WALLET',
   ...props
@@ -32,15 +34,3 @@ function RainbowConnectButton({
     </Button>
   );
 }
-
-/**
- * Renders the mock connect button when MOCK_WALLET=true (build-time constant),
- * otherwise renders the real RainbowKit connect button.
- * The split into two components keeps React hook rules satisfied.
- */
-export const ConnectButton = (props: ConnectButtonProps) => {
-  if (isMockMode) {
-    return <MockConnectButton label={props.label} />;
-  }
-  return <RainbowConnectButton {...props} />;
-};

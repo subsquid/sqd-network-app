@@ -7,20 +7,19 @@ import { BrowserRouter } from 'react-router-dom';
 import { WagmiProvider } from 'wagmi';
 
 import { queryClient } from '@api/client';
-import { MockWalletAutoConnect } from '@components/MockWalletAutoConnect';
 import { Toaster } from '@components/Toaster';
 import { getChain, getSubsquidNetwork } from '@hooks/network/useSubsquidNetwork';
 import { SquidHeightProvider } from '@hooks/useSquidNetworkHeightHooks';
 import { TickerProvider } from '@hooks/useTicker';
 
 import { AppRoutes } from './AppRoutes';
-import { createAppWagmiConfig, isMockMode } from './config';
+import { createAppWagmiConfig } from './config';
 import { useCreateRainbowKitTheme, useCreateTheme, useThemeState } from './theme';
 
 /**
  * Build the wagmi config once per app boot. `createAppWagmiConfig` reads
  * `isMockMode` (a build-time flag from `process.env.MOCK`) internally and
- * picks the mock vs. live tree.
+ * adds a "Mock Personas" wallet group to the RainbowKit modal in mock mode.
  */
 function useAppWagmiConfig() {
   return useMemo(
@@ -39,33 +38,22 @@ function App() {
   const rainbowkitTheme = useCreateRainbowKitTheme(themeName);
   const wagmiConfig = useAppWagmiConfig();
 
-  const inner = (
-    <ThemeProvider theme={theme}>
-      <TickerProvider>
-        <SquidHeightProvider>
-          <CssBaseline />
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-        </SquidHeightProvider>
-      </TickerProvider>
-      <Toaster />
-    </ThemeProvider>
-  );
-
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        {isMockMode ? (
-          <>
-            <MockWalletAutoConnect />
-            {inner}
-          </>
-        ) : (
-          <RainbowKitProvider modalSize="compact" theme={rainbowkitTheme} initialChain={getChain()}>
-            {inner}
-          </RainbowKitProvider>
-        )}
+        <RainbowKitProvider modalSize="compact" theme={rainbowkitTheme} initialChain={getChain()}>
+          <ThemeProvider theme={theme}>
+            <TickerProvider>
+              <SquidHeightProvider>
+                <CssBaseline />
+                <BrowserRouter>
+                  <AppRoutes />
+                </BrowserRouter>
+              </SquidHeightProvider>
+            </TickerProvider>
+            <Toaster />
+          </ThemeProvider>
+        </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );

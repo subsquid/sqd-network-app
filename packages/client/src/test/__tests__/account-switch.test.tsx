@@ -1,13 +1,15 @@
 /**
- * Layer-1 spec for the no-reload account switch (Phase 10).
+ * Layer-1 spec — wagmi mock connector + `onAccountsChanged` round-trip.
  *
  * Calls the mock connector's `onAccountsChanged` directly with a re-ordered
  * address list and asserts that `useAccount().address` reactively reflects
- * the new index-0 entry — no React tree remount, no `window.location.reload()`.
+ * the new index-0 entry. Useful as a lower-level alternative to spinning
+ * up multiple connectors in a hook test.
  *
- * The Phase 10 commit replaces the reload-based MockConnectDialog with the
- * same pattern; this test guards the pattern itself so a future refactor
- * doesn't silently regress it.
+ * (Production mock-mode UX is now per-persona connectors registered with
+ * RainbowKit — see `mockPersonaWallet` in `src/config.ts` — but this
+ * primitive is still the cheapest way to exercise account-state transitions
+ * in unit tests.)
  */
 
 import type { ReactNode } from 'react';
