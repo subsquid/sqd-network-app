@@ -24,6 +24,23 @@ pnpm build:client      # build client only
 pnpm build:server      # build server only
 ```
 
+## Testing
+
+```bash
+pnpm test                                         # run every package's Vitest suite
+pnpm --filter @subsquid/client test:unit          # layer-1 hook + component specs
+pnpm --filter @subsquid/client test:integration   # layer-2 specs (Foundry required)
+```
+
+The `integration` project requires [Foundry](https://book.getfoundry.sh/)
+to be installed (`curl -L https://foundry.paradigm.xyz | bash && foundryup`).
+Run `pnpm --filter @subsquid/mock-stack stack:prepare` once after install to
+produce `packages/mock-stack/.anvil-state.json` and `.deployments.json`;
+subsequent test runs reuse the cached snapshot.
+
+See [`packages/mock-stack/README.md`](packages/mock-stack/README.md) for
+details on how the mock environment is constructed.
+
 ## Other commands
 
 ```bash

@@ -126,9 +126,24 @@ The root `turbo.json` defines five tasks:
 
 ## Testing & Quality Gates
 
-- **No automated test suite** is configured at this time. TypeScript compilation (`pnpm tsc`) serves as the primary correctness gate.
-- **Linting:** Biome — run `pnpm lint` before committing. CI does **not** run lint, so fix issues locally.
-- **Type-check:** CI runs `npx turbo run tsc --filter=@subsquid/client` (web) and `npx turbo run tsc --filter=@subsquid/server` (server) before building.
+- **Test suite:** Vitest — run `pnpm test` to execute every package's specs.
+  - `@subsquid/client` ships two Vitest projects:
+    - `unit` — jsdom + Testing Library + wagmi mock connector + canned viem
+      transports. Fast, parallel, no Anvil required.
+      Filter: `pnpm --filter @subsquid/client test:unit`.
+    - `integration` — jsdom in single-fork mode, backed by Anvil + the
+      mini-indexer + an in-process tRPC server (all spun up by
+      `@subsquid/mock-stack`'s `startMockStack()`). Requires Foundry.
+      Filter: `pnpm --filter @subsquid/client test:integration`.
+  - `@subsquid/mock-stack` runs a parity test enumerating every named
+    GraphQL operation in `packages/server/graphql/*.graphql` and asserting
+    a resolver exists.
+- **Foundry prerequisite (integration tests only):** install with
+  `curl -L https://foundry.paradigm.xyz | bash && foundryup`, then run
+  `pnpm --filter @subsquid/mock-stack stack:prepare` once to produce
+  `.anvil-state.json` + `.deployments.json` (cached by Turbo afterwards).
+- **Linting:** Biome — run `pnpm lint` before committing.
+- **Type-check:** `pnpm tsc` runs `tsc --noEmit` across all packages.
 - **Generated files:** Never edit `packages/server/src/generated/` or any `*.generated.*` files by hand; always regenerate with `pnpm codegen`.
 - **Import order:** Biome enforces a specific import order (Node built-ins → react → third-party → internal aliases). The internal aliases `@components`, `@contexts`, `@hooks`, `@api`, `@network`, `@lib` are grouped last.
 
@@ -169,6 +184,7 @@ The root `turbo.json` defines five tasks:
 
 - [ ] Run `pnpm lint` and fix any Biome errors before committing
 - [ ] Run `pnpm tsc` to confirm no TypeScript errors
+- [ ] Run `pnpm test` to confirm Vitest specs still pass (Foundry required for integration project)
 - [ ] Run `pnpm codegen` if GraphQL queries or contract ABIs were modified
 - [ ] Update `.env.example` if new environment variables were introduced
 - [ ] Update `README.md` if setup instructions or scripts changed

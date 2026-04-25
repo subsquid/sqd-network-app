@@ -1,0 +1,89 @@
+name: test
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Cache pnpm store
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
+
+      # The Foundry artefacts and the prepared anvil state are deterministic
+      # functions of the contract source SHAs. Cache on those so PRs that
+      # don't touch contracts skip the (~minute-long) forge build + deploy.
+      - name: Cache mock-stack prepared artefacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            packages/mock-stack/out
+            packages/mock-stack/.anvil-state.json
+            packages/mock-stack/.deployments.json
+            sqd-network-contracts/packages/contracts/artifacts
+            sqd-portal-contracts/out
+          key: mock-stack-${{ runner.os }}-${{ hashFiles('packages/mock-stack/contracts/**', 'packages/mock-stack/src/**', 'packages/mock-stack/scripts/**', 'packages/mock-stack/foundry.toml') }}-${{ hashFiles('.gitmodules') }}
+
+      - name: Build mock contracts
+        run: forge build --root packages/mock-stack
+        if: hashFiles('packages/mock-stack/out/MockERC20.sol/MockSQD.json') == ''
+
+      - name: Build network contracts
+        run: forge build --root sqd-network-contracts/packages/contracts
+        if: hashFiles('sqd-network-contracts/packages/contracts/artifacts/Staking.sol/Staking.json') == ''
+
+      - name: Build portal contracts
+        run: forge build --root sqd-portal-contracts
+        if: hashFiles('sqd-portal-contracts/out/PortalPoolFactory.sol/PortalPoolFactory.json') == ''
+
+      - name: Prepare mock-stack snapshot
+        run: pnpm --filter @subsquid/mock-stack stack:prepare
+        if: hashFiles('packages/mock-stack/.anvil-state.json') == ''
+
+      - name: Type-check
+        run: pnpm tsc
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
+        env:
+          NETWORK: mainnet
