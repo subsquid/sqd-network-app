@@ -1,4 +1,4 @@
-import { getDefaultConfig } from '@rainbow-me/rainbowkit';
+import { type Chain, getDefaultConfig } from '@rainbow-me/rainbowkit';
 import {
   baseAccount,
   coinbaseWallet,
@@ -11,28 +11,17 @@ import {
 } from '@rainbow-me/rainbowkit/wallets';
 import { upperFirst } from 'lodash-es';
 import type { Address } from 'viem';
-import { createConfig, fallback, http, mock } from 'wagmi';
+import { type Config, createConfig, fallback, http, mock } from 'wagmi';
 import { arbitrum, arbitrumSepolia } from 'wagmi/chains';
 
 import { NetworkName, getSubsquidNetwork } from './hooks/network/useSubsquidNetwork';
-
-// export let CHAIN: Chain = arbitrumSepolia;
-// if (process.env.NETWORK === 'hardhat') {
-//   CHAIN = {
-//     ...hardhat,
-//     contracts: {
-//       multicall3: {
-//         address: process.env.MULTICALL_3_CONTRACT_ADDRESS,
-//       } as any,
-//     },
-//   };
-// }
 
 const network = getSubsquidNetwork();
 
 /**
  * True when the full mock environment is active (MOCK_WALLET=true at build time).
- * Controls whether mockConfig is used instead of rainbowConfig in App.tsx.
+ * Drives the `mode` argument to `createAppWagmiConfig()` plus a handful of
+ * mock-only UI affordances (e.g. the disconnect menu item label).
  */
 export const isMockMode = process.env.MOCK_WALLET === 'true';
 
@@ -69,7 +58,7 @@ export const MOCK_FIXTURE_ACCOUNTS: readonly {
 ] as const;
 
 /** Mock RPC URL — the in-process JSON-RPC server started by the dev server. */
-const MOCK_RPC_URL = process.env.MOCK_RPC_URL || 'http://localhost:8545';
+export const MOCK_RPC_URL = process.env.MOCK_RPC_URL || 'http://localhost:8545';
 
 const SESSION_KEY = 'mock:account:index';
 
@@ -101,24 +90,69 @@ export function clearMockAccountIndex(): void {
   }
 }
 
-/**
- * Builds a wagmi config for mock mode.
- * If an account index has been persisted to sessionStorage (set by MockConnectDialog
- * before the app remounts), the connector starts connected to that account.
- * Otherwise the connector starts disconnected so the user must pick an account.
- *
- * The transport points at the local mock RPC server so reads/writes are handled
- * in-memory.  No RainbowKitProvider needed.
- */
-function buildMockConfig() {
+// ---------------------------------------------------------------------------
+// Wagmi config factory
+// ---------------------------------------------------------------------------
+
+export type AppMode = 'live' | 'mock';
+
+export interface AppWagmiConfigOpts {
+  /** Selects between the RainbowKit-backed live config and the wagmi-mock config. */
+  mode: AppMode;
+  /** Selected Subsquid network (mainnet → arbitrum, tethys → arbitrumSepolia). */
+  network: NetworkName;
+  /** WalletConnect v2 project id, used only when `mode === 'live'`. */
+  walletConnectProjectId?: string;
+  /** RPC URL for the mock JSON-RPC server (default: `MOCK_RPC_URL`). */
+  mockRpcUrl?: string;
+  /**
+   * Optional Multicall3 contract address override (mock-stack deploys to
+   * a non-canonical address). Only honoured in mock mode.
+   */
+  multicall3Override?: Address;
+  /**
+   * Account list passed to the wagmi mock connector. Defaults to the four
+   * `MOCK_FIXTURE_ACCOUNTS` addresses, with the persisted-selection re-ordered
+   * to index 0 when present.
+   */
+  mockAccounts?: readonly Address[];
+}
+
+/** Apply a Multicall3 address override to a chain object. */
+function withMulticall3Override<T extends Chain>(chain: T, address?: Address): T {
+  if (!address) return chain;
+  return {
+    ...chain,
+    contracts: {
+      ...(chain.contracts ?? {}),
+      multicall3: { address, blockCreated: 0 },
+    },
+  };
+}
+
+/** Resolve the chain (with optional Multicall3 override) for the active network. */
+function resolveChain(selected: NetworkName, multicall3Override?: Address): Chain {
+  const base = selected === NetworkName.Mainnet ? arbitrum : arbitrumSepolia;
+  return withMulticall3Override(base, multicall3Override);
+}
+
+function buildMockConfig(opts: AppWagmiConfigOpts): Config {
+  const rpcUrl = opts.mockRpcUrl ?? MOCK_RPC_URL;
+
+  // If the user has previously selected a persona, hoist that address to
+  // index 0 so wagmi reports it as the connected address.
   const selectedIndex = getMockAccountIndex();
-  const hasSelection = selectedIndex >= 0 && selectedIndex < MOCK_FIXTURE_ACCOUNTS.length;
+  const fixtureAddrs = MOCK_FIXTURE_ACCOUNTS.map(a => a.address);
+  const baseAccounts = (opts.mockAccounts ?? fixtureAddrs) as Address[];
+  const hasSelection = selectedIndex >= 0 && selectedIndex < baseAccounts.length;
   const accounts = hasSelection
-    ? ([MOCK_FIXTURE_ACCOUNTS[selectedIndex].address] as [Address, ...Address[]])
-    : (MOCK_FIXTURE_ACCOUNTS.map(a => a.address) as [Address, ...Address[]]);
+    ? ([baseAccounts[selectedIndex]] as [Address, ...Address[]])
+    : (baseAccounts as [Address, ...Address[]]);
+
+  const chain = resolveChain(opts.network, opts.multicall3Override);
 
   return createConfig({
-    chains: network === NetworkName.Mainnet ? [arbitrum] : [arbitrumSepolia],
+    chains: [chain],
     connectors: [
       mock({
         accounts,
@@ -129,35 +163,51 @@ function buildMockConfig() {
       }),
     ],
     transports: {
-      [arbitrum.id]: http(MOCK_RPC_URL),
-      [arbitrumSepolia.id]: http(MOCK_RPC_URL),
+      [chain.id]: http(rpcUrl),
     },
   });
 }
 
-export const mockConfig = isMockMode ? buildMockConfig() : null;
-
-export const rainbowConfig = getDefaultConfig({
-  appName: `Subsquid Network ${upperFirst(network)}`,
-  projectId: process.env.WALLET_CONNECT_PROJECT_ID || '',
-  transports: {
-    [arbitrum.id]: fallback([http()]),
-    [arbitrumSepolia.id]: fallback([http()]),
-  },
-  chains: network === NetworkName.Mainnet ? [arbitrum] : [arbitrumSepolia],
-  wallets: [
-    {
-      groupName: 'Popular',
-      wallets: [
-        metaMaskWallet,
-        rabbyWallet,
-        safeWallet,
-        rainbowWallet,
-        baseAccount,
-        trustWallet,
-        coinbaseWallet,
-        walletConnectWallet,
-      ],
+function buildLiveConfig(opts: AppWagmiConfigOpts): Config {
+  const chain = resolveChain(opts.network);
+  return getDefaultConfig({
+    appName: `Subsquid Network ${upperFirst(opts.network)}`,
+    projectId: opts.walletConnectProjectId ?? '',
+    transports: {
+      [chain.id]: fallback([http()]),
     },
-  ],
-});
+    chains: [chain],
+    wallets: [
+      {
+        groupName: 'Popular',
+        wallets: [
+          metaMaskWallet,
+          rabbyWallet,
+          safeWallet,
+          rainbowWallet,
+          baseAccount,
+          trustWallet,
+          coinbaseWallet,
+          walletConnectWallet,
+        ],
+      },
+    ],
+  });
+}
+
+/**
+ * Build the wagmi `Config` used by the app, based on whether the mock
+ * environment is active. Keep this function pure — its result is meant to be
+ * memoised once per app boot in `App.tsx`, with all environment lookups
+ * collected at the call site (NOT here).
+ *
+ * Test code can call this with arbitrary options to obtain a config that
+ * matches the production tree exactly, sidestepping module-level singletons.
+ */
+export function createAppWagmiConfig(opts: AppWagmiConfigOpts): Config {
+  return opts.mode === 'mock' ? buildMockConfig(opts) : buildLiveConfig(opts);
+}
+
+// Back-compat: a few callers (and the integration test harness) still want
+// the network the config was built for without re-deriving it.
+export { network as currentNetwork };
