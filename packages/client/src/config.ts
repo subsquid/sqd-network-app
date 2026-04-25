@@ -159,26 +159,28 @@ export function createAppWagmiConfig(opts: AppWagmiConfigOpts): Config {
   const chain = resolveChain(opts.network, opts.multicall3Override);
   const transport = isMockMode ? http(MOCK_RPC_URL) : fallback([http()]);
 
-  const realWallets = [
-    metaMaskWallet,
-    rabbyWallet,
-    safeWallet,
-    rainbowWallet,
-    baseAccount,
-    trustWallet,
-    coinbaseWallet,
-    walletConnectWallet,
-  ];
-
   const wallets = isMockMode
     ? [
         {
           groupName: 'Mock Personas',
           wallets: MOCK_FIXTURE_ACCOUNTS.map((p, i) => mockPersonaWallet(p, i)),
         },
-        { groupName: 'Real Wallets', wallets: realWallets },
       ]
-    : [{ groupName: 'Popular', wallets: realWallets }];
+    : [
+        {
+          groupName: 'Popular',
+          wallets: [
+            metaMaskWallet,
+            rabbyWallet,
+            safeWallet,
+            rainbowWallet,
+            baseAccount,
+            trustWallet,
+            coinbaseWallet,
+            walletConnectWallet,
+          ],
+        },
+      ];
 
   return getDefaultConfig({
     appName: `Subsquid Network ${upperFirst(opts.network)}`,
