@@ -14,10 +14,10 @@
 
 ```bash
 pnpm dev        # client (port 3005) + server (port 3001) against the live Squid + Arbitrum
-pnpm dev:mock   # same, but loads .env.mock and routes the server at the in-process mock servers
+pnpm mock       # same, but loads .env.mock and routes the server at the in-process mock servers
 ```
 
-`pnpm dev:mock` loads [`.env.mock`](.env.mock) (already pointed at
+`pnpm mock` loads [`.env.mock`](.env.mock) (already pointed at
 `http://localhost:4321/graphql` and `http://localhost:8545`) and starts the
 server via `main.mock.ts`, which boots the in-process mock GraphQL fixture
 server + mock JSON-RPC server before the regular startup. The client is

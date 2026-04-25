@@ -4,8 +4,8 @@ Single-owner mock environment for the Subsquid Network app. Used by:
 
 - Vitest globalSetup (Layer-2 integration tests).
 - Future Playwright E2E (see `plans/playwright-e2e.md`).
-- `pnpm dev:mock` (legacy in-process mock servers; the full mock-stack
-  takes over once the migration is complete).
+- `pnpm mock` (legacy in-process mock servers; the full mock-stack takes
+  over once the migration is complete).
 
 The package wraps three pieces that together replicate everything the app
 needs to render meaningfully without real Squid APIs or mainnet RPC:

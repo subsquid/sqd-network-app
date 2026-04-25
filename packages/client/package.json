@@ -9,7 +9,7 @@
     "lint": "biome check src --fix",
     "tsc": "tsc --noEmit",
     "dev": "vite serve --port 3005 --host 127.0.0.1",
-    "dev:mock": "vite serve --mode mock --port 3005 --host 127.0.0.1",
+    "mock": "vite serve --mode mock --port 3005 --host 127.0.0.1",
     "start": "vite serve --port 3005 --host 127.0.0.1",
     "preview": "vite preview --outDir build --host 127.0.0.1 --port 3005",
     "test": "vitest run",

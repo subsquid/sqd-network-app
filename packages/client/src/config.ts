@@ -19,8 +19,8 @@ import { NetworkName, getSubsquidNetwork } from './hooks/network/useSubsquidNetw
 const network = getSubsquidNetwork();
 
 /**
- * True when this bundle was built with `pnpm dev:mock` / `pnpm build:mock`
- * (vite's `--mode mock` flag injects `process.env.MOCK = 'true'`).
+ * True when this bundle was built with `pnpm mock` (vite's `--mode mock`
+ * flag injects `process.env.MOCK = 'true'`).
  *
  * Drives:
  *   - `createAppWagmiConfig`'s mode argument

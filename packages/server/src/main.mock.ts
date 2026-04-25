@@ -1,5 +1,5 @@
 /**
- * Entrypoint for `pnpm dev:mock`.
+ * Entrypoint for `pnpm mock`.
  *
  * Starts the in-process mock GraphQL fixture server + the in-process mock
  * JSON-RPC server, then hands off to the regular `main.ts` startup. The
