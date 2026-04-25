@@ -11,6 +11,7 @@
     "lint": "biome check src --fix",
     "test": "vitest run",
     "test:watch": "vitest",
+    "mock:chain": "tsx scripts/serve.ts",
     "stack:prepare": "tsx scripts/prepare.ts",
     "stack:rebuild": "rm -rf out .anvil-state.json .deployments.json && pnpm stack:prepare"
   },

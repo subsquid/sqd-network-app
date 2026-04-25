@@ -13,28 +13,43 @@
 ## Development
 
 ```bash
-pnpm dev        # client (port 3005) + server (port 3001) against the live Squid + Arbitrum
-pnpm mock       # same, but loads .env.mock and routes the server at the in-process mock servers
+pnpm dev          # client (port 3005) + server (port 3001) against live Squid + Arbitrum
+pnpm mock         # convenience: runs both pnpm mock:chain and pnpm mock:app together
+pnpm mock:chain   # long-lived chain (anvil :8545 + mini-indexer GraphQL :4321)
+pnpm mock:app     # client + tRPC server pointed at the running chain
 ```
 
-`pnpm mock` loads [`.env.mock`](.env.mock) (already pointed at
-`http://localhost:4321/graphql` and `http://localhost:8545`) and starts the
-server via `main.mock.ts`, which boots the full
-[`@subsquid/mock-stack`](packages/mock-stack/README.md):
+### Mock mode (two-process layout)
 
-- Anvil chain id 42161 with 15 deployed contracts (MockSQD, Multicall3,
-  Router proxy, NetworkController, Staking, WorkerRegistration,
-  RewardTreasury, GatewayRegistry proxy, etc.).
-- Personas seeded with **realistic on-chain state** — Carol registers two
-  workers, Bob delegates 50 000 SQD to one of them.
-- Log-driven mini-indexer subscribes to `WorkerRegistration` + `Staking`
-  events and projects them into entities.
-- GraphQL HTTP server (4321) where the high-traffic operations
-  (`allWorkers`, `myWorkers`, `myDelegations`, `sources`, `settings`, …)
-  resolve from the entity store + on-chain reads. Worker IDs, peer IDs,
-  delegation amounts, account balances all come from chain state.
+`pnpm mock:chain` is the slow, long-lived process: it auto-runs
+`forge build` if needed, deploys the contracts, seeds personas, and
+keeps anvil + the mini-indexer GraphQL server up. State lives at
+`packages/mock-stack/{.anvil-state.json,.deployments.json}`. Start it
+**once per session** in its own terminal — restart only when you change
+the deploy harness, contract sources, or want a fresh chain.
 
-Foundry must be installed (the same as for `pnpm test`).
+`pnpm mock:app` is the fast-iterating process: client (vite, watch mode)
++ tRPC server (`tsx --watch`). It reads the chain endpoints from the
+filesystem and runs forever; saving a server file just hot-reloads the
+tRPC routers without touching anvil.
+
+`pnpm mock` is a convenience that runs both halves at once for one-off
+work; `pnpm mock:chain` + `pnpm mock:app` in two terminals is the
+recommended dev loop.
+
+What's deployed (~20 contracts):
+[`@subsquid/mock-stack`](packages/mock-stack/README.md): MockSQD + USDC
++ WETH + Multicall3 + Router proxy + NetworkController + Staking +
+WorkerRegistration + RewardTreasury + SoftCap + DistributedRewards +
+RewardCalculation + GatewayRegistry proxy + VestingFactory +
+PortalRegistry proxy + FeeRouterModule + PortalPoolImplementation +
+PortalPoolFactory proxy + PortalPoolBeacon. Personas: Carol registers 2
+workers; Bob delegates 50 000 SQD to worker 1 + deposits 25 000 SQD into
+Carol's portal pool; Dave gets a 1 000 000 SQD vesting account. Worker
+IDs, peer IDs, delegation amounts, balances are all read directly from
+chain state via view functions — no indexed entity store, no drift.
+
+**Prerequisite**: Foundry installed (`curl -L https://foundry.paradigm.xyz | bash && foundryup`).
 
 The client is built with `vite --mode mock`, which sets the build-time
 `process.env.MOCK` flag, switching it to the wagmi mock connector + the

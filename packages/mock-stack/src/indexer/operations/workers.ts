@@ -76,9 +76,21 @@ function parseWorkerName(metadata: string, fallback: string): string {
   }
 }
 
-const workerRegAbi = networkArtifact('WorkerRegistration').abi;
-const stakingAbi = networkArtifact('Staking').abi;
-const networkAbi = networkArtifact('NetworkController').abi;
+// ABIs are loaded lazily — `forge build` may not have run yet at module-load
+// time (e.g. when the @subsquid/server bundle imports a downstream module
+// that pulls these in before the chain process has prepared artefacts).
+let _workerRegAbi: Abi | undefined;
+let _stakingAbi: Abi | undefined;
+let _networkAbi: Abi | undefined;
+function workerRegAbi(): Abi {
+  return (_workerRegAbi ??= networkArtifact('WorkerRegistration').abi);
+}
+function stakingAbi(): Abi {
+  return (_stakingAbi ??= networkArtifact('Staking').abi);
+}
+function networkAbi(): Abi {
+  return (_networkAbi ??= networkArtifact('NetworkController').abi);
+}
 
 async function readWorker(
   client: PublicClient,
@@ -87,7 +99,7 @@ async function readWorker(
 ): Promise<OnChainWorker | null> {
   try {
     const w = (await client.readContract({
-      abi: workerRegAbi,
+      abi: workerRegAbi(),
       address: registration,
       functionName: 'getWorker',
       args: [workerId],
@@ -105,7 +117,7 @@ async function readDelegated(
 ): Promise<bigint> {
   try {
     return (await client.readContract({
-      abi: stakingAbi,
+      abi: stakingAbi(),
       address: staking,
       functionName: 'delegated',
       args: [workerId],
@@ -122,7 +134,7 @@ async function readBondAmount(
   if (!controller) return 100_000n * 10n ** 18n;
   try {
     return (await client.readContract({
-      abi: networkAbi,
+      abi: networkAbi(),
       address: controller,
       functionName: 'bondAmount',
     })) as bigint;
@@ -137,7 +149,7 @@ async function readActiveWorkerIds(
 ): Promise<readonly bigint[]> {
   try {
     return (await client.readContract({
-      abi: workerRegAbi,
+      abi: workerRegAbi(),
       address: registration,
       functionName: 'getActiveWorkerIds',
     })) as readonly bigint[];
@@ -153,7 +165,7 @@ async function readOwnedWorkers(
 ): Promise<readonly bigint[]> {
   try {
     return (await client.readContract({
-      abi: workerRegAbi,
+      abi: workerRegAbi(),
       address: registration,
       functionName: 'getOwnedWorkers',
       args: [owner],
@@ -170,7 +182,7 @@ async function readDelegates(
 ): Promise<readonly bigint[]> {
   try {
     return (await client.readContract({
-      abi: stakingAbi,
+      abi: stakingAbi(),
       address: staking,
       functionName: 'delegates',
       args: [staker],
@@ -188,7 +200,7 @@ async function readDeposit(
 ): Promise<{ depositAmount: bigint; withdrawAllowed: bigint }> {
   try {
     const result = (await client.readContract({
-      abi: stakingAbi,
+      abi: stakingAbi(),
       address: staking,
       functionName: 'getDeposit',
       args: [staker, workerId],
@@ -313,7 +325,7 @@ export function registerWorkerResolvers(deps: WorkersResolverDeps): void {
     let id: bigint = 0n;
     try {
       id = (await deps.client.readContract({
-        abi: workerRegAbi,
+        abi: workerRegAbi(),
         address: deps.deployments.WORKER_REGISTRATION,
         functionName: 'workerIds',
         args: [peerHex],

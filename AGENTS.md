@@ -138,13 +138,19 @@ The root `turbo.json` defines five tasks:
   - `@subsquid/mock-stack` runs a parity test enumerating every named
     GraphQL operation in `packages/server/graphql/*.graphql` and asserting
     a resolver exists.
-- **Foundry prerequisite (integration tests only):** install with
-  `curl -L https://foundry.paradigm.xyz | bash && foundryup`. That's the
-  only setup step — `pnpm test` auto-runs `forge build` and the deploy
-  harness on the first invocation; subsequent runs reuse
-  `packages/mock-stack/.anvil-state.json`. Anvil and the GraphQL server
-  bind to ephemeral ports so concurrent runs and rerun loops don't
-  collide.
+- **Foundry prerequisite (integration tests + mock mode):** install with
+  `curl -L https://foundry.paradigm.xyz | bash && foundryup`.
+- **Mock dev workflow (two processes):**
+  - `pnpm mock:chain` — long-lived: anvil + deploy harness + GraphQL on
+    ports 8545/4321. Start once per session in its own terminal.
+  - `pnpm mock:app` — vite (client) + tRPC server, both with watch mode.
+    Reads chain endpoints from `packages/mock-stack/.deployments.json`
+    and waits if the file isn't there yet.
+  - `pnpm mock` runs both at once for one-off work.
+- **Tests** auto-run `forge build` and the deploy harness on the first
+  invocation; subsequent runs reuse `packages/mock-stack/.anvil-state.json`.
+  Anvil and the GraphQL server bind to ephemeral ports for tests so
+  concurrent runs don't collide on the dev mode's pinned 8545/4321.
 - **Linting:** Biome — run `pnpm lint` before committing.
 - **Type-check:** `pnpm tsc` runs `tsc --noEmit` across all packages.
 - **Generated files:** Never edit `packages/server/src/generated/` or any `*.generated.*` files by hand; always regenerate with `pnpm codegen`.

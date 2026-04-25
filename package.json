@@ -5,7 +5,9 @@
   "private": true,
   "scripts": {
     "dev": "turbo run dev",
-    "mock": "turbo run mock",
+    "mock:chain": "turbo run mock:chain",
+    "mock:app": "turbo run mock:app",
+    "mock": "turbo run mock:chain mock:app",
     "build": "turbo run build",
     "build:client": "turbo run build --filter=@subsquid/client",
     "build:server": "turbo run build --filter=@subsquid/server",

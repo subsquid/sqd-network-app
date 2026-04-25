@@ -6,7 +6,11 @@
       "cache": false,
       "persistent": true
     },
-    "mock": {
+    "mock:chain": {
+      "cache": false,
+      "persistent": true
+    },
+    "mock:app": {
       "cache": false,
       "persistent": true
     },

@@ -10,7 +10,7 @@
  * `Staking.delegates(staker).length` — exact enough for the UI's
  * "do I have anything to claim?" badge.
  */
-import { type Address, type PublicClient, erc20Abi } from 'viem';
+import { type Abi, type Address, type PublicClient, erc20Abi } from 'viem';
 
 import { networkArtifact } from '../../artifacts';
 import type { AddressMap } from '../../deployments';
@@ -23,7 +23,11 @@ export interface TokenResolverDeps {
   registry: IndexerRegistry;
 }
 
-const stakingAbi = networkArtifact('Staking').abi;
+// Lazy ABI load — see workers.ts for rationale.
+let _stakingAbi: Abi | undefined;
+function stakingAbi(): Abi {
+  return (_stakingAbi ??= networkArtifact('Staking').abi);
+}
 
 async function balanceOf(deps: TokenResolverDeps, address: Address): Promise<bigint> {
   if (!deps.deployments.SQD) return 0n;
@@ -43,7 +47,7 @@ async function delegationCount(deps: TokenResolverDeps, owner: Address): Promise
   if (!deps.deployments.STAKING) return 0;
   try {
     const ids = (await deps.client.readContract({
-      abi: stakingAbi,
+      abi: stakingAbi(),
       address: deps.deployments.STAKING as Address,
       functionName: 'delegates',
       args: [owner],

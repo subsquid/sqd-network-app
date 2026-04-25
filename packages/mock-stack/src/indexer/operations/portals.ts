@@ -6,7 +6,7 @@
  * `Pool.getPoolInfo()`, `Pool.getActiveStake()`, `Pool.getProviderStake(addr)`,
  * `Pool.getRewardToken()`. No cached entity store, no projection layer.
  */
-import { type Address, type PublicClient } from 'viem';
+import type { Abi, Address, PublicClient } from 'viem';
 
 import { portalArtifact } from '../../artifacts';
 import { type Resolver, registerResolver } from '../dispatcher';
@@ -29,12 +29,18 @@ interface PoolInfo {
   firstActivated: boolean;
 }
 
-const portalPoolAbi = portalArtifact('PortalPoolImplementation').abi;
+// Lazy ABI load — see workers.ts for rationale (forge artefacts may not
+// exist yet at module-import time when the chain process hasn't run
+// autoPrepare).
+let _portalPoolAbi: Abi | undefined;
+function portalPoolAbi(): Abi {
+  return (_portalPoolAbi ??= portalArtifact('PortalPoolImplementation').abi);
+}
 
 async function readPoolInfo(client: PublicClient, pool: Address): Promise<PoolInfo | null> {
   try {
     return (await client.readContract({
-      abi: portalPoolAbi,
+      abi: portalPoolAbi(),
       address: pool,
       functionName: 'getPoolInfo',
     })) as PoolInfo;
@@ -46,7 +52,7 @@ async function readPoolInfo(client: PublicClient, pool: Address): Promise<PoolIn
 async function readActiveStake(client: PublicClient, pool: Address): Promise<bigint> {
   try {
     return (await client.readContract({
-      abi: portalPoolAbi,
+      abi: portalPoolAbi(),
       address: pool,
       functionName: 'getActiveStake',
     })) as bigint;
@@ -62,7 +68,7 @@ async function readProviderStake(
 ): Promise<bigint> {
   try {
     return (await client.readContract({
-      abi: portalPoolAbi,
+      abi: portalPoolAbi(),
       address: pool,
       functionName: 'getProviderStake',
       args: [provider],
@@ -75,7 +81,7 @@ async function readProviderStake(
 async function readRewardToken(client: PublicClient, pool: Address): Promise<string> {
   try {
     const addr = (await client.readContract({
-      abi: portalPoolAbi,
+      abi: portalPoolAbi(),
       address: pool,
       functionName: 'getRewardToken',
     })) as Address;
