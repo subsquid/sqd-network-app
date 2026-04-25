@@ -1,3 +1,4 @@
+import { connect } from '@wagmi/core';
 import type { Address, Transport } from 'viem';
 import { type Config, createConfig, http } from 'wagmi';
 import { arbitrum, arbitrumSepolia } from 'wagmi/chains';
@@ -38,6 +39,10 @@ export interface UnitWagmiConfigOpts {
  * - Connector starts connected (most hook tests assume `useAccount().isConnected === true`).
  * - Transport: throws on every RPC method unless `rpcMap` overrides specific ones.
  *   This is deliberately strict — silent fallthroughs hide bugs.
+ *
+ * Use `connectMockConnector(config)` from the same module if you want to
+ * await the connection promise before rendering hooks (some hooks short-circuit
+ * on initial-render `isDisconnected: true` and never re-evaluate).
  */
 export function createUnitWagmiConfig(opts: UnitWagmiConfigOpts = {}): Config {
   const accounts = (opts.accounts ?? TEST_ACCOUNTS) as [Address, ...Address[]];
@@ -47,8 +52,14 @@ export function createUnitWagmiConfig(opts: UnitWagmiConfigOpts = {}): Config {
 
   // wagmi widens the transports map to all chains the lib knows about; supply
   // the same transport for both so TS doesn't complain about a missing key.
+  // Strip `multicall3` from each chain so `useReadContract` doesn't aggregate
+  // calls behind a multicall3.aggregate3 frame — keeps eth_call selectors
+  // human-readable in canned RPC maps.
+  const arb = stripMulticall3(arbitrum);
+  const arbSepolia = stripMulticall3(arbitrumSepolia);
+  const useArb = chain.id === arbitrum.id;
   return createConfig({
-    chains: [arbitrum, arbitrumSepolia],
+    chains: [arb, arbSepolia],
     connectors: [
       mock({
         accounts,
@@ -59,8 +70,33 @@ export function createUnitWagmiConfig(opts: UnitWagmiConfigOpts = {}): Config {
       }),
     ],
     transports: {
-      [arbitrum.id]: chain.id === arbitrum.id ? transport : http('http://invalid'),
-      [arbitrumSepolia.id]: chain.id === arbitrumSepolia.id ? transport : http('http://invalid'),
+      [arb.id]: useArb ? transport : http('http://invalid'),
+      [arbSepolia.id]: useArb ? http('http://invalid') : transport,
     },
   });
+}
+
+function stripMulticall3<T extends { contracts?: Record<string, unknown> }>(c: T): T {
+  if (!c.contracts) return c;
+  const { multicall3: _, ...rest } = c.contracts as Record<string, unknown>;
+  return { ...c, contracts: rest } as T;
+}
+
+/**
+ * Programmatically connect the mock connector that `createUnitWagmiConfig`
+ * registered. Returns the resolved address list so specs can assert against
+ * the address that ended up connected.
+ *
+ * `defaultConnected: true` on the mock connector flips its internal flag but
+ * doesn't emit a `connect` event into the wagmi store. Calling this helper
+ * once after `createUnitWagmiConfig()` ensures `useAccount().isConnected`
+ * resolves to `true` on first render.
+ */
+export async function connectMockConnector(config: Config): Promise<readonly Address[]> {
+  const connector = config.connectors[0];
+  if (!connector) {
+    throw new Error('createUnitWagmiConfig produced no connectors');
+  }
+  const { accounts } = await connect(config, { connector });
+  return accounts;
 }
