@@ -76,9 +76,43 @@ async function pickFreePort(): Promise<number> {
   });
 }
 
+/**
+ * Probe the given port and reject with a clear message if something is
+ * already listening. Otherwise resolves with the port unchanged.
+ */
+async function ensurePortFree(port: number): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    const probe = net.createServer();
+    probe.unref();
+    probe.once('error', err => {
+      const code = (err as NodeJS.ErrnoException).code;
+      if (code === 'EADDRINUSE') {
+        reject(
+          new Error(
+            `Port ${port} is already in use. A previous \`pnpm mock\` may still be ` +
+              'running — kill it (Ctrl+C in that terminal, or `lsof -i:' +
+              `${port}\` to find the PID) and try again.`,
+          ),
+        );
+      } else {
+        reject(err);
+      }
+    });
+    probe.listen(port, '127.0.0.1', () => {
+      probe.close(() => resolve());
+    });
+  });
+}
+
 /** Spawn a fresh anvil process, waiting until it answers `eth_blockNumber`. */
 export async function spawnAnvil(opts: SpawnAnvilOpts = {}): Promise<AnvilHandle> {
   const port = opts.port && opts.port > 0 ? opts.port : await pickFreePort();
+  // Pre-flight: bail out with an actionable error if 8545 (or whatever the
+  // caller asked for) is already taken — otherwise anvil's spawn fails
+  // silently and waitForAnvil reports a generic "did not become ready" timeout.
+  if (opts.port && opts.port > 0) {
+    await ensurePortFree(port);
+  }
   const chainId = opts.chainId ?? 42161;
   const accounts = opts.accounts ?? 10;
   const url = `http://127.0.0.1:${port}`;

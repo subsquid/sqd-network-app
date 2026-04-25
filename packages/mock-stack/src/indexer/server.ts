@@ -91,7 +91,20 @@ export function startGraphqlServer(opts: StartGraphqlOpts = {}): Promise<MockGra
       });
     });
 
-    server.on('error', reject);
+    server.on('error', err => {
+      const code = (err as NodeJS.ErrnoException).code;
+      if (code === 'EADDRINUSE' && port > 0) {
+        reject(
+          new Error(
+            `GraphQL port ${port} is already in use. A previous \`pnpm mock\` may ` +
+              'still be running — kill it (Ctrl+C, or `lsof -i:' +
+              `${port}\`) and try again.`,
+          ),
+        );
+        return;
+      }
+      reject(err);
+    });
     server.listen(port, host, () => {
       const addr = server.address();
       const boundPort = addr && typeof addr !== 'string' ? addr.port : port;
