@@ -608,16 +608,16 @@ function AddNewPortalDialog({
                   {estimatedCUs.toLocaleString()}
                 </Typography>
               </Stack>
-              <Typography variant="body2" component="span">
-                <Stack direction="row" justifyContent="space-between" alignContent="center">
-                  <HelpTooltip title="If the pool does not reach its full capacity by this deadline, it will be cancelled. Only part of your deposit will be recoverable - the rest is used immediately upon deposit. You'll see the exact breakdown in the next step.">
+              <Stack direction="row" justifyContent="space-between" alignContent="center">
+                <HelpTooltip title="If the pool does not reach its full capacity by this deadline, it will be cancelled. Only part of your deposit will be recoverable - the rest is used immediately upon deposit. You'll see the exact breakdown in the next step.">
+                  <Typography variant="body2" component="span">
                     Collection Deadline
-                  </HelpTooltip>
-                  <Typography variant="body2" fontWeight={600}>
-                    {deadlineDate}
                   </Typography>
-                </Stack>
-              </Typography>
+                </HelpTooltip>
+                <Typography variant="body2" fontWeight={600}>
+                  {deadlineDate}
+                </Typography>
+              </Stack>
             </Stack>
           </Form>
         )
