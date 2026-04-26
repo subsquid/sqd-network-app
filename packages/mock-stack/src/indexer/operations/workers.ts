@@ -422,12 +422,33 @@ export function registerWorkerResolvers(deps: WorkersResolverDeps): void {
 
   registerResolver('myDelegations', async vars => {
     const owners = ((vars.ownerIds as string[] | undefined) ?? []).map(s => s.toLowerCase());
+    const peerIdFilter = vars.peerId as string | undefined;
+
+    // Resolve peerId → workerId for filtering, mirroring the production
+    // `peerId_eq` filter in the myDelegations GraphQL query.
+    let workerIdFilter: bigint | undefined;
+    if (peerIdFilter) {
+      try {
+        const peerHex = toHex(bs58.decode(peerIdFilter));
+        const wid = (await deps.client.readContract({
+          abi: workerRegAbi(),
+          address: deps.deployments.WORKER_REGISTRATION,
+          functionName: 'workerIds',
+          args: [peerHex],
+        })) as bigint;
+        if (wid !== 0n) workerIdFilter = wid;
+      } catch {
+        // ignore peerId filter on error — fall back to returning all delegations
+      }
+    }
+
     const bond = await readBondAmount(deps.client, deps.deployments.NETWORK_CONTROLLER);
     const seen = new Set<string>(); // workerId-ownerCSV — combine to dedupe per-spec
     const list: Record<string, unknown>[] = [];
     for (const owner of owners) {
       const ids = await readDelegates(deps.client, deps.deployments.STAKING, owner as Address);
       for (const id of ids) {
+        if (workerIdFilter !== undefined && id !== workerIdFilter) continue;
         const key = `${id}:${owner}`;
         if (seen.has(key)) continue;
         seen.add(key);
