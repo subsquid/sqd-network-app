@@ -46,6 +46,13 @@ const server = createHTTPServer({
   router: appRouter,
   createContext,
   onError: ({ error, path, type, req }) => {
+    // Always log errors to stderr so they appear in logs even without Sentry.
+    // biome-ignore lint/suspicious/noConsole: intentional error logging
+    console.error(
+      `[tRPC error] ${type} ${path ?? 'unknown'} — ${error.code}: ${error.message}`,
+      error.cause ?? '',
+    );
+
     if (!sentryDsn) return;
 
     Sentry.captureException(error, {
@@ -61,15 +68,45 @@ const server = createHTTPServer({
   },
 });
 
+/**
+ * Set a server-level request timeout above the GraphQL-service timeout (4.5 s)
+ * so slow upstream responses are always closed server-side before the client's
+ * 5 s abort fires, and stale keep-alive connections are cleaned up.
+ */
+server.requestTimeout = 10_000;
+
+server.on('request', (req, res) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const ms = Date.now() - start;
+    // biome-ignore lint/suspicious/noConsole: request logging
+    console.log(`[http] ${req.method} ${req.url} ${res.statusCode} ${ms}ms`);
+  });
+});
+
 if (sentryDsn) {
   process.on('unhandledRejection', reason => {
+    // biome-ignore lint/suspicious/noConsole: unhandled rejection logging
+    console.error('[unhandledRejection]', reason);
     Sentry.captureException(
       reason instanceof Error ? reason : new Error(`Unhandled rejection: ${String(reason)}`),
     );
   });
 
   process.on('uncaughtException', error => {
+    // biome-ignore lint/suspicious/noConsole: uncaught exception logging
+    console.error('[uncaughtException]', error);
     Sentry.captureException(error);
+  });
+} else {
+  process.on('unhandledRejection', reason => {
+    // biome-ignore lint/suspicious/noConsole: unhandled rejection logging
+    console.error('[unhandledRejection]', reason);
+  });
+
+  process.on('uncaughtException', error => {
+    // biome-ignore lint/suspicious/noConsole: uncaught exception logging
+    console.error('[uncaughtException]', error);
   });
 }
 
