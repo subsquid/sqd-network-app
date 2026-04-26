@@ -10,6 +10,12 @@ Single-owner mock environment for the Subsquid Network app. Used by:
 The package wraps three pieces that together replicate everything the app
 needs to render meaningfully without real Squid APIs or mainnet RPC:
 
+The seed flow also runs **one fixed-amount reward distribution cycle** so
+the Assets / Claim UI has non-zero state to render: 1,000 SQD per worker
+allocated to each owner and 500 SQD per worker distributed pro-rata across
+its stakers. The treasury is pre-funded with 10,000,000 SQD (~500 cycles'
+worth) so any persona's `claimFor` call succeeds out of the box.
+
 1. **Anvil** — fresh chain id 42161 (mainnet) or 421614 (tethys), pre-loaded
    from `.anvil-state.json` so consumers don't pay the deploy cost on every
    spawn.

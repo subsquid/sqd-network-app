@@ -295,6 +295,28 @@ async function deployNetworkContracts(
     args: [REWARDS_TREASURY_ROLE, deployments.REWARD_TREASURY],
   });
 
+  // Whitelist the deployer as the single rewards committer. requiredApproves
+  // defaults to 1, so a single commit() triggers immediate distribute().
+  // The seed step in seed.ts runs one fixed-amount commit after delegations
+  // are placed so personas have non-zero claimable rewards out of the box.
+  await sendTx(wallet, publicClient, {
+    abi: distributorAbi,
+    address: deployments.REWARD_DISTRIBUTION,
+    functionName: 'addDistributor',
+    args: [deployer],
+  });
+
+  // Pre-fund the treasury so RewardTreasury._claim can transfer SQD to
+  // claimers. 10M SQD is comfortably more than ~500 fixed-reward cycles
+  // worth of distributions.
+  const sqdAbi = localArtifact('MockSQD').abi;
+  await sendTx(wallet, publicClient, {
+    abi: sqdAbi,
+    address: sqd,
+    functionName: 'mint',
+    args: [deployments.REWARD_TREASURY, 10_000_000n * 10n ** 18n],
+  });
+
   for (const target of [
     deployments.WORKER_REGISTRATION,
     deployments.STAKING,

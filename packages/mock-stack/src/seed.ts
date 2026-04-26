@@ -303,12 +303,17 @@ export async function seedPersonas(opts: DeployOpts, deployments: AddressMap): P
   // ── 3. Place delegations (batched per staker for slightly better throughput).
   await placeDelegations(opts, deployments, sqdAbi, workerIds);
 
-  // ── 4. Vesting accounts.
+  // ── 4. Distribute fixed rewards. Run AFTER delegations: stakers checkpoint
+  // `cumulatedRewardsPerShare` on Staking.deposit, so any cumulative bumps
+  // from earlier `_distribute` calls would be unclaimable for them.
+  await commitFixedRewards(opts, deployments, deployerWallet, workerIds);
+
+  // ── 5. Vesting accounts.
   for (const spec of VESTING_SPECS) {
     await createVesting(deployerWallet, publicClient, deployments, sqdAbi, spec);
   }
 
-  // ── 5. Portal pools + per-pool deposits.
+  // ── 6. Portal pools + per-pool deposits.
   if (deployments.PORTAL_POOL_FACTORY) {
     const usdcAbi = localArtifact('MockUSDC').abi;
     const poolAddresses = await createPortalPools(opts, deployments, usdcAbi, deployerWallet);
@@ -430,6 +435,64 @@ async function placeDelegations(
       } workers`,
     );
   }
+}
+
+/**
+ * Commit one fixed-amount reward distribution covering every registered
+ * worker. Mirrors the production `commit / approve / distribute` flow on
+ * `DistributedRewardsDistribution` but skips the metric-driven amounts —
+ * each worker gets the same `WORKER_REWARD_PER_CYCLE_SQD` allocated to its
+ * owner and `STAKER_REWARD_PER_CYCLE_SQD` distributed pro-rata across its
+ * stakers (workers without delegators silently drop the staker portion via
+ * `Staking._distribute`'s zero-totalStaked early-return).
+ *
+ * Uses the deployer EOA which deploy.ts whitelisted as the only
+ * distributor; with `requiredApproves = 1` the single commit immediately
+ * triggers `distribute()`.
+ */
+const WORKER_REWARD_PER_CYCLE_SQD = 1_000n;
+const STAKER_REWARD_PER_CYCLE_SQD = 500n;
+
+async function commitFixedRewards(
+  opts: DeployOpts,
+  deployments: AddressMap,
+  deployerWallet: WalletClient,
+  workerIds: bigint[],
+): Promise<void> {
+  if (workerIds.length === 0) return;
+  const chain = chainFor(opts.chainId);
+  const publicClient = createPublicClient({ chain, transport: http(opts.rpcUrl) });
+  const distributorAbi = networkArtifact(
+    'DistributedRewardDistribution',
+    'DistributedRewardsDistribution',
+  ).abi;
+
+  const workerRewards = workerIds.map(() => WORKER_REWARD_PER_CYCLE_SQD * 10n ** 18n);
+  const stakerRewards = workerIds.map(() => STAKER_REWARD_PER_CYCLE_SQD * 10n ** 18n);
+
+  // commit() requires `toBlock < block.number`. Use head - 1.
+  const head = await publicClient.getBlockNumber();
+  const fromBlock = 1n;
+  const toBlock = head - 1n;
+
+  const hash = await deployerWallet.writeContract({
+    abi: distributorAbi,
+    address: deployments.REWARD_DISTRIBUTION,
+    functionName: 'commit',
+    args: [fromBlock, toBlock, workerIds, workerRewards, stakerRewards],
+    account: deployerWallet.account!,
+    chain: deployerWallet.chain,
+  });
+  await publicClient.waitForTransactionReceipt({ hash });
+
+  const totalWorker = WORKER_REWARD_PER_CYCLE_SQD * BigInt(workerIds.length);
+  const totalStaker = STAKER_REWARD_PER_CYCLE_SQD * BigInt(workerIds.length);
+  // biome-ignore lint/suspicious/noConsole: seed progress
+  console.log(
+    `[mock-stack] distributed rewards: ${totalWorker.toLocaleString()} SQD to worker owners + ${totalStaker.toLocaleString()} SQD to stakers across ${
+      workerIds.length
+    } workers (blocks ${fromBlock}..${toBlock})`,
+  );
 }
 
 async function createVesting(
