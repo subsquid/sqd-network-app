@@ -27,13 +27,16 @@ const networkAbi = [
     outputs: [{ type: 'uint256' }],
   },
   {
+    // The deprecated `epochLength` storage variable holds the lock period only.
+    // The actual epoch length is `workerEpochLength`.
     type: 'function',
-    name: 'epochLength',
+    name: 'workerEpochLength',
     stateMutability: 'view',
     inputs: [],
     outputs: [{ type: 'uint128' }],
   },
   {
+    // Computed live from block.number — not stale.
     type: 'function',
     name: 'epochNumber',
     stateMutability: 'view',
@@ -41,6 +44,7 @@ const networkAbi = [
     outputs: [{ type: 'uint128' }],
   },
   {
+    // Computed live from block.number — not stale.
     type: 'function',
     name: 'nextEpoch',
     stateMutability: 'view',
@@ -103,7 +107,7 @@ export function registerNetworkResolvers(deps: NetworkResolverDeps): void {
    *     reported as online).
    *   - totalBond: sum of getWorker(id).bond across active worker ids.
    *   - totalDelegation: sum of Staking.delegated(id) across active worker ids.
-   *   - blockTimeL1 / lastBlockL1 / lastBlockTimestampL1: current head.
+   *   - blockTimeL1 (ms) / lastBlockL1 / lastBlockTimestampL1: current head.
    *
    * Off-chain metric fields (queries, served data, stored data, APR, aprs)
    * are zeros / empty arrays — the UI's "no data" path renders fine.
@@ -169,7 +173,7 @@ export function registerNetworkResolvers(deps: NetworkResolverDeps): void {
         storedData: '0',
         workerApr: 0,
         stakerApr: 0,
-        blockTimeL1: 12,
+        blockTimeL1: 12_000,
         lastBlockL1: head,
         lastBlockTimestampL1: new Date().toISOString(),
         aprs: [],
@@ -208,32 +212,27 @@ export function registerNetworkResolvers(deps: NetworkResolverDeps): void {
     if (!deps.deployments.NETWORK_CONTROLLER) {
       throw new Error('NETWORK_CONTROLLER address is missing from deployments');
     }
-    const epochLength = (await deps.client.readContract({
-      abi: networkAbi,
-      address: deps.deployments.NETWORK_CONTROLLER as Address,
-      functionName: 'epochLength',
-    })) as bigint;
-    if (epochLength === 0n) {
-      throw new Error(
-        'NetworkController.epochLength() returned 0. ' +
-          'The anvil state file is likely stale — run `pnpm stack:rebuild` to regenerate it.',
-      );
-    }
-    const head = BigInt(deps.getLastBlock());
-    // nextEpoch() on the contract is stale (set at deploy, never advanced by
-    // the mock chain). Derive epoch position from the live block number instead.
-    const epochNumber = head / epochLength;
-    const nextEpochBlock = (epochNumber + 1n) * epochLength;
+    const addr = deps.deployments.NETWORK_CONTROLLER as Address;
+    // epochNumber() and nextEpoch() are computed live from block.number in the
+    // contract — they are always up-to-date. workerEpochLength is the actual
+    // epoch length (the deprecated `epochLength` variable is the lock period).
+    const [epochNumber, nextEpochBlock, workerEpochLength] = (await Promise.all([
+      deps.client.readContract({ abi: networkAbi, address: addr, functionName: 'epochNumber' }),
+      deps.client.readContract({ abi: networkAbi, address: addr, functionName: 'nextEpoch' }),
+      deps.client.readContract({ abi: networkAbi, address: addr, functionName: 'workerEpochLength' }),
+    ])) as [bigint, bigint, bigint];
+
+    const head = deps.getLastBlock();
     return {
       workersSummary: {
-        blockTimeL1: 12,
-        lastBlockL1: Number(head),
+        blockTimeL1: 12_000,
+        lastBlockL1: head,
         lastBlockTimestampL1: new Date().toISOString(),
       },
       epoches: [
         {
           number: Number(epochNumber),
-          start: Number(epochNumber * epochLength),
+          start: Number(nextEpochBlock - workerEpochLength),
           end: Number(nextEpochBlock) - 1,
         },
       ],

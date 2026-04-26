@@ -404,7 +404,7 @@ export function resolveSynthetic(
         totalDelegation: '80000000000000000000000000',
         storedData: '10737418240000',
         workerApr: 0.14,
-        blockTimeL1: 12,
+        blockTimeL1: 12_000,
         lastBlockL1: 19_800_000,
         lastBlockTimestampL1: NOW,
         aprs: Array.from({ length: 7 }, (_, i) => ({
@@ -419,7 +419,7 @@ export function resolveSynthetic(
   if (operationName === 'currentEpoch') {
     return {
       workersSummary: {
-        blockTimeL1: 12,
+        blockTimeL1: 12_000,
         lastBlockL1: 19_800_000,
         lastBlockTimestampL1: NOW,
       },
