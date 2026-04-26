@@ -205,45 +205,36 @@ export function registerNetworkResolvers(deps: NetworkResolverDeps): void {
   }));
 
   const currentEpoch: Resolver = async () => {
-    let epochNumber = 0n;
-    let nextEpoch = 0n;
-    let epochLength = 2n;
-    if (deps.deployments.NETWORK_CONTROLLER) {
-      try {
-        const addr = deps.deployments.NETWORK_CONTROLLER as Address;
-        epochNumber = (await deps.client.readContract({
-          abi: networkAbi,
-          address: addr,
-          functionName: 'epochNumber',
-        })) as bigint;
-        nextEpoch = (await deps.client.readContract({
-          abi: networkAbi,
-          address: addr,
-          functionName: 'nextEpoch',
-        })) as bigint;
-        epochLength = (await deps.client.readContract({
-          abi: networkAbi,
-          address: addr,
-          functionName: 'epochLength',
-        })) as bigint;
-      } catch {
-        // fallback values stay
-      }
+    if (!deps.deployments.NETWORK_CONTROLLER) {
+      throw new Error('NETWORK_CONTROLLER address is missing from deployments');
     }
-    const head = deps.getLastBlock();
-    // nextEpoch() returns the block number at which the next epoch starts;
-    // the current epoch ends one block before that.
+    const epochLength = (await deps.client.readContract({
+      abi: networkAbi,
+      address: deps.deployments.NETWORK_CONTROLLER as Address,
+      functionName: 'epochLength',
+    })) as bigint;
+    if (epochLength === 0n) {
+      throw new Error(
+        'NetworkController.epochLength() returned 0. ' +
+          'The anvil state file is likely stale — run `pnpm stack:rebuild` to regenerate it.',
+      );
+    }
+    const head = BigInt(deps.getLastBlock());
+    // nextEpoch() on the contract is stale (set at deploy, never advanced by
+    // the mock chain). Derive epoch position from the live block number instead.
+    const epochNumber = head / epochLength;
+    const nextEpochBlock = (epochNumber + 1n) * epochLength;
     return {
       workersSummary: {
         blockTimeL1: 12,
-        lastBlockL1: head,
+        lastBlockL1: Number(head),
         lastBlockTimestampL1: new Date().toISOString(),
       },
       epoches: [
         {
           number: Number(epochNumber),
-          start: Number(nextEpoch - epochLength),
-          end: Number(nextEpoch) - 1,
+          start: Number(epochNumber * epochLength),
+          end: Number(nextEpochBlock) - 1,
         },
       ],
     };
