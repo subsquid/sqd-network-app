@@ -57,6 +57,16 @@ export async function startArbitrumShim(
   const upstreamUrl = opts.upstreamUrl;
   const desiredPort = opts.port ?? 0;
   const server = http.createServer((req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+      res.statusCode = 204;
+      res.end();
+      return;
+    }
+
     if (req.method !== 'POST') {
       res.statusCode = 405;
       res.end('Method Not Allowed');
