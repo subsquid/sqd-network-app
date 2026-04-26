@@ -25,10 +25,15 @@ import {
 import { privateKeyToAccount } from 'viem/accounts';
 
 import { localArtifact, networkArtifact, portalArtifact } from './artifacts';
-import { STAKER_REWARD_PER_CYCLE_SQD, WORKER_REWARD_PER_CYCLE_SQD } from './config';
+import {
+  REWARD_BLOCKS_PER_COMMIT,
+  STAKER_REWARD_PER_CYCLE_SQD,
+  WORKER_REWARD_PER_CYCLE_SQD,
+} from './config';
 import { type DeployOpts, chainFor } from './deploy';
 import type { AddressMap } from './deployments';
 import { DEPLOYER_PRIVATE_KEY, PERSONAS, type Persona, type PersonaLabel } from './personas';
+import { commitRewardChunks } from './rewards';
 
 // Test peer-id payloads. Each is a 34-byte sha2-256 multihash:
 //   0x12 (sha2-256) || 0x20 (length=32) || <32 bytes>
@@ -439,16 +444,20 @@ async function placeDelegations(
 }
 
 /**
- * Commit one fixed-amount reward distribution covering every registered
- * worker. Mirrors the production `commit / approve / distribute` flow on
- * `DistributedRewardsDistribution` but skips the metric-driven amounts —
- * each worker gets the same `WORKER_REWARD_PER_CYCLE_SQD` allocated to its
- * owner and `STAKER_REWARD_PER_CYCLE_SQD` distributed pro-rata across its
- * stakers (workers without delegators silently drop the staker portion via
+ * Issue a single rewarded commit covering exactly one
+ * `REWARD_BLOCKS_PER_COMMIT`-sized window. Uses the same
+ * `commitRewardChunks` primitive that drives the post-seed
+ * auto-distributor, so the cadence and range invariants are identical
+ * before and after preseeding — only the reward payload differs (this
+ * call carries non-empty arrays, the auto-distributor's calls don't).
+ *
+ * Each worker receives `WORKER_REWARD_PER_CYCLE_SQD` to its owner and
+ * `STAKER_REWARD_PER_CYCLE_SQD` distributed pro-rata across its stakers
+ * (workers without delegators silently drop the staker portion via
  * `Staking._distribute`'s zero-totalStaked early-return).
  *
- * Uses the deployer EOA which deploy.ts whitelisted as the only
- * distributor; with `requiredApproves = 1` the single commit immediately
+ * Uses the deployer EOA which `deploy.ts` whitelisted as the only
+ * distributor; with `requiredApproves = 1` the commit immediately
  * triggers `distribute()`.
  */
 async function commitFixedRewards(
@@ -458,38 +467,36 @@ async function commitFixedRewards(
   workerIds: bigint[],
 ): Promise<void> {
   if (workerIds.length === 0) return;
-  const chain = chainFor(opts.chainId);
-  const publicClient = createPublicClient({ chain, transport: http(opts.rpcUrl) });
-  const distributorAbi = networkArtifact(
-    'DistributedRewardDistribution',
-    'DistributedRewardsDistribution',
-  ).abi;
 
   const workerRewards = workerIds.map(() => WORKER_REWARD_PER_CYCLE_SQD * 10n ** 18n);
   const stakerRewards = workerIds.map(() => STAKER_REWARD_PER_CYCLE_SQD * 10n ** 18n);
 
-  // commit() requires `toBlock < block.number`. Use head - 1.
-  const head = await publicClient.getBlockNumber();
-  const fromBlock = 1n;
-  const toBlock = head - 1n;
-
-  const hash = await deployerWallet.writeContract({
-    abi: distributorAbi,
-    address: deployments.REWARD_DISTRIBUTION,
-    functionName: 'commit',
-    args: [fromBlock, toBlock, workerIds, workerRewards, stakerRewards],
-    account: deployerWallet.account!,
-    chain: deployerWallet.chain,
+  const { chunksCommitted, lastBlockRewarded } = await commitRewardChunks({
+    rpcUrl: opts.rpcUrl,
+    chainId: opts.chainId,
+    rewardDistribution: deployments.REWARD_DISTRIBUTION,
+    wallet: deployerWallet,
+    recipients: workerIds,
+    workerRewards,
+    stakerRewards,
+    maxChunks: 1,
   });
-  await publicClient.waitForTransactionReceipt({ hash });
+
+  if (chunksCommitted === 0) {
+    // biome-ignore lint/suspicious/noConsole: seed progress
+    console.log(
+      `[mock-stack] not enough mined blocks to commit a full ${REWARD_BLOCKS_PER_COMMIT}-block reward window`,
+    );
+    return;
+  }
 
   const totalWorker = WORKER_REWARD_PER_CYCLE_SQD * BigInt(workerIds.length);
   const totalStaker = STAKER_REWARD_PER_CYCLE_SQD * BigInt(workerIds.length);
   // biome-ignore lint/suspicious/noConsole: seed progress
   console.log(
-    `[mock-stack] distributed rewards: ${totalWorker.toLocaleString()} SQD to worker owners + ${totalStaker.toLocaleString()} SQD to stakers across ${
+    `[mock-stack] preseed reward window committed up to block ${lastBlockRewarded}: ${totalWorker.toLocaleString()} SQD to worker owners + ${totalStaker.toLocaleString()} SQD to stakers across ${
       workerIds.length
-    } workers (blocks ${fromBlock}..${toBlock})`,
+    } workers`,
   );
 }
 

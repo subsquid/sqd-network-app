@@ -1,27 +1,40 @@
 /**
- * Keeps Staking.lastEpochRewarded current so delegation never reverts with
+ * Periodically commits reward distributions for every currently active
+ * worker, mirroring how the production reward bot keeps
+ * `DistributedRewardsDistribution` rolling forward.
+ *
+ * Each tick:
+ *   1. fetches the current active worker set from `WorkerRegistration`;
+ *   2. issues as many full `REWARD_BLOCKS_PER_COMMIT`-sized commits as
+ *      the chain head allows, each one paying every active worker
+ *      `WORKER_REWARD_PER_CYCLE_SQD` to the owner and
+ *      `STAKER_REWARD_PER_CYCLE_SQD` pro-rata to its stakers (workers
+ *      without delegators silently drop the staker portion via
+ *      `Staking._distribute`'s zero-totalStaked early-return).
+ *
+ * The shared `commitRewardChunks` primitive enforces the same range
+ * invariants used during preseeding: 10-block windows, strictly
+ * contiguous, never overlapping (the contract requires
+ * `fromBlock == lastBlockRewarded + 1`). The result is a single,
+ * uniform reward cadence before and after preseeding — preseeding just
+ * happens to emit the very first chunk, this loop keeps emitting the
+ * subsequent ones.
+ *
+ * Side-effect that matters for `Staking.deposit()`: each commit
+ * eventually flows into `Staking.distribute()` which advances
+ * `lastEpochRewarded`, keeping the chain within the
+ * `stakingDeadlock` window so delegation never reverts with
  * "Rewards out of date".
- *
- * Staking.deposit() requires:
- *   lastEpochRewarded + stakingDeadlock >= epochNumber  || lastEpochRewarded == 0
- *
- * In the mock the deployer is the sole whitelisted committer. After the seed
- * step the chain keeps mining (every 12 s) but nobody calls commit() again,
- * so delegation breaks after `stakingDeadlock` epochs (~48 s with the default
- * settings).
- *
- * This module periodically calls commit(lastBlockRewarded+1, head-1, [], [], [])
- * which routes through DistributedRewardsDistribution → Staking.distribute([],[])
- * → lastEpochRewarded = epochNumber(). Empty reward arrays are intentional:
- * we only need the epoch-advance side-effect, not actual reward accounting.
  */
-import { type Address, createPublicClient, createWalletClient, http } from 'viem';
+import { type Abi, type Address, createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 
 import { networkArtifact } from './artifacts';
+import { STAKER_REWARD_PER_CYCLE_SQD, WORKER_REWARD_PER_CYCLE_SQD } from './config';
 import { chainFor } from './deploy';
 import type { AddressMap } from './deployments';
 import { DEPLOYER_PRIVATE_KEY } from './personas';
+import { commitRewardChunks } from './rewards';
 
 export interface AutoDistributorOpts {
   rpcUrl: string;
@@ -42,45 +55,57 @@ export function startAutoDistributor(opts: AutoDistributorOpts): AutoDistributor
     return { stop: () => {} };
   }
 
-  const abi = networkArtifact('DistributedRewardDistribution', 'DistributedRewardsDistribution').abi;
-  const address = opts.deployments.REWARD_DISTRIBUTION as Address;
+  const rewardDistribution = opts.deployments.REWARD_DISTRIBUTION as Address;
+  const workerRegistration = opts.deployments.WORKER_REGISTRATION as Address | undefined;
   const chain = chainFor(opts.chainId);
   const account = privateKeyToAccount(DEPLOYER_PRIVATE_KEY);
-  const publicClient = createPublicClient({ chain, transport: http(opts.rpcUrl) });
   const walletClient = createWalletClient({ account, chain, transport: http(opts.rpcUrl) });
+  const publicClient = createPublicClient({ chain, transport: http(opts.rpcUrl) });
   const pollMs = opts.pollIntervalMs ?? 6_000;
 
+  let workerRegAbi: Abi | undefined;
+  const getWorkerRegAbi = (): Abi =>
+    (workerRegAbi ??= networkArtifact('WorkerRegistration').abi);
+
   let stopped = false;
-  let lastCommittedBlock: bigint | undefined;
+
+  async function readActiveWorkers(): Promise<readonly bigint[]> {
+    if (!workerRegistration) return [];
+    try {
+      return (await publicClient.readContract({
+        abi: getWorkerRegAbi(),
+        address: workerRegistration,
+        functionName: 'getActiveWorkerIds',
+      })) as readonly bigint[];
+    } catch {
+      return [];
+    }
+  }
 
   async function tick(): Promise<void> {
     if (stopped) return;
     try {
-      if (lastCommittedBlock === undefined) {
-        lastCommittedBlock = (await publicClient.readContract({
-          abi,
-          address,
-          functionName: 'lastBlockRewarded',
-        })) as bigint;
-      }
-
       const head = BigInt(opts.getLastBlock());
-      const toBlock = head - 1n;
+      const workers = await readActiveWorkers();
+      const workerRewards = workers.map(() => WORKER_REWARD_PER_CYCLE_SQD * 10n ** 18n);
+      const stakerRewards = workers.map(() => STAKER_REWARD_PER_CYCLE_SQD * 10n ** 18n);
 
-      if (toBlock > lastCommittedBlock) {
-        const fromBlock = lastCommittedBlock + 1n;
-        const hash = await walletClient.writeContract({
-          abi,
-          address,
-          functionName: 'commit',
-          args: [fromBlock, toBlock, [], [], []],
-          account,
-          chain,
-        });
-        await publicClient.waitForTransactionReceipt({ hash });
-        lastCommittedBlock = toBlock;
+      const result = await commitRewardChunks({
+        rpcUrl: opts.rpcUrl,
+        chainId: opts.chainId,
+        rewardDistribution,
+        wallet: walletClient,
+        upperBound: head - 1n,
+        recipients: workers,
+        workerRewards,
+        stakerRewards,
+      });
+
+      if (result.chunksCommitted > 0) {
         // biome-ignore lint/suspicious/noConsole: progress indicator
-        console.log(`[mock-stack] rewards distributed up to block ${toBlock}`);
+        console.log(
+          `[mock-stack] auto-distribute: ${result.chunksCommitted} reward window(s) for ${workers.length} workers, lastBlockRewarded=${result.lastBlockRewarded}`,
+        );
       }
     } catch (err) {
       // best-effort — a missed cycle is harmless as long as the next one succeeds
@@ -95,5 +120,9 @@ export function startAutoDistributor(opts: AutoDistributorOpts): AutoDistributor
 
   void tick();
 
-  return { stop: () => { stopped = true; } };
+  return {
+    stop: () => {
+      stopped = true;
+    },
+  };
 }

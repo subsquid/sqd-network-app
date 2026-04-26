@@ -192,6 +192,59 @@ async function readDelegates(
   }
 }
 
+/**
+ * Aggregate per-worker staker reward totals by replaying every `Distributed`
+ * event emitted by `DistributedRewardsDistribution`. Returns
+ * `Map<workerId, totalStakerReward>` in raw token units (1e18-scaled).
+ *
+ * In the mock, deposits are placed before any reward commit and never change
+ * afterwards, so `totalStaked[worker]` is constant across all commits — that
+ * makes the per-(worker, staker) pending reward exactly:
+ *
+ *   pending = totalStakerReward[worker] * depositAmount[staker, worker]
+ *           / totalStaked[worker]
+ *
+ * which matches what `Staking.claimable(staker)` would report for that
+ * single worker. We use this to populate `delegations[].claimableReward`
+ * (the indexer-side projection) so the UI's "Total reward" column lines up
+ * with the on-chain `Staking.claimable` value the Assets page reads.
+ */
+async function readPerWorkerStakerRewards(
+  client: PublicClient,
+  rewardDistribution: Address | undefined,
+): Promise<Map<bigint, bigint>> {
+  const out = new Map<bigint, bigint>();
+  if (!rewardDistribution) return out;
+  const abi = networkArtifact(
+    'DistributedRewardDistribution',
+    'DistributedRewardsDistribution',
+  ).abi;
+  let logs: Awaited<ReturnType<PublicClient['getContractEvents']>>;
+  try {
+    logs = await client.getContractEvents({
+      abi,
+      address: rewardDistribution,
+      eventName: 'Distributed',
+      fromBlock: 0n,
+      toBlock: 'latest',
+    });
+  } catch {
+    return out;
+  }
+  for (const log of logs) {
+    const args = (log as { args?: Record<string, unknown> }).args ?? {};
+    const recipients = (args.recipients as readonly bigint[] | undefined) ?? [];
+    const stakerRewards = (args.stakerRewards as readonly bigint[] | undefined) ?? [];
+    for (let i = 0; i < recipients.length; i++) {
+      const reward = stakerRewards[i] ?? 0n;
+      if (reward === 0n) continue;
+      const wid = recipients[i];
+      out.set(wid, (out.get(wid) ?? 0n) + reward);
+    }
+  }
+  return out;
+}
+
 async function readDeposit(
   client: PublicClient,
   staking: Address,
@@ -217,6 +270,7 @@ async function projectWorker(
   bondAmount: bigint,
   delegationLimit: bigint,
   ownersForDelegationFilter?: readonly string[],
+  perWorkerStakerRewards?: ReadonlyMap<bigint, bigint>,
 ): Promise<Record<string, unknown> | null> {
   const w = await readWorker(deps.client, deps.deployments.WORKER_REGISTRATION, workerId);
   if (!w) return null;
@@ -226,6 +280,7 @@ async function projectWorker(
   const metrics = syntheticMetrics(workerId);
   const status = w.deregisteredAt !== 0n ? 'DEREGISTERED' : 'ACTIVE';
   const ownerId = w.creator.toLowerCase();
+  const totalStakerReward = perWorkerStakerRewards?.get(workerId) ?? 0n;
 
   const delegations: Record<string, unknown>[] = [];
   if (ownersForDelegationFilter && ownersForDelegationFilter.length > 0) {
@@ -237,9 +292,13 @@ async function projectWorker(
         workerId,
       );
       if (depositAmount > 0n) {
+        const claimable =
+          totalStakerReward > 0n && totalDelegation > 0n
+            ? (totalStakerReward * depositAmount) / totalDelegation
+            : 0n;
         delegations.push({
           deposit: depositAmount.toString(),
-          claimableReward: '0',
+          claimableReward: claimable.toString(),
           claimedReward: '0',
           locked: false,
           lockEnd: null,
@@ -280,7 +339,7 @@ async function projectWorker(
     bond: w.bond.toString(),
     claimableReward: '0',
     claimedReward: '0',
-    totalDelegationRewards: '0',
+    totalDelegationRewards: totalStakerReward.toString(),
     queries24Hours: metrics.queries24Hours,
     queries90Days: metrics.queries90Days,
     scannedData24Hours: metrics.scannedData24Hours,
@@ -443,6 +502,10 @@ export function registerWorkerResolvers(deps: WorkersResolverDeps): void {
     }
 
     const bond = await readBondAmount(deps.client, deps.deployments.NETWORK_CONTROLLER);
+    const stakerRewardsByWorker = await readPerWorkerStakerRewards(
+      deps.client,
+      deps.deployments.REWARD_DISTRIBUTION,
+    );
     const seen = new Set<string>(); // workerId-ownerCSV — combine to dedupe per-spec
     const list: Record<string, unknown>[] = [];
     for (const owner of owners) {
@@ -452,7 +515,7 @@ export function registerWorkerResolvers(deps: WorkersResolverDeps): void {
         const key = `${id}:${owner}`;
         if (seen.has(key)) continue;
         seen.add(key);
-        const projected = await projectWorker(deps, id, bond, 20n, [owner]);
+        const projected = await projectWorker(deps, id, bond, 20n, [owner], stakerRewardsByWorker);
         if (projected) list.push(projected);
       }
     }
@@ -461,6 +524,10 @@ export function registerWorkerResolvers(deps: WorkersResolverDeps): void {
 
   registerResolver('delegationsByOwner', async vars => {
     const owners = ((vars.ownerIds as string[] | undefined) ?? []).map(s => s.toLowerCase());
+    const stakerRewardsByWorker = await readPerWorkerStakerRewards(
+      deps.client,
+      deps.deployments.REWARD_DISTRIBUTION,
+    );
     const list: Record<string, unknown>[] = [];
     for (const owner of owners) {
       const ids = await readDelegates(deps.client, deps.deployments.STAKING, owner as Address);
@@ -472,11 +539,17 @@ export function registerWorkerResolvers(deps: WorkersResolverDeps): void {
           id,
         );
         if (depositAmount === 0n) continue;
+        const totalStakerReward = stakerRewardsByWorker.get(id) ?? 0n;
+        const totalStaked = await readDelegated(deps.client, deps.deployments.STAKING, id);
+        const claimable =
+          totalStakerReward > 0n && totalStaked > 0n
+            ? (totalStakerReward * depositAmount) / totalStaked
+            : 0n;
         list.push({
           id: `delegation-${id}-${owner}`,
           ownerId: owner,
           deposit: depositAmount.toString(),
-          claimableReward: '0',
+          claimableReward: claimable.toString(),
           claimedReward: '0',
           locked: false,
           lockEnd: null,

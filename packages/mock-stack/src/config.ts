@@ -47,3 +47,13 @@ export const WORKER_REWARD_PER_CYCLE_SQD = 1_000n;
  * Whole tokens — the seed script multiplies by 10^18.
  */
 export const STAKER_REWARD_PER_CYCLE_SQD = 500n;
+
+/**
+ * Number of L1 blocks covered by a single reward commit. Mirrors the reward
+ * bot's behaviour: every commitment to `DistributedRewardsDistribution`
+ * advances `lastBlockRewarded` by exactly this many blocks, and consecutive
+ * commits never overlap. Seeding emits one rewarded chunk per 10-block
+ * window; the auto-distributor afterwards keeps the chain rolling with
+ * empty (no-reward) commits in the same 10-block cadence.
+ */
+export const REWARD_BLOCKS_PER_COMMIT = 10n;
