@@ -11,6 +11,7 @@ import path from 'node:path';
 
 import { type Address, createPublicClient, http } from 'viem';
 
+import { type ArbitrumShimHandle, startArbitrumShim } from './arbitrumShim';
 import { packageRoot } from './artifacts';
 import { type AnvilHandle, spawnAnvil } from './chain';
 import { chainFor, loadAnvilState } from './deploy';
@@ -88,10 +89,17 @@ export async function startMockStack(opts: StartMockStackOpts = {}): Promise<Moc
   const deployments = readDeployments() ?? {};
 
   let anvil: AnvilHandle | undefined;
+  let shim: ArbitrumShimHandle | undefined;
   let graphql: MockGraphqlServer | undefined;
   let indexer: ReturnType<typeof startIndexer> | undefined;
   try {
-    anvil = await spawnAnvil({ port: rpcPort, chainId });
+    // Anvil binds an ephemeral OS-allocated port; the Arbitrum shim then
+    // listens on the caller-requested port (e.g. 8545 in `pnpm mock:chain`)
+    // and forwards JSON-RPC traffic to anvil while patching block responses
+    // to inject `l1BlockNumber := number`. From the consumer's POV this
+    // looks like a real Arbitrum nitro RPC.
+    anvil = await spawnAnvil({ port: 0, chainId });
+    shim = await startArbitrumShim({ upstreamUrl: anvil.url, port: rpcPort });
 
     if (stateFile) {
       try {
@@ -143,12 +151,13 @@ export async function startMockStack(opts: StartMockStackOpts = {}): Promise<Moc
   } catch (err) {
     indexer?.stop();
     if (graphql) await graphql.stop();
+    if (shim) await shim.stop();
     if (anvil) await anvil.stop();
     throw err;
   }
 
   const handle: MockStackHandle = {
-    rpcUrl: anvil.url,
+    rpcUrl: shim.url,
     graphqlUrl: graphql.url,
     deployments,
     indexer: {
@@ -164,6 +173,7 @@ export async function startMockStack(opts: StartMockStackOpts = {}): Promise<Moc
     async stop() {
       indexer?.stop();
       if (graphql) await graphql.stop();
+      if (shim) await shim.stop();
       if (anvil) await anvil.stop();
     },
   };
