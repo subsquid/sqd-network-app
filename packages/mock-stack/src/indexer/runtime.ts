@@ -97,7 +97,12 @@ export function startIndexer(opts: StartIndexerOpts): IndexerRuntime {
       if (head >= cursor) {
         await ingest(cursor, head);
         cursor = head + 1n;
-        lastBlock = Number(head);
+        const newBlock = Number(head);
+        if (newBlock > lastBlock) {
+          // biome-ignore lint/suspicious/noConsole: block-mined progress indicator
+          console.log(`[mock-stack] block #${newBlock}`);
+        }
+        lastBlock = newBlock;
       }
     } catch {
       // ignore — anvil may be temporarily unavailable
