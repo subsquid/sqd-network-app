@@ -64,8 +64,7 @@ export function startAutoDistributor(opts: AutoDistributorOpts): AutoDistributor
   const pollMs = opts.pollIntervalMs ?? 6_000;
 
   let workerRegAbi: Abi | undefined;
-  const getWorkerRegAbi = (): Abi =>
-    (workerRegAbi ??= networkArtifact('WorkerRegistration').abi);
+  const getWorkerRegAbi = (): Abi => (workerRegAbi ??= networkArtifact('WorkerRegistration').abi);
 
   let stopped = false;
 

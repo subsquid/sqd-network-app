@@ -15,6 +15,7 @@
  * No-op in non-mock (production) builds.
  */
 import { useEffect, useRef } from 'react';
+
 import { useAccount, useConfig, useConnect } from 'wagmi';
 
 import { MOCK_PERSONA_STORAGE_KEY, isMockMode } from '../config';
