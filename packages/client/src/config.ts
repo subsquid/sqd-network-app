@@ -91,7 +91,19 @@ function withMulticall3Override<T extends Chain>(chain: T, address?: Address): T
 
 function resolveChain(selected: NetworkName, multicall3Override?: Address): Chain {
   const base = selected === NetworkName.Mainnet ? arbitrum : arbitrumSepolia;
-  return withMulticall3Override(base, multicall3Override);
+  const withMulticall = withMulticall3Override(base, multicall3Override);
+  if (!isMockMode) return withMulticall;
+  // In mock mode the wagmi mock connector's internal EIP-1193 provider
+  // dispatches unknown RPC methods (including eth_sendTransaction) to
+  // chain.rpcUrls.default.http[0] directly — bypassing the wagmi transport.
+  // Point it at the local Anvil so transactions reach the right chain.
+  return {
+    ...withMulticall,
+    rpcUrls: {
+      ...withMulticall.rpcUrls,
+      default: { http: [MOCK_RPC_URL] },
+    },
+  };
 }
 
 /**
