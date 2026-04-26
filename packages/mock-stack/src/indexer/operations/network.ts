@@ -231,8 +231,8 @@ export function registerNetworkResolvers(deps: NetworkResolverDeps): void {
       }
     }
     const head = deps.getLastBlock();
-    const blockTimestamp = (block: bigint) =>
-      new Date(Date.now() - Math.max(0, head - Number(block)) * 12_000).toISOString();
+    // nextEpoch() returns the block number at which the next epoch starts;
+    // the current epoch ends one block before that.
     return {
       workersSummary: {
         blockTimeL1: 12,
@@ -242,8 +242,8 @@ export function registerNetworkResolvers(deps: NetworkResolverDeps): void {
       epoches: [
         {
           number: Number(epochNumber),
-          start: blockTimestamp(BigInt(head) - epochLength),
-          end: blockTimestamp(BigInt(nextEpoch)),
+          start: Number(nextEpoch - epochLength),
+          end: Number(nextEpoch) - 1,
         },
       ],
     };
