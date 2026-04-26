@@ -32,6 +32,11 @@ export interface SpawnAnvilOpts {
   accounts?: number;
   /** Stream anvil stdout to the parent process. Useful for debugging. */
   verbose?: boolean;
+  /**
+   * Interval mining: mine a new block every N seconds. Default is instant
+   * mining (a block per transaction). Pass `12` to mimic Arbitrum block cadence.
+   */
+  blockTime?: number;
 }
 
 export interface AnvilHandle {
@@ -131,6 +136,7 @@ export async function spawnAnvil(opts: SpawnAnvilOpts = {}): Promise<AnvilHandle
     // which has a much larger limit anyway.
     '--code-size-limit',
     '50000',
+    ...(opts.blockTime !== undefined ? ['--block-time', String(opts.blockTime)] : []),
   ];
   const binary = resolveAnvilBinary();
   const child = spawn(binary, args, {

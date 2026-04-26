@@ -42,6 +42,7 @@ try {
     autoPrepare: true,
     rpcPort: 8545,
     graphqlPort: 4321,
+    blockTime: 12,
   });
 } catch (err) {
   // biome-ignore lint/suspicious/noConsole: surface the real failure

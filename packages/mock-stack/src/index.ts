@@ -70,6 +70,11 @@ export interface StartMockStackOpts {
    * If true, run `stack:prepare` automatically when no state file is found.
    */
   autoPrepare?: boolean;
+  /**
+   * Interval mining: mine a new block every N seconds. Default is instant
+   * mining (a block per transaction). Pass `12` to mimic Arbitrum block cadence.
+   */
+  blockTime?: number;
 }
 
 export async function startMockStack(opts: StartMockStackOpts = {}): Promise<MockStackHandle> {
@@ -98,7 +103,7 @@ export async function startMockStack(opts: StartMockStackOpts = {}): Promise<Moc
     // and forwards JSON-RPC traffic to anvil while patching block responses
     // to inject `l1BlockNumber := number`. From the consumer's POV this
     // looks like a real Arbitrum nitro RPC.
-    anvil = await spawnAnvil({ port: 0, chainId });
+    anvil = await spawnAnvil({ port: 0, chainId, blockTime: opts.blockTime });
     shim = await startArbitrumShim({ upstreamUrl: anvil.url, port: rpcPort });
 
     if (stateFile) {
