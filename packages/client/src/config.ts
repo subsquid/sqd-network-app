@@ -26,6 +26,13 @@ const network = getSubsquidNetwork();
  */
 export const isMockMode = process.env.MOCK === 'true';
 
+/**
+ * localStorage key that tracks the last connected mock persona's connector ID
+ * (`mock-persona-0`, `mock-persona-1`, …). Written on connect, cleared on
+ * disconnect. Read by `useMockPersonaRestore` to reconnect after a page reload.
+ */
+export const MOCK_PERSONA_STORAGE_KEY = 'sqd.mock.persona';
+
 /** RPC URL used by the mock wagmi config — talks to the in-process anvil. */
 const MOCK_RPC_URL = 'http://localhost:8545';
 
@@ -130,10 +137,33 @@ function mockPersonaWallet(persona: (typeof MOCK_FIXTURE_ACCOUNTS)[number], inde
         accounts: [persona.address] as [Address],
         features: { defaultConnected: false, reconnect: true },
       });
-      return createConnector(config => ({
-        ...fn(config),
-        ...walletDetails,
-      }));
+      return createConnector(wagmiConfig => {
+        const base = fn(wagmiConfig);
+        return {
+          ...base,
+          ...walletDetails,
+          // wagmi's mock() hardcodes id:'mock' for every instance. Override it
+          // with our stable per-persona id so useMockPersonaRestore can find
+          // the right connector via config.connectors.find(c => c.id === storedId).
+          id,
+          // Persist the chosen persona so useMockPersonaRestore can reconnect
+          // it after a page reload (wagmi's built-in reconnect doesn't work for
+          // mock connectors because provider.connected resets to false).
+          async connect(params) {
+            const result = await base.connect(params);
+            if (!params?.isReconnecting) {
+              localStorage.setItem(MOCK_PERSONA_STORAGE_KEY, id);
+            }
+            return result;
+          },
+          async disconnect() {
+            await base.disconnect();
+            if (localStorage.getItem(MOCK_PERSONA_STORAGE_KEY) === id) {
+              localStorage.removeItem(MOCK_PERSONA_STORAGE_KEY);
+            }
+          },
+        };
+      });
     },
   });
 }

@@ -14,8 +14,19 @@ import { SquidHeightProvider } from '@hooks/useSquidNetworkHeightHooks';
 import { TickerProvider } from '@hooks/useTicker';
 
 import { AppRoutes } from './AppRoutes';
-import { createAppWagmiConfig } from './config';
+import { createAppWagmiConfig, isMockMode } from './config';
+import { useMockPersonaRestore } from './hooks/useMockPersonaRestore';
 import { useCreateRainbowKitTheme, useCreateTheme, useThemeState } from './theme';
+
+/**
+ * Null-rendering component that lives inside WagmiProvider so it can call
+ * wagmi hooks. Restores the last mock persona after a page reload in mock
+ * mode; compiled away entirely in production builds.
+ */
+function MockPersonaManager() {
+  useMockPersonaRestore();
+  return null;
+}
 
 /**
  * Build the wagmi config once per app boot. `createAppWagmiConfig` reads
@@ -45,6 +56,7 @@ function App() {
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
+        {isMockMode && <MockPersonaManager />}
         <RainbowKitProvider modalSize="compact" theme={rainbowkitTheme} initialChain={getChain()}>
           <ThemeProvider theme={theme}>
             <TickerProvider>
