@@ -75,29 +75,36 @@ export interface StartMockStackOpts {
    * mining (a block per transaction). Pass `12` to mimic Arbitrum block cadence.
    */
   blockTime?: number;
+  /**
+   * Attach to an already-running chain at this URL instead of spawning anvil.
+   * Useful for `tsx watch` dev mode: the chain keeps running across hot reloads.
+   * When set, `rpcPort`, `blockTime`, `stateFile`, and `autoPrepare` are ignored.
+   */
+  externalRpcUrl?: string;
 }
 
 export async function startMockStack(opts: StartMockStackOpts = {}): Promise<MockStackHandle> {
-  const rpcPort = opts.rpcPort ?? 0;
   const graphqlPort = opts.graphqlPort ?? 0;
   const chainId = opts.chainId ?? 42161;
-  const stateFile =
-    opts.stateFile === null
-      ? null
-      : (opts.stateFile ?? path.resolve(packageRoot(), '.anvil-state.json'));
+  const externalRpcUrl = opts.externalRpcUrl;
 
-  if (opts.autoPrepare && stateFile && !fileExists(stateFile)) {
-    const { runPrepare } = await import('./prepare');
-    await runPrepare();
-  }
-
-  const deployments = readDeployments() ?? {};
-
+  // Chain is either spawned fresh or reused from an already-running process.
+  let chainRpcUrl: string;
   let anvil: AnvilHandle | undefined;
   let shim: ArbitrumShimHandle | undefined;
-  let graphql: MockGraphqlServer | undefined;
-  let indexer: ReturnType<typeof startIndexer> | undefined;
-  try {
+
+  if (!externalRpcUrl) {
+    const rpcPort = opts.rpcPort ?? 0;
+    const stateFile =
+      opts.stateFile === null
+        ? null
+        : (opts.stateFile ?? path.resolve(packageRoot(), '.anvil-state.json'));
+
+    if (opts.autoPrepare && stateFile && !fileExists(stateFile)) {
+      const { runPrepare } = await import('./prepare');
+      await runPrepare();
+    }
+
     // Anvil binds an ephemeral OS-allocated port; the Arbitrum shim then
     // listens on the caller-requested port (e.g. 8545 in `pnpm mock:chain`)
     // and forwards JSON-RPC traffic to anvil while patching block responses
@@ -105,6 +112,7 @@ export async function startMockStack(opts: StartMockStackOpts = {}): Promise<Moc
     // looks like a real Arbitrum nitro RPC.
     anvil = await spawnAnvil({ port: 0, chainId, blockTime: opts.blockTime });
     shim = await startArbitrumShim({ upstreamUrl: anvil.url, port: rpcPort });
+    chainRpcUrl = anvil.url;
 
     if (stateFile) {
       try {
@@ -118,15 +126,23 @@ export async function startMockStack(opts: StartMockStackOpts = {}): Promise<Moc
         );
       }
     }
+  } else {
+    chainRpcUrl = externalRpcUrl;
+  }
 
+  const deployments = readDeployments() ?? {};
+
+  let graphql: MockGraphqlServer | undefined;
+  let indexer: ReturnType<typeof startIndexer> | undefined;
+  try {
     graphql = await startGraphqlServer({ port: graphqlPort });
-    indexer = startIndexer({ rpcUrl: anvil.url, deployments });
+    indexer = startIndexer({ rpcUrl: chainRpcUrl, deployments });
     await indexer.waitUntilCaughtUp();
 
     clearResolvers();
     const publicClient = createPublicClient({
       chain: chainFor(chainId),
-      transport: http(anvil.url),
+      transport: http(chainRpcUrl),
     });
     const blockTimestampNow = (block: bigint): string => {
       const head = indexer!.lastBlock;
@@ -156,14 +172,16 @@ export async function startMockStack(opts: StartMockStackOpts = {}): Promise<Moc
   } catch (err) {
     indexer?.stop();
     if (graphql) await graphql.stop();
-    if (shim) await shim.stop();
-    if (anvil) await anvil.stop();
+    if (!externalRpcUrl) {
+      if (shim) await shim.stop();
+      if (anvil) await anvil.stop();
+    }
     throw err;
   }
 
   const handle: MockStackHandle = {
-    rpcUrl: shim.url,
-    graphqlUrl: graphql.url,
+    rpcUrl: externalRpcUrl ?? shim!.url,
+    graphqlUrl: graphql!.url,
     deployments,
     indexer: {
       get lastBlock() {
@@ -178,8 +196,11 @@ export async function startMockStack(opts: StartMockStackOpts = {}): Promise<Moc
     async stop() {
       indexer?.stop();
       if (graphql) await graphql.stop();
-      if (shim) await shim.stop();
-      if (anvil) await anvil.stop();
+      // Only tear down the chain when we own it.
+      if (!externalRpcUrl) {
+        if (shim) await shim.stop();
+        if (anvil) await anvil.stop();
+      }
     },
   };
   return handle;

@@ -1,20 +1,31 @@
 /**
- * Long-lived chain process for `pnpm mock:chain`.
+ * Long-lived mock environment for `pnpm mock:chain`.
  *
- * Boots the mock-stack — anvil at :8545 + the mini-indexer GraphQL HTTP
- * server at :4321 — and stays alive. Auto-prepares (.anvil-state.json +
- * .deployments.json + forge artefacts) if anything is missing.
+ * Runs two processes under a single terminal:
+ *   1. Chain   — anvil + Arbitrum shim at :8545 (inline, stable)
+ *   2. Indexer — mini-indexer + GraphQL at :4321 via `tsx watch` (restarts on
+ *                source changes without touching the chain)
  *
- * The companion `pnpm mock:app` runs the client + tRPC server pointed at
- * these fixed URLs; the two halves can be restarted independently. App
- * code can hot-reload freely without tearing down the chain.
+ * Auto-prepares (.anvil-state.json + .deployments.json + forge artefacts)
+ * if anything is missing.
  *
- * Up-front Foundry guard so the failure mode is "actionable error +
- * exit 1" rather than tsx swallowing the spawn error.
+ * The companion `pnpm mock:app` runs the client + tRPC server; all pieces
+ * can be restarted independently.
  */
-import { spawnSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { type ChildProcess, spawn, spawnSync } from 'node:child_process';
 
-import { startMockStack } from '../src';
+import { startArbitrumShim } from '../src/arbitrumShim';
+import { packageRoot } from '../src/artifacts';
+import { spawnAnvil } from '../src/chain';
+import { loadAnvilState } from '../src/deploy';
+import { runPrepare } from '../src/prepare';
+
+const CHAIN_ID = 42161;
+const RPC_PORT = 8545;
+const STATE_FILE = path.resolve(packageRoot(), '.anvil-state.json');
+const INDEXER_SCRIPT = path.resolve(import.meta.dirname, '_indexer.ts');
 
 function ensureFoundryInstalled(): void {
   for (const bin of ['forge', 'anvil']) {
@@ -36,14 +47,18 @@ function ensureFoundryInstalled(): void {
 
 ensureFoundryInstalled();
 
-let stack: Awaited<ReturnType<typeof startMockStack>>;
+if (!fs.existsSync(STATE_FILE)) {
+  // biome-ignore lint/suspicious/noConsole: progress indicator
+  console.log('[mock-stack] state file missing — running stack:prepare…');
+  await runPrepare();
+}
+
+let anvil: Awaited<ReturnType<typeof spawnAnvil>>;
+let shim: Awaited<ReturnType<typeof startArbitrumShim>>;
 try {
-  stack = await startMockStack({
-    autoPrepare: true,
-    rpcPort: 8545,
-    graphqlPort: 4321,
-    blockTime: 12,
-  });
+  anvil = await spawnAnvil({ port: 0, chainId: CHAIN_ID, blockTime: 12 });
+  shim = await startArbitrumShim({ upstreamUrl: anvil.url, port: RPC_PORT });
+  await loadAnvilState(anvil.url, STATE_FILE);
 } catch (err) {
   // biome-ignore lint/suspicious/noConsole: surface the real failure
   console.error(
@@ -51,7 +66,7 @@ try {
       err instanceof Error ? err.message : String(err)
     }\n\n` +
       'Common causes:\n' +
-      '  - A previous `pnpm mock:chain` is still running on port 8545 or 4321.\n' +
+      '  - A previous `pnpm mock:chain` is still running on port 8545.\n' +
       '    Kill it (Ctrl+C in that terminal, or `lsof -i:8545`) and try again.\n' +
       '  - Foundry is installed but `forge build` failed in one of the\n' +
       '    contract submodules. Run `git submodule update --init --recursive`\n' +
@@ -65,27 +80,31 @@ try {
   process.exit(1);
 }
 
+// biome-ignore lint/suspicious/noConsole: status banner
+console.log(`\n[mock-stack] chain ready at ${shim.url}\n`);
+
+// Spawn the indexer under tsx watch so resolver / indexer changes hot-reload
+// without touching the chain.
+const tsxBin = path.resolve(import.meta.dirname, '../node_modules/.bin/tsx');
+const indexer: ChildProcess = spawn(tsxBin, ['watch', INDEXER_SCRIPT], {
+  stdio: 'inherit',
+  env: process.env,
+});
+
+indexer.on('error', err => {
+  // biome-ignore lint/suspicious/noConsole: surface child-process spawn errors
+  console.error(`[mock-stack] indexer spawn error: ${err.message}`);
+});
+
 const shutdown = async (signal: NodeJS.Signals): Promise<void> => {
   // biome-ignore lint/suspicious/noConsole: shutdown indicator
-  console.log(`\n[mock-stack] received ${signal}, stopping chain…`);
-  await stack.stop();
+  console.log(`\n[mock-stack] received ${signal}, shutting down…`);
+  if (indexer.exitCode === null) indexer.kill('SIGTERM');
+  await shim.stop();
+  await anvil.stop();
   process.exit(0);
 };
 process.on('SIGINT', () => void shutdown('SIGINT'));
 process.on('SIGTERM', () => void shutdown('SIGTERM'));
 
-// biome-ignore lint/suspicious/noConsole: status banner
-console.log(
-  `\n[mock-stack] chain is ready\n` +
-    `  anvil:    ${stack.rpcUrl}\n` +
-    `  graphql:  ${stack.graphqlUrl}\n` +
-    `  contracts: ${Object.keys(stack.deployments).length} deployed\n` +
-    `\nKeep this process running. Start the app with \`pnpm mock:app\` in another terminal.\n`,
-);
-
-// Keep the process alive until SIGINT/SIGTERM. The indexer's tail-loop
-// setTimeout already holds the loop open, but a heartbeat interval makes
-// the intent explicit and survives if the indexer ever stops scheduling.
-setInterval(() => {
-  // intentional no-op — keeps the process up
-}, 60_000);
+setInterval(() => {}, 60_000);
