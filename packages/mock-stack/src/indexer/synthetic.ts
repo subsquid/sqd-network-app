@@ -15,6 +15,7 @@
  * dedicated module under `operations/` and start replacing chain-derived
  * fields with entries from the log-fed entity store.
  */
+import { BLOCK_TIME_SEC } from '../config';
 import { PERSONAS } from '../personas';
 import { hashSeed, mulberry32 } from './prng';
 
@@ -404,7 +405,7 @@ export function resolveSynthetic(
         totalDelegation: '80000000000000000000000000',
         storedData: '10737418240000',
         workerApr: 0.14,
-        blockTimeL1: 12_000,
+        blockTimeL1: BLOCK_TIME_SEC * 1_000,
         lastBlockL1: 19_800_000,
         lastBlockTimestampL1: NOW,
         aprs: Array.from({ length: 7 }, (_, i) => ({
@@ -419,7 +420,7 @@ export function resolveSynthetic(
   if (operationName === 'currentEpoch') {
     return {
       workersSummary: {
-        blockTimeL1: 12_000,
+        blockTimeL1: BLOCK_TIME_SEC * 1_000,
         lastBlockL1: 19_800_000,
         lastBlockTimestampL1: NOW,
       },

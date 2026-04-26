@@ -25,6 +25,7 @@ import {
 import { privateKeyToAccount } from 'viem/accounts';
 
 import { localArtifact, networkArtifact, portalArtifact } from './artifacts';
+import { STAKER_REWARD_PER_CYCLE_SQD, WORKER_REWARD_PER_CYCLE_SQD } from './config';
 import { type DeployOpts, chainFor } from './deploy';
 import type { AddressMap } from './deployments';
 import { DEPLOYER_PRIVATE_KEY, PERSONAS, type Persona, type PersonaLabel } from './personas';
@@ -450,9 +451,6 @@ async function placeDelegations(
  * distributor; with `requiredApproves = 1` the single commit immediately
  * triggers `distribute()`.
  */
-const WORKER_REWARD_PER_CYCLE_SQD = 1_000n;
-const STAKER_REWARD_PER_CYCLE_SQD = 500n;
-
 async function commitFixedRewards(
   opts: DeployOpts,
   deployments: AddressMap,

@@ -13,7 +13,9 @@ import { type Address, createPublicClient, http } from 'viem';
 
 import { type ArbitrumShimHandle, startArbitrumShim } from './arbitrumShim';
 import { packageRoot } from './artifacts';
+import { type AutoDistributor, startAutoDistributor } from './autoDistribute';
 import { type AnvilHandle, spawnAnvil } from './chain';
+import { BLOCK_TIME_SEC } from './config';
 import { chainFor, loadAnvilState } from './deploy';
 import { type AddressMap, readDeployments } from './deployments';
 import { clearResolvers } from './indexer/dispatcher';
@@ -134,10 +136,17 @@ export async function startMockStack(opts: StartMockStackOpts = {}): Promise<Moc
 
   let graphql: MockGraphqlServer | undefined;
   let indexer: ReturnType<typeof startIndexer> | undefined;
+  let autoDistributor: AutoDistributor | undefined;
   try {
     graphql = await startGraphqlServer({ port: graphqlPort });
     indexer = startIndexer({ rpcUrl: chainRpcUrl, deployments });
     await indexer.waitUntilCaughtUp();
+    autoDistributor = startAutoDistributor({
+      rpcUrl: chainRpcUrl,
+      chainId,
+      deployments,
+      getLastBlock: () => indexer!.lastBlock,
+    });
 
     clearResolvers();
     const publicClient = createPublicClient({
@@ -147,7 +156,7 @@ export async function startMockStack(opts: StartMockStackOpts = {}): Promise<Moc
     const blockTimestampNow = (block: bigint): string => {
       const head = indexer!.lastBlock;
       const ageBlocks = Math.max(0, head - Number(block));
-      return new Date(Date.now() - ageBlocks * 12_000).toISOString();
+      return new Date(Date.now() - ageBlocks * BLOCK_TIME_SEC * 1_000).toISOString();
     };
     registerWorkerResolvers({
       client: publicClient,
@@ -170,6 +179,7 @@ export async function startMockStack(opts: StartMockStackOpts = {}): Promise<Moc
       blockTimestamp: blockTimestampNow,
     });
   } catch (err) {
+    autoDistributor?.stop();
     indexer?.stop();
     if (graphql) await graphql.stop();
     if (!externalRpcUrl) {
@@ -194,6 +204,7 @@ export async function startMockStack(opts: StartMockStackOpts = {}): Promise<Moc
       waitUntilCaughtUp: () => indexer!.waitUntilCaughtUp(),
     },
     async stop() {
+      autoDistributor?.stop();
       indexer?.stop();
       if (graphql) await graphql.stop();
       // Only tear down the chain when we own it.

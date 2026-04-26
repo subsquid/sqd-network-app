@@ -7,14 +7,15 @@
  * Not intended to be run directly; use `pnpm mock:chain` instead.
  */
 import { startMockStack } from '../src';
+import { GRAPHQL_PORT, RPC_PORT } from '../src/config';
 
-const CHAIN_URL = 'http://localhost:8545';
+const CHAIN_URL = `http://localhost:${RPC_PORT}`;
 
 let stack: Awaited<ReturnType<typeof startMockStack>>;
 try {
   stack = await startMockStack({
     externalRpcUrl: CHAIN_URL,
-    graphqlPort: 4321,
+    graphqlPort: GRAPHQL_PORT,
   });
 } catch (err) {
   // biome-ignore lint/suspicious/noConsole: surface the real failure

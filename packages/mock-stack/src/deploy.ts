@@ -29,6 +29,7 @@ import {
 import { privateKeyToAccount } from 'viem/accounts';
 
 import { localArtifact, networkArtifact, portalArtifact } from './artifacts';
+import { EPOCH_LENGTH_BLOCKS } from './config';
 import { type AddressMap } from './deployments';
 import { DEPLOYER_PRIVATE_KEY } from './personas';
 import { seedPersonas } from './seed';
@@ -166,8 +167,8 @@ async function deployNetworkContracts(
   );
   deployments.ROUTER = routerProxy;
 
-  // NetworkController: epochLength=2 (blocks; deliberately small for tests so
-  // workers become active after a single anvil_mine call), firstEpoch=0,
+  // NetworkController: workerEpochLength (blocks; deliberately small so workers
+  // become active after a single anvil_mine call), firstEpoch=0,
   // epochCheckpoint=0, bondAmount=100_000 SQD, allowedVestedTargets=[]
   // (filled via setters below).
   deployments.NETWORK_CONTROLLER = await deployNetwork(
@@ -175,7 +176,7 @@ async function deployNetworkContracts(
     publicClient,
     'NetworkController',
     'NetworkController',
-    [2n, 0n, 0n, 100_000n * 10n ** 18n, []],
+    [BigInt(EPOCH_LENGTH_BLOCKS), 0n, 0n, 100_000n * 10n ** 18n, []],
   );
 
   deployments.STAKING = await deployNetwork(wallet, publicClient, 'Staking', 'Staking', [

@@ -8,6 +8,7 @@
 import type { Abi, Address, PublicClient } from 'viem';
 
 import { networkArtifact } from '../../artifacts';
+import { BLOCK_TIME_SEC } from '../../config';
 import type { AddressMap } from '../../deployments';
 import { type Resolver, registerResolver } from '../dispatcher';
 
@@ -173,7 +174,7 @@ export function registerNetworkResolvers(deps: NetworkResolverDeps): void {
         storedData: '0',
         workerApr: 0,
         stakerApr: 0,
-        blockTimeL1: 12_000,
+        blockTimeL1: BLOCK_TIME_SEC * 1_000,
         lastBlockL1: head,
         lastBlockTimestampL1: new Date().toISOString(),
         aprs: [],
@@ -225,7 +226,7 @@ export function registerNetworkResolvers(deps: NetworkResolverDeps): void {
     const head = deps.getLastBlock();
     return {
       workersSummary: {
-        blockTimeL1: 12_000,
+        blockTimeL1: BLOCK_TIME_SEC * 1_000,
         lastBlockL1: head,
         lastBlockTimestampL1: new Date().toISOString(),
       },

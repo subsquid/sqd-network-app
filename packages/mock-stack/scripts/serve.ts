@@ -19,11 +19,10 @@ import { type ChildProcess, spawn, spawnSync } from 'node:child_process';
 import { startArbitrumShim } from '../src/arbitrumShim';
 import { packageRoot } from '../src/artifacts';
 import { spawnAnvil } from '../src/chain';
+import { BLOCK_TIME_SEC, CHAIN_ID, RPC_PORT } from '../src/config';
 import { loadAnvilState } from '../src/deploy';
 import { runPrepare } from '../src/prepare';
 
-const CHAIN_ID = 42161;
-const RPC_PORT = 8545;
 const STATE_FILE = path.resolve(packageRoot(), '.anvil-state.json');
 const INDEXER_SCRIPT = path.resolve(import.meta.dirname, '_indexer.ts');
 
@@ -56,7 +55,7 @@ if (!fs.existsSync(STATE_FILE)) {
 let anvil: Awaited<ReturnType<typeof spawnAnvil>>;
 let shim: Awaited<ReturnType<typeof startArbitrumShim>>;
 try {
-  anvil = await spawnAnvil({ port: 0, chainId: CHAIN_ID, blockTime: 12 });
+  anvil = await spawnAnvil({ port: 0, chainId: CHAIN_ID, blockTime: BLOCK_TIME_SEC });
   shim = await startArbitrumShim({ upstreamUrl: anvil.url, port: RPC_PORT });
   await loadAnvilState(anvil.url, STATE_FILE);
 } catch (err) {
@@ -66,8 +65,8 @@ try {
       err instanceof Error ? err.message : String(err)
     }\n\n` +
       'Common causes:\n' +
-      '  - A previous `pnpm mock:chain` is still running on port 8545.\n' +
-      '    Kill it (Ctrl+C in that terminal, or `lsof -i:8545`) and try again.\n' +
+      `  - A previous \`pnpm mock:chain\` is still running on port ${RPC_PORT}.\n` +
+      `    Kill it (Ctrl+C in that terminal, or \`lsof -i:${RPC_PORT}\`) and try again.\n` +
       '  - Foundry is installed but `forge build` failed in one of the\n' +
       '    contract submodules. Run `git submodule update --init --recursive`\n' +
       '    and `forge build` manually inside packages/mock-stack/ to see\n' +
