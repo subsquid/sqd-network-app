@@ -1,6 +1,6 @@
 import { PropsWithChildren } from 'react';
 
-import { Box, SxProps, Theme, Typography, styled } from '@mui/material';
+import { SxProps, Theme, Typography, styled } from '@mui/material';
 
 import { BackButton } from '@components/BackButton';
 
@@ -39,8 +39,8 @@ export function PageTitle({
     <PageTitleWrapper sx={sx}>
       <div className="title">
         {backButton && <BackButton path={backPath} />}
-        <Typography variant="h4" sx={{ textWrap: 'balance' }}>
-          <Box color="text.primary">{title}</Box>
+        <Typography variant="h4" color="text.primary" sx={{ textWrap: 'balance' }}>
+          {title}
         </Typography>
       </div>
       {children ? <PageDescription>{children}</PageDescription> : null}

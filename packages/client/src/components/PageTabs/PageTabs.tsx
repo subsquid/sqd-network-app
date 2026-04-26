@@ -111,7 +111,7 @@ export function PageTabs({
             disabled={disabled}
             data-before={title}
             label={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box component="span" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 {icon}
                 {title}
               </Box>

@@ -19,7 +19,7 @@ import { fromSqd } from '@lib/network';
 
 export function ColumnLabel({ children, color }: PropsWithChildren<{ color?: string }>) {
   return (
-    <Typography variant="h4" mb={1} mt={1} color={color}>
+    <Typography component="div" variant="h4" mb={1} mt={1} color={color}>
       {children}
     </Typography>
   );
@@ -43,7 +43,9 @@ function OnlineInfo() {
             <span>Data</span>
             <SquaredChip
               label={
-                <Typography variant="subtitle1">{bytesFormatter(data?.storedData)}</Typography>
+                <Typography component="span" variant="subtitle1">
+                  {bytesFormatter(data?.storedData)}
+                </Typography>
               }
               color="info"
             />
@@ -68,7 +70,11 @@ function CurrentEpochEstimation({ epochEnd }: { epochEnd: number }) {
     <Stack direction="row" spacing={1}>
       <span>Ends in</span>
       <SquaredChip
-        label={<Typography variant="subtitle1">{timeLeft}</Typography>}
+        label={
+          <Typography component="span" variant="subtitle1">
+            {timeLeft}
+          </Typography>
+        }
         color="warning"
       />
     </Stack>

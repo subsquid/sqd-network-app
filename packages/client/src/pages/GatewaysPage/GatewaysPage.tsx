@@ -205,9 +205,7 @@ export function MyGateways() {
               </TableRow>
             ))
           ) : isLoading ? null : (
-            <NoItems>
-              <Typography>No portal registered yet</Typography>
-            </NoItems>
+            <NoItems message="No portal registered yet" />
           )}
         </TableBody>
       </DashboardTable>
