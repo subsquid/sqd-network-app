@@ -27,7 +27,8 @@ export const addGatewaySchema = editGatewaySchema.shape({
   peerId: yup
     .string()
     .matches(/^[a-z1-9]+$/i, 'Peer ID must contains only base 58 symbols')
-    .length(52)
+    .min(46)
+    .max(52)
     .label('Peer ID')
     .trim()
     .required('Peer ID is required'),
