@@ -40,6 +40,6 @@
     }
   },
   "include": ["src"],
-  "exclude": ["dist", "node_modules"],
+  "exclude": ["lib", "node_modules"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

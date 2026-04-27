@@ -5,9 +5,9 @@
     "moduleResolution": "bundler",
     "strict": true,
     "skipLibCheck": true,
-    "outDir": "./dist",
+    "outDir": "./lib",
     "rootDir": "./src"
   },
   "include": ["src"],
-  "exclude": ["dist", "node_modules"]
+  "exclude": ["lib", "node_modules"]
 }
