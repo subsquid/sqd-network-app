@@ -10,6 +10,7 @@ import {
   getTokenSquidUrl,
   getWorkersSquidUrl,
 } from './env.js';
+import { logger } from './logger.js';
 import { appRouter } from './router.js';
 import { createContext } from './trpc.js';
 
@@ -24,47 +25,35 @@ if (sentryDsn) {
   });
 }
 
-const startupLogs = [
-  `Server port: ${port}`,
-  `Server environment: ${process.env.APP_ENV}`,
-  `Server network: ${process.env.NETWORK}`,
-  `Sentry enabled: ${Boolean(sentryDsn)}`,
-  `Server workers squid url: ${getWorkersSquidUrl()}`,
-  `Server gateways squid url: ${getGatewaysSquidUrl()}`,
-  `Server token squid url: ${getTokenSquidUrl()}`,
-  `Server rpc url: ${getRpcUrl()}`,
-  `Server contract addresses: ${Object.entries(getContractAddresses())
-    .map(([key, value]) => `${key}: ${value}`)
-    .join(', ')}`,
-];
-for (const line of startupLogs) {
-  // biome-ignore lint/suspicious/noConsole: startup diagnostics
-  console.log(line);
-}
+logger.info(
+  {
+    port,
+    environment: process.env.APP_ENV,
+    network: process.env.NETWORK,
+    sentryEnabled: Boolean(sentryDsn),
+    workersSquidUrl: getWorkersSquidUrl(),
+    gatewaysSquidUrl: getGatewaysSquidUrl(),
+    tokenSquidUrl: getTokenSquidUrl(),
+    rpcUrl: getRpcUrl(),
+    contractAddresses: getContractAddresses(),
+  },
+  'server starting',
+);
 
 const server = createHTTPServer({
   router: appRouter,
   createContext,
   onError: ({ error, path, type, req }) => {
-    // Always log errors to stderr so they appear in logs even without Sentry.
-    // biome-ignore lint/suspicious/noConsole: intentional error logging
-    console.error(
-      `[tRPC error] ${type} ${path ?? 'unknown'} — ${error.code}: ${error.message}`,
-      error.cause ?? '',
-    );
-
-    if (!sentryDsn) return;
-
-    Sentry.captureException(error, {
-      tags: {
+    logger.error(
+      {
+        err: error,
         trpcPath: path ?? 'unknown',
         trpcType: type,
-      },
-      extra: {
         method: req.method,
         url: req.url,
       },
-    });
+      `tRPC error ${type} ${path ?? 'unknown'} — ${error.code}`,
+    );
   },
 });
 
@@ -79,36 +68,20 @@ server.on('request', (req, res) => {
   const start = Date.now();
   res.on('finish', () => {
     const ms = Date.now() - start;
-    // biome-ignore lint/suspicious/noConsole: request logging
-    console.log(`[http] ${req.method} ${req.url} ${res.statusCode} ${ms}ms`);
+    logger.info({ method: req.method, url: req.url, status: res.statusCode, ms }, 'http request');
   });
 });
 
-if (sentryDsn) {
-  process.on('unhandledRejection', reason => {
-    // biome-ignore lint/suspicious/noConsole: unhandled rejection logging
-    console.error('[unhandledRejection]', reason);
-    Sentry.captureException(
-      reason instanceof Error ? reason : new Error(`Unhandled rejection: ${String(reason)}`),
-    );
-  });
+process.on('unhandledRejection', reason => {
+  logger.error(
+    { err: reason instanceof Error ? reason : new Error(`Unhandled rejection: ${String(reason)}`) },
+    'unhandledRejection',
+  );
+});
 
-  process.on('uncaughtException', error => {
-    // biome-ignore lint/suspicious/noConsole: uncaught exception logging
-    console.error('[uncaughtException]', error);
-    Sentry.captureException(error);
-  });
-} else {
-  process.on('unhandledRejection', reason => {
-    // biome-ignore lint/suspicious/noConsole: unhandled rejection logging
-    console.error('[unhandledRejection]', reason);
-  });
+process.on('uncaughtException', error => {
+  logger.fatal({ err: error }, 'uncaughtException');
+  process.exit(1);
+});
 
-  process.on('uncaughtException', error => {
-    // biome-ignore lint/suspicious/noConsole: uncaught exception logging
-    console.error('[uncaughtException]', error);
-  });
-}
-
-// biome-ignore lint/suspicious/noConsole: start indicator
-server.listen(port, () => console.log(`Server is running on port ${port}`));
+server.listen(port, () => logger.info({ port }, `server is running on port ${port}`));

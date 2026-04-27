@@ -23,6 +23,7 @@ import { fileURLToPath } from 'node:url';
 import type { ContractAddresses } from '@subsquid/common';
 
 import { setRuntimeOverride } from './env.js';
+import { logger } from './logger.js';
 
 const CHAIN_RPC_URL = 'http://localhost:8545';
 const CHAIN_GRAPHQL_URL = 'http://localhost:4321/graphql';
@@ -46,12 +47,10 @@ async function waitForDeployments(): Promise<Partial<ContractAddresses>> {
       }
     }
     if (!printedHint) {
-      // biome-ignore lint/suspicious/noConsole: tell the user what we're doing
-      console.log(
-        '\n[mock:app] waiting for the chain to come up…\n' +
-          '  expecting packages/mock-stack/.deployments.json\n' +
-          '  (start the chain with `pnpm mock:chain` in another terminal\n' +
-          "   if it isn't already running)\n",
+      logger.info(
+        { deploymentsPath },
+        '[mock:app] waiting for the chain to come up… ' +
+          '(start the chain with `pnpm mock:chain` in another terminal if it is not already running)',
       );
       printedHint = true;
     }
@@ -71,10 +70,9 @@ async function waitForEndpoint(url: string, label: string): Promise<void> {
     }
     await new Promise(resolve => setTimeout(resolve, 300));
   }
-  // biome-ignore lint/suspicious/noConsole: actionable timeout diagnostic
-  console.error(
-    `\n[mock:app] ${label} at ${url} did not come up within 60s.\n` +
-      'Is `pnpm mock:chain` still running and healthy?\n',
+  logger.error(
+    { url, label },
+    `[mock:app] ${label} at ${url} did not come up within 60s. Is \`pnpm mock:chain\` still running and healthy?`,
   );
   process.exit(1);
 }
@@ -90,12 +88,13 @@ setRuntimeOverride({
   contractAddressOverride: deployments,
 });
 
-// biome-ignore lint/suspicious/noConsole: status banner
-console.log(
-  `[mock:app] chain endpoints:\n` +
-    `  anvil:    ${CHAIN_RPC_URL}\n` +
-    `  graphql:  ${CHAIN_GRAPHQL_URL}\n` +
-    `  contracts: ${Object.keys(deployments).length}\n`,
+logger.info(
+  {
+    anvil: CHAIN_RPC_URL,
+    graphql: CHAIN_GRAPHQL_URL,
+    contractCount: Object.keys(deployments).length,
+  },
+  '[mock:app] chain endpoints ready',
 );
 
 // Hand off to the regular startup. Hot-reload under tsx --watch is safe

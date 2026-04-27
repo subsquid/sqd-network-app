@@ -1,5 +1,7 @@
 import { initTRPC } from '@trpc/server';
 
+import { logger } from './logger.js';
+
 export function createContext() {
   return {};
 }
@@ -16,23 +18,19 @@ export const router = t.router;
  */
 const loggerMiddleware = t.middleware(async ({ path, type, next }) => {
   const start = Date.now();
-  // biome-ignore lint/suspicious/noConsole: procedure timing log
-  console.log(`[tRPC] --> ${type} ${path}`);
+  logger.debug({ trpcType: type, trpcPath: path }, `tRPC --> ${type} ${path}`);
   try {
     const result = await next();
     const ms = Date.now() - start;
     if (result.ok) {
-      // biome-ignore lint/suspicious/noConsole: procedure timing log
-      console.log(`[tRPC] <-- ${type} ${path} OK (${ms}ms)`);
+      logger.debug({ trpcType: type, trpcPath: path, ms }, `tRPC <-- ${type} ${path} OK`);
     } else {
-      // biome-ignore lint/suspicious/noConsole: procedure timing log
-      console.error(`[tRPC] <-- ${type} ${path} ERROR (${ms}ms)`);
+      logger.warn({ trpcType: type, trpcPath: path, ms }, `tRPC <-- ${type} ${path} ERROR`);
     }
     return result;
   } catch (err) {
     const ms = Date.now() - start;
-    // biome-ignore lint/suspicious/noConsole: procedure timing log
-    console.error(`[tRPC] <-- ${type} ${path} THREW (${ms}ms)`, err);
+    logger.error({ err, trpcType: type, trpcPath: path, ms }, `tRPC <-- ${type} ${path} THREW`);
     throw err;
   }
 });
