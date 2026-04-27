@@ -46,6 +46,7 @@ export interface PoolData {
   distributionRatePerSecond: BigNumber;
   tvl: PoolTvl;
   depositWindowEndsAt?: Date;
+  runwayEndsAt?: Date;
   maxDepositPerAddress: BigNumber;
   lptToken: ERC20TokenData;
   rewardToken: ERC20TokenData;

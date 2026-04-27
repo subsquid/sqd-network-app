@@ -45,6 +45,7 @@ export function usePoolData(poolId?: string) {
         total: BigNumber(raw.tvl.total),
       },
       depositWindowEndsAt: raw.depositWindowEndsAt ? new Date(raw.depositWindowEndsAt) : undefined,
+      runwayEndsAt: raw.runwayEndsAt ? new Date(raw.runwayEndsAt) : undefined,
       maxDepositPerAddress: BigNumber(raw.maxDepositPerAddress),
       lptToken: {
         ...raw.lptToken,
