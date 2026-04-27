@@ -1,4 +1,4 @@
-import { rewardDistributionAbi } from '@subsquid/common';
+import { rewardDistributionAbi } from '@sqd/common';
 import type { Address } from 'viem';
 
 import { getContractAddresses } from '../env.js';

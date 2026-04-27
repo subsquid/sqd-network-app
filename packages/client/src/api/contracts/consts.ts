@@ -1,1 +1,1 @@
-export { SQD_DECIMALS, SQD_TOKEN } from '@subsquid/common';
+export { SQD_DECIMALS, SQD_TOKEN } from '@sqd/common';

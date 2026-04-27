@@ -1,4 +1,4 @@
-import { portalPoolAbi, portalPoolFactoryAbi, portalRegistryAbi } from '@subsquid/common';
+import { portalPoolAbi, portalPoolFactoryAbi, portalRegistryAbi } from '@sqd/common';
 import { BigNumber } from 'bignumber.js';
 import { type Address } from 'viem';
 import { z } from 'zod';

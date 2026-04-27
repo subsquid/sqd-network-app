@@ -1,5 +1,5 @@
 {
-  "name": "@subsquid/client",
+  "name": "@sqd/client",
   "version": "0.0.1",
   "type": "module",
   "private": true,
@@ -23,7 +23,7 @@
     "@rainbow-me/rainbowkit": "^2.2.10",
     "@sentry/react": "^10.22.0",
     "@sentry/vite-plugin": "^4.6.0",
-    "@subsquid/common": "workspace:*",
+    "@sqd/common": "workspace:*",
     "@tanstack/react-query": "^5.90.5",
     "@tanstack/react-table": "^8.21.3",
     "@trpc/client": "^11",
@@ -69,7 +69,7 @@
     "yup": "^1.7.1"
   },
   "devDependencies": {
-    "@subsquid/server": "workspace:*",
+    "@sqd/server": "workspace:*",
     "@types/d3-array": "^3.2.2",
     "@types/jest": "^30.0.0",
     "@types/lodash-es": "^4.17.12",

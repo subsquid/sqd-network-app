@@ -15,7 +15,12 @@
       "!**/dist",
       "!**/*.generated.*",
       "!**/graphql.tsx",
-      "!indexer"
+      "!indexer",
+      "!packages/indexer-common",
+      "!packages/indexer-workers",
+      "!packages/indexer-gateways",
+      "!packages/indexer-token",
+      "!packages/indexer-vestings"
     ]
   },
   "formatter": {

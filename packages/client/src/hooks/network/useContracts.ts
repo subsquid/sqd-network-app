@@ -1,4 +1,4 @@
-import { CONTRACT_ADDRESSES, type ContractAddresses, type NetworkName } from '@subsquid/common';
+import { CONTRACT_ADDRESSES, type ContractAddresses, type NetworkName } from '@sqd/common';
 
 import { getSubsquidNetwork } from './useSubsquidNetwork.ts';
 

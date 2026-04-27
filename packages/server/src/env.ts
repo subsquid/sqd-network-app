@@ -46,7 +46,7 @@ export function getSentryDsn(): string | undefined {
   return dsn ? dsn : undefined;
 }
 
-import { CONTRACT_ADDRESSES, type ContractAddresses } from '@subsquid/common';
+import { CONTRACT_ADDRESSES, type ContractAddresses } from '@sqd/common';
 
 export type { ContractAddresses };
 
