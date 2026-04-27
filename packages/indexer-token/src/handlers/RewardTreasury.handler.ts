@@ -6,8 +6,8 @@ import {
   isLog,
   network,
   timed,
-} from '@sqd/shared'
-import * as RewardsTreasury from '@sqd/shared/lib/abi/RewardTreasury'
+} from '@sqd/indexer-common'
+import * as RewardsTreasury from '@sqd/indexer-common/lib/abi/RewardTreasury'
 
 import { TransferType } from '~/model'
 import { saveTransfer } from './Transfer.handler'

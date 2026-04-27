@@ -12,8 +12,8 @@ import {
   timed,
   toHumanSQD,
   toNextEpochStart,
-} from '@sqd/shared'
-import * as Staking from '@sqd/shared/lib/abi/Staking'
+} from '@sqd/indexer-common'
+import * as Staking from '@sqd/indexer-common/lib/abi/Staking'
 
 import { Delegation, DelegationStatus, DelegationStatusChange, Settings, Worker } from '~/model'
 import { createDelegation } from '../../helpers'

@@ -6,8 +6,8 @@ import {
   network,
   normalizeAddress,
   timed,
-} from '@sqd/shared'
-import * as VestingFactory from '@sqd/shared/lib/abi/VestingFactory'
+} from '@sqd/indexer-common'
+import * as VestingFactory from '@sqd/indexer-common/lib/abi/VestingFactory'
 import { Vesting } from '~/model'
 
 export const handleVestingCreated = createHandler((ctx, item) => {

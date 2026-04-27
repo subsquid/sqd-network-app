@@ -3,8 +3,8 @@ import { createLogger } from '@subsquid/logger'
 import { compareAsc } from 'date-fns'
 import { In, MoreThanOrEqual } from 'typeorm'
 
-import type { MappingContext } from '@sqd/shared'
-import { AsyncTask, DAY_MS, HOUR_MS, MINUTE_MS, joinUrl, network, toPercent, toStartOfHour, toStartOfInterval } from '@sqd/shared'
+import type { MappingContext } from '@sqd/indexer-common'
+import { AsyncTask, DAY_MS, HOUR_MS, MINUTE_MS, joinUrl, network, toPercent, toStartOfHour, toStartOfInterval } from '@sqd/indexer-common'
 import type { BlockHeader } from '../types'
 
 import { recalculateWorkerAprs, refreshWorkerCap } from './cap'

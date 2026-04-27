@@ -1,5 +1,5 @@
 import assert from 'assert'
-import type { MappingContext } from '@sqd/shared'
+import type { MappingContext } from '@sqd/indexer-common'
 import { GatewayStake, Queue } from '~/model'
 
 export const STAKE_APPLY_QUEUE = 'stake-apply'

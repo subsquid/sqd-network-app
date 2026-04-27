@@ -8,8 +8,8 @@ import {
   network,
   timed,
   toHumanSQD,
-} from '@sqd/shared'
-import * as SQD from '@sqd/shared/lib/abi/SQD'
+} from '@sqd/indexer-common'
+import * as SQD from '@sqd/indexer-common/lib/abi/SQD'
 import type { Log } from '../types'
 
 import {

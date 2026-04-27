@@ -10,8 +10,8 @@ import {
   network,
   timed,
   toHumanSQD,
-} from '@sqd/shared'
-import * as RewardsDistribution from '@sqd/shared/lib/abi/DistributedRewardsDistribution'
+} from '@sqd/indexer-common'
+import * as RewardsDistribution from '@sqd/indexer-common/lib/abi/DistributedRewardsDistribution'
 
 import { Worker } from '~/model'
 

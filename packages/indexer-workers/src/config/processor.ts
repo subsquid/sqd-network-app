@@ -3,12 +3,12 @@ import {
   STAKING_TEMPLATE_KEY,
   WORKER_REGISTRATION_TEMPLATE_KEY,
   network,
-} from '@sqd/shared'
-import * as RewardsDistribution from '@sqd/shared/lib/abi/DistributedRewardsDistribution'
-import * as NetworkController from '@sqd/shared/lib/abi/NetworkController'
-import * as Router from '@sqd/shared/lib/abi/Router'
-import * as Staking from '@sqd/shared/lib/abi/Staking'
-import * as WorkerRegistry from '@sqd/shared/lib/abi/WorkerRegistration'
+} from '@sqd/indexer-common'
+import * as RewardsDistribution from '@sqd/indexer-common/lib/abi/DistributedRewardsDistribution'
+import * as NetworkController from '@sqd/indexer-common/lib/abi/NetworkController'
+import * as Router from '@sqd/indexer-common/lib/abi/Router'
+import * as Staking from '@sqd/indexer-common/lib/abi/Staking'
+import * as WorkerRegistry from '@sqd/indexer-common/lib/abi/WorkerRegistration'
 import { DataSourceBuilder } from '@subsquid/evm-stream'
 import { assertNotNull } from '@subsquid/util-internal'
 

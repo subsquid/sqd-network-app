@@ -8,8 +8,8 @@ import {
   network,
   timed,
   toHumanSQD,
-} from '@sqd/shared'
-import * as GatewayRegistry from '@sqd/shared/lib/abi/GatewayRegistry'
+} from '@sqd/indexer-common'
+import * as GatewayRegistry from '@sqd/indexer-common/lib/abi/GatewayRegistry'
 
 import { TransferType } from '~/model'
 import { saveTransfer } from './Transfer.handler'

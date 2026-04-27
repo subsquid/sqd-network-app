@@ -8,8 +8,8 @@ import {
   isLog,
   timed,
   toHumanSQD,
-} from '@sqd/shared'
-import * as Staking from '@sqd/shared/lib/abi/Staking'
+} from '@sqd/indexer-common'
+import * as Staking from '@sqd/indexer-common/lib/abi/Staking'
 
 import { Delegation } from '~/model'
 

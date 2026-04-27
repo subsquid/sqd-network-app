@@ -1,7 +1,7 @@
-import { VESTING_TEMPLATE_KEY, network } from '@sqd/shared'
-import * as Vesting from '@sqd/shared/lib/abi/SubsquidVesting'
-import * as TemporaryHoldingFactory from '@sqd/shared/lib/abi/TemporaryHoldingFactory'
-import * as VestingFactory from '@sqd/shared/lib/abi/VestingFactory'
+import { VESTING_TEMPLATE_KEY, network } from '@sqd/indexer-common'
+import * as Vesting from '@sqd/indexer-common/lib/abi/SubsquidVesting'
+import * as TemporaryHoldingFactory from '@sqd/indexer-common/lib/abi/TemporaryHoldingFactory'
+import * as VestingFactory from '@sqd/indexer-common/lib/abi/VestingFactory'
 import { DataSourceBuilder } from '@subsquid/evm-stream'
 import { assertNotNull } from '@subsquid/util-internal'
 

@@ -18,7 +18,7 @@ import {
   sortItems,
   stopwatch,
   toEpochStart,
-} from '@sqd/shared'
+} from '@sqd/indexer-common'
 import type { BlockData, BlockHeader } from './types'
 
 import { Block, Contracts, Epoch, EpochStatus, Settings } from '~/model'

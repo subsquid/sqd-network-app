@@ -6,7 +6,7 @@ import { augmentBlock } from '@subsquid/evm-objects'
 import { createLogger } from '@subsquid/logger'
 
 import type { StoreWithCache } from '@belopash/typeorm-store'
-import { type ProcessorContext, type Task, last, sortItems, stopwatch } from '@sqd/shared'
+import { type ProcessorContext, type Task, last, sortItems, stopwatch } from '@sqd/indexer-common'
 import type { BlockData } from './types'
 
 import { processor } from './config/processor'

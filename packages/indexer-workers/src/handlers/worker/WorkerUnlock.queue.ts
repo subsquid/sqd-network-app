@@ -1,5 +1,5 @@
 import assert from 'assert'
-import type { MappingContext } from '@sqd/shared'
+import type { MappingContext } from '@sqd/indexer-common'
 import { Queue, Worker } from '~/model'
 
 export const WORKER_UNLOCK_QUEUE = 'worker-unlock'

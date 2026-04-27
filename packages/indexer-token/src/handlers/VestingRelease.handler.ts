@@ -5,8 +5,8 @@ import {
   findTransfer,
   isLog,
   timed,
-} from '@sqd/shared'
-import * as Vesting from '@sqd/shared/lib/abi/SubsquidVesting'
+} from '@sqd/indexer-common'
+import * as Vesting from '@sqd/indexer-common/lib/abi/SubsquidVesting'
 
 import { Account, TransferType } from '~/model'
 import { saveTransfer } from './Transfer.handler'

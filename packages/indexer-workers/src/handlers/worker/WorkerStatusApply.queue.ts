@@ -1,5 +1,5 @@
 import assert from 'assert'
-import type { MappingContext } from '@sqd/shared'
+import type { MappingContext } from '@sqd/indexer-common'
 import { Queue, Worker, WorkerStatus, WorkerStatusChange } from '~/model'
 import { resetWorkerStats } from '../../helpers'
 import { markAprDirty } from '../cap'

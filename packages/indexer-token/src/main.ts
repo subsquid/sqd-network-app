@@ -16,7 +16,7 @@ import {
   network,
   sortItems,
   stopwatch,
-} from '@sqd/shared'
+} from '@sqd/indexer-common'
 import type { BlockData } from './types'
 
 import { processor } from './config/processor'

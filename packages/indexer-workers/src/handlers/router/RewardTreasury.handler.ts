@@ -1,5 +1,5 @@
-import { createHandler, isContract, isLog, network } from '@sqd/shared'
-import * as Router from '@sqd/shared/lib/abi/Router'
+import { createHandler, isContract, isLog, network } from '@sqd/indexer-common'
+import * as Router from '@sqd/indexer-common/lib/abi/Router'
 
 import { Contracts, Settings } from '~/model'
 

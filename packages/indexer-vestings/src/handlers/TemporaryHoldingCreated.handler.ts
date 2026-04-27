@@ -5,8 +5,8 @@ import {
   isLog,
   network,
   timed,
-} from '@sqd/shared'
-import * as TemporaryHoldingFactory from '@sqd/shared/lib/abi/TemporaryHoldingFactory'
+} from '@sqd/indexer-common'
+import * as TemporaryHoldingFactory from '@sqd/indexer-common/lib/abi/TemporaryHoldingFactory'
 import { Queue, TemporaryHolding } from '~/model'
 
 export const TEMPORARY_HOLDING_UNLOCK_QUEUE = 'temporary-holding-unlock'

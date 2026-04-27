@@ -6,9 +6,9 @@ import {
   network,
   normalizeAddress,
   timed,
-} from '@sqd/shared'
-import * as PortalPoolFactory from '@sqd/shared/lib/abi/PortalPoolFactory'
-import * as PortalPoolImplementation from '@sqd/shared/lib/abi/PortalPoolImplementation'
+} from '@sqd/indexer-common'
+import * as PortalPoolFactory from '@sqd/indexer-common/lib/abi/PortalPoolFactory'
+import * as PortalPoolImplementation from '@sqd/indexer-common/lib/abi/PortalPoolImplementation'
 
 import { PoolEvent, PoolEventType, PortalPool } from '~/model'
 

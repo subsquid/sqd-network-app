@@ -1,4 +1,4 @@
-import { type GroupSize, getGroupSize, network } from '@sqd/shared'
+import { type GroupSize, getGroupSize, network } from '@sqd/indexer-common'
 import { BigInteger, DateTime } from '@subsquid/graphql-server'
 import { max } from 'date-fns'
 import { Arg, Field, ObjectType, Query, Resolver } from 'type-graphql'

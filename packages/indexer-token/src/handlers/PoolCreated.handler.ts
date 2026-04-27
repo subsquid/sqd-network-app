@@ -4,8 +4,8 @@ import {
   isLog,
   network,
   normalizeAddress,
-} from '@sqd/shared'
-import * as PortalPoolFactory from '@sqd/shared/lib/abi/PortalPoolFactory'
+} from '@sqd/indexer-common'
+import * as PortalPoolFactory from '@sqd/indexer-common/lib/abi/PortalPoolFactory'
 
 export const handlePoolCreated = createHandler((ctx, item) => {
   if (!isLog(item)) return

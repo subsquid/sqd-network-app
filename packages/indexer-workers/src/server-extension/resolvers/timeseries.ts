@@ -1,4 +1,4 @@
-import { type GroupSize, getGroupSize, network } from '@sqd/shared'
+import { type GroupSize, getGroupSize, network } from '@sqd/indexer-common'
 import { DateTime } from '@subsquid/graphql-server'
 import { Arg, Field, ObjectType, Query, Resolver } from 'type-graphql'
 import { EntityManager } from 'typeorm'

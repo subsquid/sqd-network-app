@@ -5,8 +5,8 @@ import {
   findTransferInTx,
   isLog,
   timed,
-} from '@sqd/shared'
-import * as PortalPoolImplementation from '@sqd/shared/lib/abi/PortalPoolImplementation'
+} from '@sqd/indexer-common'
+import * as PortalPoolImplementation from '@sqd/indexer-common/lib/abi/PortalPoolImplementation'
 
 import { TransferType } from '~/model'
 import { saveTransfer } from './Transfer.handler'

@@ -1,4 +1,4 @@
-import type { WorkerMetadata } from '@sqd/shared'
+import type { WorkerMetadata } from '@sqd/indexer-common'
 import { Block, Delegation, Settings, Worker, WorkerStatus } from '~/model'
 
 export function createWorker(

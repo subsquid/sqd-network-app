@@ -1,8 +1,8 @@
 import { BigDecimal } from '@subsquid/big-decimal'
 import { createLogger } from '@subsquid/logger'
 
-import type { MappingContext } from '@sqd/shared'
-import { DAY_MS, network } from '@sqd/shared'
+import type { MappingContext } from '@sqd/indexer-common'
+import { DAY_MS, network } from '@sqd/indexer-common'
 
 import { Settings, Worker, WorkerStatus } from '~/model'
 import { computeCapedDelegation } from './softcap'

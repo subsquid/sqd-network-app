@@ -1,5 +1,5 @@
-import { NETWORK_CONTROLLER_TEMPLATE_KEY, createHandler, isLog, network } from '@sqd/shared'
-import * as NetworkController from '@sqd/shared/lib/abi/NetworkController'
+import { NETWORK_CONTROLLER_TEMPLATE_KEY, createHandler, isLog, network } from '@sqd/indexer-common'
+import * as NetworkController from '@sqd/indexer-common/lib/abi/NetworkController'
 
 import { Settings } from '~/model'
 

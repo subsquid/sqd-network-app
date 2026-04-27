@@ -1,5 +1,5 @@
-import { VESTING_TEMPLATE_KEY, createAccountId, createHandler, isLog, timed } from '@sqd/shared'
-import * as SubsquidVesting from '@sqd/shared/lib/abi/SubsquidVesting'
+import { VESTING_TEMPLATE_KEY, createAccountId, createHandler, isLog, timed } from '@sqd/indexer-common'
+import * as SubsquidVesting from '@sqd/indexer-common/lib/abi/SubsquidVesting'
 import { Vesting } from '~/model'
 
 export const handleVestingTransferred = createHandler((ctx, item) => {

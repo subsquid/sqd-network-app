@@ -1,7 +1,7 @@
-import { PORTAL_POOL_TEMPLATE_KEY, network } from '@sqd/shared'
-import * as GatewayRegistry from '@sqd/shared/lib/abi/GatewayRegistry'
-import * as PortalPoolFactory from '@sqd/shared/lib/abi/PortalPoolFactory'
-import * as PortalPoolImplementation from '@sqd/shared/lib/abi/PortalPoolImplementation'
+import { PORTAL_POOL_TEMPLATE_KEY, network } from '@sqd/indexer-common'
+import * as GatewayRegistry from '@sqd/indexer-common/lib/abi/GatewayRegistry'
+import * as PortalPoolFactory from '@sqd/indexer-common/lib/abi/PortalPoolFactory'
+import * as PortalPoolImplementation from '@sqd/indexer-common/lib/abi/PortalPoolImplementation'
 import { DataSourceBuilder } from '@subsquid/evm-stream'
 import { assertNotNull } from '@subsquid/util-internal'
 

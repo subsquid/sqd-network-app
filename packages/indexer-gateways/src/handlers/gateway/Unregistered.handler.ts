@@ -6,8 +6,8 @@ import {
   network,
   parsePeerId,
   timed,
-} from '@sqd/shared'
-import * as GatewayRegistry from '@sqd/shared/lib/abi/GatewayRegistry'
+} from '@sqd/indexer-common'
+import * as GatewayRegistry from '@sqd/indexer-common/lib/abi/GatewayRegistry'
 
 import { Gateway, GatewayStatus, GatewayStatusChange } from '~/model'
 

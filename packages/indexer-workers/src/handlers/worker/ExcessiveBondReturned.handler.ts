@@ -6,8 +6,8 @@ import {
   isLog,
   timed,
   toHumanSQD,
-} from '@sqd/shared'
-import * as WorkerRegistry from '@sqd/shared/lib/abi/WorkerRegistration'
+} from '@sqd/indexer-common'
+import * as WorkerRegistry from '@sqd/indexer-common/lib/abi/WorkerRegistration'
 
 import { Worker } from '~/model'
 import { markAprDirty } from '../cap'

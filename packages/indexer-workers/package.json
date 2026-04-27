@@ -16,7 +16,7 @@
   "dependencies": {
     "@belopash/typeorm-store": "2.0.0-rc.8",
     "@oxc-project/runtime": "^0.125.0",
-    "@sqd/shared": "workspace:*",
+    "@sqd/indexer-common": "workspace:*",
     "@subsquid/batch-processor": "0.2.0-portal-api.d5861e",
     "@subsquid/big-decimal": "^1.0.0",
     "@subsquid/evm-objects": "0.0.2-portal-api.d5861e",
