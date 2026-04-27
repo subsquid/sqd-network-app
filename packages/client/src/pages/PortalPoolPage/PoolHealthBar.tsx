@@ -111,15 +111,13 @@ function ProgressBar({ pool }: { pool: PoolData }) {
   return (
     <Stack spacing={0.5}>
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography variant="body2" fontWeight="medium">
-          <Box display="flex">
-            {status === 'collecting' ? (
-              <ActivationCountdown pool={pool} />
-            ) : (
-              <StatusIcon status={status} />
-            )}
-          </Box>
-        </Typography>
+        <Box display="flex" sx={{ typography: 'body2', fontWeight: 'medium' }}>
+          {status === 'collecting' ? (
+            <ActivationCountdown pool={pool} />
+          ) : (
+            <StatusIcon status={status} />
+          )}
+        </Box>
         <Tooltip
           title={`How full the pool is relative to its capacity.${showBuffer ? ' Filled includes all deposited tokens. Committed excludes tokens queued for withdrawal — only committed tokens earn rewards.' : ''}`}
         >

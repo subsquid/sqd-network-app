@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { Add } from '@mui/icons-material';
 import { Button, SxProps } from '@mui/material';
@@ -13,8 +13,12 @@ import {
 } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { encodeWorkerMetadata } from '@api/contracts/worker-registration/WorkerMetadata';
-import { AccountType, SourceWalletWithBalance, WorkerStatus } from '@api/subsquid-network-squid';
-import { useWorkerByPeerId } from '@api/subsquid-network-squid/workers-graphql';
+import {
+  AccountType,
+  SourceWalletWithBalance,
+  WorkerStatus,
+  useWorkerByPeerId,
+} from '@api/subsquid-network-squid';
 import { ConfirmDialog } from '@components/ConfirmDialog';
 import { ContractCallDialog } from '@components/ContractCallDialog';
 import { Form, FormRow, FormikCheckBoxInput, FormikTextInput } from '@components/Form';
@@ -36,7 +40,7 @@ export const addWorkerSchema = yup.object({
     .string()
     .matches(/^[a-z1-9]+$/i, 'Peer ID must contains only base 58 symbols')
     .max(52)
-    .min(52)
+    .min(46)
     .label('Peer ID')
     .trim()
     .required('Peer ID is required'),
@@ -144,9 +148,6 @@ export function AddNewWorkerDialog({
     };
   }, [bondAmount, isSourceDisabled, sources]);
 
-  const [peerIdToValidate, setPeerIdToValidate] = useState('');
-  const { data: existingWorker } = useWorkerByPeerId(peerIdToValidate);
-
   const formik = useFormik({
     initialValues,
     validationSchema: addWorkerSchema,
@@ -154,15 +155,6 @@ export function AddNewWorkerDialog({
     validateOnBlur: true,
     validateOnMount: true,
     enableReinitialize: true,
-    validate: values => {
-      const errors: Record<string, string> = {};
-
-      if (values.peerId && existingWorker && existingWorker.status !== WorkerStatus.Withdrawn) {
-        errors.peerId = 'Peer ID is already registered';
-      }
-
-      return errors;
-    },
     onSubmit: async values => {
       if (!workerRegistryAddress || !bondAmount) return;
 
@@ -189,12 +181,17 @@ export function AddNewWorkerDialog({
     },
   });
 
-  // Update peerId to validate when form value changes
-  useEffect(() => {
-    if (formik.values.peerId) {
-      setPeerIdToValidate(formik.values.peerId);
+  const peerId = formikPeerIdIsComplete(formik.values.peerId.trim())
+    ? formik.values.peerId.trim()
+    : '';
+  const { data: existingWorker } = useWorkerByPeerId(peerId);
+  const peerIdAlreadyRegisteredError = useMemo(() => {
+    if (peerId && existingWorker && existingWorker.status !== WorkerStatus.Withdrawn) {
+      return 'Peer ID is already registered';
     }
-  }, [formik.values.peerId]);
+
+    return undefined;
+  }, [existingWorker, peerId]);
 
   return (
     <>
@@ -206,7 +203,7 @@ export function AddNewWorkerDialog({
 
           formik.handleSubmit();
         }}
-        disableConfirmButton={isLoading || !formik.isValid}
+        disableConfirmButton={isLoading || !formik.isValid || !!peerIdAlreadyRegisteredError}
         loading={contractWriter.isPending}
       >
         {isLoading ? (
@@ -256,6 +253,7 @@ export function AddNewWorkerDialog({
                     </HelpTooltip>
                   }
                   formik={formik}
+                  error={peerIdAlreadyRegisteredError}
                 />
               </FormRow>
               <FormRow>
@@ -290,6 +288,10 @@ export function AddNewWorkerDialog({
       </ContractCallDialog>
     </>
   );
+}
+
+function formikPeerIdIsComplete(peerId: string): boolean {
+  return peerId.length >= 46 && peerId.length <= 52 && /^[a-z1-9]+$/i.test(peerId);
 }
 
 function JoinChatDialog({

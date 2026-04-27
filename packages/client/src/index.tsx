@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 import { useNavigate } from 'react-router-dom';
 
 import { queryClient } from '@api/client';
+import { bootstrapContracts } from '@hooks/network/useContracts';
 
 import App from './App';
 
@@ -113,5 +114,17 @@ export function useAppReload({ delay = 500, to }: { delay?: number; to?: string 
 }
 
 let root = createRoot(container);
-root.render(<App />);
+
+// Resolve the active contract address book before React mounts so
+// `useContracts()` is synchronous everywhere. Live mode resolves from the
+// static map; mock mode round-trips to the tRPC `contract.list` procedure
+// to pick up mock-stack-deployed addresses.
+void bootstrapContracts()
+  .catch(err => {
+    // biome-ignore lint/suspicious/noConsole: surface boot failure clearly
+    console.error('[client] failed to bootstrap contracts:', err);
+  })
+  .finally(() => {
+    root.render(<App />);
+  });
 // hideLoader(0);

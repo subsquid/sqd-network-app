@@ -5,21 +5,48 @@ interface GraphQLResponse<T> {
   errors?: Array<{ message: string }>;
 }
 
+/**
+ * Slightly shorter than the client-side 5 s abort so the server has time to
+ * return a proper tRPC error before the browser tears down the connection.
+ */
+export const GRAPHQL_REQUEST_TIMEOUT_MS = 4_500;
+
 async function graphqlRequest<T>(
   url: string,
   query: string | { toString(): string },
   variables?: Record<string, unknown>,
 ): Promise<T> {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query: query.toString(), variables }),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), GRAPHQL_REQUEST_TIMEOUT_MS);
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: query.toString(), variables }),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (controller.signal.aborted) {
+      throw new Error(
+        `GraphQL request timed out after ${GRAPHQL_REQUEST_TIMEOUT_MS / 1000}s (url: ${url})`,
+      );
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  if (!res.ok) {
+    throw new Error(`GraphQL request failed: HTTP ${res.status} ${res.statusText} (url: ${url})`);
+  }
 
   const json = (await res.json()) as GraphQLResponse<T>;
 
   if (json.errors?.length) {
-    throw new Error(json.errors[0].message);
+    const messages = json.errors.map(e => e.message).join('; ');
+    throw new Error(`GraphQL errors: ${messages}`);
   }
 
   return json.data;

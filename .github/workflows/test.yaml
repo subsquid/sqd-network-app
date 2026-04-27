@@ -1,0 +1,63 @@
+name: test
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
+
+      # The mock-stack snapshot is a deterministic function of the local
+      # mock contracts + deploy harness sources. Cache it so unrelated PRs
+      # skip the ~1s deploy on every run.
+      - name: Cache mock-stack snapshot
+        uses: actions/cache@v4
+        with:
+          path: |
+            packages/mock-stack/out
+            packages/mock-stack/.anvil-state.json
+            packages/mock-stack/.deployments.json
+          key: mock-stack-${{ runner.os }}-${{ hashFiles('packages/mock-stack/contracts/**', 'packages/mock-stack/src/**', 'packages/mock-stack/scripts/**', 'packages/mock-stack/foundry.toml') }}
+
+      # Type-check, lint, test in sequence. `pnpm test` triggers
+      # startMockStack({ autoPrepare: true }) which runs `forge build` +
+      # the deploy harness in-process if the snapshot cache missed —
+      # so no separate prepare step is required.
+      - run: pnpm tsc
+      - run: pnpm lint
+      - run: pnpm test

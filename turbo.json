@@ -6,6 +6,14 @@
       "cache": false,
       "persistent": true
     },
+    "mock:chain": {
+      "cache": false,
+      "persistent": true
+    },
+    "mock:app": {
+      "cache": false,
+      "persistent": true
+    },
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["build/**", "dist/**"],
@@ -17,6 +25,11 @@
     },
     "lint": {
       "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^build", "transit"],
+      "outputs": [],
+      "env": ["NETWORK"]
     },
     "transit": {
       "dependsOn": ["^transit"]

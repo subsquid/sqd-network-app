@@ -5,7 +5,7 @@ import {
   OpenInNewOutlined as ExplorerIcon,
   AddBoxOutlined as WalletIcon,
 } from '@mui/icons-material';
-import { Box, Divider, IconButton, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, Divider, IconButton, Stack, Tooltip } from '@mui/material';
 import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import { useWatchAsset } from 'wagmi';
@@ -91,10 +91,8 @@ const InfoField = memo(function InfoField({ label, value, tooltip, actions }: In
 
   return (
     <Stack spacing={0.5}>
-      <Typography variant="body2" color="text.secondary">
-        {labelContent}
-      </Typography>
-      <Typography>{valueContent}</Typography>
+      <Box sx={{ typography: 'body2', color: 'text.secondary' }}>{labelContent}</Box>
+      <Box sx={{ typography: 'body1' }}>{valueContent}</Box>
     </Stack>
   );
 });

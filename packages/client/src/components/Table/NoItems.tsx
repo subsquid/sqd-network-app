@@ -35,7 +35,7 @@ export const NoItems = ({
       >
         <Stack spacing={1} direction="row" alignItems="center">
           {icon}
-          <Typography variant="body1">{children || <span>{message}</span>}</Typography>
+          {children ? children : <Typography variant="body1">{message}</Typography>}
         </Stack>
       </Box>
     </td>

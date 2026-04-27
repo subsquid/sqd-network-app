@@ -5,12 +5,19 @@ import { defineConfig } from 'vite';
 import { createHtmlPlugin } from 'vite-plugin-html';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
-dotenvConfig({ path: '../../.env' });
+// `pnpm mock` invokes vite with `--mode mock`, which makes vite load
+// `.env.mock`. Pass that file through dotenv so plain `process.env.X`
+// reads here see the same values.
+export default defineConfig(({ mode }) => {
+  const envFile = mode === 'mock' ? '../../.env.mock' : '../../.env';
+  dotenvConfig({ path: envFile });
+  const encode = JSON.stringify;
+  // Build-time signal: `true` when this bundle was produced for mock mode.
+  // The client reads it as `process.env.MOCK` (no MOCK_WALLET, no MOCK_RPC_URL,
+  // no other MOCK_* sprinkles).
+  const isMock = mode === 'mock';
 
-const encode = JSON.stringify;
-
-// https://vite.dev/config/
-export default defineConfig({
+  return {
   define: {
     'process.env.APP_VERSION': encode(process.env.APP_VERSION || 'local'),
 
@@ -25,6 +32,11 @@ export default defineConfig({
     'process.env.NETWORK': encode(process.env.NETWORK || 'mainnet'),
     'process.env.SENTRY_DSN': encode(process.env.SENTRY_DSN || ''),
     'process.env.HOST_URL': encode(process.env.HOST_URL || ''),
+    // Single master switch for the mock environment. Set to `'true'` only by
+    // `pnpm mock`. When set, the wagmi mock
+    // connector + the mock RPC URL kick in; otherwise the live RainbowKit
+    // config and real RPCs are used. Never set in production.
+    'process.env.MOCK': encode(isMock ? 'true' : ''),
   },
 
   server: {
@@ -87,4 +99,5 @@ export default defineConfig({
       },
     },
   },
+  };
 });

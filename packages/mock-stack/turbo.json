@@ -1,0 +1,19 @@
+{
+  "$schema": "https://turborepo.dev/schema.v2.json",
+  "extends": ["//"],
+  "tasks": {
+    "stack:prepare": {
+      "inputs": [
+        "contracts/**",
+        "src/**",
+        "scripts/**",
+        "foundry.toml",
+        "../../sqd-portal-contracts/src/**",
+        "../../sqd-portal-contracts/foundry.toml",
+        "../../sqd-network-contracts/packages/contracts/src/**",
+        "../../sqd-network-contracts/packages/contracts/foundry.toml"
+      ],
+      "outputs": ["out/**", ".anvil-state.json", ".deployments.json"]
+    }
+  }
+}

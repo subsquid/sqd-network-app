@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -6,44 +8,70 @@ import { WagmiProvider } from 'wagmi';
 
 import { queryClient } from '@api/client';
 import { Toaster } from '@components/Toaster';
-import { getChain } from '@hooks/network/useSubsquidNetwork';
+import { getContractsSync } from '@hooks/network/useContracts';
+import { getChain, getSubsquidNetwork } from '@hooks/network/useSubsquidNetwork';
 import { SquidHeightProvider } from '@hooks/useSquidNetworkHeightHooks';
 import { TickerProvider } from '@hooks/useTicker';
 
 import { AppRoutes } from './AppRoutes';
-import { rainbowConfig } from './config';
+import { createAppWagmiConfig, isMockMode } from './config';
+import { useMockPersonaRestore } from './hooks/useMockPersonaRestore';
 import { useCreateRainbowKitTheme, useCreateTheme, useThemeState } from './theme';
+
+/**
+ * Null-rendering component that lives inside WagmiProvider so it can call
+ * wagmi hooks. Restores the last mock persona after a page reload in mock
+ * mode; compiled away entirely in production builds.
+ */
+function MockPersonaManager() {
+  useMockPersonaRestore();
+  return null;
+}
+
+/**
+ * Build the wagmi config once per app boot. `createAppWagmiConfig` reads
+ * `isMockMode` (a build-time flag from `process.env.MOCK`) internally and
+ * adds a "Mock Personas" wallet group to the RainbowKit modal in mock mode.
+ */
+function useAppWagmiConfig() {
+  return useMemo(
+    () =>
+      createAppWagmiConfig({
+        network: getSubsquidNetwork(),
+        walletConnectProjectId: process.env.WALLET_CONNECT_PROJECT_ID,
+        // Mock-stack deploys Multicall3 to a non-canonical address; patch
+        // the chain object so wagmi's read-batching hits the right contract.
+        multicall3Override: getContractsSync()?.MULTICALL,
+      }),
+    [],
+  );
+}
 
 function App() {
   const [themeName] = useThemeState();
   const theme = useCreateTheme(themeName);
   const rainbowkitTheme = useCreateRainbowKitTheme(themeName);
+  const wagmiConfig = useAppWagmiConfig();
 
   return (
-    <>
-      <WagmiProvider config={rainbowConfig}>
-        <QueryClientProvider client={queryClient}>
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        {isMockMode && <MockPersonaManager />}
+        <RainbowKitProvider modalSize="compact" theme={rainbowkitTheme} initialChain={getChain()}>
           <ThemeProvider theme={theme}>
-            <RainbowKitProvider
-              modalSize="compact"
-              theme={rainbowkitTheme}
-              initialChain={getChain()}
-            >
-              <TickerProvider>
-                <SquidHeightProvider>
-                  <CssBaseline />
-                  <BrowserRouter>
-                    <AppRoutes />
-                  </BrowserRouter>
-                </SquidHeightProvider>
-              </TickerProvider>
-              {/* </SnackbarProvider> */}
-            </RainbowKitProvider>
+            <TickerProvider>
+              <SquidHeightProvider>
+                <CssBaseline />
+                <BrowserRouter>
+                  <AppRoutes />
+                </BrowserRouter>
+              </SquidHeightProvider>
+            </TickerProvider>
             <Toaster />
           </ThemeProvider>
-        </QueryClientProvider>
-      </WagmiProvider>
-    </>
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 }
 

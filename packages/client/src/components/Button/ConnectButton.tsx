@@ -7,23 +7,25 @@ interface ConnectButtonProps extends Omit<ButtonProps, 'onClick' | 'loading'> {
   label?: string;
 }
 
-export const ConnectButton = ({
+/**
+ * Connect-wallet button — opens the RainbowKit modal in both live and mock
+ * mode. In mock mode the modal includes a "Mock Personas" group at the top
+ * (see `createAppWagmiConfig` in src/config.ts) so contributors pick a
+ * fixture wallet without leaving the standard RainbowKit UX.
+ */
+export function ConnectButton({
   className,
   label = 'CONNECT WALLET',
   ...props
-}: ConnectButtonProps) => {
+}: ConnectButtonProps) {
   const { openConnectModal, connectModalOpen } = useConnectModal();
-
-  const handleConnect = () => {
-    openConnectModal?.();
-  };
 
   return (
     <Button
       className={className}
       loading={connectModalOpen}
       startIcon={<LoginOutlined />}
-      onClick={handleConnect}
+      onClick={() => openConnectModal?.()}
       variant="contained"
       color="info"
       {...props}
@@ -31,4 +33,4 @@ export const ConnectButton = ({
       {label}
     </Button>
   );
-};
+}

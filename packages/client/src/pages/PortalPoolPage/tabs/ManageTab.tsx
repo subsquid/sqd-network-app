@@ -83,49 +83,51 @@ export function ManageTab({ poolId }: ManageTabProps) {
         <Stack spacing={2} divider={<Divider />}>
           <Stack spacing={1.5}>
             <Stack spacing={0.5}>
-              <Typography variant="body2" color="text.secondary">
-                <Stack direction="row" alignItems="center" spacing={0.5}>
-                  <span>Distribution Rate</span>
-                  <HelpTooltip title="Daily reward amount distributed to providers. Monthly payout = rate × 30 days." />
-                </Stack>
-              </Typography>
-              <Typography>
-                <Stack direction="row" alignItems="center" spacing={0.5}>
-                  <span>
-                    {poolLoading ? (
-                      <Skeleton width={100} />
-                    ) : (
-                      `${pool!.distributionRatePerSecond.times(86400).toFixed(2)} ${pool!.rewardToken.symbol}/day`
-                    )}
-                  </span>
-                  {!poolLoading && (
-                    <EditDistributionRateButton poolId={poolId} disabled={!canEdit} />
+              <Stack
+                component="span"
+                direction="row"
+                alignItems="center"
+                spacing={0.5}
+                sx={{ color: 'text.secondary', typography: 'body2' }}
+              >
+                <span>Distribution Rate</span>
+                <HelpTooltip title="Daily reward amount distributed to providers. Monthly payout = rate × 30 days." />
+              </Stack>
+              <Stack direction="row" alignItems="center" spacing={0.5}>
+                <span>
+                  {poolLoading ? (
+                    <Skeleton width={100} />
+                  ) : (
+                    `${pool!.distributionRatePerSecond.times(86400).toFixed(2)} ${pool!.rewardToken.symbol}/day`
                   )}
-                </Stack>
-              </Typography>
+                </span>
+                {!poolLoading && <EditDistributionRateButton poolId={poolId} disabled={!canEdit} />}
+              </Stack>
             </Stack>
 
             <Stack spacing={0.5}>
-              <Typography variant="body2" color="text.secondary">
-                <Stack direction="row" alignItems="center" spacing={0.5}>
-                  <span>Max Pool Capacity</span>
-                  <HelpTooltip
-                    title={`Maximum ${SQD_TOKEN} that can be provided. Higher capacity allows more providers to participate.`}
-                  />
-                </Stack>
-              </Typography>
-              <Typography>
-                <Stack direction="row" alignItems="center" spacing={0.5}>
-                  <span>
-                    {poolLoading ? (
-                      <Skeleton width={100} />
-                    ) : (
-                      tokenFormatter(pool!.tvl.max, SQD_TOKEN, 0)
-                    )}
-                  </span>
-                  {!poolLoading && <EditCapacityButton poolId={poolId} disabled={!canEdit} />}
-                </Stack>
-              </Typography>
+              <Stack
+                component="span"
+                direction="row"
+                alignItems="center"
+                spacing={0.5}
+                sx={{ color: 'text.secondary', typography: 'body2' }}
+              >
+                <span>Max Pool Capacity</span>
+                <HelpTooltip
+                  title={`Maximum ${SQD_TOKEN} that can be provided. Higher capacity allows more providers to participate.`}
+                />
+              </Stack>
+              <Stack direction="row" alignItems="center" spacing={0.5}>
+                <span>
+                  {poolLoading ? (
+                    <Skeleton width={100} />
+                  ) : (
+                    tokenFormatter(pool!.tvl.max, SQD_TOKEN, 0)
+                  )}
+                </span>
+                {!poolLoading && <EditCapacityButton poolId={poolId} disabled={!canEdit} />}
+              </Stack>
             </Stack>
           </Stack>
         </Stack>

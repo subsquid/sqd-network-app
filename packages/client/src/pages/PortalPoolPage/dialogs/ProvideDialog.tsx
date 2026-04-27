@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Alert, Box, Button, Chip, Divider, Stack, Tooltip, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
@@ -92,8 +92,23 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
   const { data: pool, isLoading: poolLoading } = usePoolData(poolId);
   const { data: userData, isLoading: userDataLoading } = usePoolUserData(poolId);
   const { data: sources, isLoading: sourcesLoading } = useMySources();
+  const [selectedSourceId, setSelectedSourceId] = useState<string>();
 
   const isLoading = poolLoading || userDataLoading || sourcesLoading;
+  const defaultSource = useMemo(
+    () => sources.find(source => source.type === AccountType.User) ?? sources[0],
+    [sources],
+  );
+  const selectedSource = useMemo(
+    () => sources.find(source => source.id === selectedSourceId) ?? defaultSource,
+    [defaultSource, selectedSourceId, sources],
+  );
+
+  useEffect(() => {
+    if (!selectedSourceId && defaultSource) {
+      setSelectedSourceId(defaultSource.id);
+    }
+  }, [defaultSource, selectedSourceId]);
 
   const currentUserBalance = useMemo(
     () => userData?.userBalance ?? BigNumber(0),
@@ -112,7 +127,10 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
     [pool, currentPoolTvl],
   );
 
-  const walletBalance = useMemo(() => fromSqd(sources[0]?.balance) ?? BigNumber(0), [sources]);
+  const walletBalance = useMemo(
+    () => fromSqd(selectedSource?.balance) ?? BigNumber(0),
+    [selectedSource?.balance],
+  );
 
   const effectiveMax = useMemo(
     () => BigNumber.min(userRemainingCapacity, poolRemainingCapacity, walletBalance),
@@ -131,8 +149,10 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
   );
 
   const handleSubmit = useCallback(
-    async (values: { amount: string }) => {
+    async (values: { amount: string; source: string }) => {
       if (!pool) return;
+      const source = sources.find(s => s.id === values.source);
+      if (!source || source.type !== AccountType.User) return;
 
       const sqdAmount = BigInt(toSqd(values.amount));
 
@@ -147,16 +167,18 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
       await invalidatePoolQueries(queryClient, poolId);
       onClose();
     },
-    [pool, poolId, writeTransactionAsync, queryClient, onClose],
+    [pool, poolId, sources, writeTransactionAsync, queryClient, onClose],
   );
 
   const formik = useFormik({
     initialValues: {
+      source: selectedSource?.id ?? '',
       amount: '',
     },
     validationSchema,
     validateOnChange: true,
     validateOnBlur: true,
+    enableReinitialize: true,
     onSubmit: handleSubmit,
   });
 
@@ -233,7 +255,7 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
 
           <FormRow>
             <FormikSelect
-              id={'source' as any}
+              id="source"
               showErrorOnlyOfTouched
               options={sources?.map(s => ({
                 label: <SourceWalletOption source={s} />,
@@ -241,6 +263,11 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
                 disabled: s.type !== AccountType.User,
               }))}
               formik={formik}
+              onChange={e => {
+                const sourceId = e.target.value as string;
+                setSelectedSourceId(sourceId);
+                formik.setFieldValue('source', sourceId);
+              }}
             />
           </FormRow>
 

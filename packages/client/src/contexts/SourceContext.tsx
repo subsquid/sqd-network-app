@@ -1,6 +1,9 @@
-import { ReactNode, createContext, useContext, useEffect, useState } from 'react';
+import { ReactNode, createContext, useContext, useEffect } from 'react';
+
+import { useAccount } from 'wagmi';
 
 import { SourceWalletWithBalance, useMySources } from '@api/subsquid-network-squid';
+import { useLocalStorageState } from '@hooks/useLocalStorageState';
 
 interface SourceContextType {
   setSelectedSourceId: (sourceId: string) => void;
@@ -16,14 +19,20 @@ export interface SourceProviderProps {
 }
 
 export function SourceProvider({ children }: SourceProviderProps) {
-  const [selectedSourceId, setSelectedSourceId] = useState<string | undefined>();
+  const { address } = useAccount();
+  // Keyed by wallet address so each account remembers its own selection.
+  const [selectedSourceId, setSelectedSourceId] = useLocalStorageState<string | undefined>(
+    `sqd.source.${address ?? ''}`,
+    { defaultValue: undefined },
+  );
   const { data: sources = [], isLoading } = useMySources();
 
   useEffect(() => {
-    if (!selectedSourceId && sources.length > 0) {
-      setSelectedSourceId(sources[0].id);
-    }
-  }, [selectedSourceId, sources]);
+    if (sources.length === 0) return;
+    // Reset to first source when stored ID is missing or no longer in the list.
+    if (selectedSourceId && sources.some(s => s.id === selectedSourceId)) return;
+    setSelectedSourceId(sources[0].id);
+  }, [selectedSourceId, sources, setSelectedSourceId]);
 
   const selectedSource = sources.find(source => source.id === selectedSourceId);
 

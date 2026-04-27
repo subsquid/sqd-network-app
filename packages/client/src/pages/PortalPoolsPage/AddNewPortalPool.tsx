@@ -36,11 +36,12 @@ import {
   useReadPortalPoolFactoryGetMinCapacity,
 } from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
-import type { SourceWalletWithBalance } from '@api/subsquid-network-squid';
+import { AccountType, type SourceWalletWithBalance } from '@api/subsquid-network-squid';
 import { ContractCallDialog } from '@components/ContractCallDialog';
-import { Form, FormDivider, FormRow, FormikTextInput } from '@components/Form';
+import { Form, FormDivider, FormRow, FormikSelect, FormikTextInput } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { Loader } from '@components/Loader';
+import { SourceWalletOption } from '@components/SourceWallet';
 import { useContracts } from '@hooks/network/useContracts';
 import { supportsPortalPoolMinSqdOut } from '@hooks/network/useSubsquidNetwork';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
@@ -49,6 +50,7 @@ import { fromSqd, toSqd } from '@lib/network/utils';
 type Step = 1 | 2;
 
 type FormikValues = {
+  source: string;
   name: string;
   tokenSuffix: string;
   description: string;
@@ -312,7 +314,7 @@ function AddNewPortalDialog({
   const showSlippageSelector = supportsPortalPoolMinSqdOut();
 
   const isLoading = isTokenRewardLoading;
-  const initialSource = sources?.[0];
+  const initialSource = sources?.find(s => s.type === AccountType.User) ?? sources?.[0];
 
   const optimalCapacity = useMemo(() => {
     return fromSqd(minCapacity).multipliedBy(1.2);
@@ -324,6 +326,7 @@ function AddNewPortalDialog({
 
   const formik = useFormik<FormikValues>({
     initialValues: {
+      source: initialSource?.id || '',
       name: '',
       tokenSuffix: '',
       description: '',
@@ -340,6 +343,12 @@ function AddNewPortalDialog({
     onSubmit: async values => {
       if (!selectedToken) {
         toast.error('Please select a reward token');
+        return;
+      }
+
+      const source = sources?.find(s => s.id === values.source && s.type === AccountType.User);
+      if (!source) {
+        toast.error('Please select a wallet source');
         return;
       }
 
@@ -360,7 +369,7 @@ function AddNewPortalDialog({
       );
 
       const params = {
-        operator: initialSource?.id as `0x${string}`,
+        operator: source.id as `0x${string}`,
         capacity: BigInt(toSqd(values.capacity!)),
         tokenSuffix: values.tokenSuffix.trim() || collapseTokenName(values.name),
         distributionRatePerSecond,
@@ -457,7 +466,7 @@ function AddNewPortalDialog({
 
   const isStep1Valid = useMemo(() => {
     if (!selectedToken) return false;
-    return (['name', 'description', 'website', 'capacity', 'earnings'] as const).every(
+    return (['source', 'name', 'description', 'website', 'capacity', 'earnings'] as const).every(
       field => !formik.errors[field],
     );
   }, [formik.errors, selectedToken]);
@@ -507,6 +516,20 @@ function AddNewPortalDialog({
           <Loader />
         ) : (
           <Form onSubmit={formik.handleSubmit}>
+            <FormRow>
+              <FormikSelect
+                id="source"
+                showErrorOnlyOfTouched
+                options={
+                  sources?.map(s => ({
+                    label: <SourceWalletOption source={s} />,
+                    value: s.id,
+                    disabled: s.type !== AccountType.User,
+                  })) || []
+                }
+                formik={formik}
+              />
+            </FormRow>
             <FormRow>
               <FormikTextInput id="name" label="Name" formik={formik} showErrorOnlyOfTouched />
             </FormRow>
@@ -608,16 +631,16 @@ function AddNewPortalDialog({
                   {estimatedCUs.toLocaleString()}
                 </Typography>
               </Stack>
-              <Typography variant="body2" component="span">
-                <Stack direction="row" justifyContent="space-between" alignContent="center">
-                  <HelpTooltip title="If the pool does not reach its full capacity by this deadline, it will be cancelled. Only part of your deposit will be recoverable - the rest is used immediately upon deposit. You'll see the exact breakdown in the next step.">
+              <Stack direction="row" justifyContent="space-between" alignContent="center">
+                <HelpTooltip title="If the pool does not reach its full capacity by this deadline, it will be cancelled. Only part of your deposit will be recoverable - the rest is used immediately upon deposit. You'll see the exact breakdown in the next step.">
+                  <Typography variant="body2" component="span">
                     Collection Deadline
-                  </HelpTooltip>
-                  <Typography variant="body2" fontWeight={600}>
-                    {deadlineDate}
                   </Typography>
-                </Stack>
-              </Typography>
+                </HelpTooltip>
+                <Typography variant="body2" fontWeight={600}>
+                  {deadlineDate}
+                </Typography>
+              </Stack>
             </Stack>
           </Form>
         )

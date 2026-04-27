@@ -126,9 +126,33 @@ The root `turbo.json` defines five tasks:
 
 ## Testing & Quality Gates
 
-- **No automated test suite** is configured at this time. TypeScript compilation (`pnpm tsc`) serves as the primary correctness gate.
-- **Linting:** Biome — run `pnpm lint` before committing. CI does **not** run lint, so fix issues locally.
-- **Type-check:** CI runs `npx turbo run tsc --filter=@subsquid/client` (web) and `npx turbo run tsc --filter=@subsquid/server` (server) before building.
+- **Test suite:** Vitest — run `pnpm test` to execute every package's specs.
+  - `@subsquid/client` ships two Vitest projects:
+    - `unit` — jsdom + Testing Library + wagmi mock connector + canned viem
+      transports. Fast, parallel, no Anvil required.
+      Filter: `pnpm --filter @subsquid/client test:unit`.
+    - `integration` — jsdom in single-fork mode, backed by Anvil + the
+      mini-indexer + an in-process tRPC server (all spun up by
+      `@subsquid/mock-stack`'s `startMockStack()`). Requires Foundry.
+      Filter: `pnpm --filter @subsquid/client test:integration`.
+  - `@subsquid/mock-stack` runs a parity test enumerating every named
+    GraphQL operation in `packages/server/graphql/*.graphql` and asserting
+    a resolver exists.
+- **Foundry prerequisite (integration tests + mock mode):** install with
+  `curl -L https://foundry.paradigm.xyz | bash && foundryup`.
+- **Mock dev workflow (two processes):**
+  - `pnpm mock:chain` — long-lived: anvil + deploy harness + GraphQL on
+    ports 8545/4321. Start once per session in its own terminal.
+  - `pnpm mock:app` — vite (client) + tRPC server, both with watch mode.
+    Reads chain endpoints from `packages/mock-stack/.deployments.json`
+    and waits if the file isn't there yet.
+  - `pnpm mock` runs both at once for one-off work.
+- **Tests** auto-run `forge build` and the deploy harness on the first
+  invocation; subsequent runs reuse `packages/mock-stack/.anvil-state.json`.
+  Anvil and the GraphQL server bind to ephemeral ports for tests so
+  concurrent runs don't collide on the dev mode's pinned 8545/4321.
+- **Linting:** Biome — run `pnpm lint` before committing.
+- **Type-check:** `pnpm tsc` runs `tsc --noEmit` across all packages.
 - **Generated files:** Never edit `packages/server/src/generated/` or any `*.generated.*` files by hand; always regenerate with `pnpm codegen`.
 - **Import order:** Biome enforces a specific import order (Node built-ins → react → third-party → internal aliases). The internal aliases `@components`, `@contexts`, `@hooks`, `@api`, `@network`, `@lib` are grouped last.
 
@@ -169,6 +193,7 @@ The root `turbo.json` defines five tasks:
 
 - [ ] Run `pnpm lint` and fix any Biome errors before committing
 - [ ] Run `pnpm tsc` to confirm no TypeScript errors
+- [ ] Run `pnpm test` to confirm Vitest specs still pass (Foundry required for integration project)
 - [ ] Run `pnpm codegen` if GraphQL queries or contract ABIs were modified
 - [ ] Update `.env.example` if new environment variables were introduced
 - [ ] Update `README.md` if setup instructions or scripts changed
