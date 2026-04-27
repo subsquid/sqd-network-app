@@ -1,4 +1,4 @@
-import type { AppRouter } from '@subsquid/server';
+import type { AppRouter } from '@sqd/server';
 import { createTRPCClient, httpLink } from '@trpc/client';
 import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query';
 

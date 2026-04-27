@@ -2,24 +2,21 @@
   "$schema": "https://turborepo.dev/schema.v2.json",
   "globalEnv": ["NODE_ENV"],
   "tasks": {
-    "dev": {
-      "cache": false,
-      "persistent": true
-    },
+    "dev": { "dependsOn": ["^build"], "cache": false, "persistent": true },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["build/**", "dist/**"],
+      "outputs": ["build/**", "dist/**", "lib/**"],
       "passThroughEnv": ["SENTRY_AUTH_TOKEN"]
     },
-    "tsc": {
-      "dependsOn": ["transit"],
-      "outputs": []
-    },
-    "lint": {
-      "outputs": []
-    },
-    "transit": {
-      "dependsOn": ["^transit"]
-    }
+    "tsc": { "dependsOn": ["transit"], "outputs": [] },
+    "lint": { "outputs": [] },
+    "transit": { "dependsOn": ["^transit"] },
+    "clean": { "cache": false },
+    "codegen": { "cache": false },
+    "db:migrate": { "cache": false },
+    "migration:generate": { "dependsOn": ["build"], "cache": false },
+    "proc": { "dependsOn": ["build"], "cache": false, "persistent": true },
+    "api": { "cache": false, "persistent": true },
+    "test": { "dependsOn": ["^build"], "outputs": [] }
   }
 }

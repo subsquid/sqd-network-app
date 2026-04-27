@@ -8,5 +8,5 @@
     "strict": true
   },
   "include": ["vite.config.ts"],
-  "exclude": ["dist", "node_modules"]
+  "exclude": ["lib", "node_modules"]
 }

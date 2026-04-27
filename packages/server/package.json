@@ -1,5 +1,5 @@
 {
-  "name": "@subsquid/server",
+  "name": "@sqd/server",
   "version": "0.0.1",
   "type": "module",
   "private": true,
@@ -17,7 +17,7 @@
     "@graphql-typed-document-node/core": "^3.2.0",
     "@sentry/node": "^10.40.0",
     "@sentry/rollup-plugin": "^5.1.1",
-    "@subsquid/common": "workspace:*",
+    "@sqd/common": "workspace:*",
     "@trpc/server": "^11",
     "bignumber.js": "^9.3.1",
     "graphql": "^16.11.0",

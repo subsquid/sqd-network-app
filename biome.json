@@ -14,7 +14,17 @@
       "!**/build",
       "!**/dist",
       "!**/*.generated.*",
-      "!**/graphql.tsx"
+      "!**/graphql.tsx",
+      "!abi",
+      "!assets",
+      "!manifests",
+      "!indexer-plans",
+      "!indexer-scripts",
+      "!packages/indexer-common",
+      "!packages/indexer-workers",
+      "!packages/indexer-gateways",
+      "!packages/indexer-token",
+      "!packages/indexer-vestings"
     ]
   },
   "formatter": {

@@ -4,7 +4,7 @@ import {
   routerAbi,
   softCapAbi,
   stakingAbi,
-} from '@subsquid/common';
+} from '@sqd/common';
 import { BigNumber } from 'bignumber.js';
 import { z } from 'zod';
 
