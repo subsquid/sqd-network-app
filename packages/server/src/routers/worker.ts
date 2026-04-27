@@ -29,14 +29,33 @@ function calculateDelegationCapacity(totalDelegation: string): number {
   return BigNumber(totalDelegation).div(20_000).shiftedBy(-18).times(100).toNumber();
 }
 
+function isWorkerOffline(w: { status: string; jailed?: boolean | null; online?: boolean | null }) {
+  return w.status === 'ACTIVE' && !w.jailed && !w.online;
+}
+
+function offlineAprOverride<
+  T extends {
+    status: string;
+    jailed?: boolean | null;
+    online?: boolean | null;
+    apr?: number | null;
+    stakerApr?: number | null;
+  },
+>(w: T): T {
+  if (!isWorkerOffline(w)) return w;
+  return { ...w, apr: 0, stakerApr: 0 };
+}
+
 export const workerRouter = router({
   list: publicProcedure.query(async () => {
     const data = await queryWorkersSquid<AllWorkersQuery>(AllWorkersDocument);
-    return data.workers.map(w => ({
-      ...w,
-      owner: reconstructOwner(w.ownerId, new Map()),
-      delegationCapacity: calculateDelegationCapacity(w.totalDelegation),
-    }));
+    return data.workers.map(w =>
+      offlineAprOverride({
+        ...w,
+        owner: reconstructOwner(w.ownerId, new Map()),
+        delegationCapacity: calculateDelegationCapacity(w.totalDelegation),
+      }),
+    );
   }),
 
   get: publicProcedure
@@ -50,18 +69,20 @@ export const workerRouter = router({
         peerId: input.peerId,
         ownerIds: ownerIds.length ? ownerIds : undefined,
       });
-      return data.workers.map(w => ({
-        ...w,
-        owner: ownerIds.length
-          ? reconstructOwner(w.ownerId, ownerMap)
-          : { id: w.ownerId, type: 'USER' as const, owner: null },
-        delegations: w.delegations.map(d => ({
-          ...d,
-          owner: reconstructOwner(d.ownerId, ownerMap),
-        })),
-        delegationCapacity: calculateDelegationCapacity(w.totalDelegation),
-        totalReward: BigNumber(w.claimedReward).plus(w.claimableReward).toFixed(),
-      }));
+      return data.workers.map(w =>
+        offlineAprOverride({
+          ...w,
+          owner: ownerIds.length
+            ? reconstructOwner(w.ownerId, ownerMap)
+            : { id: w.ownerId, type: 'USER' as const, owner: null },
+          delegations: w.delegations.map(d => ({
+            ...d,
+            owner: reconstructOwner(d.ownerId, ownerMap),
+          })),
+          delegationCapacity: calculateDelegationCapacity(w.totalDelegation),
+          totalReward: BigNumber(w.claimedReward).plus(w.claimableReward).toFixed(),
+        }),
+      );
     }),
 
   listMine: publicProcedure
@@ -73,11 +94,13 @@ export const workerRouter = router({
       const ownerMap = buildOwnerMap(accounts);
       const ownerIds = accounts.map(a => a.id);
       const data = await queryWorkersSquid<MyWorkersQuery>(MyWorkersDocument, { ownerIds });
-      return data.workers.map(w => ({
-        ...w,
-        owner: reconstructOwner(w.ownerId, ownerMap),
-        totalReward: BigNumber(w.claimedReward).plus(w.claimableReward).toFixed(),
-      }));
+      return data.workers.map(w =>
+        offlineAprOverride({
+          ...w,
+          owner: reconstructOwner(w.ownerId, ownerMap),
+          totalReward: BigNumber(w.claimedReward).plus(w.claimableReward).toFixed(),
+        }),
+      );
     }),
 
   countMine: publicProcedure
@@ -109,23 +132,25 @@ export const workerRouter = router({
         ownerIds,
         peerId: input.peerId,
       });
-      return data.workers.map(w => ({
-        ...w,
-        owner: reconstructOwner(w.ownerId, ownerMap),
-        delegationCapacity: calculateDelegationCapacity(w.totalDelegation),
-        delegations: w.delegations.map(d => ({
-          ...d,
-          owner: reconstructOwner(d.ownerId, ownerMap),
-        })),
-        myDelegation: w.delegations.reduce(
-          (sum, d) => BigNumber(sum).plus(d.deposit).toFixed(),
-          '0',
-        ),
-        myTotalDelegationReward: w.delegations.reduce(
-          (sum, d) => BigNumber(sum).plus(d.claimableReward).plus(d.claimedReward).toFixed(),
-          '0',
-        ),
-      }));
+      return data.workers.map(w =>
+        offlineAprOverride({
+          ...w,
+          owner: reconstructOwner(w.ownerId, ownerMap),
+          delegationCapacity: calculateDelegationCapacity(w.totalDelegation),
+          delegations: w.delegations.map(d => ({
+            ...d,
+            owner: reconstructOwner(d.ownerId, ownerMap),
+          })),
+          myDelegation: w.delegations.reduce(
+            (sum, d) => BigNumber(sum).plus(d.deposit).toFixed(),
+            '0',
+          ),
+          myTotalDelegationReward: w.delegations.reduce(
+            (sum, d) => BigNumber(sum).plus(d.claimableReward).plus(d.claimedReward).toFixed(),
+            '0',
+          ),
+        }),
+      );
     }),
 
   delegationInfo: publicProcedure
