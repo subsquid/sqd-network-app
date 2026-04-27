@@ -1,3 +1,4 @@
+import { CONTRACT_ADDRESSES, type NetworkName } from '@sqd/common'
 import { assertNotNull } from '@subsquid/util-internal'
 
 export type ContractConfig = {
@@ -9,7 +10,7 @@ export type ContractConfig = {
 }
 
 export type NetworkConfig = {
-  name: 'mainnet' | 'tethys'
+  name: NetworkName
   contracts: {
     SQD: ContractConfig
     Router: ContractConfig
@@ -35,115 +36,76 @@ export type NetworkConfig = {
   }
 }
 
+/**
+ * Indexer-specific block-number metadata that does not live on the app side.
+ *
+ * `range`        — `from` block at which to start ingesting events for the
+ *                  package as a whole (squid's `setBlockRange`).
+ * `epochsStart`  — the L1 block number where on-chain epoch counting begins;
+ *                  used by `toEpochStart` / `toNextEpochStart` helpers.
+ * `softCapFrom`  — block range for `SoftCap`, the only contract whose
+ *                  effective `from` differs from 0.
+ */
+const NETWORK_RANGES: Record<NetworkName, { range: { from: number }; epochsStart: number; softCapFrom: number }> = {
+  mainnet: {
+    range: { from: 194_120_655 },
+    epochsStart: 208_420_393,
+    softCapFrom: 223_460_171,
+  },
+  tethys: {
+    range: { from: 6_000_000 },
+    epochsStart: 57_869_108,
+    softCapFrom: 33_215_714,
+  },
+}
+
+/**
+ * The indexer historically stored every address as lowercase; some downstream
+ * code does case-sensitive string comparisons against `args.address`. The app
+ * stores addresses as checksum-cased EIP-55 strings. Normalise once here so
+ * the indexer surface keeps its existing contract.
+ */
+function lower(addr: string): string {
+  return addr.toLowerCase()
+}
+
+function buildNetwork(name: NetworkName): NetworkConfig {
+  const a = CONTRACT_ADDRESSES[name]
+  const m = NETWORK_RANGES[name]
+  return {
+    name,
+    contracts: {
+      SQD: { address: lower(a.SQD), range: { from: 0 } },
+      Router: { address: lower(a.ROUTER), range: { from: 0 } },
+      RewardsDistribution: { address: lower(a.REWARD_DISTRIBUTION), range: { from: 0 } },
+      GatewayRegistry: { address: lower(a.GATEWAY_REGISTRATION), range: { from: 0 } },
+      Multicall3: { address: lower(a.MULTICALL), range: { from: 0 } },
+      SoftCap: { address: lower(a.SOFT_CAP), range: { from: m.softCapFrom } },
+      VestingFactory: { address: lower(a.VESTING_FACTORY), range: { from: 0 } },
+      TemporaryHoldingFactory: {
+        address: lower(a.TEMPORARY_HOLDING_FACTORY),
+        range: { from: 0 },
+      },
+      PortalPoolFactory: { address: lower(a.PORTAL_POOL_FACTORY), range: { from: 0 } },
+    },
+    defaultRouterContracts: {
+      networkController: lower(a.NETWORK_CONTROLLER),
+      rewardCalculation: lower(a.REWARD_CALCULATION),
+      rewardTreasury: lower(a.REWARD_TREASURY),
+      workerRegistration: lower(a.WORKER_REGISTRATION),
+      staking: lower(a.STAKING),
+    },
+    range: m.range,
+    epochsStart: m.epochsStart,
+  }
+}
+
 function getNetworkConfig(): NetworkConfig {
   const name = assertNotNull(process.env.NETWORK)
-
-  switch (name) {
-    case 'mainnet':
-      return {
-        name,
-        contracts: {
-          SQD: {
-            address: '0x1337420ded5adb9980cfc35f8f2b054ea86f8ab1',
-            range: { from: 0 },
-          },
-          Router: {
-            address: '0x67f56d27dab93eeb07f6372274aca277f49da941',
-            range: { from: 0 },
-          },
-          RewardsDistribution: {
-            address: '0x4de282bd18ae4987b3070f4d5ef8c80756362aea',
-            range: { from: 0 },
-          },
-          GatewayRegistry: {
-            address: '0x8a90a1ce5fa8cf71de9e6f76b7d3c0b72feb8c4b',
-            range: { from: 0 },
-          },
-          Multicall3: {
-            address: '0xca11bde05977b3631167028862be2a173976ca11',
-            range: { from: 0 },
-          },
-          SoftCap: {
-            address: '0x0eb27b1cbba04698dd7ce0f2364584d33a616545',
-            range: { from: 223460171 },
-          },
-          VestingFactory: {
-            address: '0x1f8f83cd76baeca1cb5c064ad59203c82b4e4ece',
-            range: { from: 0 },
-          },
-          TemporaryHoldingFactory: {
-            address: '0x14926ebf05a904b8e2e2bf05c10ecca9a54d8d0d',
-            range: { from: 0 },
-          },
-          PortalPoolFactory: {
-            address: '0x18184740ebe24881355e33cec620c44e575f2c70',
-            range: { from: 0 },
-          },
-        },
-        defaultRouterContracts: {
-          networkController: '0x4cf58097d790b193d22ed633bf8b15c9bc4f0da7',
-          rewardCalculation: '0xd3d2c185a30484641c07b60e7d952d7b85516eb5',
-          rewardTreasury: '0x237abf43bc51fd5c50d0d598a1a4c26e56a8a2a0',
-          workerRegistration: '0x36e2b147db67e76ab67a4d07c293670ebefcae4e',
-          staking: '0xb31a0d39d2c69ed4b28d96e12cbf52c5f9ac9a51',
-        },
-        range: { from: 194_120_655 },
-        epochsStart: 208420393,
-      }
-    case 'tethys':
-      return {
-        name: 'tethys',
-        contracts: {
-          SQD: {
-            address: '0x24f9c46d86c064a6fa2a568f918fe62fc6917b3c',
-            range: { from: 0 },
-          },
-          Router: {
-            address: '0xd2093610c5d27c201cd47bcf1df4071610114b64',
-            range: { from: 0 },
-          },
-          RewardsDistribution: {
-            address: '0x68f9fe3504652360aff430df198e1cb7b2dcfd57',
-            range: { from: 0 },
-          },
-          GatewayRegistry: {
-            address: '0xab46f688aba4fcd1920f21e9bd16b229316d8b0a',
-            range: { from: 0 },
-          },
-          Multicall3: {
-            address: '0xca11bde05977b3631167028862be2a173976ca11',
-            range: { from: 0 },
-          },
-          SoftCap: {
-            address: '0x52f31c9c019f840a9c0e74f66acc95455b254bea',
-            range: { from: 33215714 },
-          },
-          VestingFactory: {
-            address: '0x0ed5fb811167de1928322a0fa30ed7f3c8c370ca',
-            range: { from: 0 },
-          },
-          TemporaryHoldingFactory: {
-            address: '0x5eb3c647a423bfb100765cbf0201b5748bbe7bd7',
-            range: { from: 0 },
-          },
-          PortalPoolFactory: {
-            address: '0xa3f66b4649cf1c70776cfe32352cb9b5006528bc',
-            range: { from: 0 },
-          },
-        },
-        defaultRouterContracts: {
-          networkController: '0x68fc7e375945d8c8dfb0050c337ff09e962d976d',
-          rewardCalculation: '0x93d16d5210122c804de9931b41b3c6fa2649ce3f',
-          rewardTreasury: '0x785136e611e15d532c36502aabdfe8e35008c7ca',
-          workerRegistration: '0xcd8e983f8c4202b0085825cf21833927d1e2b6dc',
-          staking: '0x347e326b8b4ea27c87d5ca291e708cdec6d65eb5',
-        },
-        range: { from: 6_000_000 },
-        epochsStart: 57_869_108,
-      }
-    default:
-      throw new Error(`Unknown network: ${name}`)
+  if (name !== 'mainnet' && name !== 'tethys') {
+    throw new Error(`Unknown network: ${name}`)
   }
+  return buildNetwork(name)
 }
 
 export const network = getNetworkConfig()

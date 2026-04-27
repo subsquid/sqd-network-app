@@ -1,13 +1,19 @@
 {
   "name": "@sqd/common",
   "version": "0.0.1",
-  "type": "module",
   "private": true,
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    }
   },
   "scripts": {
     "build": "tsc",
+    "dev": "tsc --watch --preserveWatchOutput",
+    "clean": "rm -rf lib",
     "lint": "biome check src --fix"
   },
   "devDependencies": {
