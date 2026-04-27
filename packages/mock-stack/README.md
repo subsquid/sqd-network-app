@@ -28,6 +28,20 @@ worth) so any persona's `claimFor` call succeeds out of the box.
    the same operation-name dispatcher contract that
    `packages/server/src/services/mockGraphqlServer.ts` exposes today.
 
+## Mini-indexer (default fast path) vs. real indexer
+
+The mini-indexer is the **default** for `pnpm mock` and tests — sub-second
+boot, no docker, no postgres. For high-fidelity work (debugging
+indexer-shaped issues, validating production code paths) we ship a
+companion stack under `tools/devnet/` that runs the real
+[`squid-subsquid-network`](https://github.com/subsquid/squid-subsquid-network)
+indexer behind an [SQD portal](https://github.com/subsquid/sqd-portal/tree/master/examples/devnet-evm)
+in docker. See [`tools/devnet/README.md`](../../tools/devnet/README.md).
+
+Toggle into the real stack by setting `MOCK_REAL_INDEXER=1` when starting
+`pnpm mock:app` (and bringing up the docker zoo with `pnpm mock:devnet`
+in another terminal).
+
 ## Public API
 
 ```ts

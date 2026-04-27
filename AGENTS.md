@@ -147,6 +147,15 @@ The root `turbo.json` defines five tasks:
     Reads chain endpoints from `packages/mock-stack/.deployments.json`
     and waits if the file isn't there yet.
   - `pnpm mock` runs both at once for one-off work.
+- **High-fidelity devnet "zoo" (real indexer behind a real SQD portal):**
+  see `tools/devnet/README.md`. Daily flow:
+  - `pnpm mock:devnet:bootstrap` — one-time submodule init + image build.
+  - `pnpm mock:chain` — same as above (writes `.deployments.json`).
+  - `pnpm mock:devnet` — postgres + hotblocks + 3 squid indexers, bound to
+    `127.0.0.1:{4351,4352,4353}` in docker compose.
+  - `MOCK_REAL_INDEXER=1 pnpm mock:app` — server picks the per-squid URLs
+    instead of the mini-indexer's single endpoint.
+  - `pnpm mock:devnet:reset` wipes the docker volumes when redeploying.
 - **Tests** auto-run `forge build` and the deploy harness on the first
   invocation; subsequent runs reuse `packages/mock-stack/.anvil-state.json`.
   Anvil and the GraphQL server bind to ephemeral ports for tests so
