@@ -14,7 +14,8 @@
       "!**/build",
       "!**/dist",
       "!**/*.generated.*",
-      "!**/graphql.tsx"
+      "!**/graphql.tsx",
+      "!indexer"
     ]
   },
   "formatter": {

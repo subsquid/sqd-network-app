@@ -9,6 +9,8 @@
     "build:client": "turbo run build --filter=@subsquid/client",
     "build:server": "turbo run build --filter=@subsquid/server",
     "build:common": "turbo run build --filter=@subsquid/common",
+    "build:indexer": "turbo run build --filter=@sqd/*",
+    "codegen:indexer": "turbo run codegen --filter=@sqd/*",
     "tsc": "turbo run tsc",
     "lint": "turbo run lint",
     "codegen:graphql": "npx graphql-codegen --config packages/server/graphql.config.ts",
