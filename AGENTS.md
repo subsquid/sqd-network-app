@@ -18,16 +18,33 @@
 ```
 subsquid-network-app/
 ├── packages/
-│   ├── client/          # React 19 SPA (Vite + MUI v7 + wagmi/RainbowKit)
-│   ├── server/          # tRPC API server (Node.js, proxies Squid GraphQL + on-chain data)
-│   └── common/          # Shared ABI definitions, contract addresses, constants
-├── nginx/               # nginx template for static-file serving in Docker
-├── .github/workflows/   # build-web.yaml, build-server.yaml
-├── Dockerfile           # Multi-stage: `server` target and `web` (nginx) target
-├── biome.json           # Root lint + format config (covers all packages)
-├── turbo.json           # Turborepo task graph
-└── .env / .env.example  # Runtime environment variables
+│   ├── client/             # @sqd/client          — React 19 SPA (Vite + MUI v7 + wagmi/RainbowKit)
+│   ├── server/             # @sqd/server          — tRPC API server (Node.js, proxies Squid GraphQL + on-chain data)
+│   ├── common/             # @sqd/common          — Shared client+server ABI definitions, contract addresses, constants
+│   ├── indexer-common/     # @sqd/indexer-common  — Vendored squid: shared types + ABIs (consumed by indexer-* siblings)
+│   ├── indexer-workers/    # @sqd/workers         — Vendored squid: workers/delegations/epochs indexer
+│   ├── indexer-gateways/   # @sqd/gateways        — Vendored squid: gateway-registration + portal-pool indexer
+│   ├── indexer-token/      # @sqd/token           — Vendored squid: account/transfer/vesting indexer
+│   └── indexer-vestings/   # @sqd/vestings        — Vendored squid: vesting + temporary-holding indexer
+├── indexer/                # Vendored squid tooling (ABIs, manifests, scripts, plans, README, biome.json)
+├── nginx/                  # nginx template for static-file serving in Docker
+├── .github/workflows/      # build-web.yaml, build-server.yaml
+├── Dockerfile              # Multi-stage: `server` target and `web` (nginx) target
+├── biome.json              # Root lint + format config (skips packages/indexer-* and indexer/)
+├── turbo.json              # Turborepo task graph (build/codegen/db:migrate/proc/api/...)
+└── .env / .env.example     # Runtime environment variables
 ```
+
+> **Vendored indexer.** `packages/indexer-*` are imported from
+> [`subsquid/squid-subsquid-network`](https://github.com/subsquid/squid-subsquid-network)
+> via `git subtree add`. They use a different toolchain (vitest 2, biome 1.9, typeorm + pg)
+> than the app and are intentionally skipped by the root biome run. To pull
+> upstream changes: `git subtree pull --prefix=indexer https://github.com/subsquid/squid-subsquid-network.git master`,
+> then re-flatten paths and re-apply the `@sqd/shared → @sqd/indexer-common` rename.
+
+> **App namespace.** All workspace packages — both app and indexer — live under the
+> `@sqd/*` npm scope. `@subsquid/*` references in source/imports refer to upstream
+> npm packages only.
 
 ### `packages/client/src/` layout
 
