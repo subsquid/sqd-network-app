@@ -6,3 +6,7 @@
 	path = sqd-network-contracts
 	url = https://github.com/subsquid/subsquid-network-contracts.git
 	branch = main
+[submodule "external/squid-subsquid-network"]
+	path = external/squid-subsquid-network
+	url = https://github.com/subsquid/squid-subsquid-network.git
+	branch = master
