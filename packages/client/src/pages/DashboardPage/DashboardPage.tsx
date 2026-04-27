@@ -25,7 +25,7 @@ export function DashboardPage() {
         <Tab
           value="portal-pools"
           label={
-            <Stack direction="row" alignItems="center" spacing={0.75}>
+            <Stack component="span" direction="row" alignItems="center" spacing={0.75}>
               <span>Portal Pools</span>
               <Chip label="New" size="small" color="info" variant="outlined" />
             </Stack>

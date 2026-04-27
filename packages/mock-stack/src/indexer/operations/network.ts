@@ -220,7 +220,11 @@ export function registerNetworkResolvers(deps: NetworkResolverDeps): void {
     const [epochNumber, nextEpochBlock, workerEpochLength] = (await Promise.all([
       deps.client.readContract({ abi: networkAbi, address: addr, functionName: 'epochNumber' }),
       deps.client.readContract({ abi: networkAbi, address: addr, functionName: 'nextEpoch' }),
-      deps.client.readContract({ abi: networkAbi, address: addr, functionName: 'workerEpochLength' }),
+      deps.client.readContract({
+        abi: networkAbi,
+        address: addr,
+        functionName: 'workerEpochLength',
+      }),
     ])) as [bigint, bigint, bigint];
 
     const head = deps.getLastBlock();

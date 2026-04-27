@@ -39,7 +39,11 @@ export function AutoExtension({ value, disabled }: { value?: boolean; disabled?:
           disabled={disabled}
           checked={value}
           control={<Switch onChange={handleChange} />}
-          label={<Typography variant="body2">Auto Extension</Typography>}
+          label={
+            <Typography component="span" variant="body2">
+              Auto Extension
+            </Typography>
+          }
           labelPlacement="start"
         />
       </FormGroup>

@@ -15,13 +15,7 @@
  * after preseeding" property: same cadence, same range invariants, same
  * code path; only the reward payload differs.
  */
-import {
-  type Address,
-  type PublicClient,
-  type WalletClient,
-  createPublicClient,
-  http,
-} from 'viem';
+import { type Address, type PublicClient, type WalletClient, createPublicClient, http } from 'viem';
 
 import { networkArtifact } from './artifacts';
 import { REWARD_BLOCKS_PER_COMMIT } from './config';
@@ -63,9 +57,7 @@ export interface CommitChunksResult {
  * the contract's current `lastBlockRewarded` and `upperBound`, emitting
  * one `commit()` per window.
  */
-export async function commitRewardChunks(
-  opts: CommitChunksOpts,
-): Promise<CommitChunksResult> {
+export async function commitRewardChunks(opts: CommitChunksOpts): Promise<CommitChunksResult> {
   const chain = chainFor(opts.chainId);
   const publicClient: PublicClient = createPublicClient({
     chain,
@@ -82,8 +74,7 @@ export async function commitRewardChunks(
     functionName: 'lastBlockRewarded',
   })) as bigint;
 
-  const upperBound =
-    opts.upperBound ?? (await publicClient.getBlockNumber()) - 1n;
+  const upperBound = opts.upperBound ?? (await publicClient.getBlockNumber()) - 1n;
   const chunk = REWARD_BLOCKS_PER_COMMIT;
   const max = opts.maxChunks ?? Number.MAX_SAFE_INTEGER;
 
@@ -95,13 +86,7 @@ export async function commitRewardChunks(
       abi,
       address: opts.rewardDistribution,
       functionName: 'commit',
-      args: [
-        fromBlock,
-        toBlock,
-        opts.recipients,
-        opts.workerRewards,
-        opts.stakerRewards,
-      ],
+      args: [fromBlock, toBlock, opts.recipients, opts.workerRewards, opts.stakerRewards],
       account: opts.wallet.account!,
       chain: opts.wallet.chain,
     });

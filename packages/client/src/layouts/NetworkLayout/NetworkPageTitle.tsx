@@ -1,6 +1,6 @@
 import { PropsWithChildren, ReactNode } from 'react';
 
-import { Box, SxProps, Typography, styled } from '@mui/material';
+import { SxProps, Typography, styled } from '@mui/material';
 
 import { BackButton } from '@components/BackButton';
 
@@ -40,13 +40,13 @@ export function NetworkPageTitle({
 }>) {
   return (
     <PageTitleWrapper sx={sx}>
-      <Typography variant="h1" sx={{ lineHeight: 1 }}>
-        <div className="title">
-          <BackButton />
-          <Box color="text.primary">{title}</Box>
-          {endAdornment ? <div className="endAdornment">{endAdornment}</div> : null}
-        </div>
-      </Typography>
+      <div className="title" style={{ lineHeight: 1 }}>
+        <BackButton />
+        <Typography variant="h1" color="text.primary">
+          {title}
+        </Typography>
+        {endAdornment ? <div className="endAdornment">{endAdornment}</div> : null}
+      </div>
       {children ? <PageDescription>{children}</PageDescription> : null}
     </PageTitleWrapper>
   );

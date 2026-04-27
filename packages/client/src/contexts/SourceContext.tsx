@@ -1,8 +1,9 @@
 import { ReactNode, createContext, useContext, useEffect } from 'react';
 
+import { useAccount } from 'wagmi';
+
 import { SourceWalletWithBalance, useMySources } from '@api/subsquid-network-squid';
 import { useLocalStorageState } from '@hooks/useLocalStorageState';
-import { useAccount } from 'wagmi';
 
 interface SourceContextType {
   setSelectedSourceId: (sourceId: string) => void;

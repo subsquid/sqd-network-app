@@ -8,7 +8,6 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  Typography,
 } from '@mui/material';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 
@@ -84,8 +83,8 @@ export function PaginatedTable<TData>({
             </TableHead>
             <TableBody>
               {showEmptyState ? (
-                <NoItems>
-                  <Typography>{emptyMessage}</Typography>
+                <NoItems message={typeof emptyMessage === 'string' ? emptyMessage : undefined}>
+                  {typeof emptyMessage !== 'string' ? emptyMessage : undefined}
                 </NoItems>
               ) : (
                 table.getRowModel().rows.map(row => (
