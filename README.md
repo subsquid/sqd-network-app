@@ -37,7 +37,11 @@ packages/
 ├── indexer-gateways/        # @sqd/gateways        — vendored squid: gateways indexer
 ├── indexer-token/           # @sqd/token           — vendored squid: token indexer
 └── indexer-vestings/        # @sqd/vestings        — vendored squid: vestings indexer
-indexer/                     # vendored squid tooling: ABIs, manifests, scripts, plans
+abi/                         # vendored squid contract ABIs (raw JSON)
+assets/                      # vendored squid deployment assets
+manifests/                   # squid manifests (workers/gateways/token/vestings × mainnet/testnet)
+indexer-plans/               # vendored squid migration notes
+indexer-scripts/             # vendored squid helper scripts (get-abi, ...)
 ```
 
 The `packages/indexer-*` packages are vendored from

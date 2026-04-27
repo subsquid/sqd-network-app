@@ -1,7 +1,7 @@
 manifestVersion: subsquid.io/v0.1
-name: sqd-token-testnet
+name: sqd-vestings-testnet
 slot: v1
-description: Subsquid network token indexer
+description: Subsquid network vestings indexer
 build:
   package_manager: pnpm
 deploy:
@@ -18,7 +18,7 @@ deploy:
     cmd:
       - pnpm
       - --dir
-      - packages/token
+      - packages/indexer-vestings
       - exec
       - node
       - lib/main.js
@@ -26,7 +26,7 @@ deploy:
     cmd:
       - pnpm
       - --dir
-      - packages/token
+      - packages/indexer-vestings
       - exec
       - squid-graphql-server
       - --dumb-cache
@@ -42,7 +42,7 @@ deploy:
     cmd:
       - pnpm
       - --dir
-      - packages/token
+      - packages/indexer-vestings
       - exec
       - squid-typeorm-migration
       - apply
@@ -50,7 +50,7 @@ scale:
   dedicated: true
   addons:
     postgres:
-      storage: 5G
+      storage: 1G
       profile: small
   processor:
     profile: small

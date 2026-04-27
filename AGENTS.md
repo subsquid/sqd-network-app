@@ -26,11 +26,15 @@ subsquid-network-app/
 │   ├── indexer-gateways/   # @sqd/gateways        — Vendored squid: gateway-registration + portal-pool indexer
 │   ├── indexer-token/      # @sqd/token           — Vendored squid: account/transfer/vesting indexer
 │   └── indexer-vestings/   # @sqd/vestings        — Vendored squid: vesting + temporary-holding indexer
-├── indexer/                # Vendored squid tooling (ABIs, manifests, scripts, plans, README, biome.json)
+├── abi/                    # Vendored squid contract ABIs (raw JSON; consumed by squid manifests)
+├── assets/                 # Vendored squid deployment assets (mainnet/tethys)
+├── manifests/              # Squid manifests (workers/gateways/token/vestings × mainnet/testnet)
+├── indexer-plans/          # Vendored squid migration / planning notes (read-only)
+├── indexer-scripts/        # Vendored squid helper scripts (e.g. get-abi)
 ├── nginx/                  # nginx template for static-file serving in Docker
 ├── .github/workflows/      # build-web.yaml, build-server.yaml
 ├── Dockerfile              # Multi-stage: `server` target and `web` (nginx) target
-├── biome.json              # Root lint + format config (skips packages/indexer-* and indexer/)
+├── biome.json              # Root lint + format config (skips packages/indexer-* and vendored indexer assets)
 ├── turbo.json              # Turborepo task graph (build/codegen/db:migrate/proc/api/...)
 └── .env / .env.example     # Runtime environment variables
 ```
