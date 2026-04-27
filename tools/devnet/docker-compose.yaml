@@ -1,0 +1,139 @@
+# Local devnet "zoo": SQD portal + postgres + 3 squid indexers (workers,
+# gateways, token), wired against the host-side anvil started by
+# `pnpm mock:chain`.
+#
+# Lifecycle:
+#   1. `pnpm mock:chain` (host)         — anvil + arbitrum-shim on :8545.
+#   2. `pnpm mock:devnet`               — this compose file.
+#   3. `pnpm mock:app` with MOCK_REAL_INDEXER=1 — server + client.
+#
+# All ports are bound to 127.0.0.1 to avoid leaking dev infra to the LAN.
+#
+# Indexers consume the host-side `packages/mock-stack/.deployments.json`
+# as a read-only bind mount; the container entrypoint blocks until the
+# file exists, so the order in which terminals come up doesn't matter.
+name: sqd-network-app-devnet
+
+services:
+  hotblocks-service:
+    extends:
+      file: ./portal/docker-compose.yaml
+      service: hotblocks-service
+
+  hotblocks-db:
+    extends:
+      file: ./portal/docker-compose.yaml
+      service: hotblocks-db
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_MULTIPLE_DATABASES: squid_workers,squid_gateways,squid_token
+    ports:
+      - "127.0.0.1:25432:5432"
+    shm_size: 256mb
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # The squid repo bundles a tiny shell script that reads
+      # POSTGRES_MULTIPLE_DATABASES and `CREATE DATABASE`s each entry.
+      - ../../external/squid-subsquid-network/docker/create-databases.sh:/docker-entrypoint-initdb.d/create-databases.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  workers-indexer:
+    build:
+      context: ../..
+      dockerfile: tools/devnet/Dockerfile.indexer
+      args:
+        PACKAGE: workers
+    image: sqd-network-app/devnet-indexer-workers:latest
+    environment:
+      PACKAGE: workers
+      NETWORK: devnet
+      DEVNET_DEPLOYMENTS_PATH: /devnet/deployments.json
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: squid_workers
+      DB_USER: postgres
+      DB_PASS: postgres
+      GQL_PORT: 4350
+      RPC_ENDPOINT: http://host.docker.internal:8545
+      PORTAL_ENDPOINT: http://hotblocks-db:8000/datasets/local-devnet
+    ports:
+      - "127.0.0.1:4351:4350"
+    volumes:
+      - ../../packages/mock-stack/.deployments.json:/devnet/deployments.json:ro
+    depends_on:
+      postgres: { condition: service_healthy }
+      hotblocks-db: { condition: service_started }
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  gateways-indexer:
+    build:
+      context: ../..
+      dockerfile: tools/devnet/Dockerfile.indexer
+      args:
+        PACKAGE: gateways
+    image: sqd-network-app/devnet-indexer-gateways:latest
+    environment:
+      PACKAGE: gateways
+      NETWORK: devnet
+      DEVNET_DEPLOYMENTS_PATH: /devnet/deployments.json
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: squid_gateways
+      DB_USER: postgres
+      DB_PASS: postgres
+      GQL_PORT: 4350
+      RPC_ENDPOINT: http://host.docker.internal:8545
+      PORTAL_ENDPOINT: http://hotblocks-db:8000/datasets/local-devnet
+    ports:
+      - "127.0.0.1:4352:4350"
+    volumes:
+      - ../../packages/mock-stack/.deployments.json:/devnet/deployments.json:ro
+    depends_on:
+      postgres: { condition: service_healthy }
+      hotblocks-db: { condition: service_started }
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  token-indexer:
+    build:
+      context: ../..
+      dockerfile: tools/devnet/Dockerfile.indexer
+      args:
+        PACKAGE: token
+    image: sqd-network-app/devnet-indexer-token:latest
+    environment:
+      PACKAGE: token
+      NETWORK: devnet
+      DEVNET_DEPLOYMENTS_PATH: /devnet/deployments.json
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: squid_token
+      DB_USER: postgres
+      DB_PASS: postgres
+      GQL_PORT: 4350
+      RPC_ENDPOINT: http://host.docker.internal:8545
+      PORTAL_ENDPOINT: http://hotblocks-db:8000/datasets/local-devnet
+    ports:
+      - "127.0.0.1:4353:4350"
+    volumes:
+      - ../../packages/mock-stack/.deployments.json:/devnet/deployments.json:ro
+    depends_on:
+      postgres: { condition: service_healthy }
+      hotblocks-db: { condition: service_started }
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  # Inherited from portal/docker-compose.yaml — declared again so this
+  # compose file is self-contained for `docker compose down -v`.
+  hotblocks-db-data:
+  postgres-data:

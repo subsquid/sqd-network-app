@@ -1,0 +1,75 @@
+# Local-devnet indexer image — parameterised by PACKAGE arg
+# (workers | gateways | token).
+#
+# Build context = repo root (so we can copy both
+# external/squid-subsquid-network and tools/devnet in one go).
+#
+# Builds the squid in two stages: full pnpm install + rolldown in `build`,
+# then a slim runtime image with `lib/`, `db/`, and a pruned dependency
+# closure. Devnet patches under tools/devnet/patches/ are applied to the
+# squid checkout before the install + build.
+#
+# The image contains *all four* squid packages plus shared, then picks
+# which one to run via PACKAGE env at container start. We rebuild this
+# image rarely (only on submodule bumps), and the indexer container
+# entrypoint only runs the package selected by PACKAGE.
+
+ARG PACKAGE=workers
+
+# ---------- builder ----------
+FROM node:22-bookworm-slim AS builder
+
+ENV PNPM_HOME=/usr/local/pnpm
+ENV PATH=$PNPM_HOME:$PATH
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && corepack enable \
+    && corepack prepare pnpm@10.30.2 --activate
+
+WORKDIR /squid
+
+# Copy the squid source from the submodule.
+COPY external/squid-subsquid-network/ /squid/
+
+# Apply local-devnet patches.
+COPY tools/devnet/patches/ /tmp/patches/
+RUN set -eux; \
+    for p in /tmp/patches/*.patch; do \
+        echo "Applying $p"; \
+        git apply --whitespace=nowarn "$p"; \
+    done
+
+# Install + build all packages. This is heavy (~2-3 minutes cold).
+# Cache mounts make iterative builds fast.
+RUN --mount=type=cache,target=/usr/local/pnpm/store \
+    pnpm install --frozen-lockfile=false
+RUN pnpm run build
+
+# ---------- runtime ----------
+FROM node:22-bookworm-slim AS runtime
+
+ARG PACKAGE
+ENV PACKAGE=${PACKAGE}
+ENV PNPM_HOME=/usr/local/pnpm
+ENV PATH=$PNPM_HOME:$PATH
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends bash curl tini ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && corepack enable \
+    && corepack prepare pnpm@10.30.2 --activate
+
+WORKDIR /squid
+
+# Bring over the entire built monorepo. Pruning more aggressively (e.g.
+# `pnpm deploy`) is brittle for this codebase due to its workspace ABIs;
+# we accept the larger image (~600MB) for simplicity.
+COPY --from=builder /squid /squid
+
+COPY tools/devnet/entrypoint.sh /usr/local/bin/devnet-entrypoint.sh
+RUN chmod +x /usr/local/bin/devnet-entrypoint.sh
+
+EXPOSE 4350
+
+ENTRYPOINT ["/usr/bin/tini", "--", "/usr/local/bin/devnet-entrypoint.sh"]

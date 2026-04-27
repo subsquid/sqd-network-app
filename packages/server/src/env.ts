@@ -18,8 +18,20 @@ export type { ContractAddresses };
  */
 export interface RuntimeOverride {
   network?: NetworkName;
-  /** Replace the URL used by every Squid GraphQL caller (workers/gateways/token). */
+  /**
+   * Single URL used by every Squid GraphQL caller (workers/gateways/token).
+   * Used by the mini-indexer mock-mode where one HTTP server multiplexes
+   * all three squids onto one operation-name dispatcher. Setting this is
+   * equivalent to setting `workersSquidUrl` / `gatewaysSquidUrl` /
+   * `tokenSquidUrl` to the same value.
+   */
   squidGraphqlUrl?: string;
+  /** Per-squid URL override — wins over `squidGraphqlUrl` when set. */
+  workersSquidUrl?: string;
+  /** Per-squid URL override — wins over `squidGraphqlUrl` when set. */
+  gatewaysSquidUrl?: string;
+  /** Per-squid URL override — wins over `squidGraphqlUrl` when set. */
+  tokenSquidUrl?: string;
   /** Override the JSON-RPC URL used by the blockchain service. */
   rpcUrl?: string;
   /** Merge into the contract address book (typically from .deployments.json). */
@@ -52,22 +64,23 @@ export function getNetwork(): NetworkName {
   return network === 'tethys' ? 'tethys' : 'mainnet';
 }
 
-function getSquidUrl(envKey: string): string {
+function getSquidUrl(envKey: string, perSquidOverride: string | undefined): string {
+  if (perSquidOverride) return perSquidOverride;
   if (runtimeOverride.squidGraphqlUrl) return runtimeOverride.squidGraphqlUrl;
   const network = getNetwork().toUpperCase();
   return getEnv(`${network}_${envKey}`, 'http://localhost:4350');
 }
 
 export function getWorkersSquidUrl(): string {
-  return getSquidUrl('WORKERS_SQUID_API_URL');
+  return getSquidUrl('WORKERS_SQUID_API_URL', runtimeOverride.workersSquidUrl);
 }
 
 export function getGatewaysSquidUrl(): string {
-  return getSquidUrl('GATEWAYS_SQUID_API_URL');
+  return getSquidUrl('GATEWAYS_SQUID_API_URL', runtimeOverride.gatewaysSquidUrl);
 }
 
 export function getTokenSquidUrl(): string {
-  return getSquidUrl('TOKEN_SQUID_API_URL');
+  return getSquidUrl('TOKEN_SQUID_API_URL', runtimeOverride.tokenSquidUrl);
 }
 
 export function getRpcUrl(): string | undefined {

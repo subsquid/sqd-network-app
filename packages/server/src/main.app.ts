@@ -28,6 +28,19 @@ import { logger } from './logger.js';
 const CHAIN_RPC_URL = 'http://localhost:8545';
 const CHAIN_GRAPHQL_URL = 'http://localhost:4321/graphql';
 
+/**
+ * Real-indexer mode (MOCK_REAL_INDEXER=1) routes the three squid queries
+ * at the dockerised squid-subsquid-network indexers brought up by
+ * `pnpm mock:devnet`. Ports match tools/devnet/docker-compose.yaml.
+ */
+const REAL_INDEXER_URLS = {
+  workers: 'http://localhost:4351/graphql',
+  gateways: 'http://localhost:4352/graphql',
+  token: 'http://localhost:4353/graphql',
+} as const;
+
+const useRealIndexer = process.env.MOCK_REAL_INDEXER === '1';
+
 function locateDeployments(): string {
   // packages/server/src/main.app.ts → ../../mock-stack/.deployments.json
   const here = path.dirname(fileURLToPath(import.meta.url));
@@ -79,23 +92,53 @@ async function waitForEndpoint(url: string, label: string): Promise<void> {
 
 const deployments = await waitForDeployments();
 await waitForEndpoint(CHAIN_RPC_URL, 'anvil');
-await waitForEndpoint(CHAIN_GRAPHQL_URL, 'graphql');
 
-setRuntimeOverride({
-  network: 'mainnet',
-  squidGraphqlUrl: CHAIN_GRAPHQL_URL,
-  rpcUrl: CHAIN_RPC_URL,
-  contractAddressOverride: deployments,
-});
+if (useRealIndexer) {
+  // The dockerised squid indexers come up after `pnpm mock:devnet` and
+  // need a few seconds to apply migrations + sync. Block here so the
+  // first tRPC requests don't get connection errors.
+  await Promise.all([
+    waitForEndpoint(REAL_INDEXER_URLS.workers, 'workers-indexer'),
+    waitForEndpoint(REAL_INDEXER_URLS.gateways, 'gateways-indexer'),
+    waitForEndpoint(REAL_INDEXER_URLS.token, 'token-indexer'),
+  ]);
 
-logger.info(
-  {
-    anvil: CHAIN_RPC_URL,
-    graphql: CHAIN_GRAPHQL_URL,
-    contractCount: Object.keys(deployments).length,
-  },
-  '[mock:app] chain endpoints ready',
-);
+  setRuntimeOverride({
+    network: 'mainnet',
+    workersSquidUrl: REAL_INDEXER_URLS.workers,
+    gatewaysSquidUrl: REAL_INDEXER_URLS.gateways,
+    tokenSquidUrl: REAL_INDEXER_URLS.token,
+    rpcUrl: CHAIN_RPC_URL,
+    contractAddressOverride: deployments,
+  });
+
+  logger.info(
+    {
+      anvil: CHAIN_RPC_URL,
+      indexers: REAL_INDEXER_URLS,
+      contractCount: Object.keys(deployments).length,
+    },
+    '[mock:app] chain + real-indexer endpoints ready',
+  );
+} else {
+  await waitForEndpoint(CHAIN_GRAPHQL_URL, 'graphql');
+
+  setRuntimeOverride({
+    network: 'mainnet',
+    squidGraphqlUrl: CHAIN_GRAPHQL_URL,
+    rpcUrl: CHAIN_RPC_URL,
+    contractAddressOverride: deployments,
+  });
+
+  logger.info(
+    {
+      anvil: CHAIN_RPC_URL,
+      graphql: CHAIN_GRAPHQL_URL,
+      contractCount: Object.keys(deployments).length,
+    },
+    '[mock:app] chain endpoints ready (mini-indexer mode)',
+  );
+}
 
 // Hand off to the regular startup. Hot-reload under tsx --watch is safe
 // here because nothing in this module owns chain state.
