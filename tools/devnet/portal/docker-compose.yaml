@@ -1,0 +1,53 @@
+# SQD portal — `devnet-evm` recipe.
+#
+# Source: https://github.com/subsquid/sqd-portal/blob/master/examples/devnet-evm/docker-compose.yaml
+# Pinned commit recorded in tools/devnet/PORT_VERSION.
+#
+# Local-devnet adjustments vs. upstream:
+#   * RPC_URL defaults to http://host.docker.internal:8545 — the host-side
+#     `pnpm mock:chain` Arbitrum shim. Override by exporting RPC_URL before
+#     `docker compose up`.
+#   * extra_hosts: ["host.docker.internal:host-gateway"] makes that DNS name
+#     resolve to the docker host on Linux without manual configuration.
+#   * Port bindings are pinned to 127.0.0.1 so dev infra is not reachable on
+#     the LAN.
+services:
+  hotblocks-service:
+    image: subsquid/evm-hotblocks-service:latest
+    environment:
+      SQD_INFO: "*"
+    command: >
+      --http-rpc ${RPC_URL:-http://host.docker.internal:8545}
+      --receipts
+      --traces
+      --diffs
+      --use-debug-api-for-statediffs
+      --verify-tx-sender
+      --verify-tx-root
+      --verify-logs-bloom
+      --block-cache-size 10
+    ports:
+      - "127.0.0.1:3000:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  hotblocks-db:
+    image: subsquid/data-hotblocks:latest
+    environment:
+      RUST_LOG: "info"
+    command: >
+      --datasets /app/config.yaml
+      --db /run/db
+      --port 8000
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - hotblocks-db-data:/run/db
+    depends_on:
+      - hotblocks-service
+
+# Warning: the hotblocks DB stores full block bodies. Volumes can grow
+# unbounded for long-running devnets — `pnpm mock:devnet:reset` drops them.
+volumes:
+  hotblocks-db-data:

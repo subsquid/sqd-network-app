@@ -1,0 +1,169 @@
+--- a/packages/shared/src/config/network.ts
++++ b/packages/shared/src/config/network.ts
+@@ -1,3 +1,5 @@
++import fs from 'node:fs'
++
+ import { assertNotNull } from '@subsquid/util-internal'
+ 
+ export type ContractConfig = {
+@@ -9,7 +11,7 @@
+ }
+ 
+ export type NetworkConfig = {
+-  name: 'mainnet' | 'tethys'
++  name: 'mainnet' | 'tethys' | 'devnet'
+   contracts: {
+     SQD: ContractConfig
+     Router: ContractConfig
+@@ -35,6 +37,142 @@
+   }
+ }
+ 
++/**
++ * Shape of `DEVNET_DEPLOYMENTS_PATH` JSON.
++ *
++ * Either flat (`{ "SQD": "0x...", ... }` — the format `mock-stack` writes
++ * to `.deployments.json`) or structured (`{ "contracts": { "SQD": { "address",
++ * "from" } }, ... }`). The flat shape is the common case; the structured
++ * shape is supported for parity with how mainnet/tethys are described above.
++ */
++type DevnetDeploymentsFile =
++  | Record<string, string>
++  | {
++      contracts?: Record<string, string | { address: string; from?: number; to?: number }>
++      defaultRouterContracts?: Partial<NetworkConfig['defaultRouterContracts']>
++      range?: { from?: number; to?: number }
++      epochsStart?: number
++    }
++
++function makeContract(address: string, from = 0, to?: number): ContractConfig {
++  return { address: address.toLowerCase(), range: { from, to } }
++}
++
++function buildDevnetConfig(): NetworkConfig {
++  const path = process.env.DEVNET_DEPLOYMENTS_PATH ?? '/devnet/deployments.json'
++  const raw = JSON.parse(fs.readFileSync(path, 'utf-8')) as DevnetDeploymentsFile
++
++  const flat = (raw as { contracts?: unknown }).contracts == null
++  const contracts: Record<string, { address: string; from?: number; to?: number }> = {}
++  const defaultRouterContracts: Partial<NetworkConfig['defaultRouterContracts']> = {}
++  let rangeFrom = 0
++  let epochsStart = 0
++
++  if (flat) {
++    const flatRaw = raw as Record<string, string>
++    const ZERO = '0x0000000000000000000000000000000000000000'
++    contracts.SQD = { address: flatRaw.SQD ?? ZERO }
++    contracts.Router = { address: flatRaw.ROUTER ?? ZERO }
++    contracts.RewardsDistribution = { address: flatRaw.REWARD_DISTRIBUTION ?? ZERO }
++    contracts.GatewayRegistry = { address: flatRaw.GATEWAY_REGISTRATION ?? ZERO }
++    contracts.Multicall3 = { address: flatRaw.MULTICALL ?? ZERO }
++    contracts.SoftCap = { address: flatRaw.SOFT_CAP ?? ZERO }
++    contracts.VestingFactory = { address: flatRaw.VESTING_FACTORY ?? ZERO }
++    contracts.TemporaryHoldingFactory = { address: flatRaw.TEMPORARY_HOLDING_FACTORY ?? ZERO }
++    contracts.PortalPoolFactory = { address: flatRaw.PORTAL_POOL_FACTORY ?? ZERO }
++    defaultRouterContracts.networkController = flatRaw.NETWORK_CONTROLLER ?? ZERO
++    defaultRouterContracts.rewardCalculation = flatRaw.REWARD_CALCULATION ?? ZERO
++    defaultRouterContracts.rewardTreasury = flatRaw.REWARD_TREASURY ?? ZERO
++    defaultRouterContracts.workerRegistration = flatRaw.WORKER_REGISTRATION ?? ZERO
++    defaultRouterContracts.staking = flatRaw.STAKING ?? ZERO
++  } else {
++    const structured = raw as Exclude<DevnetDeploymentsFile, Record<string, string>>
++    for (const [key, value] of Object.entries(structured.contracts ?? {})) {
++      if (typeof value === 'string') contracts[key] = { address: value }
++      else contracts[key] = { address: value.address, from: value.from, to: value.to }
++    }
++    Object.assign(defaultRouterContracts, structured.defaultRouterContracts ?? {})
++    rangeFrom = structured.range?.from ?? 0
++    epochsStart = structured.epochsStart ?? 0
++  }
++
++  const need = [
++    'SQD',
++    'Router',
++    'RewardsDistribution',
++    'GatewayRegistry',
++    'Multicall3',
++    'SoftCap',
++    'VestingFactory',
++    'TemporaryHoldingFactory',
++    'PortalPoolFactory',
++  ] as const
++  for (const k of need) {
++    if (!contracts[k]) {
++      throw new Error(`Devnet deployments file ${path} is missing contract: ${k}`)
++    }
++  }
++
++  const router = defaultRouterContracts as NetworkConfig['defaultRouterContracts']
++  for (const k of [
++    'networkController',
++    'rewardCalculation',
++    'rewardTreasury',
++    'workerRegistration',
++    'staking',
++  ] as const) {
++    if (!router[k]) {
++      throw new Error(`Devnet deployments file ${path} is missing defaultRouterContracts.${k}`)
++    }
++  }
++
++  return {
++    name: 'devnet',
++    contracts: {
++      SQD: makeContract(contracts.SQD.address, contracts.SQD.from, contracts.SQD.to),
++      Router: makeContract(contracts.Router.address, contracts.Router.from, contracts.Router.to),
++      RewardsDistribution: makeContract(
++        contracts.RewardsDistribution.address,
++        contracts.RewardsDistribution.from,
++        contracts.RewardsDistribution.to,
++      ),
++      GatewayRegistry: makeContract(
++        contracts.GatewayRegistry.address,
++        contracts.GatewayRegistry.from,
++        contracts.GatewayRegistry.to,
++      ),
++      Multicall3: makeContract(
++        contracts.Multicall3.address,
++        contracts.Multicall3.from,
++        contracts.Multicall3.to,
++      ),
++      SoftCap: makeContract(
++        contracts.SoftCap.address,
++        contracts.SoftCap.from,
++        contracts.SoftCap.to,
++      ),
++      VestingFactory: makeContract(
++        contracts.VestingFactory.address,
++        contracts.VestingFactory.from,
++        contracts.VestingFactory.to,
++      ),
++      TemporaryHoldingFactory: makeContract(
++        contracts.TemporaryHoldingFactory.address,
++        contracts.TemporaryHoldingFactory.from,
++        contracts.TemporaryHoldingFactory.to,
++      ),
++      PortalPoolFactory: makeContract(
++        contracts.PortalPoolFactory.address,
++        contracts.PortalPoolFactory.from,
++        contracts.PortalPoolFactory.to,
++      ),
++    },
++    defaultRouterContracts: router,
++    range: { from: rangeFrom },
++    epochsStart,
++  }
++}
++
+ function getNetworkConfig(): NetworkConfig {
+   const name = assertNotNull(process.env.NETWORK)
+ 
+@@ -141,6 +279,8 @@
+         range: { from: 6_000_000 },
+         epochsStart: 57_869_108,
+       }
++    case 'devnet':
++      return buildDevnetConfig()
+     default:
+       throw new Error(`Unknown network: ${name}`)
+   }

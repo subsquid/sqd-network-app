@@ -1,0 +1,9 @@
+# Pinned upstream commits for the local devnet stack.
+#
+# tools/devnet/portal/{docker-compose.yaml,config.yaml} are cribbed from:
+sqd-portal=https://github.com/subsquid/sqd-portal/tree/552fe5a1d5a86e0608a0ffddb92c30436346b1e9/examples/devnet-evm
+#
+# The squid indexer is consumed via the external/squid-subsquid-network
+# submodule. Whatever commit that submodule resolves to is the authoritative
+# pin; the SHA below is recorded for human-readability only.
+squid-subsquid-network=https://github.com/subsquid/squid-subsquid-network/tree/9b1f5c3211682f7840c70143fcce072cbfc15fa3

@@ -1,0 +1,12 @@
+# SQD portal dataset config.
+#
+# Source: https://github.com/subsquid/sqd-portal/blob/master/examples/devnet-evm/config.yaml
+# Renamed to "local-devnet" so it does not clash visually with the upstream
+# example dataset name.
+local-devnet:
+  kind: evm
+  retention_strategy:
+    FromBlock:
+      number: 0
+  data_sources:
+    - http://hotblocks-service:3000
