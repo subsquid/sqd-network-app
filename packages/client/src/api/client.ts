@@ -23,11 +23,22 @@ function toApiErrorMessage(error: unknown): string {
 
 function showApiErrorToast(error: unknown) {
   const message = toApiErrorMessage(error);
+
+  const now = Date.now();
+  const lastShown = errorToastTimestamps.get(message);
+  if (lastShown !== undefined && now - lastShown < TOAST_DEDUP_WINDOW_MS) return;
+  errorToastTimestamps.set(message, now);
+
   toast.error(message);
 }
 
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
+    onError: error => {
+      showApiErrorToast(error);
+    },
+  }),
+  mutationCache: new MutationCache({
     onError: error => {
       showApiErrorToast(error);
     },
