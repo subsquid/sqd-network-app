@@ -64,7 +64,7 @@ server.on('request', (req, res) => {
   const start = Date.now();
   res.on('finish', () => {
     const ms = Date.now() - start;
-    logger.info({ method: req.method, url: req.url, status: res.statusCode, ms }, 'http request');
+    logger.debug({ method: req.method, url: req.url, status: res.statusCode, ms }, 'http request');
   });
 });
 

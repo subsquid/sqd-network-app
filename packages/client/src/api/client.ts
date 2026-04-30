@@ -5,6 +5,11 @@ const TOAST_DEDUP_WINDOW_MS = 3000;
 
 const errorToastTimestamps = new Map<string, number>();
 
+function isTimeoutErrorMessage(message: string) {
+  const normalized = message.toLowerCase();
+  return normalized.includes('timed out') || normalized.includes('timeout');
+}
+
 function toApiErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message.trim()) return error.message;
   if (typeof error === 'string' && error.trim()) return error;
@@ -23,6 +28,7 @@ function toApiErrorMessage(error: unknown): string {
 
 function showApiErrorToast(error: unknown) {
   const message = toApiErrorMessage(error);
+  if (isTimeoutErrorMessage(message)) return;
 
   const now = Date.now();
   const lastShown = errorToastTimestamps.get(message);
