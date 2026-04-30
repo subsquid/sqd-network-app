@@ -1,10 +1,9 @@
+import { API_REQUEST_TIMEOUT_MS } from '@subsquid/common';
 import type { AppRouter } from '@subsquid/server';
 import { createTRPCClient, httpLink } from '@trpc/client';
 import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query';
 
 import { queryClient } from './client';
-
-const TRPC_REQUEST_TIMEOUT_MS = 5_000;
 
 async function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit) {
   const controller = new AbortController();
@@ -23,7 +22,7 @@ async function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit) {
     const timeoutId = setTimeout(() => {
       timedOut = true;
       controller.abort();
-    }, TRPC_REQUEST_TIMEOUT_MS);
+    }, API_REQUEST_TIMEOUT_MS);
 
     try {
       return await fetch(input, {
@@ -35,7 +34,7 @@ async function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit) {
     }
   } catch (error) {
     if (timedOut && !(init?.signal?.aborted ?? false)) {
-      throw new Error(`Request timed out after ${TRPC_REQUEST_TIMEOUT_MS / 1000}s`);
+      throw new Error(`Request timed out after ${API_REQUEST_TIMEOUT_MS / 1000}s`);
     }
 
     throw error;
