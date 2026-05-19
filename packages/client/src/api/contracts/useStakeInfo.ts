@@ -1,16 +1,20 @@
 import { useMemo } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
+import { isAddress } from 'viem';
 
 import { trpc } from '@api/trpc';
 
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
 export function useStakeInfo(selectedSourceAddress?: `0x${string}`) {
-  const isStakeInfoEnabled = Boolean(selectedSourceAddress);
+  const sourceAddress =
+    selectedSourceAddress && isAddress(selectedSourceAddress)
+      ? selectedSourceAddress
+      : ZERO_ADDRESS;
+  const isStakeInfoEnabled = sourceAddress !== ZERO_ADDRESS;
   const { data, isLoading } = useQuery(
-    trpc.contract.stakeInfo.queryOptions(
-      { sourceAddress: selectedSourceAddress || '0x0000000000000000000000000000000000000000' },
-      { enabled: isStakeInfoEnabled },
-    ),
+    trpc.contract.stakeInfo.queryOptions({ sourceAddress }, { enabled: isStakeInfoEnabled }),
   );
 
   const stake = useMemo(() => {

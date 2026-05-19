@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { dateFormat } from '@i18n';
 import { CenteredPageWrapper } from '@layouts/NetworkLayout';
@@ -30,6 +30,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, Outlet } from 'react-router-dom';
 
 import { useStakeInfo } from '@api/contracts/useStakeInfo';
+import { SortDir } from '@api/subsquid-network-squid';
 import { trpc } from '@api/trpc';
 import { Card } from '@components/Card';
 import { SquaredChip } from '@components/Chip';
@@ -38,10 +39,17 @@ import { FormikSelect } from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { SectionHeader } from '@components/SectionHeader';
 import { SourceWalletOption } from '@components/SourceWallet';
-import { DashboardTable, NoItems } from '@components/Table';
+import {
+  ClickableTableRow,
+  DashboardTable,
+  InteractiveCell,
+  NoItems,
+  SortableHeaderCell,
+} from '@components/Table';
 import { SourceProvider, useSourceContext } from '@contexts/SourceContext';
 import { useContracts } from '@hooks/network/useContracts';
 import { useCountdown } from '@hooks/useCountdown';
+import { Location, useLocationState } from '@hooks/useLocationState';
 import { numberWithCommasFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd } from '@lib/network';
 
@@ -147,6 +155,11 @@ export function MyStakes() {
 }
 
 export function MyGateways() {
+  const [query, setQuery] = useLocationState({
+    sortBy: new Location.Enum<GatewaySortBy>(GatewaySortBy.Registered),
+    sortDir: new Location.Enum<SortDir>(SortDir.Desc),
+  });
+
   const { selectedSource } = useSourceContext();
   const selectedSourceAddress = selectedSource?.id as `0x${string}` | undefined;
 
@@ -158,6 +171,25 @@ export function MyGateways() {
       { enabled: !!selectedSourceAddress },
     ),
   );
+
+  const gateways = useMemo(() => {
+    const data = gatewaysQuery ?? [];
+
+    return [...data].sort((a, b) => {
+      let comparison: number;
+
+      switch (query.sortBy) {
+        case GatewaySortBy.Name:
+          comparison = (a.name || a.id).localeCompare(b.name || b.id);
+          break;
+        case GatewaySortBy.Registered:
+        default:
+          comparison = new Date(a.createdAt || 0).valueOf() - new Date(b.createdAt || 0).valueOf();
+      }
+
+      return query.sortDir === SortDir.Desc ? -comparison : comparison;
+    });
+  }, [gatewaysQuery, query.sortBy, query.sortDir]);
 
   const isLoading = isGatewaysQueryLoading;
 
@@ -181,38 +213,55 @@ export function MyGateways() {
           </Stack>
         }
       />
-      <DashboardTable loading={isLoading} sx={{ mb: 2 }}>
-        <TableHead>
-          <TableRow>
-            <TableCell>Portal</TableCell>
-            <TableCell>Registered</TableCell>
-            <TableCell></TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {(gatewaysQuery as any[])?.length ? (
-            (gatewaysQuery as any[]).map(gateway => (
-              <TableRow key={gateway.id}>
-                <TableCell>
-                  <GatewayName gateway={gateway} to={`/portals/${gateway.id}`} />
-                </TableCell>
-                <TableCell>{dateFormat(gateway.createdAt)}</TableCell>
-                <TableCell>
-                  <Box display="flex" justifyContent="flex-end">
-                    <GatewayUnregisterButton gateway={gateway} />
-                  </Box>
-                </TableCell>
+      <Card sx={{ mb: 2 }}>
+        <DashboardTable loading={isLoading}>
+          <>
+            <TableHead>
+              <TableRow>
+                <SortableHeaderCell sort={GatewaySortBy.Name} query={query} setQuery={setQuery}>
+                  Portal
+                </SortableHeaderCell>
+                <SortableHeaderCell
+                  sort={GatewaySortBy.Registered}
+                  query={query}
+                  setQuery={setQuery}
+                >
+                  Registered
+                </SortableHeaderCell>
+                <TableCell></TableCell>
               </TableRow>
-            ))
-          ) : isLoading ? null : (
-            <NoItems>
-              <Typography>No portal registered yet</Typography>
-            </NoItems>
-          )}
-        </TableBody>
-      </DashboardTable>
+            </TableHead>
+            <TableBody>
+              {gateways.length ? (
+                gateways.map(gateway => (
+                  <ClickableTableRow key={gateway.id} to={`/portals/${gateway.id}`}>
+                    <TableCell>
+                      <GatewayName gateway={gateway} />
+                    </TableCell>
+                    <TableCell>{dateFormat(gateway.createdAt)}</TableCell>
+                    <InteractiveCell>
+                      <Box display="flex" justifyContent="flex-end">
+                        <GatewayUnregisterButton gateway={gateway} />
+                      </Box>
+                    </InteractiveCell>
+                  </ClickableTableRow>
+                ))
+              ) : isLoading ? null : (
+                <NoItems>
+                  <Typography>No portal registered yet</Typography>
+                </NoItems>
+              )}
+            </TableBody>
+          </>
+        </DashboardTable>
+      </Card>
     </>
   );
+}
+
+enum GatewaySortBy {
+  Name = 'name',
+  Registered = 'registered',
 }
 
 const GettingStarted = () => {
@@ -306,8 +355,8 @@ const GettingStarted = () => {
                 <ListItemIcon>
                   <Avatar
                     sx={{
-                      width: 32,
-                      height: 32,
+                      width: 36,
+                      height: 36,
                       fontSize: '16px',
                       backgroundColor: theme.palette.info.main,
                     }}
@@ -341,7 +390,7 @@ const GettingStarted = () => {
 };
 
 function GatewaysPageContent() {
-  const { sources, selectedSource, setSelectedSourceId, isLoading } = useSourceContext();
+  const { sources, selectedSource, setSelectedSourceId } = useSourceContext();
 
   const formik = {
     values: { source: selectedSource?.id || sources[0]?.id || '' },
