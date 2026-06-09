@@ -384,6 +384,13 @@ export const portalPoolAbi = [
   {
     type: 'function',
     inputs: [],
+    name: 'claimRewardsFromClosed',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [],
     name: 'closePool',
     outputs: [],
     stateMutability: 'nonpayable',
@@ -456,6 +463,13 @@ export const portalPoolAbi = [
     inputs: [],
     name: 'getCurrentRewardBalance',
     outputs: [{ name: '', internalType: 'int256', type: 'int256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'getDebt',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
   },
   {
@@ -835,10 +849,7 @@ export const portalPoolAbi = [
   },
   {
     type: 'function',
-    inputs: [
-      { name: 'amount', internalType: 'uint256', type: 'uint256' },
-      { name: 'minSqdOut', internalType: 'uint256', type: 'uint256' },
-    ],
+    inputs: [{ name: 'amount', internalType: 'uint256', type: 'uint256' }],
     name: 'topUpRewards',
     outputs: [],
     stateMutability: 'nonpayable',
@@ -847,6 +858,13 @@ export const portalPoolAbi = [
     type: 'function',
     inputs: [],
     name: 'totalDistributionRatePerSec',
+    outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    inputs: [],
+    name: 'totalRewardsPaid',
     outputs: [{ name: '', internalType: 'uint256', type: 'uint256' }],
     stateMutability: 'view',
   },
@@ -915,6 +933,216 @@ export const portalPoolAbi = [
   },
   {
     type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'oldCapacity',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'newCapacity',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'CapacityUpdated',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'provider',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'amount',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'newTotal',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'Deposited',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'oldRate',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'newRate',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'DistributionRateChanged',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'provider',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'amount',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'ExitClaimed',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'provider',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'amount',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+      {
+        name: 'endPosition',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'ExitRequested',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'version',
+        internalType: 'uint64',
+        type: 'uint64',
+        indexed: false,
+      },
+    ],
+    name: 'Initialized',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'previousOperator',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'newOperator',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+    ],
+    name: 'OperatorTransferred',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'account',
+        internalType: 'address',
+        type: 'address',
+        indexed: false,
+      },
+    ],
+    name: 'Paused',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'closedBy',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'timestamp',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'PoolClosed',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'provider',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'amount',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'RewardsClaimed',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'operator',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'amount',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'RewardsRecovered',
+  },
+  {
+    type: 'event',
+    anonymous: false,
     inputs: [
       {
         name: 'operator',
@@ -949,61 +1177,204 @@ export const portalPoolAbi = [
     ],
     name: 'RewardsToppedUp',
   },
-  { type: 'error', inputs: [], name: 'InvalidState' },
-  { type: 'error', inputs: [], name: 'PoolPaused' },
-  { type: 'error', inputs: [], name: 'PoolNotFailed' },
-  { type: 'error', inputs: [], name: 'NotActivated' },
-  { type: 'error', inputs: [], name: 'PoolClosed' },
-  { type: 'error', inputs: [], name: 'PoolNotClosed' },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      { name: 'role', internalType: 'bytes32', type: 'bytes32', indexed: true },
+      {
+        name: 'previousAdminRole',
+        internalType: 'bytes32',
+        type: 'bytes32',
+        indexed: true,
+      },
+      {
+        name: 'newAdminRole',
+        internalType: 'bytes32',
+        type: 'bytes32',
+        indexed: true,
+      },
+    ],
+    name: 'RoleAdminChanged',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      { name: 'role', internalType: 'bytes32', type: 'bytes32', indexed: true },
+      {
+        name: 'account',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'sender',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+    ],
+    name: 'RoleGranted',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      { name: 'role', internalType: 'bytes32', type: 'bytes32', indexed: true },
+      {
+        name: 'account',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'sender',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+    ],
+    name: 'RoleRevoked',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      { name: 'from', internalType: 'address', type: 'address', indexed: true },
+      { name: 'to', internalType: 'address', type: 'address', indexed: true },
+      {
+        name: 'amount',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'StakeTransferred',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'oldState',
+        internalType: 'enum IPortalPool.PoolState',
+        type: 'uint8',
+        indexed: false,
+      },
+      {
+        name: 'newState',
+        internalType: 'enum IPortalPool.PoolState',
+        type: 'uint8',
+        indexed: false,
+      },
+    ],
+    name: 'StateChanged',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'account',
+        internalType: 'address',
+        type: 'address',
+        indexed: false,
+      },
+    ],
+    name: 'Unpaused',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      { name: 'enabled', internalType: 'bool', type: 'bool', indexed: false },
+    ],
+    name: 'WhitelistEnabledChanged',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      { name: 'user', internalType: 'address', type: 'address', indexed: true },
+      { name: 'added', internalType: 'bool', type: 'bool', indexed: false },
+    ],
+    name: 'WhitelistUpdated',
+  },
+  {
+    type: 'event',
+    anonymous: false,
+    inputs: [
+      {
+        name: 'provider',
+        internalType: 'address',
+        type: 'address',
+        indexed: true,
+      },
+      {
+        name: 'amount',
+        internalType: 'uint256',
+        type: 'uint256',
+        indexed: false,
+      },
+    ],
+    name: 'Withdrawn',
+  },
+  { type: 'error', inputs: [], name: 'AccessControlBadConfirmation' },
+  {
+    type: 'error',
+    inputs: [
+      { name: 'account', internalType: 'address', type: 'address' },
+      { name: 'neededRole', internalType: 'bytes32', type: 'bytes32' },
+    ],
+    name: 'AccessControlUnauthorizedAccount',
+  },
+  { type: 'error', inputs: [], name: 'AlreadyInitialized' },
+  { type: 'error', inputs: [], name: 'AlreadyWithdrawn' },
+  { type: 'error', inputs: [], name: 'BelowCurrentStake' },
+  { type: 'error', inputs: [], name: 'BelowMinimum' },
+  { type: 'error', inputs: [], name: 'CapacityExceeded' },
+  { type: 'error', inputs: [], name: 'DeadlineNotPassed' },
+  { type: 'error', inputs: [], name: 'DistributionTurnedOff' },
+  { type: 'error', inputs: [], name: 'EnforcedPause' },
+  { type: 'error', inputs: [], name: 'ExceedsWalletLimit' },
+  { type: 'error', inputs: [], name: 'ExpectedPause' },
+  { type: 'error', inputs: [], name: 'InsufficientRewardPrecision' },
   { type: 'error', inputs: [], name: 'InsufficientStake' },
   { type: 'error', inputs: [], name: 'InsufficientTransferableStake' },
-  { type: 'error', inputs: [], name: 'CapacityExceeded' },
-  { type: 'error', inputs: [], name: 'ExceedsWalletLimit' },
-  { type: 'error', inputs: [], name: 'NoStakeToWithdraw' },
+  { type: 'error', inputs: [], name: 'InvalidAddress' },
+  { type: 'error', inputs: [], name: 'InvalidAmount' },
+  { type: 'error', inputs: [], name: 'InvalidDecimals' },
+  { type: 'error', inputs: [], name: 'InvalidInitialization' },
   { type: 'error', inputs: [], name: 'InvalidStakeTransfer' },
+  { type: 'error', inputs: [], name: 'InvalidState' },
+  { type: 'error', inputs: [], name: 'NoActiveExitRequest' },
+  { type: 'error', inputs: [], name: 'NoChange' },
+  { type: 'error', inputs: [], name: 'NoStakeToWithdraw' },
+  { type: 'error', inputs: [], name: 'NotActivated' },
+  { type: 'error', inputs: [], name: 'NotAdmin' },
+  { type: 'error', inputs: [], name: 'NotFactory' },
+  { type: 'error', inputs: [], name: 'NotInitializing' },
+  { type: 'error', inputs: [], name: 'NotLPTToken' },
+  { type: 'error', inputs: [], name: 'NotOperator' },
+  { type: 'error', inputs: [], name: 'NotWhitelisted' },
+  { type: 'error', inputs: [], name: 'NothingToClaim' },
+  { type: 'error', inputs: [], name: 'PoolClosed' },
+  { type: 'error', inputs: [], name: 'PoolHasDebt' },
+  { type: 'error', inputs: [], name: 'PoolNotClosed' },
+  { type: 'error', inputs: [], name: 'PoolNotFailed' },
+  { type: 'error', inputs: [], name: 'RateBelowMinimum' },
+  { type: 'error', inputs: [], name: 'RateExceedsMaximum' },
+  { type: 'error', inputs: [], name: 'ReentrancyGuardReentrantCall' },
+  {
+    type: 'error',
+    inputs: [{ name: 'token', internalType: 'address', type: 'address' }],
+    name: 'SafeERC20FailedOperation',
+  },
+  { type: 'error', inputs: [], name: 'StillInQueue' },
   { type: 'error', inputs: [], name: 'UseWithdrawFromFailed' },
   { type: 'error', inputs: [], name: 'WaitForActivationOrDeadline' },
-  { type: 'error', inputs: [], name: 'ExistingExitRequest' },
-  { type: 'error', inputs: [], name: 'NoActiveExitRequest' },
-  { type: 'error', inputs: [], name: 'StillInQueue' },
-  { type: 'error', inputs: [], name: 'AlreadyWithdrawn' },
-  { type: 'error', inputs: [], name: 'InvalidExitRate' },
-  { type: 'error', inputs: [], name: 'DeadlinePassed' },
-  { type: 'error', inputs: [], name: 'DeadlineNotPassed' },
-  { type: 'error', inputs: [], name: 'InvalidDeadline' },
-  { type: 'error', inputs: [], name: 'NotOperator' },
-  { type: 'error', inputs: [], name: 'NotFactory' },
-  { type: 'error', inputs: [], name: 'NotPoolRegistry' },
-  { type: 'error', inputs: [], name: 'NotLPTToken' },
-  { type: 'error', inputs: [], name: 'NotAuthorized' },
-  { type: 'error', inputs: [], name: 'NotAdmin' },
-  { type: 'error', inputs: [], name: 'NotWhitelisted' },
   { type: 'error', inputs: [], name: 'WhitelistFeatureDisabled' },
-  { type: 'error', inputs: [], name: 'InvalidAmount' },
-  { type: 'error', inputs: [], name: 'InvalidAddress' },
-  { type: 'error', inputs: [], name: 'BelowMinimum' },
-  { type: 'error', inputs: [], name: 'AboveMaximum' },
-  { type: 'error', inputs: [], name: 'BelowCurrentStake' },
-  { type: 'error', inputs: [], name: 'NoChange' },
-  { type: 'error', inputs: [], name: 'CapacityOutOfRange' },
-  { type: 'error', inputs: [], name: 'EmptyPeerId' },
-  { type: 'error', inputs: [], name: 'TokenNotAllowed' },
-  { type: 'error', inputs: [], name: 'TooManyTokens' },
-  { type: 'error', inputs: [], name: 'AlreadyInitialized' },
-  { type: 'error', inputs: [], name: 'TokenAlreadyAdded' },
-  { type: 'error', inputs: [], name: 'NoPaymentTokens' },
-  { type: 'error', inputs: [], name: 'NothingToClaim' },
-  { type: 'error', inputs: [], name: 'InvalidDecimals' },
-  { type: 'error', inputs: [], name: 'DistributionTurnedOff' },
-  { type: 'error', inputs: [], name: 'PoolHasDebt' },
-  { type: 'error', inputs: [], name: 'RateExceedsMaximum' },
-  { type: 'error', inputs: [], name: 'RateBelowMinimum' },
-  { type: 'error', inputs: [], name: 'InsufficientRewardPrecision' },
-  { type: 'error', inputs: [], name: 'InvalidPool' },
-  { type: 'error', inputs: [], name: 'InvalidRange' },
-  { type: 'error', inputs: [], name: 'InvalidFeeConfig' },
-  { type: 'error', inputs: [], name: 'InvalidPoolFee' },
-  { type: 'error', inputs: [], name: 'NothingToBuyback' },
 ] as const
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3057,6 +3428,14 @@ export const useReadPortalPoolGetCurrentRewardBalance =
   })
 
 /**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getDebt"`
+ */
+export const useReadPortalPoolGetDebt = /*#__PURE__*/ createUseReadContract({
+  abi: portalPoolAbi,
+  functionName: 'getDebt',
+})
+
+/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"getExitTicket"`
  */
 export const useReadPortalPoolGetExitTicket =
@@ -3282,6 +3661,15 @@ export const useReadPortalPoolTotalDistributionRatePerSec =
   })
 
 /**
+ * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"totalRewardsPaid"`
+ */
+export const useReadPortalPoolTotalRewardsPaid =
+  /*#__PURE__*/ createUseReadContract({
+    abi: portalPoolAbi,
+    functionName: 'totalRewardsPaid',
+  })
+
+/**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"treasuryAccumulated"`
  */
 export const useReadPortalPoolTreasuryAccumulated =
@@ -3357,6 +3745,15 @@ export const useWritePortalPoolClaimRewards =
   /*#__PURE__*/ createUseWriteContract({
     abi: portalPoolAbi,
     functionName: 'claimRewards',
+  })
+
+/**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"claimRewardsFromClosed"`
+ */
+export const useWritePortalPoolClaimRewardsFromClosed =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: portalPoolAbi,
+    functionName: 'claimRewardsFromClosed',
   })
 
 /**
@@ -3585,6 +3982,15 @@ export const useSimulatePortalPoolClaimRewards =
   })
 
 /**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"claimRewardsFromClosed"`
+ */
+export const useSimulatePortalPoolClaimRewardsFromClosed =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: portalPoolAbi,
+    functionName: 'claimRewardsFromClosed',
+  })
+
+/**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link portalPoolAbi}__ and `functionName` set to `"closePool"`
  */
 export const useSimulatePortalPoolClosePool =
@@ -3789,12 +4195,192 @@ export const useWatchPortalPoolEvent =
   /*#__PURE__*/ createUseWatchContractEvent({ abi: portalPoolAbi })
 
 /**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"CapacityUpdated"`
+ */
+export const useWatchPortalPoolCapacityUpdatedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolAbi,
+    eventName: 'CapacityUpdated',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"Deposited"`
+ */
+export const useWatchPortalPoolDepositedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolAbi,
+    eventName: 'Deposited',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"DistributionRateChanged"`
+ */
+export const useWatchPortalPoolDistributionRateChangedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolAbi,
+    eventName: 'DistributionRateChanged',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"ExitClaimed"`
+ */
+export const useWatchPortalPoolExitClaimedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolAbi,
+    eventName: 'ExitClaimed',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"ExitRequested"`
+ */
+export const useWatchPortalPoolExitRequestedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolAbi,
+    eventName: 'ExitRequested',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"Initialized"`
+ */
+export const useWatchPortalPoolInitializedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolAbi,
+    eventName: 'Initialized',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"OperatorTransferred"`
+ */
+export const useWatchPortalPoolOperatorTransferredEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolAbi,
+    eventName: 'OperatorTransferred',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"Paused"`
+ */
+export const useWatchPortalPoolPausedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolAbi,
+    eventName: 'Paused',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"PoolClosed"`
+ */
+export const useWatchPortalPoolPoolClosedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolAbi,
+    eventName: 'PoolClosed',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"RewardsClaimed"`
+ */
+export const useWatchPortalPoolRewardsClaimedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolAbi,
+    eventName: 'RewardsClaimed',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"RewardsRecovered"`
+ */
+export const useWatchPortalPoolRewardsRecoveredEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolAbi,
+    eventName: 'RewardsRecovered',
+  })
+
+/**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"RewardsToppedUp"`
  */
 export const useWatchPortalPoolRewardsToppedUpEvent =
   /*#__PURE__*/ createUseWatchContractEvent({
     abi: portalPoolAbi,
     eventName: 'RewardsToppedUp',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"RoleAdminChanged"`
+ */
+export const useWatchPortalPoolRoleAdminChangedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolAbi,
+    eventName: 'RoleAdminChanged',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"RoleGranted"`
+ */
+export const useWatchPortalPoolRoleGrantedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolAbi,
+    eventName: 'RoleGranted',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"RoleRevoked"`
+ */
+export const useWatchPortalPoolRoleRevokedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolAbi,
+    eventName: 'RoleRevoked',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"StakeTransferred"`
+ */
+export const useWatchPortalPoolStakeTransferredEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolAbi,
+    eventName: 'StakeTransferred',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"StateChanged"`
+ */
+export const useWatchPortalPoolStateChangedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolAbi,
+    eventName: 'StateChanged',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"Unpaused"`
+ */
+export const useWatchPortalPoolUnpausedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolAbi,
+    eventName: 'Unpaused',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"WhitelistEnabledChanged"`
+ */
+export const useWatchPortalPoolWhitelistEnabledChangedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolAbi,
+    eventName: 'WhitelistEnabledChanged',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"WhitelistUpdated"`
+ */
+export const useWatchPortalPoolWhitelistUpdatedEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolAbi,
+    eventName: 'WhitelistUpdated',
+  })
+
+/**
+ * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link portalPoolAbi}__ and `eventName` set to `"Withdrawn"`
+ */
+export const useWatchPortalPoolWithdrawnEvent =
+  /*#__PURE__*/ createUseWatchContractEvent({
+    abi: portalPoolAbi,
+    eventName: 'Withdrawn',
   })
 
 /**
