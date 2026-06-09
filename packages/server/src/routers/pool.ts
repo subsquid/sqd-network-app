@@ -254,6 +254,7 @@ export const poolRouter = router({
       minCapacity,
       rewardTokenAddress,
       whitelistEnabled,
+      runway,
       cluster,
       poolIndexedData,
     ] = await Promise.all([
@@ -295,6 +296,12 @@ export const poolRouter = router({
           functionName: 'whitelistEnabled',
         })
         .catch(() => false),
+      publicClient
+        .readContract({
+          ...portalPoolContract,
+          functionName: 'getRunway',
+        })
+        .catch(() => 0n),
       publicClient.readContract({
         address: contracts.PORTAL_REGISTRY,
         abi: portalRegistryAbi,
@@ -337,6 +344,12 @@ export const poolRouter = router({
     const depositWindowEndsAt = new Date(Number(depositDeadline) * 1000).toISOString();
     const createdAt = poolIndexedData.portalPoolById?.createdAt ?? new Date(0).toISOString();
 
+    const runwaySeconds = Number(runway);
+    const runwayEndsAt =
+      runwaySeconds > 0 && runwaySeconds < 253402300799
+        ? new Date(runwaySeconds * 1000).toISOString()
+        : null;
+
     const distRate = BigNumber(distributionRatePerSecond.toString())
       .div(DISTRIBUTION_RATE_BPS)
       .shiftedBy(-rewardToken.decimals)
@@ -367,6 +380,7 @@ export const poolRouter = router({
         total: fromSqd(totalStaked),
       },
       depositWindowEndsAt,
+      runwayEndsAt,
       maxDepositPerAddress: fromSqd(BigInt(toSqd(250_000))),
       lptToken,
       rewardToken,

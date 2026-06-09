@@ -203,7 +203,7 @@ export function TopUpDialog({ open, onClose, poolId }: TopUpDialogProps) {
         address: poolId as `0x${string}`,
         abi: portalPoolAbi,
         functionName: 'topUpRewards',
-        args: [rewardAmount, 0n],
+        args: [rewardAmount],
         approve: rewardAmount,
         approveToken: pool.rewardToken.address,
       });

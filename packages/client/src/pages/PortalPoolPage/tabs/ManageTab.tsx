@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 
-import { Divider, Skeleton, Stack, Typography } from '@mui/material';
+import { dateFormat } from '@i18n';
+import { Divider, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
 import BigNumber from 'bignumber.js';
 import { useReadContract } from 'wagmi';
 
@@ -8,11 +9,30 @@ import { portalPoolAbi } from '@api/contracts';
 import { Card } from '@components/Card';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { useContracts } from '@hooks/network/useContracts';
+import { useCountdown } from '@hooks/useCountdown';
 import { tokenFormatter } from '@lib/formatters/formatters';
 
 import { EditCapacityButton, EditDistributionRateButton } from '../dialogs/EditSettingsDialog';
 import { TopUpButton } from '../dialogs/TopUpDialog';
 import { usePoolData } from '../hooks';
+
+const RUNWAY_WARNING_THRESHOLD_MS = 12 * 24 * 60 * 60 * 1000; // 5 minutes
+
+function RunwayValue({ endsAt }: { endsAt: Date }) {
+  const now = Date.now();
+  const isExpired = endsAt.getTime() <= now;
+  const isWarning = endsAt.getTime() - now < RUNWAY_WARNING_THRESHOLD_MS;
+  const timeLeft = useCountdown({ timestamp: endsAt });
+  const formattedDate = dateFormat(endsAt, 'dateTime');
+
+  return (
+    <Tooltip title={formattedDate ?? ''}>
+      <Typography component="span" sx={{ color: isWarning ? 'warning.main' : 'inherit' }}>
+        {isExpired ? 'Out of rewards' : timeLeft}
+      </Typography>
+    </Tooltip>
+  );
+}
 
 interface ManageTabProps {
   poolId: string;
@@ -45,27 +65,46 @@ export function ManageTab({ poolId }: ManageTabProps) {
 
   return (
     <Stack spacing={2}>
-      <Card
-        title={
-          <Stack direction="row" alignItems="center" spacing={0.5}>
-            <span>Reward Pool Balance</span>
-            <HelpTooltip title="Total rewards available for distribution to providers." />
-          </Stack>
-        }
-      >
+      <Card title={<span>Pool Status</span>}>
         <Stack spacing={2} divider={<Divider />}>
-          <Stack spacing={0.5}>
-            <Typography variant="h5">
-              {poolLoading || rewardBalanceLoading ? (
-                <Skeleton width="50%" />
-              ) : (
-                tokenFormatter(
-                  BigNumber(rewardBalance || 0).div(10 ** pool!.rewardToken.decimals),
-                  pool!.rewardToken.symbol,
-                  6,
-                )
-              )}
-            </Typography>
+          <Stack spacing={1.5}>
+            <Stack spacing={0.5}>
+              <Typography variant="body2" color="text.secondary">
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <span>Rewards Balance</span>
+                  <HelpTooltip title="Total rewards available for distribution to providers." />
+                </Stack>
+              </Typography>
+              <Typography>
+                {poolLoading || rewardBalanceLoading ? (
+                  <Skeleton width="50%" />
+                ) : (
+                  tokenFormatter(
+                    BigNumber(rewardBalance || 0).div(10 ** pool!.rewardToken.decimals),
+                    pool!.rewardToken.symbol,
+                    6,
+                  )
+                )}
+              </Typography>
+            </Stack>
+
+            <Stack spacing={0.5}>
+              <Typography variant="body2" color="text.secondary">
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <span>Runway</span>
+                  <HelpTooltip title="Estimated time until rewards run out at the current distribution rate. Top up the pool before this date to keep rewards flowing." />
+                </Stack>
+              </Typography>
+              <Typography>
+                {poolLoading ? (
+                  <Skeleton width={120} />
+                ) : pool!.runwayEndsAt ? (
+                  <RunwayValue endsAt={pool!.runwayEndsAt} />
+                ) : (
+                  '—'
+                )}
+              </Typography>
+            </Stack>
           </Stack>
           <Stack spacing={1}>
             <TopUpButton poolId={poolId} />
