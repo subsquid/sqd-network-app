@@ -1061,4 +1061,4 @@ export const portalPoolAbi = [
   { type: 'error', name: 'UseWithdrawFromFailed', inputs: [] },
   { type: 'error', name: 'WaitForActivationOrDeadline', inputs: [] },
   { type: 'error', name: 'WhitelistFeatureDisabled', inputs: [] },
-];
+] as const;
