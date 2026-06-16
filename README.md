@@ -6,9 +6,9 @@ Web application for the SQD Network: a frontend for viewing and managing network
 
 This is the web UI for [SQD Network](https://sqd.dev/network), the decentralized data lake behind SQD. It is a pnpm + Turborepo monorepo with three packages:
 
-- `packages/client` — React 19 single-page app (Vite, MUI v7, RainbowKit + wagmi v2). Wallet connectivity targets Arbitrum One (mainnet) or Arbitrum Sepolia (the `tethys` testnet).
-- `packages/server` — Node.js tRPC API server. The client talks only to this server, which aggregates data from the SQD Squid GraphQL APIs (indexed onchain state) and direct Arbitrum RPC calls (via viem).
-- `packages/common` — shared contract ABIs and addresses used by both client and server.
+- `packages/client`: React 19 single-page app (Vite, MUI v7, RainbowKit + wagmi v2). Wallet connectivity targets Arbitrum One (mainnet) or Arbitrum Sepolia (the `tethys` testnet).
+- `packages/server`: Node.js tRPC API server. The client talks only to this server, which aggregates data from the SQD Squid GraphQL APIs (indexed onchain state) and direct Arbitrum RPC calls (via viem).
+- `packages/common`: shared contract ABIs and addresses used by both client and server.
 
 The client renders pages for the dashboard, workers, gateways, portal pools, delegations, assets, and buy-back.
 
