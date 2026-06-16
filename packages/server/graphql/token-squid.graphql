@@ -44,6 +44,20 @@ query accountsByOwner($address: String!) {
   }
 }
 
+# TEMPORARY: workaround for an indexer bug where an unlocked TemporaryHolding's
+# `Account.owner` is not flipped from the beneficiary to the admin, so the admin
+# wallet can't see/manage the holding's workers via the normal `accountsByOwner`
+# query above. We instead read unlocked, admin-controlled holdings straight from
+# the `temporaryHoldings` entity (whose `admin`/`locked` fields are correct).
+# Remove once the token-squid owner-flip on unlock is fixed and re-synced.
+# See squid-subsquid-network TemporaryHoldingCreated.handler.ts
+# (processTemporaryHoldingUnlockQueue).
+query adminHoldings($address: String!) {
+  temporaryHoldings(where: { admin_eq: $address, locked_eq: false }) {
+    id
+  }
+}
+
 ### TIMESERIES ###
 
 query HoldersCountTimeseries($from: DateTime!, $to: DateTime!, $step: String) {

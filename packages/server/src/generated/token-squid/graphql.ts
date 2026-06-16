@@ -1008,6 +1008,14 @@ export type AccountsByOwnerQuery = {
   }>;
 };
 
+export type AdminHoldingsQueryVariables = Exact<{
+  address: Scalars['String']['input'];
+}>;
+
+export type AdminHoldingsQuery = {
+  temporaryHoldings: Array<{ id: string }>;
+};
+
 export type HoldersCountTimeseriesQueryVariables = Exact<{
   from: Scalars['DateTime']['input'];
   to: Scalars['DateTime']['input'];
@@ -1160,6 +1168,13 @@ export const AccountsByOwnerDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<AccountsByOwnerQuery, AccountsByOwnerQueryVariables>;
+export const AdminHoldingsDocument = new TypedDocumentString(`
+    query adminHoldings($address: String!) {
+  temporaryHoldings(where: {admin_eq: $address, locked_eq: false}) {
+    id
+  }
+}
+    `) as unknown as TypedDocumentString<AdminHoldingsQuery, AdminHoldingsQueryVariables>;
 export const HoldersCountTimeseriesDocument = new TypedDocumentString(`
     query HoldersCountTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   holdersCountTimeseries(from: $from, to: $to, step: $step) {
