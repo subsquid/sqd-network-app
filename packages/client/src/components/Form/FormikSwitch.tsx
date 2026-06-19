@@ -32,6 +32,7 @@ export function FormikSwitch<T extends Record<string, any>>({
             checked={formik.values[id] as boolean}
             onChange={formik.handleChange}
             name={id as string}
+            color="secondary"
           />
         }
         label={label}
