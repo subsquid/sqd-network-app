@@ -21,7 +21,14 @@ import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { AccountType } from '@api/subsquid-network-squid';
 import { trpc } from '@api/trpc';
 import { ContractCallDialog } from '@components/ContractCallDialog';
-import { Form, FormDivider, FormRow, FormikSelect, FormikTextInput } from '@components/Form';
+import {
+  Form,
+  FormDivider,
+  FormRow,
+  FormikSelect,
+  FormikSwitch,
+  FormikTextInput,
+} from '@components/Form';
 import { HelpTooltip } from '@components/HelpTooltip';
 import { Loader } from '@components/Loader';
 import { SourceWalletOption } from '@components/SourceWallet';
@@ -126,6 +133,7 @@ export function GatewayStakeDialog({ open, onClose }: { open: boolean; onClose: 
       max: fromSqd(defaultSource?.balance)?.toFixed() || '0',
       min: fromSqd(minStake)?.toFixed() || '0',
       durationBlocks: (selectedStake?.duration || MIN_BLOCKS_LOCK).toString(),
+      autoExtension: true,
     };
   }, [sources, selectedSource, minStake, selectedStake]);
 
@@ -138,7 +146,7 @@ export function GatewayStakeDialog({ open, onClose }: { open: boolean; onClose: 
     enableReinitialize: true,
 
     onSubmit: async values => {
-      const { amount, durationBlocks, source: sourceId } = stakeSchema.cast(values);
+      const { amount, durationBlocks, autoExtension, source: sourceId } = stakeSchema.cast(values);
 
       const source = sources?.find(s => s.id === sourceId);
       if (!source) return;
@@ -162,7 +170,7 @@ export function GatewayStakeDialog({ open, onClose }: { open: boolean; onClose: 
           : {
               ...functionData,
               functionName: 'stake',
-              args: [sqdAmount, BigInt(durationBlocks), false],
+              args: [sqdAmount, BigInt(durationBlocks), autoExtension],
             },
       );
 
@@ -251,6 +259,8 @@ export function GatewayStakeDialog({ open, onClose }: { open: boolean; onClose: 
     );
   }, [isLoading, newContractValues.data, currentEpoch?.lastBlockL1, selectedFormSource, preview]);
 
+  const isNewStake = !selectedStake?.amount || selectedStake.amount === 0n;
+
   return (
     <ContractCallDialog
       title="Lock"
@@ -335,6 +345,14 @@ export function GatewayStakeDialog({ open, onClose }: { open: boolean; onClose: 
           </FormRow>
           <FormDivider />
           <Stack spacing={2}>
+            {isNewStake && (
+              <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <HelpTooltip title="When enabled, your lock is automatically renewed for the same duration when it expires, so your portal keeps running without further action. You can disable it at any time.">
+                  <span>Auto extension</span>
+                </HelpTooltip>
+                <FormikSwitch id="autoExtension" label="" formik={formik} />
+              </Stack>
+            )}
             <Stack direction="row" justifyContent="space-between" alignContent="center">
               <Box>Total amount</Box>
               {isPreviewLoading ? (
@@ -367,6 +385,8 @@ export function GatewayStakeDialog({ open, onClose }: { open: boolean; onClose: 
               </HelpTooltip>
               {isPreviewLoading ? (
                 <Skeleton width={180} />
+              ) : isNewStake && formik.values.autoExtension ? (
+                <span>Never (auto extension on)</span>
               ) : (
                 <span>~{dateFormat(preview?.unlockAt, 'dateTime')}</span>
               )}

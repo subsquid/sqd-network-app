@@ -31,8 +31,12 @@ export const accountRouter = router({
   sources: publicProcedure
     .input(z.object({ address: evmAddressSchema }))
     .query(async ({ input }) => {
-      const data = await queryTokenSquid<SourcesQuery>(SourcesDocument, input);
-      return data.accounts;
+      // Use resolveAccounts (not SourcesDocument directly) so admin-controlled
+      // unlocked TemporaryHolding contracts are offered as claim/management
+      // sources too. TEMPORARY: see resolveAccounts for the indexer-bug context;
+      // revert to SourcesDocument once the owner-flip-on-unlock bug is fixed.
+      const accounts = await resolveAccounts(input.address);
+      return accounts.map(({ id, type, balance }) => ({ id, type, balance }));
     }),
 
   vesting: publicProcedure

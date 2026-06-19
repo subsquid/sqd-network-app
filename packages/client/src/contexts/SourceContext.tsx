@@ -19,13 +19,21 @@ export function SourceProvider({ children }: SourceProviderProps) {
   const [selectedSourceId, setSelectedSourceId] = useState<string | undefined>();
   const { data: sources = [], isLoading } = useMySources();
 
+  // Match case-insensitively: indexer-backed sources use lowercase ids, while the
+  // synthetic fallback source (and wallet address) is EIP-55 checksummed. Without
+  // this, the selected id can stop matching once real sources load, leaving the
+  // page with no selected source until a remount.
+  const selectedSource = sources.find(
+    source => source.id.toLowerCase() === selectedSourceId?.toLowerCase(),
+  );
+
+  // (Re)select the first source whenever the current selection doesn't resolve to
+  // an available source (initial load, or after the source list changes).
   useEffect(() => {
-    if (!selectedSourceId && sources.length > 0) {
+    if (sources.length > 0 && !selectedSource) {
       setSelectedSourceId(sources[0].id);
     }
-  }, [selectedSourceId, sources]);
-
-  const selectedSource = sources.find(source => source.id === selectedSourceId);
+  }, [sources, selectedSource]);
 
   const value: SourceContextType = {
     setSelectedSourceId,
