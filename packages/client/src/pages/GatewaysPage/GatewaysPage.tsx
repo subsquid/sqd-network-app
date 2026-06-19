@@ -76,19 +76,32 @@ export function MyStakes() {
   const theme = useTheme();
   const narrowXs = useMediaQuery(theme.breakpoints.down('xs'));
 
-  const { selectedSource } = useSourceContext();
+  const { selectedSource, isLoading: isSourceLoading } = useSourceContext();
   const selectedSourceAddress = selectedSource?.id as `0x${string}` | undefined;
 
   const { SQD_TOKEN } = useContracts();
 
-  const { stake, isLoading, isPending, isActive, isExpired, appliedAt, unlockedAt, cuPerEpoch } =
-    useStakeInfo(selectedSourceAddress);
+  const {
+    stake,
+    isLoading: isStakeLoading,
+    isPending,
+    isActive,
+    isExpired,
+    appliedAt,
+    unlockedAt,
+    cuPerEpoch,
+  } = useStakeInfo(selectedSourceAddress);
+
+  // Cover the whole cold-load window: the source list resolving, and the stake
+  // read itself. Otherwise the card briefly renders zeros before data arrives.
+  const isLoading = isSourceLoading || isStakeLoading;
 
   return (
     <>
       <Box minHeight={256} mb={2} display="flex">
         <Card
           sx={{ width: 1 }}
+          loading={isLoading}
           title={<SquaredChip label="Lock Info" color="primary" />}
           action={
             <Stack direction="row" spacing={1}>
