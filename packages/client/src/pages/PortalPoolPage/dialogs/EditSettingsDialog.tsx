@@ -15,7 +15,7 @@ import { Loader } from '@components/Loader';
 import { useContracts } from '@hooks/network/useContracts';
 import { toSqd } from '@lib/network';
 
-import { usePoolData } from '../hooks';
+import { DISTRIBUTION_RATE_BPS, usePoolData } from '../hooks';
 import { invalidatePoolQueries } from '../utils/poolUtils';
 
 // Edit Capacity Dialog
@@ -172,11 +172,13 @@ export function EditDistributionRateDialog({
 
       const rewardDecimals = pool.rewardToken.decimals;
 
-      // Convert daily rate to per-second rate with reward token decimals
+      // Convert daily rate to per-second rate with reward token decimals,
+      // scaled by RATE_PRECISION as expected by setDistributionRate
       const distributionRatePerSecond = BigInt(
         BigNumber(values.distributionRate)
           .div(86400) // Convert daily to per-second
           .multipliedBy(10 ** rewardDecimals)
+          .times(DISTRIBUTION_RATE_BPS)
           .toFixed(0),
       );
 

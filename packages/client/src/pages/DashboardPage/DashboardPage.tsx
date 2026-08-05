@@ -1,5 +1,5 @@
 import { CenteredPageWrapper } from '@layouts/NetworkLayout';
-import { Chip, Stack, Tab, Tabs } from '@mui/material';
+import { Tab, Tabs } from '@mui/material';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { NetworkSummary } from './Summary';
@@ -22,15 +22,7 @@ export function DashboardPage() {
       <Tabs value={activeTab} onChange={handleTabChange}>
         <Tab label="Analytics" value="analytics" />
         <Tab label="Workers" value="workers" />
-        <Tab
-          value="portal-pools"
-          label={
-            <Stack direction="row" alignItems="center" spacing={0.75}>
-              <span>Portal Pools</span>
-              <Chip label="New" size="small" color="info" variant="outlined" />
-            </Stack>
-          }
-        />
+        <Tab label="Portal Pools" value="portal-pools" />
       </Tabs>
       <Outlet />
     </CenteredPageWrapper>
