@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 
 import { CenteredPageWrapper, PageTitle } from '@layouts/NetworkLayout';
-import { Box, Chip, Grid, Stack, Tab, Tabs } from '@mui/material';
+import { Grid, Stack, Tab, Tabs } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { useAccount } from 'wagmi';
 
@@ -86,14 +86,7 @@ export function PoolPage() {
   const { poolId } = useParams<{ poolId: string }>();
   return (
     <CenteredPageWrapper>
-      <PageTitle
-        title={
-          <Box display="flex" alignItems="center" gap={1}>
-            Portal Pool
-            <Chip label="New" size="small" color="info" variant="outlined" />
-          </Box>
-        }
-      />
+      <PageTitle title="Portal Pool" />
       <PoolPageContent poolId={poolId} />
     </CenteredPageWrapper>
   );
