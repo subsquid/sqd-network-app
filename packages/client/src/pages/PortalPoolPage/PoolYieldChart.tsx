@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { trpc } from '@api/trpc';
 import { Card } from '@components/Card';
-import { LineChart, SharedCursorProvider } from '@components/Chart';
+import { CHART_FORMATTERS, LineChart, SharedCursorProvider } from '@components/Chart';
 import { useContracts } from '@hooks/network/useContracts';
 import { tokenFormatter } from '@lib/formatters/formatters';
 
@@ -31,6 +31,7 @@ function getTimeRangeFromPeriod(min: Date, period: TimePeriod): { from: Date; to
 const apyAxisFormatter = (d: number) => `${d.toFixed(1)}%`;
 const apyTooltipFormatter = (d: number) => `${d.toFixed(2)}%`;
 const tvlTooltipFormatter = (d: number) => tokenFormatter(d, 'SQD');
+const tvlAxisFormatter = CHART_FORMATTERS.token.axis;
 
 interface ApyLineChartProps {
   poolId: string;
@@ -156,6 +157,7 @@ function TvlLineChart({ poolId, range }: TvlLineChartProps) {
         xAxis={{ min: xAxisRange.min, max: xAxisRange.max }}
         yAxis={{ min: 0 }}
         tooltipFormat={{ y: tvlTooltipFormatter }}
+        axisFormat={{ y: tvlAxisFormatter }}
         tooltipShowTotal={false}
         strokeWidth={2}
         fillOpacity={0.25}

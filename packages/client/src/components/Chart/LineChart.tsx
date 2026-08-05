@@ -49,6 +49,8 @@ export function useChartPalette() {
   );
 }
 
+const AXIS_NUM_TICKS = 5;
+
 interface AxisRange<T> {
   min?: T;
   max?: T;
@@ -123,11 +125,9 @@ function useChartDomain(series: ChartSeries[]) {
   }, [series]);
 }
 
-function useAutoMargin(yTicks: number[], axisFormat?: ChartFormatters) {
+function useAutoMargin(yTicks: number[], formatYTick: (y: number) => string) {
   return useMemo(() => {
-    const maxYLabelLength = Math.max(
-      ...yTicks.map(d => (axisFormat?.y ? axisFormat.y(d).length : String(d).length)),
-    );
+    const maxYLabelLength = Math.max(...yTicks.map(d => formatYTick(d).length));
 
     const leftMargin = maxYLabelLength * 7 + 14;
 
@@ -137,7 +137,7 @@ function useAutoMargin(yTicks: number[], axisFormat?: ChartFormatters) {
       bottom: CHART_CONFIG.baseMargin.bottom,
       left: Math.max(leftMargin, CHART_CONFIG.baseMargin.left),
     };
-  }, [yTicks, axisFormat]);
+  }, [yTicks, formatYTick]);
 }
 
 interface PartitionedSeries {
@@ -373,7 +373,10 @@ export function LineChart({
   const domain = useChartDomain(series);
   const { xScale, yScale } = useChartScales(series, xAxis ?? domain.x, yAxis ?? domain.y);
 
-  const margin = useAutoMargin(yScale.ticks(), axisFormat);
+  // Measure the labels the axis actually renders — same ticks, same formatter — so the
+  // auto margin always leaves room for them.
+  const formatYTick = axisFormat?.y ?? yScale.tickFormat(AXIS_NUM_TICKS);
+  const margin = useAutoMargin(yScale.ticks(AXIS_NUM_TICKS), formatYTick);
 
   return (
     <ParentSize>
@@ -395,7 +398,7 @@ export function LineChart({
                 <AxisBottom
                   scale={xScale}
                   top={yMax}
-                  numTicks={5}
+                  numTicks={AXIS_NUM_TICKS}
                   stroke="transparent"
                   strokeWidth={1}
                   tickStroke={theme.palette.divider}
@@ -407,8 +410,8 @@ export function LineChart({
                 />
                 <AxisLeft
                   scale={yScale}
-                  numTicks={5}
-                  tickFormat={axisFormat?.y as Parameters<typeof AxisLeft>[0]['tickFormat']}
+                  numTicks={AXIS_NUM_TICKS}
+                  tickFormat={formatYTick as Parameters<typeof AxisLeft>[0]['tickFormat']}
                   stroke="transparent"
                   strokeWidth={1}
                   tickStroke={theme.palette.divider}
