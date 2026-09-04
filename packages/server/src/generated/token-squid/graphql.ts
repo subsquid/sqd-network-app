@@ -471,11 +471,17 @@ export type Query = {
   accountsConnection: AccountsConnection;
   holdersCountTimeseries: HoldersCountTimeseries;
   lockedValueTimeseries: LockedValueTimeseries;
+  temporaryHoldingById?: Maybe<TemporaryHolding>;
+  temporaryHoldings: Array<TemporaryHolding>;
+  temporaryHoldingsConnection: TemporaryHoldingsConnection;
   transferById?: Maybe<Transfer>;
   transfers: Array<Transfer>;
   transfersByTypeTimeseries: TransfersByTypeTimeseries;
   transfersConnection: TransfersConnection;
   uniqueAccountsTimeseries: UniqueAccountsTimeseries;
+  vestingById?: Maybe<Vesting>;
+  vestings: Array<Vesting>;
+  vestingsConnection: VestingsConnection;
 };
 
 export type QueryAccountBalanceTimeseriesArgs = {
@@ -534,6 +540,24 @@ export type QueryLockedValueTimeseriesArgs = {
   type?: InputMaybe<TvlType>;
 };
 
+export type QueryTemporaryHoldingByIdArgs = {
+  id: Scalars['String']['input'];
+};
+
+export type QueryTemporaryHoldingsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Array<TemporaryHoldingOrderByInput>>;
+  where?: InputMaybe<TemporaryHoldingWhereInput>;
+};
+
+export type QueryTemporaryHoldingsConnectionArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy: Array<TemporaryHoldingOrderByInput>;
+  where?: InputMaybe<TemporaryHoldingWhereInput>;
+};
+
 export type QueryTransferByIdArgs = {
   id: Scalars['String']['input'];
 };
@@ -562,6 +586,144 @@ export type QueryUniqueAccountsTimeseriesArgs = {
   from?: InputMaybe<Scalars['DateTime']['input']>;
   step?: InputMaybe<Scalars['String']['input']>;
   to?: InputMaybe<Scalars['DateTime']['input']>;
+};
+
+export type QueryVestingByIdArgs = {
+  id: Scalars['String']['input'];
+};
+
+export type QueryVestingsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<Array<VestingOrderByInput>>;
+  where?: InputMaybe<VestingWhereInput>;
+};
+
+export type QueryVestingsConnectionArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy: Array<VestingOrderByInput>;
+  where?: InputMaybe<VestingWhereInput>;
+};
+
+export type TemporaryHolding = {
+  admin: Scalars['String']['output'];
+  beneficiary: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  locked: Scalars['Boolean']['output'];
+  unlockedAt: Scalars['DateTime']['output'];
+};
+
+export type TemporaryHoldingEdge = {
+  cursor: Scalars['String']['output'];
+  node: TemporaryHolding;
+};
+
+export enum TemporaryHoldingOrderByInput {
+  AdminAsc = 'admin_ASC',
+  AdminAscNullsFirst = 'admin_ASC_NULLS_FIRST',
+  AdminAscNullsLast = 'admin_ASC_NULLS_LAST',
+  AdminDesc = 'admin_DESC',
+  AdminDescNullsFirst = 'admin_DESC_NULLS_FIRST',
+  AdminDescNullsLast = 'admin_DESC_NULLS_LAST',
+  BeneficiaryAsc = 'beneficiary_ASC',
+  BeneficiaryAscNullsFirst = 'beneficiary_ASC_NULLS_FIRST',
+  BeneficiaryAscNullsLast = 'beneficiary_ASC_NULLS_LAST',
+  BeneficiaryDesc = 'beneficiary_DESC',
+  BeneficiaryDescNullsFirst = 'beneficiary_DESC_NULLS_FIRST',
+  BeneficiaryDescNullsLast = 'beneficiary_DESC_NULLS_LAST',
+  IdAsc = 'id_ASC',
+  IdAscNullsFirst = 'id_ASC_NULLS_FIRST',
+  IdAscNullsLast = 'id_ASC_NULLS_LAST',
+  IdDesc = 'id_DESC',
+  IdDescNullsFirst = 'id_DESC_NULLS_FIRST',
+  IdDescNullsLast = 'id_DESC_NULLS_LAST',
+  LockedAsc = 'locked_ASC',
+  LockedAscNullsFirst = 'locked_ASC_NULLS_FIRST',
+  LockedAscNullsLast = 'locked_ASC_NULLS_LAST',
+  LockedDesc = 'locked_DESC',
+  LockedDescNullsFirst = 'locked_DESC_NULLS_FIRST',
+  LockedDescNullsLast = 'locked_DESC_NULLS_LAST',
+  UnlockedAtAsc = 'unlockedAt_ASC',
+  UnlockedAtAscNullsFirst = 'unlockedAt_ASC_NULLS_FIRST',
+  UnlockedAtAscNullsLast = 'unlockedAt_ASC_NULLS_LAST',
+  UnlockedAtDesc = 'unlockedAt_DESC',
+  UnlockedAtDescNullsFirst = 'unlockedAt_DESC_NULLS_FIRST',
+  UnlockedAtDescNullsLast = 'unlockedAt_DESC_NULLS_LAST',
+}
+
+export type TemporaryHoldingWhereInput = {
+  AND?: InputMaybe<Array<TemporaryHoldingWhereInput>>;
+  OR?: InputMaybe<Array<TemporaryHoldingWhereInput>>;
+  admin_contains?: InputMaybe<Scalars['String']['input']>;
+  admin_containsInsensitive?: InputMaybe<Scalars['String']['input']>;
+  admin_endsWith?: InputMaybe<Scalars['String']['input']>;
+  admin_eq?: InputMaybe<Scalars['String']['input']>;
+  admin_gt?: InputMaybe<Scalars['String']['input']>;
+  admin_gte?: InputMaybe<Scalars['String']['input']>;
+  admin_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  admin_isNull?: InputMaybe<Scalars['Boolean']['input']>;
+  admin_lt?: InputMaybe<Scalars['String']['input']>;
+  admin_lte?: InputMaybe<Scalars['String']['input']>;
+  admin_not_contains?: InputMaybe<Scalars['String']['input']>;
+  admin_not_containsInsensitive?: InputMaybe<Scalars['String']['input']>;
+  admin_not_endsWith?: InputMaybe<Scalars['String']['input']>;
+  admin_not_eq?: InputMaybe<Scalars['String']['input']>;
+  admin_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  admin_not_startsWith?: InputMaybe<Scalars['String']['input']>;
+  admin_startsWith?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_contains?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_containsInsensitive?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_endsWith?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_eq?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_gt?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_gte?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  beneficiary_isNull?: InputMaybe<Scalars['Boolean']['input']>;
+  beneficiary_lt?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_lte?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_not_contains?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_not_containsInsensitive?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_not_endsWith?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_not_eq?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  beneficiary_not_startsWith?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_startsWith?: InputMaybe<Scalars['String']['input']>;
+  id_contains?: InputMaybe<Scalars['String']['input']>;
+  id_containsInsensitive?: InputMaybe<Scalars['String']['input']>;
+  id_endsWith?: InputMaybe<Scalars['String']['input']>;
+  id_eq?: InputMaybe<Scalars['String']['input']>;
+  id_gt?: InputMaybe<Scalars['String']['input']>;
+  id_gte?: InputMaybe<Scalars['String']['input']>;
+  id_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  id_isNull?: InputMaybe<Scalars['Boolean']['input']>;
+  id_lt?: InputMaybe<Scalars['String']['input']>;
+  id_lte?: InputMaybe<Scalars['String']['input']>;
+  id_not_contains?: InputMaybe<Scalars['String']['input']>;
+  id_not_containsInsensitive?: InputMaybe<Scalars['String']['input']>;
+  id_not_endsWith?: InputMaybe<Scalars['String']['input']>;
+  id_not_eq?: InputMaybe<Scalars['String']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  id_not_startsWith?: InputMaybe<Scalars['String']['input']>;
+  id_startsWith?: InputMaybe<Scalars['String']['input']>;
+  locked_eq?: InputMaybe<Scalars['Boolean']['input']>;
+  locked_isNull?: InputMaybe<Scalars['Boolean']['input']>;
+  locked_not_eq?: InputMaybe<Scalars['Boolean']['input']>;
+  unlockedAt_eq?: InputMaybe<Scalars['DateTime']['input']>;
+  unlockedAt_gt?: InputMaybe<Scalars['DateTime']['input']>;
+  unlockedAt_gte?: InputMaybe<Scalars['DateTime']['input']>;
+  unlockedAt_in?: InputMaybe<Array<Scalars['DateTime']['input']>>;
+  unlockedAt_isNull?: InputMaybe<Scalars['Boolean']['input']>;
+  unlockedAt_lt?: InputMaybe<Scalars['DateTime']['input']>;
+  unlockedAt_lte?: InputMaybe<Scalars['DateTime']['input']>;
+  unlockedAt_not_eq?: InputMaybe<Scalars['DateTime']['input']>;
+  unlockedAt_not_in?: InputMaybe<Array<Scalars['DateTime']['input']>>;
+};
+
+export type TemporaryHoldingsConnection = {
+  edges: Array<TemporaryHoldingEdge>;
+  pageInfo: PageInfo;
+  totalCount: Scalars['Int']['output'];
 };
 
 export type Transfer = {
@@ -966,6 +1128,92 @@ export type UniqueAccountsTimeseries = {
   to: Scalars['DateTime']['output'];
 };
 
+export type Vesting = {
+  beneficiary: Scalars['String']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['String']['output'];
+};
+
+export type VestingEdge = {
+  cursor: Scalars['String']['output'];
+  node: Vesting;
+};
+
+export enum VestingOrderByInput {
+  BeneficiaryAsc = 'beneficiary_ASC',
+  BeneficiaryAscNullsFirst = 'beneficiary_ASC_NULLS_FIRST',
+  BeneficiaryAscNullsLast = 'beneficiary_ASC_NULLS_LAST',
+  BeneficiaryDesc = 'beneficiary_DESC',
+  BeneficiaryDescNullsFirst = 'beneficiary_DESC_NULLS_FIRST',
+  BeneficiaryDescNullsLast = 'beneficiary_DESC_NULLS_LAST',
+  CreatedAtAsc = 'createdAt_ASC',
+  CreatedAtAscNullsFirst = 'createdAt_ASC_NULLS_FIRST',
+  CreatedAtAscNullsLast = 'createdAt_ASC_NULLS_LAST',
+  CreatedAtDesc = 'createdAt_DESC',
+  CreatedAtDescNullsFirst = 'createdAt_DESC_NULLS_FIRST',
+  CreatedAtDescNullsLast = 'createdAt_DESC_NULLS_LAST',
+  IdAsc = 'id_ASC',
+  IdAscNullsFirst = 'id_ASC_NULLS_FIRST',
+  IdAscNullsLast = 'id_ASC_NULLS_LAST',
+  IdDesc = 'id_DESC',
+  IdDescNullsFirst = 'id_DESC_NULLS_FIRST',
+  IdDescNullsLast = 'id_DESC_NULLS_LAST',
+}
+
+export type VestingWhereInput = {
+  AND?: InputMaybe<Array<VestingWhereInput>>;
+  OR?: InputMaybe<Array<VestingWhereInput>>;
+  beneficiary_contains?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_containsInsensitive?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_endsWith?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_eq?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_gt?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_gte?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  beneficiary_isNull?: InputMaybe<Scalars['Boolean']['input']>;
+  beneficiary_lt?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_lte?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_not_contains?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_not_containsInsensitive?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_not_endsWith?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_not_eq?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  beneficiary_not_startsWith?: InputMaybe<Scalars['String']['input']>;
+  beneficiary_startsWith?: InputMaybe<Scalars['String']['input']>;
+  createdAt_eq?: InputMaybe<Scalars['DateTime']['input']>;
+  createdAt_gt?: InputMaybe<Scalars['DateTime']['input']>;
+  createdAt_gte?: InputMaybe<Scalars['DateTime']['input']>;
+  createdAt_in?: InputMaybe<Array<Scalars['DateTime']['input']>>;
+  createdAt_isNull?: InputMaybe<Scalars['Boolean']['input']>;
+  createdAt_lt?: InputMaybe<Scalars['DateTime']['input']>;
+  createdAt_lte?: InputMaybe<Scalars['DateTime']['input']>;
+  createdAt_not_eq?: InputMaybe<Scalars['DateTime']['input']>;
+  createdAt_not_in?: InputMaybe<Array<Scalars['DateTime']['input']>>;
+  id_contains?: InputMaybe<Scalars['String']['input']>;
+  id_containsInsensitive?: InputMaybe<Scalars['String']['input']>;
+  id_endsWith?: InputMaybe<Scalars['String']['input']>;
+  id_eq?: InputMaybe<Scalars['String']['input']>;
+  id_gt?: InputMaybe<Scalars['String']['input']>;
+  id_gte?: InputMaybe<Scalars['String']['input']>;
+  id_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  id_isNull?: InputMaybe<Scalars['Boolean']['input']>;
+  id_lt?: InputMaybe<Scalars['String']['input']>;
+  id_lte?: InputMaybe<Scalars['String']['input']>;
+  id_not_contains?: InputMaybe<Scalars['String']['input']>;
+  id_not_containsInsensitive?: InputMaybe<Scalars['String']['input']>;
+  id_not_endsWith?: InputMaybe<Scalars['String']['input']>;
+  id_not_eq?: InputMaybe<Scalars['String']['input']>;
+  id_not_in?: InputMaybe<Array<Scalars['String']['input']>>;
+  id_not_startsWith?: InputMaybe<Scalars['String']['input']>;
+  id_startsWith?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type VestingsConnection = {
+  edges: Array<VestingEdge>;
+  pageInfo: PageInfo;
+  totalCount: Scalars['Int']['output'];
+};
+
 export type SourcesQueryVariables = Exact<{
   address: Scalars['String']['input'];
 }>;
@@ -1006,14 +1254,6 @@ export type AccountsByOwnerQuery = {
     balance: string;
     ownerId?: string | null;
   }>;
-};
-
-export type AdminHoldingsQueryVariables = Exact<{
-  address: Scalars['String']['input'];
-}>;
-
-export type AdminHoldingsQuery = {
-  temporaryHoldings: Array<{ id: string }>;
 };
 
 export type HoldersCountTimeseriesQueryVariables = Exact<{
@@ -1168,13 +1408,6 @@ export const AccountsByOwnerDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<AccountsByOwnerQuery, AccountsByOwnerQueryVariables>;
-export const AdminHoldingsDocument = new TypedDocumentString(`
-    query adminHoldings($address: String!) {
-  temporaryHoldings(where: {admin_eq: $address, locked_eq: false}) {
-    id
-  }
-}
-    `) as unknown as TypedDocumentString<AdminHoldingsQuery, AdminHoldingsQueryVariables>;
 export const HoldersCountTimeseriesDocument = new TypedDocumentString(`
     query HoldersCountTimeseries($from: DateTime!, $to: DateTime!, $step: String) {
   holdersCountTimeseries(from: $from, to: $to, step: $step) {
