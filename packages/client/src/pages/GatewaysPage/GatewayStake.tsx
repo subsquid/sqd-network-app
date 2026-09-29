@@ -47,7 +47,15 @@ export const stakeSchema = yup.object({
     .label('Amount')
     .required()
     .positive()
-    .min(yup.ref('min'))
+    // not .min(): it shares the exclusive 'min' test name with .positive() and would replace it
+    .test('minStake', function (value) {
+      const { min } = this.parent;
+      if (!value || value.gte(min)) return true;
+      return this.createError({
+        message: '${path} must be greater than or equal to ${min}',
+        params: { min },
+      });
+    })
     .max(yup.ref('max'), 'Insufficient balance')
     .typeError('${path} is invalid'),
   max: yup.string().label('Max').required().typeError('${path} is invalid'),
@@ -124,6 +132,8 @@ export function GatewayStakeDialog({ open, onClose }: { open: boolean; onClose: 
     isMinStakeLoading ||
     isSelectedStakeLoading;
 
+  const isNewStake = !selectedStake?.amount || selectedStake.amount === 0n;
+
   const initialValues = useMemo(() => {
     const defaultSource = selectedSource || sources?.[0];
 
@@ -131,11 +141,12 @@ export function GatewayStakeDialog({ open, onClose }: { open: boolean; onClose: 
       source: defaultSource?.id || '0x',
       amount: !!selectedStake?.amount ? '0' : fromSqd(minStake).toFixed() || '0',
       max: fromSqd(defaultSource?.balance)?.toFixed() || '0',
-      min: fromSqd(minStake)?.toFixed() || '0',
+      // stake() enforces minStake; addStake() on an existing stake has no minimum
+      min: isNewStake ? fromSqd(minStake)?.toFixed() || '0' : '0',
       durationBlocks: (selectedStake?.duration || MIN_BLOCKS_LOCK).toString(),
       autoExtension: true,
     };
-  }, [sources, selectedSource, minStake, selectedStake]);
+  }, [sources, selectedSource, minStake, selectedStake, isNewStake]);
 
   const formik = useFormik({
     initialValues,
@@ -258,8 +269,6 @@ export function GatewayStakeDialog({ open, onClose }: { open: boolean; onClose: 
       !preview
     );
   }, [isLoading, newContractValues.data, currentEpoch?.lastBlockL1, selectedFormSource, preview]);
-
-  const isNewStake = !selectedStake?.amount || selectedStake.amount === 0n;
 
   return (
     <ContractCallDialog
