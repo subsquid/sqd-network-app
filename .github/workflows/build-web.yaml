@@ -131,17 +131,44 @@ jobs:
           elapsed=$(( $(date +%s) - ${{ steps.start.outputs.time }} ))
           echo "value=$(( elapsed / 60 )) min $(( elapsed % 60 )) sec" >> $GITHUB_OUTPUT
 
+      # The payload is built by jq from env vars so no commit text is ever parsed as YAML.
+      - name: Build Slack payload
+        id: slack
+        if: always()
+        run: |
+          case "$JOB_STATUS" in
+            success) icon='✅ Deployed'; color=good ;;
+            failure) icon='❌ Failed'; color=danger ;;
+            *) icon='⚠️ Cancelled'; color=warning ;;
+          esac
+          jq -n \
+            --arg title "${icon} ${NETWORK} web [${APP_ENV}]" \
+            --arg color "$color" \
+            --arg message "$COMMIT_MESSAGE" \
+            --arg url "$COMMIT_URL" \
+            --arg tag "$TAG" \
+            --arg author "$COMMIT_AUTHOR" \
+            --arg elapsed "$ELAPSED" \
+            '{attachments: [{
+              title: $title,
+              color: $color,
+              text: (($message | split("\n")[0] | gsub("&"; "&amp;") | gsub("<"; "&lt;") | gsub(">"; "&gt;"))
+                + "\n<" + $url + "|" + $tag + "> by " + $author + " in " + $elapsed)
+            }]}' > "$RUNNER_TEMP/slack-payload.json"
+        env:
+          NETWORK: ${{ matrix.network }}
+          JOB_STATUS: ${{ job.status }}
+          APP_ENV: ${{ steps.env.outputs.app_env }}
+          TAG: ${{ steps.env.outputs.tag }}
+          ELAPSED: ${{ steps.elapsed.outputs.value }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          COMMIT_URL: ${{ github.event.head_commit.url }}
+          COMMIT_AUTHOR: ${{ github.event.head_commit.author.name }}
+
       - name: Slack notification
         if: always()
         uses: slackapi/slack-github-action@v2
         with:
           webhook: ${{ secrets.slack_webhook_url }}
           webhook-type: incoming-webhook
-          payload: |
-            {
-              "attachments": [{
-                "title": "${{ job.status == 'success' && '✅ Deployed' || job.status == 'failure' && '❌ Failed' || '⚠️ Cancelled' }} ${{ matrix.network }} web [${{ steps.env.outputs.app_env }}]",
-                "color": "${{ job.status == 'success' && 'good' || job.status == 'failure' && 'danger' || 'warning' }}",
-                "text": "${{ github.event.head_commit.message }}\n<${{ github.event.head_commit.url }}|${{ steps.env.outputs.tag }}> by ${{ github.event.head_commit.author.name }} in ${{ steps.elapsed.outputs.value }}"
-              }]
-            }
+          payload-file-path: ${{ runner.temp }}/slack-payload.json
