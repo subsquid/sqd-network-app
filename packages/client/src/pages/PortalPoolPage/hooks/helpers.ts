@@ -1,11 +1,11 @@
 import type { PoolPhase } from './types';
 
-export function getPhase(state?: number, isOutOfMoney?: boolean): PoolPhase {
+export function getPhase(state?: number, inDebt?: boolean): PoolPhase {
   switch (state) {
     case 0:
       return 'collecting';
     case 1:
-      return isOutOfMoney ? 'debt' : 'active';
+      return inDebt ? 'debt' : 'active';
     case 2:
       return 'idle';
     case 3:

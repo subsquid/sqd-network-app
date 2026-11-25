@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 
 import type { SxProps, Theme } from '@mui/material';
-import { Alert, Button, Divider, Skeleton, Stack, Typography } from '@mui/material';
+import { Alert, Button, Divider, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
 import toast from 'react-hot-toast';
@@ -285,17 +285,25 @@ export function TopUpButton({ poolId }: TopUpButtonProps) {
   const handleOpen = useCallback(() => setDialogOpen(true), []);
   const handleClose = useCallback(() => setDialogOpen(false), []);
 
+  // The contract reverts topUpRewards while the distribution rate is 0
+  const noRate = !!pool && pool.distributionRatePerSecond.isZero();
+  const disabled = pool?.phase === 'failed' || pool?.phase === 'closed' || noRate;
+
   return (
     <>
-      <Button
-        variant="contained"
-        color="success"
-        fullWidth
-        onClick={handleOpen}
-        disabled={pool?.phase === 'failed' || pool?.phase === 'closed'}
-      >
-        TOP UP
-      </Button>
+      <Tooltip title={noRate ? 'Set a distribution rate in the Manage tab before topping up.' : ''}>
+        <span style={{ display: 'block' }}>
+          <Button
+            variant="contained"
+            color="success"
+            fullWidth
+            onClick={handleOpen}
+            disabled={disabled}
+          >
+            TOP UP
+          </Button>
+        </span>
+      </Tooltip>
       <TopUpDialog open={dialogOpen} onClose={handleClose} poolId={poolId} />
     </>
   );
