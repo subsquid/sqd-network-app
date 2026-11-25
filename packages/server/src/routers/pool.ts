@@ -16,6 +16,7 @@ import {
   PortalPoolsDocument,
   type PortalPoolsQuery,
 } from '../generated/gateways-squid/graphql.js';
+import { type PoolPhase, getPhase, isInDebt } from '../lib/poolPhase.js';
 import { getPublicClient, readERC20Tokens } from '../services/blockchain.js';
 import { queryGatewaysSquid } from '../services/graphql.js';
 import { publicProcedure, router } from '../trpc.js';
@@ -32,24 +33,6 @@ function fromSqd(value: bigint | string | number): string {
 
 function toSqd(value: number): string {
   return BigNumber(value).shiftedBy(SQD_DECIMALS).toFixed(0);
-}
-
-type PoolPhase = 'collecting' | 'active' | 'debt' | 'idle' | 'failed' | 'closed' | 'unknown';
-
-function getPhase(state?: number, isOutOfMoney?: boolean): PoolPhase {
-  switch (state) {
-    case 0:
-      return 'collecting';
-    case 1:
-      return isOutOfMoney ? 'debt' : 'active';
-    case 2:
-      return 'idle';
-    case 3:
-      return 'failed';
-    case 4:
-      return 'closed';
-  }
-  return 'unknown';
 }
 
 function parseMetadata(value?: string): {
@@ -99,6 +82,7 @@ export const poolRouter = router({
       poolInfoResults,
       activeStakeResults,
       creditResults,
+      totalCreditResults,
       minCapacityResults,
       distRateResults,
       rewardTokenResults,
@@ -127,6 +111,10 @@ export const poolRouter = router({
       publicClient.multicall({
         allowFailure: true,
         contracts: poolContracts.map(c => ({ ...c, functionName: 'getCredit' }) as const),
+      }),
+      publicClient.multicall({
+        allowFailure: true,
+        contracts: poolContracts.map(c => ({ ...c, functionName: 'credit' }) as const),
       }),
       publicClient.multicall({
         allowFailure: true,
@@ -180,6 +168,8 @@ export const poolRouter = router({
         activeStakeResults[i].status === 'success' ? (activeStakeResults[i].result as bigint) : 0n;
       const credit =
         creditResults[i].status === 'success' ? (creditResults[i].result as bigint) : 0n;
+      const totalCredit =
+        totalCreditResults[i].status === 'success' ? (totalCreditResults[i].result as bigint) : 0n;
       const minCapacity =
         minCapacityResults[i].status === 'success' ? (minCapacityResults[i].result as bigint) : 0n;
       const distRate =
@@ -191,7 +181,9 @@ export const poolRouter = router({
           : undefined;
       const rewardToken = rewardTokenAddr ? rewardTokenMap.get(rewardTokenAddr) : undefined;
 
-      const phase = poolInfo ? getPhase(poolInfo.state, !credit) : ('unknown' as PoolPhase);
+      const phase = poolInfo
+        ? getPhase(poolInfo.state, isInDebt(totalCredit, credit))
+        : ('unknown' as PoolPhase);
       const capacity = poolInfo ? poolInfo.capacity : 0n;
       const totalStaked = poolInfo ? poolInfo.totalStaked : 0n;
 
@@ -251,6 +243,7 @@ export const poolRouter = router({
       distributionRatePerSecond,
       lptTokenAddress,
       credit,
+      totalCredit,
       minCapacity,
       rewardTokenAddress,
       whitelistEnabled,
@@ -278,6 +271,12 @@ export const poolRouter = router({
         .readContract({
           ...portalPoolContract,
           functionName: 'getCredit',
+        })
+        .catch(() => 0n),
+      publicClient
+        .readContract({
+          ...portalPoolContract,
+          functionName: 'credit',
         })
         .catch(() => 0n),
       publicClient
@@ -339,7 +338,7 @@ export const poolRouter = router({
     };
 
     const metadata = parseMetadata((cluster as { metadata: string }).metadata);
-    const isOutOfMoney = !credit;
+    const inDebt = isInDebt(totalCredit, credit);
 
     const depositWindowEndsAt = new Date(Number(depositDeadline) * 1000).toISOString();
     const createdAt = poolIndexedData.portalPoolById?.createdAt ?? new Date(0).toISOString();
@@ -370,7 +369,7 @@ export const poolRouter = router({
         name: operator,
         address: operator,
       },
-      phase: getPhase(state, isOutOfMoney),
+      phase: getPhase(state, inDebt),
       whitelistEnabled: whitelistEnabled as boolean,
       distributionRatePerSecond: distRate,
       tvl: {

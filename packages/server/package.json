@@ -11,6 +11,7 @@
     "start": "tsx --env-file=../../.env --watch src/main.ts",
     "build": "rolldown -c rolldown.config.ts",
     "tsc": "tsc --noEmit",
+    "test": "tsx --test src/**/*.test.ts",
     "lint": "biome check src --fix"
   },
   "dependencies": {
