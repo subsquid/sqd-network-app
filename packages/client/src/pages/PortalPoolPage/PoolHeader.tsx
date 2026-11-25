@@ -6,6 +6,7 @@ import { useAccount } from 'wagmi';
 import { Avatar } from '@components/Avatar';
 import { Card } from '@components/Card';
 
+import { ThirdPartyPoolChip } from './components/ThirdPartyPool';
 import { EditMetadataButton } from './dialogs/EditMetadataDialog';
 import { usePoolData } from './hooks';
 import { PoolHealthBar } from './PoolHealthBar';
@@ -46,6 +47,7 @@ export function PoolHeader({ poolId }: PoolHeaderProps) {
                   <Typography variant="h5">
                     {isLoading ? <Skeleton width="50%" /> : pool?.name}
                   </Typography>
+                  {!isLoading && pool && <ThirdPartyPoolChip poolId={pool.id} />}
                   {!isLoading && pool?.whitelistEnabled && (
                     <Chip label="Whitelist" size="small" variant="outlined" color="secondary" />
                   )}

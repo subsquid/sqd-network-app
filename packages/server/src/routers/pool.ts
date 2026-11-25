@@ -1,4 +1,9 @@
-import { portalPoolAbi, portalPoolFactoryAbi, portalRegistryAbi } from '@subsquid/common';
+import {
+  parsePoolMetadata,
+  portalPoolAbi,
+  portalPoolFactoryAbi,
+  portalRegistryAbi,
+} from '@subsquid/common';
 import { BigNumber } from 'bignumber.js';
 import { type Address } from 'viem';
 import { z } from 'zod';
@@ -33,18 +38,6 @@ function fromSqd(value: bigint | string | number): string {
 
 function toSqd(value: number): string {
   return BigNumber(value).shiftedBy(SQD_DECIMALS).toFixed(0);
-}
-
-function parseMetadata(value?: string): {
-  name?: string;
-  description?: string;
-  website?: string;
-} {
-  try {
-    return value ? JSON.parse(value) : {};
-  } catch {
-    return {};
-  }
 }
 
 async function isPortalPool(
@@ -149,7 +142,7 @@ export const poolRouter = router({
       const cluster = clusterResults[i];
       const metadata =
         cluster.status === 'success'
-          ? parseMetadata((cluster.result as { metadata: string }).metadata)
+          ? parsePoolMetadata((cluster.result as { metadata: string }).metadata)
           : {};
 
       const poolInfoRes = poolInfoResults[i];
@@ -337,7 +330,7 @@ export const poolRouter = router({
       totalStaked: bigint;
     };
 
-    const metadata = parseMetadata((cluster as { metadata: string }).metadata);
+    const metadata = parsePoolMetadata((cluster as { metadata: string }).metadata);
     const inDebt = isInDebt(totalCredit, credit);
 
     const depositWindowEndsAt = new Date(Number(depositDeadline) * 1000).toISOString();
