@@ -18,6 +18,7 @@ import { useContracts } from '@hooks/network/useContracts';
 import { tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, toSqd } from '@lib/network';
 
+import { ThirdPartyPoolAlert } from '../components/ThirdPartyPool';
 import { usePoolData, usePoolUserData } from '../hooks';
 import { calculateExpectedMonthlyPayout, invalidatePoolQueries } from '../utils/poolUtils';
 
@@ -206,6 +207,8 @@ export function ProvideDialog({ open, onClose, poolId }: ProvideDialogProps) {
         <Loader />
       ) : !pool || !userData ? null : (
         <Stack spacing={2.5}>
+          <ThirdPartyPoolAlert poolId={poolId} />
+
           {isDepositPhase && (
             <Alert severity="info">
               Pool is collecting tokens to activate. Your tokens are locked until the pool activates

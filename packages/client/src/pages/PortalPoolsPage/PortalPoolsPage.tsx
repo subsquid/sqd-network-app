@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import { CenteredPageWrapper } from '@layouts/NetworkLayout';
 import { Button, Stack, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
-import { parseMetadata } from '@pages/PortalPoolPage/hooks';
+import { parsePoolMetadata } from '@subsquid/common';
 import { Link, Outlet, Link as RouterLink } from 'react-router-dom';
 import { useAccount, useReadContract, useReadContracts } from 'wagmi';
 
@@ -86,7 +86,7 @@ export function MyPortals() {
 
         return {
           address: portalAddress,
-          name: parseMetadata(portalInfo.metadata).name || portalAddress,
+          name: parsePoolMetadata(portalInfo.metadata).name || portalAddress,
         };
       })
       .filter((portal): portal is NonNullable<typeof portal> => portal !== null);

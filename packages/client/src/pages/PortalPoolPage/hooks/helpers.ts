@@ -13,15 +13,3 @@ export function getPhase(state?: number, inDebt?: boolean): PoolPhase {
   }
   return 'unknown';
 }
-
-export function parseMetadata(value?: string): {
-  name?: string;
-  description?: string;
-  website?: string;
-} {
-  try {
-    return value ? JSON.parse(value) : {};
-  } catch (error) {
-    return {};
-  }
-}

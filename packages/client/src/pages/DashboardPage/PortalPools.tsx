@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 
 import { dateFormat } from '@i18n';
 import { Chip, Stack, TableBody, TableCell, TableHead, TableRow, Tooltip } from '@mui/material';
+import { ThirdPartyPoolChip } from '@pages/PortalPoolPage/components/ThirdPartyPool';
 import {
   getPhaseColor,
   getPhaseLabel,
@@ -62,6 +63,7 @@ function PoolRow({ pool, sqdPrice }: { pool: PortalPool; sqdPrice?: number }) {
           title={
             <Stack direction="row" alignItems="center" spacing={0.75}>
               <span>{pool.name ?? addressFormatter(pool.id, true)}</span>
+              <ThirdPartyPoolChip poolId={pool.id} />
               {pool.whitelistEnabled && (
                 <Chip label="Whitelist" size="small" variant="outlined" color="secondary" />
               )}
