@@ -97,6 +97,7 @@ export const Worker = ({ backPath: _backPath }: { backPath: string }) => {
               worker={worker}
               variant="outlined"
               sources={sources}
+              delegations={delegations?.map(d => ({ id: d.owner.id, balance: d.deposit }))}
               disabled={isLoading}
             />
             <WorkerUndelegate
