@@ -6,7 +6,11 @@ import { Box, Button, SxProps, Tooltip } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { useAccount, useClient } from 'wagmi';
 
-import { useReadRouterWorkerRegistration, workerRegistryAbi } from '@api/contracts';
+import {
+  useReadRouterWorkerRegistration,
+  useReadWorkerRegistryLockPeriod,
+  workerRegistryAbi,
+} from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import { AccountType, SourceWallet, Worker } from '@api/subsquid-network-squid';
 import { trpc } from '@api/trpc';
@@ -29,7 +33,9 @@ export function WorkerWithdrawButton({
   sx,
 }: {
   sx?: SxProps;
-  worker: Pick<Worker, 'id' | 'status' | 'peerId'>;
+  worker: Pick<Worker, 'id' | 'status' | 'peerId'> & {
+    statusHistory?: { blockNumber: number }[];
+  };
   source: SourceWallet & {
     locked: boolean;
     lockEnd?: number | null;
@@ -41,22 +47,45 @@ export function WorkerWithdrawButton({
   const { data: currentEpoch } = useQuery(
     trpc.network.currentEpoch.queryOptions(undefined, { refetchInterval: 12_000 }),
   );
+
+  const contracts = useContracts();
+  const { data: registrationAddress } = useReadRouterWorkerRegistration({
+    address: contracts.ROUTER,
+  });
+  const { data: lockPeriod } = useReadWorkerRegistryLockPeriod({
+    address: registrationAddress,
+  });
+
+  // The indexer fixes lockEnd at deregistration, while the contract checks
+  // deregisteredAt + the current lockPeriod(), which can be changed afterwards.
+  const lockEnd = useMemo(() => {
+    const history = worker.statusHistory;
+    const deregisteredAt = history?.length ? history[history.length - 1].blockNumber : undefined;
+    if (lockPeriod === undefined || deregisteredAt === undefined) return source.lockEnd;
+
+    return deregisteredAt + Number(lockPeriod);
+  }, [worker.statusHistory, lockPeriod, source.lockEnd]);
+
+  const locked = useMemo(() => {
+    if (!currentEpoch || !lockEnd) return source.locked;
+
+    return lockEnd > currentEpoch.lastBlockL1;
+  }, [currentEpoch, lockEnd, source.locked]);
+
   const unlockTimestamp = useMemo(() => {
-    if (!currentEpoch || !source.lockEnd) return;
+    if (!currentEpoch || !lockEnd) return;
 
     return (
-      (source.lockEnd - currentEpoch.lastBlockL1 + 1) * currentEpoch.blockTimeL1 +
+      (lockEnd - currentEpoch.lastBlockL1 + 1) * currentEpoch.blockTimeL1 +
       new Date(currentEpoch.lastBlockTimestampL1).getTime()
     );
-  }, [currentEpoch, source.lockEnd]);
+  }, [currentEpoch, lockEnd]);
 
   return (
     <>
       <Tooltip
         title={
-          !disabled &&
-          source.locked &&
-          unlockTimestamp && <UnlocksTooltip timestamp={unlockTimestamp} />
+          !disabled && locked && unlockTimestamp && <UnlocksTooltip timestamp={unlockTimestamp} />
         }
         placement="top"
       >
@@ -66,10 +95,10 @@ export function WorkerWithdrawButton({
             onClick={() => setOpen(true)}
             variant="outlined"
             color="error"
-            disabled={disabled || source.locked}
+            disabled={disabled || locked}
           >
             WITHDRAW
-            {source.locked && !disabled && (
+            {locked && !disabled && (
               <Lock
                 fontSize="small"
                 sx={{
