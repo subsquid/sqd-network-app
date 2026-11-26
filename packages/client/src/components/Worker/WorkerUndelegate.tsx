@@ -27,6 +27,7 @@ import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
 import { percentFormatter } from '@lib/formatters/formatters';
 import { fromSqd, toSqd } from '@lib/network';
 
+import { l1BlockToTimestamp } from './delegationLock';
 import { EXPECTED_APR_TIP, useExpectedAprAfterDelegation } from './WorkerDelegate';
 
 function UnlocksTooltip({ timestamp }: { timestamp: number }) {
@@ -84,10 +85,7 @@ export function WorkerUndelegate({
     );
     if (!lockEnd) return;
 
-    return (
-      (lockEnd - currentEpoch.lastBlockL1 + 1) * currentEpoch.blockTimeL1 +
-      new Date(currentEpoch.lastBlockTimestampL1).getTime()
-    );
+    return l1BlockToTimestamp(lockEnd, currentEpoch);
   }, [currentEpoch, sources]);
 
   return (

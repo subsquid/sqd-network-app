@@ -33,11 +33,7 @@ import { percentFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, toSqd } from '@lib/network/utils';
 
 import { parseDelegationAmount } from './delegationAmount';
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-// Ethereum's slot time. The indexer's own L1 block time estimate runs about 10% high, which
-// would put a six-month unlock date three weeks late.
-const L1_BLOCK_TIME_MS = 12_000;
+import { DAY_MS, L1_BLOCK_TIME_MS, nextDelegationLockEnd } from './delegationLock';
 
 export const EXPECTED_APR_TIP = (
   <span>
@@ -61,26 +57,6 @@ export const delegateSchema = yup.object({
 
 /** An account that already holds a delegation on the worker, with the delegated amount. */
 export type DelegationHolder = { id: string; balance: string };
-
-/**
- * The unlock block `Staking.deposit` would write right now: the start of the next worker epoch
- * plus the lock period. The contract writes it on every deposit, whatever the amount, and it
- * covers the delegator's whole stake on that worker.
- */
-export function nextDelegationLockEnd({
-  lastBlockL1,
-  workerEpochLength,
-  lockPeriod,
-}: {
-  lastBlockL1: number;
-  workerEpochLength: number;
-  lockPeriod: number;
-}) {
-  const nextEpochStart =
-    Math.floor(lastBlockL1 / workerEpochLength) * workerEpochLength + workerEpochLength;
-
-  return nextEpochStart + lockPeriod;
-}
 
 export function WorkerDelegate({
   sources,

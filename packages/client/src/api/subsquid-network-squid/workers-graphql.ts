@@ -8,6 +8,7 @@ import { useAccount } from 'wagmi';
 import { trpc } from '@api/trpc';
 import { type RouterOutput } from '@api/types';
 import { getWorkerStatus } from '@components/Worker';
+import { earliestUnlockBlock } from '@components/Worker/delegationLock';
 
 import { useNetworkSettings } from './settings-graphql';
 
@@ -17,6 +18,8 @@ export type WorkerExtended = WorkerWithCapacity & {
   myDelegation: string;
   myTotalDelegationReward: string;
   totalReward: string;
+  /** L1 block at which the user's delegation on this worker unlocks; 0 when it already has. */
+  myDelegationUnlockBlock?: number;
 };
 
 export enum WorkerSortBy {
@@ -29,6 +32,7 @@ export enum WorkerSortBy {
   DelegationCapacity = 'delegation_capacity',
   MyDelegation = 'my_delegation',
   MyDelegationReward = 'my_delegation_reward',
+  MyDelegationUnlock = 'my_delegation_unlock',
   Name = 'name',
   Version = 'version',
 }
@@ -75,6 +79,10 @@ const createSortFunction = <T extends PartialDeep<WorkerExtended, { recurseIntoA
           BigInt(a.myTotalDelegationReward ?? -1) > BigInt(b.myTotalDelegationReward ?? -1)
             ? 1
             : -1;
+        break;
+      case WorkerSortBy.MyDelegationUnlock:
+        // Ties keep the incoming order (worker id), so the list does not jump between renders.
+        result = (a.myDelegationUnlockBlock ?? 0) - (b.myDelegationUnlockBlock ?? 0);
         break;
       case WorkerSortBy.Version:
         result = a.version ? (b.version ? compareSemver(a.version, b.version) : 1) : -1;
@@ -247,7 +255,15 @@ export function useMyDelegations({ sortBy, sortDir }: MyWorkersParams) {
   );
 
   const data = useMemo(
-    () => sortWorkers(rawDelegations || [], sortBy, sortDir),
+    () =>
+      sortWorkers(
+        (rawDelegations || []).map(w => ({
+          ...w,
+          myDelegationUnlockBlock: earliestUnlockBlock(w.delegations),
+        })),
+        sortBy,
+        sortDir,
+      ),
     [rawDelegations, sortBy, sortDir],
   );
 
