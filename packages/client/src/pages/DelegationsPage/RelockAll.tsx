@@ -56,7 +56,10 @@ import { fromSqd } from '@lib/network';
 const BUNDLE_SIZE = 100;
 // Wallets may cap how many calls a bundle can hold. If one refuses the size above, this is tried.
 const SMALL_BUNDLE_SIZE = 10;
-const BATCH_TOO_LARGE = /\b5740\b|batch size|too many calls|too large|exceeds? .*limit/i;
+const BATCH_TOO_LARGE =
+  /BundleTooLarge|\b5740\b|batch size|too many calls|max(imum)? (number of )?calls|too large/i;
+// The user said no to the account upgrade a wallet needs before it can bundle (EIP-5792 5750).
+const UPGRADE_DECLINED = /AtomicReadyWalletRejectedUpgrade|rejected the upgrade|\b5750\b/i;
 // How many delegations are checked against the chain at once before anything is sent.
 const PREFLIGHT_CONCURRENCY = 10;
 
@@ -563,17 +566,27 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
               forceAtomic: true,
             }));
           } catch (e) {
-            // The wallet did not take the bundle, so nothing went out.
+            // The wallet did not take this bundle, so nothing in it went out.
             mark(batch, undefined);
-            if (isUserRejection(e) || WALLET_LOCKED.test(errorText(e))) throw e;
+            const text = errorText(e);
+            if (UPGRADE_DECLINED.test(text)) {
+              ui(() => setOneByOne(true));
+              throw new RunStopped(
+                'You declined the account upgrade your wallet needs before it can bundle. This bundle was not sent. Retrying sends separate transactions instead.',
+              );
+            }
+            if (isUserRejection(e) || WALLET_LOCKED.test(text)) throw e;
             assertSameWallet();
-            if (BATCH_TOO_LARGE.test(errorText(e)) && size > SMALL_BUNDLE_SIZE) {
+            if (BATCH_TOO_LARGE.test(text) && size > SMALL_BUNDLE_SIZE) {
               size = SMALL_BUNDLE_SIZE;
               continue;
             }
+            // A network, funds or connection problem says nothing about bundling: stop, and let
+            // the next attempt bundle again.
+            if (SYSTEMIC.test(text)) throw e;
             ui(() => setBundleFailed(true));
             throw new RunStopped(
-              `Your wallet could not send these as one transaction (${shortReason(e)}). Nothing was sent. Retrying sends them one by one.`,
+              `Your wallet could not send these as one transaction (${shortReason(e)}). This bundle was not sent. Retrying sends them one by one.`,
             );
           }
           // From here this batch is with the wallet or the chain, and is not sent again.
@@ -828,13 +841,16 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
           {phase !== 'running' && !isCapabilitiesLoading && remaining.length > 0 && (
             <>
               <Typography variant="body2" color="text.secondary">
-                {canBundle && !bundleFailed && !oneByOne
-                  ? remaining.length > SMALL_BUNDLE_SIZE
-                    ? 'Your wallet can bundle these, so there are only a few transactions to confirm.'
-                    : 'Your wallet can bundle these into one transaction to confirm.'
-                  : `Your wallet will ask you to confirm ${remaining.length} transaction${remaining.length === 1 ? '' : 's'}, one per delegation.`}
+                {oneByOne || bundleFailed || (capabilities && !canBundle)
+                  ? `Your wallet will ask you to confirm ${remaining.length} transaction${remaining.length === 1 ? '' : 's'}, one per delegation.`
+                  : !capabilities
+                    ? 'If your wallet can bundle these, there will be fewer transactions to confirm.'
+                    : remaining.length > SMALL_BUNDLE_SIZE
+                      ? 'Your wallet can bundle these, so there are only a few transactions to confirm.'
+                      : 'Your wallet can bundle these into one transaction to confirm.'}
               </Typography>
-              {canBundle && !bundleFailed && (
+              {/* Offered unless the wallet has said it cannot bundle anyway. */}
+              {!bundleFailed && (canBundle || !capabilities) && (
                 <Stack direction="row" alignItems="center">
                   <Checkbox
                     size="small"
