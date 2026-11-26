@@ -18,6 +18,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   estimateGas,
   getAccount,
+  getBlockNumber,
   getCapabilities,
   readContracts,
   sendCalls,
@@ -76,8 +77,6 @@ type RelockItem = {
   ownerId: Address;
   ownerType: AccountType;
   deposit: string;
-  locked: boolean;
-  lockEnd?: number | null;
   /** Why this delegation cannot be re-locked, if it cannot. */
   blocked?: string;
 };
@@ -90,19 +89,40 @@ type Call = { to: Address; data: Hex };
 class RunStopped extends Error {}
 
 const WALLET_LOCKED = /controller is locked|wallet is locked/i;
+// Problems that would hit every delegation the same way: the run stops instead of repeating them.
+const SYSTEMIC =
+  /ChainMismatch|ConnectorAccountNotFound|ConnectorChainMismatch|ProviderDisconnected|InsufficientFunds|insufficient funds|HttpRequestError|TimeoutError|fetch failed|Failed to fetch|rate limit|\b429\b/i;
+const REVERTED = /ExecutionReverted|ContractFunctionReverted|execution reverted|reverted/i;
+
+function errorText(e: unknown): string {
+  const parts: string[] = [];
+  let current: unknown = e;
+  for (let depth = 0; current && depth < 6; depth++) {
+    const err = current as {
+      name?: string;
+      shortMessage?: string;
+      message?: string;
+      cause?: unknown;
+    };
+    parts.push(err.name || '', err.shortMessage || '', err.message || '');
+    current = err.cause;
+  }
+
+  return parts.join(' ') || String(e);
+}
 
 function describeError(e: unknown): string {
   if (e instanceof RunStopped) return e.message;
   if (isUserRejection(e)) return 'Stopped: the request was rejected in the wallet.';
 
-  const message =
-    (e as { shortMessage?: string })?.shortMessage || (e instanceof Error ? e.message : String(e));
   // MetaMask reports a locked extension as an internal error with this text.
-  if (WALLET_LOCKED.test(message) || WALLET_LOCKED.test(String(e))) {
+  if (WALLET_LOCKED.test(errorText(e))) {
     return 'Your wallet is locked. Unlock it, then continue. Nothing was sent.';
   }
 
-  return message;
+  return (
+    (e as { shortMessage?: string })?.shortMessage || (e instanceof Error ? e.message : String(e))
+  );
 }
 
 function shortReason(e: unknown): string {
@@ -163,6 +183,7 @@ export function RelockAllButton({
   disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const close = useCallback(() => setOpen(false), []);
 
   const hasDelegations = !!workers?.some(w =>
     w.delegations.some(d => BigInt(d.deposit || '0') > 0n),
@@ -179,7 +200,7 @@ export function RelockAllButton({
       >
         RE-LOCK ALL
       </Button>
-      {open && <RelockAllDialog workers={workers || []} onClose={() => setOpen(false)} />}
+      {open && <RelockAllDialog workers={workers || []} onClose={close} />}
     </>
   );
 }
@@ -256,13 +277,73 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
           ownerId: d.owner.id as Address,
           ownerType: d.owner.type,
           deposit: d.deposit,
-          locked: !!d.locked,
-          lockEnd: d.lockEnd,
-          // Staking.deposit reverts for a worker that is not active.
-          blocked: w.status === WorkerStatus.Active ? undefined : 'worker not active',
+          blocked:
+            // Staking.deposit reverts for a worker that is not active.
+            w.status !== WorkerStatus.Active
+              ? 'worker not active'
+              : // A wallet-held delegation can only be re-locked by that wallet.
+                d.owner.type === AccountType.User && !sameAddress(d.owner.id, address)
+                ? 'held by another account'
+                : undefined,
         })),
     ),
   );
+
+  // Each delegation's unlock block, read from the chain when the dialog opens. Whether a
+  // delegation is locked, and later whether it has been re-locked, is only ever decided against
+  // the chain: the indexer's value can be out of date.
+  const [baseline, setBaseline] = useState<Record<string, number>>();
+  const [baselineFailed, setBaselineFailed] = useState(false);
+  useEffect(() => {
+    if (!stakingAddress || baseline || baselineFailed) return;
+
+    let cancelled = false;
+    const list = items.filter(i => !i.blocked);
+    readContracts(config, {
+      allowFailure: true,
+      contracts: list.map(i => ({
+        abi: stakingAbi,
+        address: stakingAddress,
+        functionName: 'getDeposit' as const,
+        args: [i.ownerId, BigInt(i.workerId)] as const,
+        chainId: appChain.id,
+      })),
+    })
+      .then(results => {
+        if (cancelled) return;
+
+        const next: Record<string, number> = {};
+        list.forEach((item, n) => {
+          const result = results[n]?.result as readonly [bigint, bigint] | undefined;
+          if (result) next[item.key] = Number(result[1]);
+        });
+        setBaseline(next);
+      })
+      .catch(() => {
+        if (!cancelled) setBaselineFailed(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [stakingAddress, baseline, baselineFailed, items, config, appChain.id]);
+
+  // Which rows start ticked is decided once, so the selection does not change under the user
+  // when the epoch rolls over. A delegation already locked until the new date gains nothing
+  // from another re-lock and starts unticked.
+  const [defaults, setDefaults] = useState<Record<string, boolean>>();
+  useEffect(() => {
+    if (defaults || !baseline || !newLock) return;
+
+    setDefaults(
+      Object.fromEntries(
+        items.map(i => [
+          i.key,
+          !i.blocked && baseline[i.key] !== undefined && baseline[i.key] < newLock.lockEnd,
+        ]),
+      ),
+    );
+  }, [defaults, baseline, newLock, items]);
 
   const [ticks, setTicks] = useState<Record<string, boolean>>({});
   const [phase, setPhase] = useState<Phase>('select');
@@ -276,7 +357,9 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
   const mounted = useRef(true);
   useEffect(
     () => () => {
+      // Leaving the page must not leave a run sending transactions with no dialog on screen.
       mounted.current = false;
+      stopRequested.current = true;
     },
     [],
   );
@@ -287,18 +370,17 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
 
     stopRequested.current = true;
     if (phase === 'running') setStopping(true);
-    else onClose();
+    else if (phase === 'select') onClose();
   }, [accountChanged, phase, onClose]);
 
-  // A delegation already locked until the new date gains nothing from another re-lock.
-  const isAtNewDate = useCallback(
-    (item: RelockItem) =>
-      !!newLock && item.locked && !!item.lockEnd && item.lockEnd >= newLock.lockEnd,
-    [newLock],
+  // A row without a chain reading cannot be judged, so it cannot be selected either.
+  const canSelect = useCallback(
+    (item: RelockItem) => !item.blocked && baseline?.[item.key] !== undefined,
+    [baseline],
   );
   const isTicked = useCallback(
-    (item: RelockItem) => !item.blocked && (ticks[item.key] ?? !isAtNewDate(item)),
-    [ticks, isAtNewDate],
+    (item: RelockItem) => canSelect(item) && (ticks[item.key] ?? defaults?.[item.key] ?? false),
+    [canSelect, ticks, defaults],
   );
 
   const chosen = useMemo(() => items.filter(isTicked), [items, isTicked]);
@@ -310,7 +392,7 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
   const chosenTotal = chosen.reduce((sum, i) => sum + BigInt(i.deposit), 0n);
 
   const run = useCallback(async () => {
-    if (!stakingAddress || !account || !remaining.length) return;
+    if (!stakingAddress || !account || !baseline || !remaining.length) return;
 
     const staking = stakingAddress;
     const queue = remaining;
@@ -325,6 +407,7 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
     const sawBlock = (block: bigint) => {
       if (lastBlock === undefined || block > lastBlock) lastBlock = block;
     };
+    const halted = () => stopRequested.current || !mounted.current;
     const ui = (fn: () => void) => {
       if (mounted.current) fn();
     };
@@ -363,8 +446,8 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
       }
     };
 
-    // The chain is the source of truth for what is done: a delegation whose unlock block moved
-    // past the one it had when the dialog opened has been re-locked. Returns what is still to do.
+    // A delegation has been re-locked once its unlock block on chain is later than it was when
+    // the dialog opened: only a deposit from its own account can move it. Returns what is left.
     const reconcile = async (list: RelockItem[]) => {
       if (!list.length) return list;
 
@@ -384,7 +467,8 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
       const left: RelockItem[] = [];
       list.forEach((item, n) => {
         const result = results[n]?.result as readonly [bigint, bigint] | undefined;
-        if (result && Number(result[1]) > (item.lockEnd ?? 0)) done.push(item);
+        const before = baseline[item.key];
+        if (result && before !== undefined && Number(result[1]) > before) done.push(item);
         else left.push(item);
       });
       if (done.length) mark(done, 'confirmed');
@@ -413,11 +497,22 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
       // Find the ones that would fail before the wallet is asked to sign anything.
       const passing: RelockItem[] = [];
       for (const batch of chunk(todo, PREFLIGHT_CONCURRENCY)) {
+        if (halted()) break;
+
         const checks = await Promise.all(
           batch.map(item =>
             estimateGas(config, { account, chainId: appChain.id, ...buildCall(item, staking) })
               .then(() => undefined)
-              .catch((e: unknown) => shortReason(e)),
+              .catch((e: unknown) => {
+                // Only a revert says something about this delegation. A network or wallet
+                // problem would be the same for all of them.
+                if (REVERTED.test(errorText(e)) && !SYSTEMIC.test(errorText(e))) {
+                  return shortReason(e);
+                }
+                throw new RunStopped(
+                  `Could not check your delegations against the chain, so nothing was sent (${shortReason(e)}). Try again in a moment.`,
+                );
+              }),
           ),
         );
         batch.forEach((item, n) => {
@@ -430,12 +525,9 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
 
       // Ask the wallet what it supports now that it is unlocked.
       let bundle = false;
-      if (!bundleFailed && todo.length) {
-        const status = await getCapabilities(config, { account })
-          .then(
-            c =>
-              (c as Record<number, { atomic?: { status?: string } }>)[appChain.id]?.atomic?.status,
-          )
+      if (!bundleFailed && todo.length && !halted()) {
+        const status = await getCapabilities(config, { account, chainId: appChain.id })
+          .then(c => (c as { atomic?: { status?: string } } | undefined)?.atomic?.status)
           .catch(() => undefined);
         bundle = status === 'supported' || status === 'ready';
         refetchCapabilities();
@@ -443,7 +535,7 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
 
       if (bundle) {
         for (const batch of chunk(todo, BUNDLE_SIZE)) {
-          if (stopRequested.current) break;
+          if (halted()) break;
           assertSameWallet();
 
           mark(batch, 'waiting');
@@ -461,9 +553,28 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
           });
 
           ui(() => setNotice('Waiting for the transaction to be confirmed…'));
-          const result = await waitForCallsStatus(config, { id, timeout: 180_000 }).catch(
+          // Some wallets are slow to report a batch, or never do. The chain is watched at the
+          // same time, and whichever answers first settles it.
+          let settled = false;
+          const viaWallet = waitForCallsStatus(config, { id, timeout: 180_000 }).catch(
             () => undefined,
           );
+          const viaChain = (async () => {
+            while (!settled) {
+              await new Promise(resolve => setTimeout(resolve, 3_000));
+              if (settled) return undefined;
+              if (!(await reconcile(batch)).length) return 'on-chain' as const;
+            }
+            return undefined;
+          })();
+          const result = await Promise.race([viaWallet, viaChain]);
+          settled = true;
+
+          if (result === 'on-chain') {
+            // reconcile() has marked the rows; the indexer only needs to reach the current block.
+            sawBlock(await getBlockNumber(config, { chainId: appChain.id }).catch(() => 0n));
+            continue;
+          }
           if (result?.status === 'success') {
             mark(batch, 'confirmed');
             for (const receipt of result.receipts || []) sawBlock(receipt.blockNumber);
@@ -489,38 +600,48 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
       } else {
         let n = 0;
         for (const item of todo) {
-          if (stopRequested.current) break;
+          if (halted()) break;
           assertSameWallet();
 
           n++;
           mark([item], 'waiting');
           ui(() => setNotice(`Confirm in your wallet: delegation ${n} of ${todo.length}.`));
+
+          let hash: Hex;
           try {
-            const hash = await sendTransaction(config, {
+            hash = await sendTransaction(config, {
               account,
               chainId: appChain.id,
               ...buildCall(item, staking),
             });
-            const receipt = await waitForTransactionReceipt(config, {
-              hash,
-              chainId: appChain.id,
-            });
-            if (receipt.status === 'reverted') {
-              mark([item], 'failed', 'transaction reverted');
-              continue;
-            }
-            mark([item], 'confirmed');
-            sawBlock(receipt.blockNumber);
           } catch (e) {
-            // A rejection, a locked wallet or a changed account ends the run. Any other failure
-            // is noted on its row and the run carries on with the rest.
-            if (isUserRejection(e) || WALLET_LOCKED.test(String(e))) {
-              mark([item], undefined);
-              throw e;
-            }
+            // Nothing went out for this row. A rejection, a locked wallet, a changed account or
+            // a problem that would hit every row ends the run; anything else is noted on the
+            // row and the run carries on.
+            mark([item], undefined);
+            if (isUserRejection(e) || WALLET_LOCKED.test(errorText(e))) throw e;
             assertSameWallet();
+            if (SYSTEMIC.test(errorText(e))) throw e;
             mark([item], 'failed', shortReason(e));
+            continue;
           }
+
+          // From here the transaction is out. If its receipt cannot be read, the row is
+          // unknown, not failed: the next attempt asks the chain before sending anything.
+          const receipt = await waitForTransactionReceipt(config, {
+            hash,
+            chainId: appChain.id,
+          }).catch(() => undefined);
+          if (!receipt) {
+            mark([item], 'unknown');
+            continue;
+          }
+          if (receipt.status === 'reverted') {
+            mark([item], 'failed', 'transaction reverted');
+            continue;
+          }
+          mark([item], 'confirmed');
+          sawBlock(receipt.blockNumber);
         }
       }
     } catch (e) {
@@ -532,7 +653,7 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
         setError(describeError(e));
       });
     } finally {
-      if (lastBlock !== undefined) setWaitHeight(lastBlock, []);
+      if (lastBlock) setWaitHeight(lastBlock, []);
       ui(() => {
         setNotice(undefined);
         setStopping(false);
@@ -542,6 +663,7 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
   }, [
     stakingAddress,
     account,
+    baseline,
     remaining,
     config,
     connector,
@@ -552,8 +674,15 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
     refetchCapabilities,
   ]);
 
-  const isReady = !!stakingAddress && !!newLock && !isCapabilitiesLoading && !wrongChain;
+  const isReady =
+    !!stakingAddress &&
+    !!newLock &&
+    !!defaults &&
+    !isCapabilitiesLoading &&
+    !wrongChain &&
+    !accountChanged;
   const failedCount = remaining.filter(i => states[i.key] === 'failed').length;
+  const lastBlockL1 = currentEpoch?.lastBlockL1;
 
   const confirmButtonText =
     phase === 'running'
@@ -599,6 +728,7 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
             <TableBody>
               {items.map(item => {
                 const state = states[item.key];
+                const lockEnd = baseline?.[item.key];
 
                 return (
                   <TableRow key={item.key}>
@@ -606,7 +736,7 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
                       <Checkbox
                         size="small"
                         checked={state === 'confirmed' || isTicked(item)}
-                        disabled={!!item.blocked || phase === 'running' || state === 'confirmed'}
+                        disabled={!canSelect(item) || phase === 'running' || state === 'confirmed'}
                         onChange={e =>
                           setTicks(prev => ({ ...prev, [item.key]: e.target.checked }))
                         }
@@ -630,13 +760,17 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
                               ? 'status unknown'
                               : state === 'failed'
                                 ? `not re-locked${notes[item.key] ? `: ${notes[item.key]}` : ''}`
-                                : !item.locked || !item.lockEnd
-                                  ? 'unlocked'
-                                  : isAtNewDate(item)
-                                    ? 'already locked until the new date'
-                                    : currentEpoch
-                                      ? `locked until ${dateFormat(l1BlockToTimestamp(item.lockEnd, currentEpoch), 'date')}`
-                                      : 'locked'}
+                                : !baseline
+                                  ? '…'
+                                  : lockEnd === undefined
+                                    ? 'could not be read from the chain'
+                                    : !currentEpoch || lastBlockL1 === undefined
+                                      ? '…'
+                                      : lockEnd <= lastBlockL1
+                                        ? 'unlocked'
+                                        : newLock && lockEnd >= newLock.lockEnd
+                                          ? 'already locked until the new date'
+                                          : `locked until ${dateFormat(l1BlockToTimestamp(lockEnd, currentEpoch), 'date')}`}
                     </TableCell>
                   </TableRow>
                 );
@@ -670,6 +804,18 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
           )}
         </Stack>
 
+        {baselineFailed && (
+          <Alert severity="error">
+            Your delegations could not be read from the chain, so nothing can be re-locked from here
+            right now. Close this dialog and try again.
+          </Alert>
+        )}
+        {accountChanged && phase !== 'select' && (
+          <Alert severity="info">
+            The wallet switched to another account. Close this dialog and open it again for that
+            account.
+          </Alert>
+        )}
         {wrongChain && phase !== 'running' && (
           <Alert severity="info">Switch your wallet to {appChain.name} to continue.</Alert>
         )}
