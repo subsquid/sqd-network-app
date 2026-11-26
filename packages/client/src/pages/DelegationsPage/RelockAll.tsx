@@ -54,6 +54,9 @@ import { fromSqd } from '@lib/network';
 
 // One wallet-bundled transaction carries at most this many re-locks (about 100k gas each).
 const BUNDLE_SIZE = 100;
+// Wallets may cap how many calls a bundle can hold. If one refuses the size above, this is tried.
+const SMALL_BUNDLE_SIZE = 10;
+const BATCH_TOO_LARGE = /\b5740\b|batch size|too many calls|too large|exceeds? .*limit/i;
 // How many delegations are checked against the chain at once before anything is sent.
 const PREFLIGHT_CONCURRENCY = 10;
 
@@ -353,6 +356,9 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
   const [notice, setNotice] = useState<string>();
   const [stopping, setStopping] = useState(false);
   const [bundleFailed, setBundleFailed] = useState(false);
+  // The user can always choose separate transactions, for example to avoid a wallet's prompt to
+  // upgrade the account before it will bundle.
+  const [oneByOne, setOneByOne] = useState(false);
   const stopRequested = useRef(false);
   const mounted = useRef(true);
   useEffect(
@@ -525,7 +531,7 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
 
       // Ask the wallet what it supports now that it is unlocked.
       let bundle = false;
-      if (!bundleFailed && todo.length && !halted()) {
+      if (!bundleFailed && !oneByOne && todo.length && !halted()) {
         const status = await getCapabilities(config, { account, chainId: appChain.id })
           .then(c => (c as { atomic?: { status?: string } } | undefined)?.atomic?.status)
           .catch(() => undefined);
@@ -534,10 +540,13 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
       }
 
       if (bundle) {
-        for (const batch of chunk(todo, BUNDLE_SIZE)) {
+        let size = BUNDLE_SIZE;
+        const pending = [...todo];
+        while (pending.length) {
           if (halted()) break;
           assertSameWallet();
 
+          const batch = pending.slice(0, size);
           mark(batch, 'waiting');
           ui(() =>
             setNotice(
@@ -545,12 +554,30 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
             ),
           );
           // forceAtomic: either every re-lock in the batch happens or none does.
-          const { id } = await sendCalls(config, {
-            account,
-            chainId: appChain.id,
-            calls: batch.map(i => buildCall(i, staking)),
-            forceAtomic: true,
-          });
+          let id: string;
+          try {
+            ({ id } = await sendCalls(config, {
+              account,
+              chainId: appChain.id,
+              calls: batch.map(i => buildCall(i, staking)),
+              forceAtomic: true,
+            }));
+          } catch (e) {
+            // The wallet did not take the bundle, so nothing went out.
+            mark(batch, undefined);
+            if (isUserRejection(e) || WALLET_LOCKED.test(errorText(e))) throw e;
+            assertSameWallet();
+            if (BATCH_TOO_LARGE.test(errorText(e)) && size > SMALL_BUNDLE_SIZE) {
+              size = SMALL_BUNDLE_SIZE;
+              continue;
+            }
+            ui(() => setBundleFailed(true));
+            throw new RunStopped(
+              `Your wallet could not send these as one transaction (${shortReason(e)}). Nothing was sent. Retrying sends them one by one.`,
+            );
+          }
+          // From here this batch is with the wallet or the chain, and is not sent again.
+          pending.splice(0, batch.length);
 
           ui(() => setNotice('Waiting for the transaction to be confirmed…'));
           // Some wallets are slow to report a batch, or never do. The chain is watched at the
@@ -674,6 +701,7 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
     appChain.id,
     appChain.name,
     bundleFailed,
+    oneByOne,
     setWaitHeight,
     refetchCapabilities,
   ]);
@@ -797,14 +825,28 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
               <Skeleton width={220} sx={{ display: 'inline-block' }} />
             )}
           </Typography>
-          {phase === 'select' && !isCapabilitiesLoading && chosen.length > 0 && (
-            <Typography variant="body2" color="text.secondary">
-              {canBundle
-                ? chosen.length > BUNDLE_SIZE
-                  ? `Your wallet can bundle these: ${Math.ceil(chosen.length / BUNDLE_SIZE)} transactions to confirm.`
-                  : 'Your wallet can bundle these into one transaction to confirm.'
-                : `Your wallet will ask you to confirm ${chosen.length} transaction${chosen.length === 1 ? '' : 's'}, one per delegation.`}
-            </Typography>
+          {phase !== 'running' && !isCapabilitiesLoading && remaining.length > 0 && (
+            <>
+              <Typography variant="body2" color="text.secondary">
+                {canBundle && !bundleFailed && !oneByOne
+                  ? remaining.length > SMALL_BUNDLE_SIZE
+                    ? 'Your wallet can bundle these, so there are only a few transactions to confirm.'
+                    : 'Your wallet can bundle these into one transaction to confirm.'
+                  : `Your wallet will ask you to confirm ${remaining.length} transaction${remaining.length === 1 ? '' : 's'}, one per delegation.`}
+              </Typography>
+              {canBundle && !bundleFailed && (
+                <Stack direction="row" alignItems="center">
+                  <Checkbox
+                    size="small"
+                    checked={oneByOne}
+                    onChange={e => setOneByOne(e.target.checked)}
+                  />
+                  <Typography variant="body2" color="text.secondary">
+                    Send as separate transactions instead
+                  </Typography>
+                </Stack>
+              )}
+            </>
           )}
         </Stack>
 
