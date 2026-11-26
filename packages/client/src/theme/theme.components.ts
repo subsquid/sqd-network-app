@@ -591,10 +591,17 @@ export const themeComponents: Components<Theme> = {
   },
   MuiCheckbox: {
     styleOverrides: {
-      root: {
+      root: ({ theme }) => ({
         padding: spacing * 1.25,
         transition: 'background-color 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-      },
+        color: theme.palette.text.secondary,
+        '&.Mui-checked': {
+          color: theme.palette.info.main,
+        },
+        '&.Mui-disabled': {
+          color: theme.palette.action.disabled,
+        },
+      }),
     },
   },
   MuiRadio: {
