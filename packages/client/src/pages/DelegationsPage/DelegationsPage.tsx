@@ -107,7 +107,14 @@ export function MyDelegations() {
                   </TableCell>
                   <InteractiveCell className="pinned">
                     <Stack direction="row" spacing={1} justifyContent="flex-end">
-                      <WorkerDelegate worker={worker} sources={sources} />
+                      <WorkerDelegate
+                        worker={worker}
+                        sources={sources}
+                        delegations={worker.delegations.map(d => ({
+                          id: d.owner.id,
+                          balance: d.deposit,
+                        }))}
+                      />
                       <WorkerUndelegate
                         worker={worker}
                         sources={worker.delegations.map(d => ({

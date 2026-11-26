@@ -1,13 +1,20 @@
 import { useCallback, useMemo, useState } from 'react';
 
-import { Button, Chip, Skeleton, Stack, Typography } from '@mui/material';
+import { dateFormat } from '@i18n';
+import { Alert, Button, Chip, Skeleton, Stack, Typography } from '@mui/material';
 import * as yup from '@schema';
 import { useQuery } from '@tanstack/react-query';
 import BigNumber from 'bignumber.js';
 import { useFormik } from 'formik';
 import { useDebounce } from 'use-debounce';
 
-import { stakingAbi, useReadRouterStaking } from '@api/contracts';
+import {
+  stakingAbi,
+  useReadNetworkControllerEpochLength,
+  useReadNetworkControllerWorkerEpochLength,
+  useReadRouterNetworkController,
+  useReadRouterStaking,
+} from '@api/contracts';
 import { useWriteSQDTransaction } from '@api/contracts/useWriteTransaction';
 import {
   AccountType,
@@ -22,8 +29,15 @@ import { HelpTooltip } from '@components/HelpTooltip';
 import { SourceWalletOption } from '@components/SourceWallet';
 import { useContracts } from '@hooks/network/useContracts';
 import { useSquidHeight } from '@hooks/useSquidNetworkHeightHooks';
-import { percentFormatter } from '@lib/formatters/formatters';
+import { percentFormatter, tokenFormatter } from '@lib/formatters/formatters';
 import { fromSqd, toSqd } from '@lib/network/utils';
+
+import { parseDelegationAmount } from './delegationAmount';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+// Ethereum's slot time. The indexer's own L1 block time estimate runs about 10% high, which
+// would put a six-month unlock date three weeks late.
+const L1_BLOCK_TIME_MS = 12_000;
 
 export const EXPECTED_APR_TIP = (
   <span>
@@ -38,22 +52,52 @@ export const delegateSchema = yup.object({
     .decimal()
     .label('Amount')
     .required()
-    .positive()
+    // 0 is allowed here; the form's validate() decides when a zero amount makes sense.
+    .min('0')
     .max(yup.ref('max'), 'Insufficient balance')
     .typeError('${path} is invalid'),
   max: yup.string().label('Max').required().typeError('${path} is invalid'),
 });
+
+/** An account that already holds a delegation on the worker, with the delegated amount. */
+export type DelegationHolder = { id: string; balance: string };
+
+/**
+ * The unlock block `Staking.deposit` would write right now: the start of the next worker epoch
+ * plus the lock period. The contract writes it on every deposit, whatever the amount, and it
+ * covers the delegator's whole stake on that worker.
+ */
+export function nextDelegationLockEnd({
+  lastBlockL1,
+  workerEpochLength,
+  lockPeriod,
+}: {
+  lastBlockL1: number;
+  workerEpochLength: number;
+  lockPeriod: number;
+}) {
+  const nextEpochStart =
+    Math.floor(lastBlockL1 / workerEpochLength) * workerEpochLength + workerEpochLength;
+
+  return nextEpochStart + lockPeriod;
+}
 
 export function WorkerDelegate({
   sources,
   worker,
   disabled,
   variant = 'outlined',
+  delegations,
 }: {
   sources?: SourceWalletWithBalance[];
   worker?: Pick<Worker, 'id' | 'status'>;
   variant?: 'outlined' | 'contained';
   disabled?: boolean;
+  /**
+   * The user's accounts that hold a delegation on this worker. Only these can send a 0 SQD
+   * delegation, which moves no tokens and restarts the lock on the existing delegation.
+   */
+  delegations?: DelegationHolder[];
 }) {
   const [open, setOpen] = useState(false);
 
@@ -73,6 +117,7 @@ export function WorkerDelegate({
         onClose={() => setOpen(false)}
         sources={sources}
         worker={worker}
+        delegations={delegations}
       />
     </>
   );
@@ -83,11 +128,13 @@ export function WorkerDelegateDialog({
   sources,
   worker,
   onClose,
+  delegations,
 }: {
   open: boolean;
   sources?: SourceWalletWithBalance[];
   worker?: Pick<Worker, 'id' | 'status'>;
   onClose: () => void;
+  delegations?: DelegationHolder[];
 }) {
   const contracts = useContracts();
   const { writeTransactionAsync, isPending } = useWriteSQDTransaction();
@@ -98,24 +145,52 @@ export function WorkerDelegateDialog({
     address: contracts.ROUTER,
   });
 
+  const delegationOf = useCallback(
+    (sourceId: string) =>
+      delegations?.find(
+        d => d.id.toLowerCase() === sourceId.toLowerCase() && BigInt(d.balance || '0') > 0n,
+      ),
+    [delegations],
+  );
+
+  // An account with nothing to delegate is still selectable when it holds a delegation on this
+  // worker, because it can send a 0 SQD delegation to restart the lock.
   const isSourceDisabled = useCallback(
-    (source: SourceWalletWithBalance) => source.balance === '0',
-    [],
+    (source: SourceWalletWithBalance) => source.balance === '0' && !delegationOf(source.id),
+    [delegationOf],
   );
 
   const initialValues = useMemo(() => {
-    const source = sources?.find(c => !isSourceDisabled(c)) || sources?.[0];
+    // Prefer an account that has SQD to delegate, as before; an empty account that only holds a
+    // delegation is a fallback.
+    const source =
+      sources?.find(c => c.balance !== '0') ||
+      sources?.find(c => !isSourceDisabled(c)) ||
+      sources?.[0];
 
     return {
       source: source?.id || '',
       amount: '',
-      max: fromSqd(source?.balance).toString(),
+      max: fromSqd(source?.balance).toFixed(),
     };
   }, [sources, isSourceDisabled]);
 
   const formik = useFormik({
     initialValues,
     validationSchema: delegateSchema,
+    validate: values => {
+      // The schema turns an empty or non-numeric field into 0, and 0 is now a real action, so
+      // the raw input is checked here.
+      const amount = parseDelegationAmount(values.amount);
+      if (amount.kind === 'empty') return { amount: 'Amount is required' };
+      if (amount.kind === 'invalid') return { amount: 'Amount is invalid' };
+      // Staking.deposit(worker, 0) only restarts the lock of an existing delegation. From an
+      // account without one it would succeed on-chain without re-locking any SQD.
+      if (amount.kind === 'zero' && !delegationOf(values.source)) {
+        return { amount: 'Amount must be a positive number' };
+      }
+      return {};
+    },
     validateOnChange: true,
     validateOnBlur: true,
     validateOnMount: true,
@@ -125,12 +200,18 @@ export function WorkerDelegateDialog({
       if (!stakingAddress) return;
       if (!worker) return;
 
-      const { amount, source: sourceId } = delegateSchema.cast(values);
+      const { source: sourceId } = delegateSchema.cast(values);
 
       const source = sources?.find(w => w?.id === sourceId);
       if (!source) return;
 
-      const sqdAmount = BigInt(toSqd(amount));
+      // Send exactly what was typed. validate() has already rejected these cases; they are
+      // checked again because a zero amount must never be sent by accident.
+      const amount = parseDelegationAmount(values.amount);
+      if (amount.kind === 'empty' || amount.kind === 'invalid') return;
+      if (amount.kind === 'zero' && !delegationOf(source.id)) return;
+
+      const sqdAmount = amount.kind === 'zero' ? 0n : amount.wei;
 
       const receipt = await writeTransactionAsync({
         abi: stakingAbi,
@@ -154,6 +235,53 @@ export function WorkerDelegateDialog({
     enabled: open && !!worker,
   });
 
+  // Staking.deposit rewrites the unlock block of the account's whole delegation on this worker,
+  // whatever the amount, so any delegation from an account that already has one restarts its lock.
+  const typedAmount = parseDelegationAmount(formik.values.amount);
+  const isZeroAmount = typedAmount.kind === 'zero';
+  const existingDelegation = delegationOf(formik.values.source);
+  const relockedDelegation =
+    typedAmount.kind === 'zero' || typedAmount.kind === 'positive' ? existingDelegation : undefined;
+
+  const { data: networkControllerAddress } = useReadRouterNetworkController({
+    address: contracts.ROUTER,
+    query: { enabled: !!relockedDelegation },
+  });
+  // NetworkController.epochLength() is the lock period in L1 blocks; workerEpochLength() is the
+  // length of one worker epoch.
+  const { data: lockPeriod } = useReadNetworkControllerEpochLength({
+    address: networkControllerAddress,
+    query: { enabled: !!relockedDelegation && !!networkControllerAddress },
+  });
+  const { data: workerEpochLength } = useReadNetworkControllerWorkerEpochLength({
+    address: networkControllerAddress,
+    query: { enabled: !!relockedDelegation && !!networkControllerAddress },
+  });
+  const { data: currentEpoch } = useQuery(
+    trpc.network.currentEpoch.queryOptions(undefined, {
+      refetchInterval: 12_000,
+      enabled: !!relockedDelegation,
+    }),
+  );
+  const newLock = useMemo(() => {
+    if (!currentEpoch || lockPeriod === undefined || !Number(workerEpochLength)) return;
+
+    const lockEnd = nextDelegationLockEnd({
+      lastBlockL1: currentEpoch.lastBlockL1,
+      workerEpochLength: Number(workerEpochLength),
+      lockPeriod: Number(lockPeriod),
+    });
+    const remaining = (lockEnd - currentEpoch.lastBlockL1) * L1_BLOCK_TIME_MS;
+
+    return {
+      unlock: new Date(currentEpoch.lastBlockTimestampL1).getTime() + remaining,
+      days: Math.round(remaining / DAY_MS),
+    };
+  }, [currentEpoch, lockPeriod, workerEpochLength]);
+  const newUnlockText = newLock
+    ? `around ${dateFormat(newLock.unlock, 'date')} (about ${newLock.days} days from now)`
+    : 'the end of a new lock period';
+
   const isLoading = isStakingAddressLoading || isExpectedAprPending;
 
   return (
@@ -166,7 +294,8 @@ export function WorkerDelegateDialog({
         formik.handleSubmit();
       }}
       loading={isPending}
-      disableConfirmButton={isLoading || !formik.isValid}
+      // A 0 SQD delegation is confirmed only once the new unlock date is on screen.
+      disableConfirmButton={isLoading || !formik.isValid || (isZeroAmount && !newLock)}
     >
       <Form onSubmit={formik.handleSubmit}>
         <FormRow>
@@ -187,8 +316,12 @@ export function WorkerDelegateDialog({
               const source = sources?.find(w => w?.id === e.target.value);
               if (!source) return;
 
-              formik.setFieldValue('source', source.id);
-              formik.setFieldValue('max', fromSqd(source.balance).toString());
+              // One update, so the amount is validated against the new source straight away.
+              formik.setValues({
+                ...formik.values,
+                source: source.id,
+                max: fromSqd(source.balance).toFixed(),
+              });
             }}
           />
         </FormRow>
@@ -204,7 +337,11 @@ export function WorkerDelegateDialog({
               endAdornment: (
                 <Chip
                   clickable
-                  disabled={formik.values.max === formik.values.amount}
+                  // "Max" of an empty account would fill in 0, which is the re-lock action.
+                  disabled={
+                    formik.values.max === formik.values.amount ||
+                    BigNumber(formik.values.max).isZero()
+                  }
                   onClick={() => {
                     formik.setValues({
                       ...formik.values,
@@ -217,6 +354,13 @@ export function WorkerDelegateDialog({
             }}
           />
         </FormRow>
+        {relockedDelegation && (
+          <Alert severity="warning" sx={{ mt: 1 }}>
+            {isZeroAmount
+              ? `A 0 ${contracts.SQD_TOKEN} delegation moves no tokens. It restarts the lock on your whole delegation on this worker (${tokenFormatter(fromSqd(relockedDelegation.balance), contracts.SQD_TOKEN)}): you will not be able to undelegate it until ${newUnlockText}. This cannot be undone.`
+              : `This account already has ${tokenFormatter(fromSqd(relockedDelegation.balance), contracts.SQD_TOKEN)} delegated to this worker. Adding to it restarts the lock on the whole delegation, including the new amount: you will not be able to undelegate any of it until ${newUnlockText}. This cannot be undone.`}
+          </Alert>
+        )}
         <FormDivider />
         <Stack direction="row" justifyContent="space-between" alignContent="center">
           <Typography variant="body2">
