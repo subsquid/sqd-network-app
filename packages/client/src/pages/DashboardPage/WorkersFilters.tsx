@@ -23,13 +23,6 @@ const STATUS_OPTIONS: WorkerStatusLabel[] = [
   'deregistered',
 ];
 
-const checkboxSx = {
-  color: 'text.secondary',
-  '&.Mui-checked': {
-    color: 'info.main',
-  },
-};
-
 const menuItemSx = { py: 0.5, minHeight: 'auto' };
 
 interface WorkersFiltersProps {
@@ -141,7 +134,7 @@ export function WorkersFilters({
           >
             {STATUS_OPTIONS.map(status => (
               <MenuItem key={status} value={status} sx={menuItemSx}>
-                <Checkbox checked={statusArray.indexOf(status) > -1} size="small" sx={checkboxSx} />
+                <Checkbox checked={statusArray.indexOf(status) > -1} size="small" />
                 <WorkerStatusChip status={status} />
               </MenuItem>
             ))}
