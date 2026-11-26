@@ -362,6 +362,9 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
   // The user can always choose separate transactions, for example to avoid a wallet's prompt to
   // upgrade the account before it will bundle.
   const [oneByOne, setOneByOne] = useState(false);
+  // Nothing is sent until the user has ticked that they understand the lock. Changing the
+  // selection clears it, so the tick always refers to the rows about to be re-locked.
+  const [acknowledged, setAcknowledged] = useState(false);
   const stopRequested = useRef(false);
   const mounted = useRef(true);
   useEffect(
@@ -749,7 +752,9 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
       cancelButtonText={phase === 'running' ? (stopping ? 'CLOSE' : 'STOP') : 'CANCEL'}
       confirmButtonText={confirmButtonText}
       disableBackdropClick
-      disableConfirmButton={phase !== 'running' && remaining.length > 0 && !isReady}
+      disableConfirmButton={
+        phase !== 'running' && remaining.length > 0 && (!isReady || !acknowledged)
+      }
       onResult={confirmed => {
         if (!confirmed) {
           // The first press asks the run to stop before the next transaction. If the wallet
@@ -763,6 +768,7 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
         }
         if (phase === 'running') return;
         if (!remaining.length) return onClose();
+        if (!acknowledged) return;
 
         run();
       }}
@@ -782,9 +788,10 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
                         size="small"
                         checked={state === 'confirmed' || isTicked(item)}
                         disabled={!canSelect(item) || phase === 'running' || state === 'confirmed'}
-                        onChange={e =>
-                          setTicks(prev => ({ ...prev, [item.key]: e.target.checked }))
-                        }
+                        onChange={e => {
+                          setTicks(prev => ({ ...prev, [item.key]: e.target.checked }));
+                          setAcknowledged(false);
+                        }}
                       />
                     </TableCell>
                     <TableCell>{item.workerName}</TableCell>
@@ -898,6 +905,23 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
             This locks every selected delegation in full: you will not be able to undelegate any of
             it until the new unlock date. No {SQD_TOKEN} leaves your accounts. This cannot be
             undone.
+            {remaining.length > 0 && (
+              <Stack direction="row" alignItems="center" sx={{ mt: 1, ml: -1 }}>
+                <Checkbox
+                  size="small"
+                  checked={acknowledged}
+                  disabled={phase === 'running'}
+                  onChange={e => setAcknowledged(e.target.checked)}
+                />
+                <Typography variant="body2">
+                  I understand that{' '}
+                  {remaining.length === 1
+                    ? 'this delegation'
+                    : `these ${remaining.length} delegations`}{' '}
+                  will be locked until the new unlock date and that this cannot be undone
+                </Typography>
+              </Stack>
+            )}
           </Alert>
         )}
       </Stack>
