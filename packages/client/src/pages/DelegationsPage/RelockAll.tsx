@@ -556,11 +556,15 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
           // Some wallets are slow to report a batch, or never do. The chain is watched at the
           // same time, and whichever answers first settles it.
           let settled = false;
-          const viaWallet = waitForCallsStatus(config, { id, timeout: 180_000 }).catch(
-            () => undefined,
+          const deadline = Date.now() + 180_000;
+          // The wallet only settles this when it reports a real status. If it cannot be asked
+          // at all, that says nothing about the transaction, and the chain decides.
+          const viaWallet = waitForCallsStatus(config, { id, timeout: 180_000 }).then(
+            status => status,
+            () => new Promise<undefined>(() => {}),
           );
           const viaChain = (async () => {
-            while (!settled) {
+            while (!settled && Date.now() < deadline) {
               await new Promise(resolve => setTimeout(resolve, 3_000));
               if (settled) return undefined;
               if (!(await reconcile(batch)).length) return 'on-chain' as const;
@@ -594,7 +598,7 @@ function RelockAllDialog({ workers, onClose }: { workers: RelockWorker[]; onClos
           }
           mark(left, 'unknown');
           throw new RunStopped(
-            'The wallet has not reported the result of the batch yet. Its delegations are marked "status unknown". Retrying checks the chain first, so nothing is sent twice.',
+            'The wallet has not reported the result of the batch yet. Its delegations are marked "status unknown". Retrying checks the chain first and only sends what has not visibly been re-locked.',
           );
         }
       } else {
